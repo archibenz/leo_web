@@ -63,7 +63,9 @@ def get_main_menu_keyboard():
         "История бренда 🦋",
         "Наш Instagram ✅",
         "Уход за одеждой 👗",
-        "Техподдержка 🛠"
+        "Техподдержка 🛠",
+        "Наш Telegram 📢",
+        "PANDORA❤️ TEAM"
     ]
     
     # Create a 2D array for keyboard layout (2 buttons per row)
@@ -239,11 +241,28 @@ async def send_instagram_link(message: Message):
         "https://www.instagram.com/nabi.industry/profilecard/?igsh=MzJrbWN6NWg2d213"
     )
 
+# Handler: support in development
 @router.message(F.text == "Техподдержка 🛠")
 async def support_in_development(message: Message):
     await message.answer(
         "Техподдержка пока что находится в разработке 🛠\n"
         "Если у вас возникли вопросы, напишите нам позже!"
+    )
+
+# New: send link to main Telegram channel
+@router.message(F.text == "Наш Telegram 📢")
+async def send_telegram_channel(message: Message):
+    await message.answer(
+        "Присоединяйся к нашему Telegram‑каналу REINASLEO 👉🏻\n"
+        "https://t.me/reinasleo_store"
+    )
+
+# New: send link to PANDORA TEAM gymnastics channel
+@router.message(F.text == "PANDORA❤️ TEAM")
+async def send_pandora_channel(message: Message):
+    await message.answer(
+        "Смотри тренировки по художественной гимнастике от PANDORA❤️ TEAM 👉🏻\n"
+        "https://t.me/pandora_team"
     )
 
 # Main function
