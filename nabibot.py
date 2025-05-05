@@ -111,8 +111,7 @@ async def process_contact(message: Message, state: FSMContext):
     if success:
         await state.clear()
         await message.answer(
-            "Благодарим вас. Контактные данные успешно получены.\n"
-            "Выберите интересующий вас раздел.",
+            "Благодарим. Контактные данные подтверждены. Выбирай в меню ниже интересующий раздел 👇🏻",
             reply_markup=get_main_menu_keyboard()
         )
     else:
@@ -135,8 +134,7 @@ async def process_phone_text(message: Message, state: FSMContext):
         if success:
             await state.clear()
             await message.answer(
-                "Благодарим вас. Контактные данные успешно получены.\n"
-                "Выберите интересующий вас раздел.",
+                "Благодарим. Контактные данные подтверждены. Выбирай в меню ниже интересующий раздел 👇🏻",
                 reply_markup=get_main_menu_keyboard()
             )
         else:
