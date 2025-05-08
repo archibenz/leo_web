@@ -94,7 +94,10 @@ async def cmd_start(message: Message, state: FSMContext):
         "Благодарим за покупку и прекрасный выбор. У тебя отличный вкус. В нашей одежде ты будешь чувствовать себя уверенной и успешной 🫶🏻\n\n"
         "Будем рады, если ты поделишься своими впечатлениями от покупки с другими девушками в отзывах ⭐️⭐️⭐️⭐️⭐️\n\n"
         "В благодарность мы дарим тебе онлайн тренировку от профессионального тренера по художественной гимнастике нашего клуба PANDORA❤️ TEAM\n\n"
-        "Чтобы убедиться, что ты реальная девчонка, а не бот, пожалуйста, подтверди свои контактные данные 💞",
+        "Чтобы убедиться, что ты реальная девчонка, а не бот, пожалуйста, подтверди свои контактные данные 💞\n\n"
+        "Нажимая на кнопку вы соглашаетесь:\n"
+        "- на обработку ваших данных: http://reinasleo.com/policy\n"
+        "- на получение материалов: http://reinasleo.com/soglasie",
         reply_markup=get_phone_keyboard()
     )
 
@@ -175,7 +178,7 @@ async def send_care_info(message: Message):
     try:
         # Check for PDF first
         pdf_path = os.path.join(MEDIA_PATH, "care.pdf")
-        if os.path.exists(pdf_path):
+        if (os.path.exists(pdf_path)):
             with open(pdf_path, "rb") as pdf:
                 await message.answer_document(
                     document=pdf,
