@@ -7,7 +7,7 @@ import gspread # type: ignore
 from oauth2client.service_account import ServiceAccountCredentials # type: ignore
 
 from aiogram import Bot, Dispatcher, F, Router # type: ignore
-from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup # type: ignore
+from aiogram.types import Message, KeyboardButton, ReplyKeyboardMarkup, ForceReply # type: ignore
 from aiogram.filters import CommandStart # type: ignore
 from aiogram.fsm.context import FSMContext # type: ignore
 from aiogram.fsm.state import State, StatesGroup # type: ignore
@@ -25,6 +25,10 @@ logger = logging.getLogger(__name__)
 # FSM States
 class RegistrationStates(StatesGroup):
     waiting_for_phone = State()
+
+# Support FSM States for feedback
+class SupportStates(StatesGroup):
+    waiting_for_feedback = State()
 
 # Google Sheets setup
 def setup_google_sheets():
@@ -65,7 +69,7 @@ def get_main_menu_keyboard():
         "Уход за одеждой 👗",
         "Техподдержка 🛠",
         "Наш Telegram 📢",
-        "PANDORA❤️ TEAM"
+        "PANDORA❤️TEAM"
     ]
     
     # Create a 2D array for keyboard layout (2 buttons per row)
@@ -89,15 +93,9 @@ router = Router()
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext):
     await state.set_state(RegistrationStates.waiting_for_phone)
+    # Request contact with explanatory message
     await message.answer(
-        "Привет! Команда бренда NABI.industry рада приветствовать тебя ❤️\n\n"
-        "Благодарим за покупку и прекрасный выбор. У тебя отличный вкус. В нашей одежде ты будешь чувствовать себя уверенной и успешной 🫶🏻\n\n"
-        "Будем рады, если ты поделишься своими впечатлениями от покупки с другими девушками в отзывах ⭐️⭐️⭐️⭐️⭐️\n\n"
-        "В благодарность мы дарим тебе онлайн тренировку от профессионального тренера по художественной гимнастике нашего клуба PANDORA❤️ TEAM\n\n"
-        "Чтобы убедиться, что ты реальная девчонка, а не бот, пожалуйста, подтверди свои контактные данные 💞\n\n"
-        "Нажимая на кнопку вы соглашаетесь:\n"
-        "- на обработку ваших данных: http://reinasleo.com/policy\n"
-        "- на получение материалов: http://reinasleo.com/soglasie",
+        "Чтобы забрать 🎁 подарок, пожалуйста, подтверди свои контактные данные, нажав кнопку ниже 💞",
         reply_markup=get_phone_keyboard()
     )
 
@@ -159,95 +157,33 @@ async def send_wb_link(message: Message):
     )
 
 @router.message(F.text == "Подарок 🎁")
-async def send_gift_video(message: Message):
-    try:
-        video_path = os.path.join(MEDIA_PATH, "gift.mp4")
-        with open(video_path, "rb") as video:
-            await message.answer_video(
-                video=video,
-                caption="Специально для вас — наш подарок."
-            )
-    except FileNotFoundError:
-        await message.answer("Извините, подарок временно недоступен.")
-    except Exception as e:
-        logger.error(f"Error sending video: {e}")
-        await message.answer("Извините, произошла ошибка при отправке подарка.")
+async def send_gift_link(message: Message):
+    await message.answer(
+        "Ваш подарок 🎁:\n"
+        "http://reinasleo.com/gift"
+    )
 
 @router.message(F.text == "Уход за одеждой 👗")
 async def send_care_info(message: Message):
-    try:
-        # Check for PDF first
-        pdf_path = os.path.join(MEDIA_PATH, "care.pdf")
-        if (os.path.exists(pdf_path)):
-            with open(pdf_path, "rb") as pdf:
-                await message.answer_document(
-                    document=pdf,
-                    caption="Рекомендации по уходу за нашими изделиями."
-                )
-            return
-            
-        # If no PDF, try photos
-        photo_found = False
-        for i in range(1, 10):
-            photo_path = os.path.join(MEDIA_PATH, f"care_{i}.jpg")
-            if os.path.exists(photo_path):
-                with open(photo_path, "rb") as photo:
-                    await message.answer_photo(
-                        photo=photo,
-                        caption=f"Рекомендации по уходу ({i}/?)." if i == 1 else None
-                    )
-                photo_found = True
-        
-        if not photo_found:
-            await message.answer("Информация по уходу за одеждой временно недоступна.")
-    except Exception as e:
-        logger.error(f"Error sending care info: {e}")
-        await message.answer("Извините, произошла ошибка при отправке информации.")
+    await message.answer("Уход за одеждой пока в разработке.")
 
 @router.message(F.text == "История бренда 🦋")
 async def send_brand_history(message: Message):
-    try:
-        # Check for PDF first
-        pdf_path = os.path.join(MEDIA_PATH, "history.pdf")
-        if os.path.exists(pdf_path):
-            with open(pdf_path, "rb") as pdf:
-                await message.answer_document(
-                    document=pdf,
-                    caption="История бренда NABI Industry."
-                )
-            return
-            
-        # If no PDF, try photos
-        photo_found = False
-        for i in range(1, 10):
-            photo_path = os.path.join(MEDIA_PATH, f"history_{i}.jpg")
-            if os.path.exists(photo_path):
-                with open(photo_path, "rb") as photo:
-                    await message.answer_photo(
-                        photo=photo,
-                        caption=f"История бренда NABI Industry ({i}/?)." if i == 1 else None
-                    )
-                photo_found = True
-        
-        if not photo_found:
-            await message.answer("История бренда временно недоступна.")
-    except Exception as e:
-        logger.error(f"Error sending brand history: {e}")
-        await message.answer("Извините, произошла ошибка при отправке информации.")
+    await message.answer("История бренда пока в разработке.")
 
 @router.message(F.text == "Наш Instagram ✅")
 async def send_instagram_link(message: Message):
     await message.answer(
-        "Подписывайся на нашу страничку в Instagram, чтобы всегда быть в курсе новинок! 👉🏻\n\n"
-        "https://www.instagram.com/nabi.industry/profilecard/?igsh=MzJrbWN6NWg2d213"
+        "Подписывайся на нашу страничку в Instagram, чтобы всегда быть в курсе новинок! 👉🏻\n"
+        "https://www.instagram.com/reinasleo"
     )
 
-# Handler: support in development
+# Handler: tech support with feedback FSM
 @router.message(F.text == "Техподдержка 🛠")
-async def support_in_development(message: Message):
+async def tech_support(message: Message, state: FSMContext):
+    await state.set_state(SupportStates.waiting_for_feedback)
     await message.answer(
-        "Техподдержка пока что находится в разработке 🛠\n"
-        "Если у вас возникли вопросы, напишите нам позже!"
+        "Напиши свои пожелания и предложения по улучшению товаров нашего магазина. Будем рады обратной связи от каждой из вас🌸"
     )
 
 # New: send link to main Telegram channel
@@ -258,18 +194,75 @@ async def send_telegram_channel(message: Message):
         "https://t.me/reinasleo_store"
     )
 
-# New: send link to PANDORA TEAM gymnastics channel
-@router.message(F.text == "PANDORA❤️ TEAM")
+@router.message(F.text == "PANDORA❤️TEAM")
 async def send_pandora_channel(message: Message):
     await message.answer(
-        "Смотри тренировки по художественной гимнастике от PANDORA❤️ TEAM 👉🏻\n"
+        "Присоединяйся к нашему Telegram-каналу по художественной гимнастике 👉🏻\n"
         "https://t.me/pandora_team"
     )
+
+@router.message(SupportStates.waiting_for_feedback)
+async def process_support_feedback(message: Message, state: FSMContext):
+    username = message.from_user.username or message.from_user.id
+    feedback = message.text
+    admin_ids = [1358870721, 1023066249, 206441957]
+    for admin in admin_ids:
+        try:
+            # Forward the original user message and capture it
+            fwd = await message.bot.forward_message(
+                chat_id=admin,
+                from_chat_id=message.chat.id,
+                message_id=message.message_id
+            )
+            # Send a prompt as a reply to the forwarded message, with ForceReply
+            await message.bot.send_message(
+                chat_id=admin,
+                text=f"Новое сообщение в техподдержке от @{username}:",
+                reply_markup=ForceReply(selective=False),
+                reply_to_message_id=fwd.message_id
+            )
+        except Exception as e:
+            logger.error(f"Error sending support message to {admin}: {e}")
+    await message.answer("Благодарим за обратную связь!")
+    await state.clear()
+
+# Handler for admin replies to forwarded support messages
+@router.message(F.reply_to_message != None, F.from_user.id.in_([1358870721, 1023066249, 206441957]))
+async def handle_admin_reply(message: Message):
+    orig_msg = message.reply_to_message
+    user_id = None
+    # Case 1: admin replied directly to the forwarded user message
+    if orig_msg and orig_msg.forward_from:
+        user_id = orig_msg.forward_from.id
+        uname = orig_msg.forward_from.username or user_id
+    # Case 2: admin replied to the prompt under the forwarded message
+    elif orig_msg and orig_msg.reply_to_message and orig_msg.reply_to_message.forward_from:
+        user_id = orig_msg.reply_to_message.forward_from.id
+        uname = orig_msg.reply_to_message.forward_from.username or user_id
+
+    if user_id:
+        await message.bot.send_message(
+            user_id,
+            f"Ответ от поддержки:\n{message.text}"
+        )
+        await message.answer(f"Ответ пользователю @{uname}")
+    else:
+        await message.answer("Не удалось определить пользователя для ответа.")
 
 # Main function
 async def main():
     # Bot and dispatcher initialization
     bot = Bot(token=BOT_TOKEN)
+    # Set bot description shown before /start
+    await bot.set_my_description(
+        "Команда NABI.industry рада приветствовать тебя ❤️\n\n"
+        "Благодарим за покупку! У тебя отличный вкус 🫶🏻\n"
+        "Будем рады положительному отзыву ⭐️⭐️⭐️⭐️⭐️\n\n"
+        "Здесь тебя ждет 🎁 ПОДАРОК — онлайн тренировка от клуба художественной гимнастики PANDORA❤️TEAM.\n\n"
+        "Нажимая «Старт», вы соглашаетесь:\n"
+        "- на обработку персональных данных: http://reinasleo.com/policy\n"
+        "- на получение материалов: http://reinasleo.com/soglasie"
+    )
     storage = MemoryStorage()
     dp = Dispatcher(storage=storage)
     dp.include_router(router)
