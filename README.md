@@ -1,4 +1,4 @@
-# Telegram бот NABI
+# Telegram бот ReinasLeo
 
 Упрощённая структура проекта для запуска и поддержки Telegram‑бота на aiogram 3.
 
@@ -9,7 +9,7 @@
 4. Запустите бота: `source venv/bin/activate && python main.py`.
 
 ## Структура проекта
-- `main.py` / `nabibot.py` — точки входа для запуска бота.
+- `main.py` / `reinasleo_bot.py` — точки входа для запуска бота.
 - `bot_app/` — приложение бота.
   - `config.py` — загрузка настроек и переменных окружения.
   - `app.py` — создание `Bot`, `Dispatcher` и запуск поллинга.
