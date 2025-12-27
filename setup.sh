@@ -21,10 +21,10 @@ pip install --upgrade pip
 echo \"Installing required packages...\"
 pip install -r requirements.txt
 
-# Create .env file for environment variables if it doesn't exist
-if [ ! -f \".env\" ]; then
-    echo \"Creating .env file...\"
-    cat <<'ENV' > .env
+# Create .env template if it doesn't exist and only copy when missing
+if [ ! -f \".env.example\" ]; then
+    echo \"Creating .env.example template...\"
+    cat <<'ENV' > .env.example
 BOT_TOKEN=your_bot_token_here
 SHEET_ID=your_google_sheet_id_here
 # Optional: comma-separated list of admin Telegram user IDs for support routing
@@ -32,7 +32,14 @@ ADMIN_IDS=1358870721,1023066249,206441957
 # Optional: custom path to Google credentials file
 # GOOGLE_APPLICATION_CREDENTIALS=credentials.json
 ENV
+fi
+
+if [ ! -f \".env\" ]; then
+    echo \".env not found. Creating it from .env.example (your existing tokens will not be touched in future runs)...\"
+    cp .env.example .env
     echo \"Please update .env file with your actual credentials.\"
+else
+    echo \"Existing .env detected; leaving it unchanged.\"
 fi
 
 # Create a placeholder for Google API credentials
