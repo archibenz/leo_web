@@ -7,6 +7,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from aiogram.utils.token import TokenValidationError, validate_token
+
 
 @dataclass(slots=True)
 class Settings:
@@ -43,6 +45,13 @@ def get_settings() -> Settings:
 
     if not bot_token:
         raise RuntimeError("BOT_TOKEN environment variable is required")
+
+    try:
+        validate_token(bot_token)
+    except TokenValidationError as exc:
+        raise RuntimeError(
+            "BOT_TOKEN is set but invalid. Copy the token exactly as provided by BotFather"
+        ) from exc
 
     return Settings(
         bot_token=bot_token,
