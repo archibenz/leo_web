@@ -5,6 +5,11 @@ from bot_app.config import get_settings
 
 router = Router()
 
+GIFT_VIDEO_FALLBACK_URL = (
+    "https://drive.google.com/uc?export=download&id=1TEdAZRHU0h6-GMJ-"
+    "KftBYJRLmb3RCslG"
+)
+
 
 @router.message(F.text == "Магазин на WB 💜")
 async def send_wb_link(message: Message):
@@ -18,10 +23,14 @@ async def send_wb_link(message: Message):
 @router.message(F.text == "Подарок 🎁")
 async def send_gift_link(message: Message):
     settings = get_settings()
-    gift_video_url = settings.gift_video_url or "http://reinasleo.com/gift"
+    gift_video_url = settings.gift_video_url or GIFT_VIDEO_FALLBACK_URL
     await message.answer_video(
-        URLInputFile(gift_video_url),
-        caption="Ваш подарок 🎁: онлайн-тренировка в качестве 1080p прямо здесь в боте."
+        URLInputFile(gift_video_url, filename="REINASLEO_gift.mp4"),
+        caption=(
+            "Ваш подарок 🎁: онлайн-тренировка прямо в этом чате в качестве 1080p."
+            " Приятного просмотра!"
+        ),
+        supports_streaming=True,
     )
 
 
