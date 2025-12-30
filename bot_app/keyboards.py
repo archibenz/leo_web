@@ -11,13 +11,11 @@ def phone_keyboard() -> ReplyKeyboardMarkup:
 def main_menu_keyboard() -> ReplyKeyboardMarkup:
     buttons = [
         "Магазин на WB 💜",
-        "Подарок 🎁",
-        "История бренда 🦋",
-        "Наш Instagram ✅",
-        "Уход за одеждой 👗",
-        "Техподдержка 🛠",
+        "Наш VK 🧡",
         "Наш Telegram 📢",
-        "PANDORA❤️TEAM",
+        "Наш Instagram ✅",
+        "Подарок 🎁",
+        "Техподдержка 🛠",
     ]
 
     keyboard = []
