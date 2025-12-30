@@ -35,7 +35,10 @@ class GoogleSheetsClient:
     def record_visit(self, username: str, user_id: str, timestamp: str) -> None:
         sheet = self._client().open_by_key(self.sheet_id).sheet1
 
-        existing_cell = sheet.find(user_id, in_column=2)
+        try:
+            existing_cell = sheet.find(user_id, in_column=2)
+        except Exception:  # noqa: BLE001
+            existing_cell = None
 
         if existing_cell:
             row_values = sheet.row_values(existing_cell.row)
