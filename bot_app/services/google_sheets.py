@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Sequence
 
 import gspread  # type: ignore
+from gspread.exceptions import CellNotFound  # type: ignore
 from oauth2client.service_account import ServiceAccountCredentials  # type: ignore
 
 
