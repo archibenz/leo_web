@@ -1,4 +1,5 @@
 import logging
+import re
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
@@ -11,6 +12,8 @@ logger = logging.getLogger(__name__)
 
 router = Router()
 
+USER_ID_PATTERN = re.compile(r"ID:\s*(\d+)")
+
 
 def _admin_ids() -> tuple[int, ...]:
     settings = get_settings()
@@ -22,33 +25,38 @@ def _admin_ids() -> tuple[int, ...]:
 async def tech_support(message: Message, state: FSMContext):
     await state.set_state(SupportStates.waiting_for_feedback)
     await message.answer(
-        "Напиши свои пожелания и предложения по улучшению товаров нашего магазина. "
-        "Будем рады обратной связи от каждой из вас🌸"
+        "Опиши, пожалуйста, вопрос или проблему максимально подробно: номер заказа,"
+        " артикул товара, фото/видео и контакт для связи. Мы быстро передадим запрос"
+        " в поддержку и вернемся с ответом в этом чате."
     )
 
 
 @router.message(SupportStates.waiting_for_feedback)
 async def process_support_feedback(message: Message, state: FSMContext):
-    username = message.from_user.username or message.from_user.id
-    feedback = message.text
+    username = message.from_user.username or message.from_user.first_name or "Без ника"
+    user_id = message.from_user.id
+    feedback = message.text or "<нет текста>"
 
     for admin_id in _admin_ids():
         try:
-            forwarded_message = await message.bot.forward_message(
-                chat_id=admin_id,
-                from_chat_id=message.chat.id,
-                message_id=message.message_id,
-            )
+            await message.copy_to(admin_id)
             await message.bot.send_message(
                 chat_id=admin_id,
-                text=f"Новое сообщение в техподдержке от @{username}:",
+                text=(
+                    "Новое сообщение в техподдержке. Ответьте на это сообщение, "
+                    "чтобы пользователь получил ответ.\n\n"
+                    f"ID: {user_id}\n"
+                    f"Username: @{username}\n"
+                    f"Текст: {feedback}"
+                ),
                 reply_markup=ForceReply(selective=False),
-                reply_to_message_id=forwarded_message.message_id,
             )
         except Exception:  # noqa: BLE001
             logger.exception("Error sending support message to admin %s", admin_id)
 
-    await message.answer("Благодарим за обратную связь!")
+    await message.answer(
+        "Благодарим за обратную связь! Команда поддержки скоро вернётся с ответом."
+    )
     await state.clear()
 
 
@@ -61,16 +69,24 @@ async def handle_admin_reply(message: Message):
     user_id = None
     username = None
 
-    if original_message and original_message.forward_from:
-        user_id = original_message.forward_from.id
-        username = original_message.forward_from.username or user_id
-    elif original_message and original_message.reply_to_message and original_message.reply_to_message.forward_from:
-        forwarded_from = original_message.reply_to_message.forward_from
-        user_id = forwarded_from.id
-        username = forwarded_from.username or user_id
+    if original_message and original_message.text:
+        match = USER_ID_PATTERN.search(original_message.text)
+        if match:
+            user_id = int(match.group(1))
+
+        if "Username:" in original_message.text:
+            parts = original_message.text.split("Username:", maxsplit=1)
+            if len(parts) == 2:
+                username = parts[1].strip().split("\n", maxsplit=1)[0]
+
+    if not username:
+        username = "пользователю"
 
     if user_id:
         await message.bot.send_message(user_id, f"Ответ от поддержки:\n{message.text}")
-        await message.answer(f"Ответ пользователю @{username}")
+        await message.answer(f"Ответ пользователю {username}")
     else:
-        await message.answer("Не удалось определить пользователя для ответа.")
+        await message.answer(
+            "Не удалось определить пользователя для ответа. Ответьте, пожалуйста, на"
+            " сообщение, где указан ID клиента."
+        )
