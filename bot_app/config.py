@@ -7,13 +7,16 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from aiogram.utils.token import TokenValidationError, validate_token
+
 
 @dataclass(slots=True)
 class Settings:
     bot_token: str
-    sheet_id: str
-    credentials_file: Path
+    sheet_id: str | None
+    credentials_file: Path | None
     admin_ids: tuple[int, ...]
+    gift_video_url: str | None
 
 
 def _parse_admin_ids(raw_value: str | None) -> tuple[int, ...]:
@@ -36,17 +39,24 @@ def get_settings() -> Settings:
     load_dotenv()
     bot_token = os.getenv("BOT_TOKEN")
     sheet_id = os.getenv("SHEET_ID")
-    credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS", "credentials.json")
+    credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     admin_ids_raw = os.getenv("ADMIN_IDS")
+    gift_video_url = os.getenv("GIFT_VIDEO_URL")
 
     if not bot_token:
         raise RuntimeError("BOT_TOKEN environment variable is required")
-    if not sheet_id:
-        raise RuntimeError("SHEET_ID environment variable is required")
+
+    try:
+        validate_token(bot_token)
+    except TokenValidationError as exc:
+        raise RuntimeError(
+            "BOT_TOKEN is set but invalid. Copy the token exactly as provided by BotFather"
+        ) from exc
 
     return Settings(
         bot_token=bot_token,
         sheet_id=sheet_id,
-        credentials_file=Path(credentials_path),
+        credentials_file=Path(credentials_path) if credentials_path else None,
         admin_ids=_parse_admin_ids(admin_ids_raw),
+        gift_video_url=gift_video_url,
     )
