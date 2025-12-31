@@ -32,11 +32,10 @@ def main_menu_keyboard() -> ReplyKeyboardMarkup:
     )
 
 
-def support_chat_keyboard() -> ReplyKeyboardMarkup:
+def admin_support_keyboard(username: str) -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="Завершить диалог"), KeyboardButton(text="Вернуться в меню")]
+            [KeyboardButton(text=f"Выйти из чата с @{username}"), KeyboardButton(text="Выйти в меню")],
         ],
         resize_keyboard=True,
-        input_field_placeholder="Напишите сообщение в поддержку",
     )
