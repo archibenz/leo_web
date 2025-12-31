@@ -156,7 +156,7 @@ async def _handle_user_support_message(message: Message, state: Optional[FSMCont
 
     if not thread.get("user_ack_sent"):
         await message.answer(
-            "Благодарим за обратную связь! Команда поддержки скоро вернётся с ответом.",
+            "С ТП всё отлично! Мы на связи и ответим здесь в чате.",
             reply_markup=user_support_keyboard(),
         )
         thread["user_ack_sent"] = True

@@ -1,8 +1,6 @@
 from aiogram import F, Router
 from aiogram.types import Message, URLInputFile
 
-from bot_app.config import get_settings
-
 router = Router()
 
 GIFT_VIDEO_FALLBACK_URL = "http://reinasleo.com/gift"
@@ -19,8 +17,8 @@ async def send_wb_link(message: Message):
 
 @router.message(F.text == "Подарок 🎁")
 async def send_gift_link(message: Message):
-    settings = get_settings()
-    gift_video_url = settings.gift_video_url or GIFT_VIDEO_FALLBACK_URL
+    # Используем актуальную ссылку на подарок с Tilda
+    gift_video_url = GIFT_VIDEO_FALLBACK_URL
     await message.answer_video(
         URLInputFile(gift_video_url, filename="REINASLEO_gift.mp4"),
         caption=(
