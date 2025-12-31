@@ -61,7 +61,10 @@ async def process_support_feedback(message: Message, state: FSMContext):
     await _handle_user_support_message(message, state)
 
 
-@router.message(F.from_user.id.func(lambda user_id: user_id in support_threads))
+@router.message(
+    F.from_user.id.func(lambda user_id: user_id in support_threads)
+    & ~F.text.in_({_user_end_chat_label(), "Выйти в меню"})
+)
 async def process_additional_support(message: Message):
     await _handle_user_support_message(message, None)
 
