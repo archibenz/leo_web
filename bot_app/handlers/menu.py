@@ -5,10 +5,7 @@ from bot_app.config import get_settings
 
 router = Router()
 
-GIFT_VIDEO_FALLBACK_URL = (
-    "https://drive.google.com/uc?export=download&id=1TEdAZRHU0h6-GMJ-"
-    "KftBYJRLmb3RCslG"
-)
+GIFT_VIDEO_FALLBACK_URL = "http://reinasleo.com/gift"
 
 
 @router.message(F.text == "Магазин на WB 💜")

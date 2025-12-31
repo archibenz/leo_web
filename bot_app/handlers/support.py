@@ -208,22 +208,30 @@ async def _forward_user_message_to_admins(message: Message, thread: dict[str, ob
 
 
 async def _notify_admins_user_left(user_id: int, username: str, bot):
-    notified = False
+    notified_admins: set[int] = set()
     for admin_id, session in list(active_admin_chats.items()):
         if session.get("user_id") == user_id:
             try:
-                await bot.send_message(admin_id, f"Пользователь @{username} вышел из чата поддержки.")
+                await bot.send_message(
+                    admin_id,
+                    f"Пользователь @{username} вышел из чата поддержки. Диалог закрыт.",
+                    reply_markup=main_menu_keyboard(),
+                )
             except Exception:  # noqa: BLE001
                 logger.exception("Error notifying admin %s about user exit", admin_id)
             active_admin_chats.pop(admin_id, None)
-            notified = True
+            notified_admins.add(admin_id)
 
-    if notified:
-        return
-
+    # Inform other admins who were not in the active chat as well
     for admin_id in _admin_ids():
+        if admin_id in notified_admins:
+            continue
         try:
-            await bot.send_message(admin_id, f"Пользователь @{username} вышел из чата поддержки.")
+            await bot.send_message(
+                admin_id,
+                f"Пользователь @{username} вышел из чата поддержки. Диалог закрыт.",
+                reply_markup=main_menu_keyboard(),
+            )
         except Exception:  # noqa: BLE001
             logger.exception("Error notifying admin %s about user exit", admin_id)
 
