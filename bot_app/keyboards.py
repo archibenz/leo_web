@@ -30,3 +30,13 @@ def main_menu_keyboard() -> ReplyKeyboardMarkup:
         keyboard=keyboard,
         resize_keyboard=True,
     )
+
+
+def support_chat_keyboard() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Завершить диалог"), KeyboardButton(text="Вернуться в меню")]
+        ],
+        resize_keyboard=True,
+        input_field_placeholder="Напишите сообщение в поддержку",
+    )
