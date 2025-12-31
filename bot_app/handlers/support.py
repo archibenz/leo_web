@@ -22,6 +22,14 @@ USERNAME_PATTERN = re.compile(r"Username:\s*@?([^\s]+)")
 
 _CHAT_IDLE_TIMEOUT = timedelta(minutes=5)
 
+
+def _end_chat_label(username: str) -> str:
+    return f"Выйти из чата с @{username}"
+
+
+def _user_end_chat_label() -> str:
+    return "Выйти из чата поддержки"
+
 # In-memory mapping of admin chat sessions to the user they are assisting
 active_admin_chats: dict[int, dict[str, str | int]] = {}
 
@@ -177,14 +185,6 @@ def _parse_user_from_message(message: Message) -> tuple[Optional[int], Optional[
     return user_id, username
 
 
-def _end_chat_label(username: str) -> str:
-    return f"Выйти из чата с @{username}"
-
-
-def _user_end_chat_label() -> str:
-    return "Выйти из чата поддержки"
-
-
 async def _forward_user_message_to_admins(message: Message, thread: dict[str, object]):
     user_id = int(thread["user_id"])
     username = str(thread.get("username", "пользователь"))
@@ -218,16 +218,7 @@ async def _notify_admins_user_left(user_id: int, username: str, bot):
     if notified:
         return
 
-async def _forward_user_message_to_admins(message: Message, thread: dict[str, object]):
-    user_id = int(thread["user_id"])
-    username = str(thread.get("username", "пользователь"))
-
-    active_targets = [
-        admin_id for admin_id, session in active_admin_chats.items() if session.get("user_id") == user_id
-    ]
-    target_admins = active_targets or list(_admin_ids())
-
-    for admin_id in target_admins:
+    for admin_id in _admin_ids():
         try:
             await bot.send_message(admin_id, f"Пользователь @{username} вышел из чата поддержки.")
         except Exception:  # noqa: BLE001
