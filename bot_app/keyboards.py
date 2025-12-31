@@ -11,13 +11,11 @@ def phone_keyboard() -> ReplyKeyboardMarkup:
 def main_menu_keyboard() -> ReplyKeyboardMarkup:
     buttons = [
         "Магазин на WB 💜",
-        "Подарок 🎁",
-        "История бренда 🦋",
-        "Наш Instagram ✅",
-        "Уход за одеждой 👗",
-        "Техподдержка 🛠",
+        "Наш VK 🧡",
         "Наш Telegram 📢",
-        "PANDORA❤️TEAM",
+        "Наш Instagram ✅",
+        "Подарок 🎁",
+        "Техподдержка 🛠",
     ]
 
     keyboard = []
@@ -30,5 +28,23 @@ def main_menu_keyboard() -> ReplyKeyboardMarkup:
 
     return ReplyKeyboardMarkup(
         keyboard=keyboard,
+        resize_keyboard=True,
+    )
+
+
+def admin_support_keyboard(username: str) -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=f"Выйти из чата с @{username}"), KeyboardButton(text="Выйти в меню")],
+        ],
+        resize_keyboard=True,
+    )
+
+
+def user_support_keyboard() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Выйти из чата поддержки"), KeyboardButton(text="Выйти в меню")],
+        ],
         resize_keyboard=True,
     )
