@@ -1,7 +1,11 @@
 from aiogram import F, Router
-from aiogram.types import Message
+from aiogram.types import Message, URLInputFile
+
+from bot_app.config import get_settings
 
 router = Router()
+
+GIFT_VIDEO_FALLBACK_URL = "http://reinasleo.com/gift"
 
 
 @router.message(F.text == "Магазин на WB 💜")
@@ -9,26 +13,22 @@ async def send_wb_link(message: Message):
     await message.answer(
         "Обнови свой гардероб в нашем магазине! 💜\n\n"
         "Ознакомиться с нашими товарами на Wildberries вы можете по ссылке:\n"
-        "https://www.wildberries.ru/brands/981057-nabiindustry"
+        "https://www.wildberries.ru/seller/609562"
     )
 
 
 @router.message(F.text == "Подарок 🎁")
 async def send_gift_link(message: Message):
-    await message.answer(
-        "Ваш подарок 🎁:\n"
-        "http://reinasleo.com/gift"
+    settings = get_settings()
+    gift_video_url = settings.gift_video_url or GIFT_VIDEO_FALLBACK_URL
+    await message.answer_video(
+        URLInputFile(gift_video_url, filename="REINASLEO_gift.mp4"),
+        caption=(
+            "Ваш подарок 🎁: онлайн-тренировка прямо в этом чате в качестве 1080p."
+            " Приятного просмотра!"
+        ),
+        supports_streaming=True,
     )
-
-
-@router.message(F.text == "Уход за одеждой 👗")
-async def send_care_info(message: Message):
-    await message.answer("Уход за одеждой пока в разработке.")
-
-
-@router.message(F.text == "История бренда 🦋")
-async def send_brand_history(message: Message):
-    await message.answer("История бренда пока в разработке.")
 
 
 @router.message(F.text == "Наш Instagram ✅")
@@ -47,9 +47,9 @@ async def send_telegram_channel(message: Message):
     )
 
 
-@router.message(F.text == "PANDORA❤️TEAM")
-async def send_pandora_channel(message: Message):
+@router.message(F.text == "Наш VK 🧡")
+async def send_vk_link(message: Message):
     await message.answer(
-        "Присоединяйся к нашему Telegram-каналу по художественной гимнастике 👉🏻\n"
-        "https://t.me/pandora_team"
+        "Мы теперь и во ВКонтакте! Подписывайся, чтобы не пропустить новинки и акции 👉🏻\n"
+        "https://vk.com/reinasleo"
     )
