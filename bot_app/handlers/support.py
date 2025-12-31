@@ -10,7 +10,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from bot_app.config import get_settings
-from bot_app.keyboards import admin_support_keyboard, main_menu_keyboard
+from bot_app.keyboards import admin_support_keyboard, main_menu_keyboard, user_support_keyboard
 from bot_app.states import SupportStates
 
 logger = logging.getLogger(__name__)
@@ -50,13 +50,30 @@ async def tech_support(message: Message, state: FSMContext):
 
 @router.message(SupportStates.waiting_for_feedback)
 async def process_support_feedback(message: Message, state: FSMContext):
-    await _handle_user_support_message(message)
-    await state.set_state(SupportStates.in_chat)
+    await _handle_user_support_message(message, state)
 
 
 @router.message(F.from_user.id.func(lambda user_id: user_id in support_threads))
 async def process_additional_support(message: Message):
-    await _handle_user_support_message(message)
+    await _handle_user_support_message(message, None)
+
+
+@router.message(SupportStates.in_chat, F.text.in_({_user_end_chat_label(), "Выйти в меню"}))
+async def handle_user_exit(message: Message, state: FSMContext):
+    user_id = message.from_user.id
+    thread = support_threads.get(user_id)
+    username = str(thread.get("username", "пользователь")) if thread else "пользователь"
+
+    _close_thread(user_id)
+
+    if thread:
+        await _notify_admins_user_left(user_id, username, message.bot)
+
+    await state.clear()
+    await message.answer(
+        "Вы вышли из чата поддержки. Возвращаем вас в главное меню.",
+        reply_markup=main_menu_keyboard(),
+    )
 
 
 def _support_reply_keyboard(user_id: int) -> InlineKeyboardMarkup:
@@ -86,12 +103,14 @@ def _get_or_create_thread(user_id: int, username: str) -> dict[str, object]:
     return thread
 
 
-async def _handle_user_support_message(message: Message):
+async def _handle_user_support_message(message: Message, state: Optional[FSMContext]):
     username = message.from_user.username or message.from_user.first_name or "Без ника"
     user_id = message.from_user.id
     feedback = message.text or "<нет текста>"
 
     thread = _get_or_create_thread(user_id, username)
+
+    first_message = not thread.get("prompt_sent")
 
     if not thread.get("prompt_sent"):
         admin_prompt = (
@@ -121,14 +140,18 @@ async def _handle_user_support_message(message: Message):
                 logger.exception("Error sending support message to admin %s", admin_id)
         thread["prompt_sent"] = True
 
-    # Forward follow-ups as a plain chat
-    await _forward_user_message_to_admins(message, thread)
+    if not first_message:
+        await _forward_user_message_to_admins(message, thread)
 
     if not thread.get("user_ack_sent"):
         await message.answer(
             "Благодарим за обратную связь! Команда поддержки скоро вернётся с ответом.",
+            reply_markup=user_support_keyboard(),
         )
         thread["user_ack_sent"] = True
+
+    if state:
+        await state.set_state(SupportStates.in_chat)
 
     _schedule_cleanup(user_id)
 
@@ -158,6 +181,10 @@ def _end_chat_label(username: str) -> str:
     return f"Выйти из чата с @{username}"
 
 
+def _user_end_chat_label() -> str:
+    return "Выйти из чата поддержки"
+
+
 async def _forward_user_message_to_admins(message: Message, thread: dict[str, object]):
     user_id = int(thread["user_id"])
     username = str(thread.get("username", "пользователь"))
@@ -177,12 +204,48 @@ async def _forward_user_message_to_admins(message: Message, thread: dict[str, ob
             logger.exception("Error forwarding user message from %s to admin %s", username, admin_id)
 
 
+async def _notify_admins_user_left(user_id: int, username: str, bot):
+    notified = False
+    for admin_id, session in list(active_admin_chats.items()):
+        if session.get("user_id") == user_id:
+            try:
+                await bot.send_message(admin_id, f"Пользователь @{username} вышел из чата поддержки.")
+            except Exception:  # noqa: BLE001
+                logger.exception("Error notifying admin %s about user exit", admin_id)
+            active_admin_chats.pop(admin_id, None)
+            notified = True
+
+    if notified:
+        return
+
+async def _forward_user_message_to_admins(message: Message, thread: dict[str, object]):
+    user_id = int(thread["user_id"])
+    username = str(thread.get("username", "пользователь"))
+
+    active_targets = [
+        admin_id for admin_id, session in active_admin_chats.items() if session.get("user_id") == user_id
+    ]
+    target_admins = active_targets or list(_admin_ids())
+
+    for admin_id in target_admins:
+        try:
+            await bot.send_message(admin_id, f"Пользователь @{username} вышел из чата поддержки.")
+        except Exception:  # noqa: BLE001
+            logger.exception("Error notifying admin %s about user exit", admin_id)
+
+
 def _schedule_cleanup(user_id: int):
     existing = _cleanup_tasks.get(user_id)
     if existing and not existing.done():
         existing.cancel()
 
     _cleanup_tasks[user_id] = asyncio.create_task(_cleanup_thread_after(user_id))
+
+
+def _cancel_cleanup(user_id: int):
+    existing = _cleanup_tasks.pop(user_id, None)
+    if existing and not existing.done():
+        existing.cancel()
 
 
 async def _cleanup_thread_after(user_id: int):
@@ -213,6 +276,11 @@ async def _cleanup_thread_after(user_id: int):
         support_threads.pop(user_id, None)
 
     _cleanup_tasks.pop(user_id, None)
+
+
+def _close_thread(user_id: int):
+    support_threads.pop(user_id, None)
+    _cancel_cleanup(user_id)
 
 
 @router.callback_query(F.data.startswith("support_reply:"))

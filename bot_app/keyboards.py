@@ -39,3 +39,12 @@ def admin_support_keyboard(username: str) -> ReplyKeyboardMarkup:
         ],
         resize_keyboard=True,
     )
+
+
+def user_support_keyboard() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Выйти из чата поддержки"), KeyboardButton(text="Выйти в меню")],
+        ],
+        resize_keyboard=True,
+    )
