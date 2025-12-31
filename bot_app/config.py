@@ -16,6 +16,7 @@ class Settings:
     sheet_id: str | None
     credentials_file: Path | None
     admin_ids: tuple[int, ...]
+    gift_video_url: str | None
 
 
 def _parse_admin_ids(raw_value: str | None) -> tuple[int, ...]:
@@ -40,6 +41,7 @@ def get_settings() -> Settings:
     sheet_id = os.getenv("SHEET_ID")
     credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     admin_ids_raw = os.getenv("ADMIN_IDS")
+    gift_video_url = os.getenv("GIFT_VIDEO_URL")
 
     if not bot_token:
         raise RuntimeError("BOT_TOKEN environment variable is required")
@@ -56,4 +58,5 @@ def get_settings() -> Settings:
         sheet_id=sheet_id,
         credentials_file=Path(credentials_path) if credentials_path else None,
         admin_ids=_parse_admin_ids(admin_ids_raw),
+        gift_video_url=gift_video_url,
     )
