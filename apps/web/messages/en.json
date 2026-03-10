@@ -420,7 +420,9 @@
       "browseShop": "Browse Shop",
       "myOrders": "Order History",
       "myFavorites": "Favorites",
-      "telegramLogin": "Sign in with Telegram"
+      "telegramLogin": "Sign in with Telegram",
+      "waitingTelegram": "Complete sign in via Telegram...",
+      "cancel": "Cancel"
     },
     "footer": {
       "noAccount": "Don't have an account?",
