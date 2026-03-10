@@ -147,10 +147,16 @@ export default function PhilosophyContent({
 
   return (
     <div className="relative min-h-[60vh] px-5 py-16 sm:min-h-screen sm:px-6 sm:py-24 lg:px-8">
+      {/* Dark backdrop for contrast */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: 'radial-gradient(ellipse 100% 80% at 50% 40%, rgba(17,10,7,0.85) 0%, rgba(17,10,7,0.5) 60%, transparent 100%)' }}
+        aria-hidden="true"
+      />
       {/* Spotlight glow */}
       <div
         className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[60vh] max-w-[900px]"
-        style={{ background: 'radial-gradient(ellipse at center, rgba(212,165,116,0.06) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(ellipse at center, rgba(212,165,116,0.08) 0%, transparent 70%)' }}
         aria-hidden="true"
       />
 
@@ -158,7 +164,7 @@ export default function PhilosophyContent({
         {/* Eyebrow */}
         <p
           ref={eyebrowRef}
-          className="mb-10 text-center font-display text-[11px] font-medium uppercase tracking-[0.25em] text-[#F2E6D8]/45 sm:mb-14 sm:text-[12px]"
+          className="mb-10 text-center font-display text-[11px] font-medium uppercase tracking-[0.25em] text-[#F2E6D8]/60 sm:mb-14 sm:text-[12px]"
           style={{ opacity: 0, transform: 'translate3d(0, 12px, 0)', willChange: 'opacity, transform' }}
         >
           {eyebrow}
@@ -214,8 +220,8 @@ export default function PhilosophyContent({
                   key={i}
                   className="group relative flex items-center gap-4 rounded-2xl px-5 py-5 sm:flex-col sm:items-center sm:gap-3 sm:px-4 sm:py-6 sm:text-center transition-all duration-500"
                   style={{
-                    background: 'linear-gradient(145deg, rgba(212,165,116,0.04) 0%, rgba(212,165,116,0.01) 100%)',
-                    border: '1px solid rgba(212,165,116,0.12)',
+                    background: 'linear-gradient(145deg, rgba(212,165,116,0.10) 0%, rgba(212,165,116,0.04) 100%)',
+                    border: '1px solid rgba(212,165,116,0.25)',
                   }}
                 >
                   {/* Hover glow */}
@@ -224,12 +230,12 @@ export default function PhilosophyContent({
                     style={{ background: 'radial-gradient(circle at 50% 50%, rgba(212,165,116,0.06) 0%, transparent 70%)' }}
                   />
 
-                  <div className="relative flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-xl text-[#D4A574]/70 transition-colors duration-300 group-hover:text-[#D4A574] sm:h-11 sm:w-11"
-                    style={{ background: 'rgba(212,165,116,0.06)' }}
+                  <div className="relative flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-xl text-[#D4A574] transition-colors duration-300 group-hover:text-[#D4A574] sm:h-11 sm:w-11"
+                    style={{ background: 'rgba(212,165,116,0.12)' }}
                   >
                     <Icon />
                   </div>
-                  <span className="relative font-display text-[12px] font-medium uppercase tracking-[0.1em] text-[#F2E6D8]/75 transition-colors duration-300 group-hover:text-[#F2E6D8] sm:text-[11px]">
+                  <span className="relative font-display text-[12px] font-medium uppercase tracking-[0.1em] text-[#F2E6D8]/90 transition-colors duration-300 group-hover:text-[#F2E6D8] sm:text-[11px]">
                     {mark}
                   </span>
                 </div>
@@ -240,7 +246,7 @@ export default function PhilosophyContent({
           {/* CTA row */}
           <div className="flex items-center justify-between gap-4 pt-4">
             {/* Quote */}
-            <p className="hidden sm:block font-display text-[14px] italic font-light text-[#F2E6D8]/65 max-w-md">
+            <p className="hidden sm:block font-display text-[14px] italic font-light text-[#F2E6D8]/80 max-w-md">
               {editorialCard.quote}
             </p>
 
@@ -249,15 +255,15 @@ export default function PhilosophyContent({
               href={`/${locale}/about`}
               className="group inline-flex items-center gap-3 rounded-full px-6 py-3 transition-all duration-400 hover:gap-4"
               style={{
-                background: 'linear-gradient(135deg, rgba(212,165,116,0.12) 0%, rgba(212,165,116,0.04) 100%)',
-                border: '1px solid rgba(212,165,116,0.22)',
+                background: 'linear-gradient(135deg, rgba(212,165,116,0.18) 0%, rgba(212,165,116,0.08) 100%)',
+                border: '1px solid rgba(212,165,116,0.35)',
               }}
             >
               <span className="font-display text-[11px] font-medium uppercase tracking-[0.12em] text-[#D4A574] group-hover:text-[#D4A574] transition-colors duration-300">
                 {editorialCard.cta}
               </span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
-                className="text-[#D4A574]/80 transition-all duration-300 group-hover:text-[#D4A574] group-hover:translate-x-0.5"
+                className="text-[#D4A574] transition-all duration-300 group-hover:translate-x-0.5"
               >
                 <path d="M5 12h14" />
                 <path d="M12 5l7 7-7 7" />
