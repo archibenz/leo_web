@@ -33,10 +33,23 @@ export default function AccountPage() {
       clearInterval(pollRef.current);
       pollRef.current = null;
     }
-    sessionStorage.removeItem('tg_init_token');
+    localStorage.removeItem('tg_init_token');
     setTgPolling(false);
     setTgLoading(false);
   }, []);
+
+  const tryPoll = useCallback(async (initToken: string): Promise<boolean> => {
+    try {
+      const data = await apiFetch<{token: string}>(`/api/auth/telegram/poll?token=${encodeURIComponent(initToken)}`);
+      if (data.token) {
+        await loginWithToken(data.token);
+        return true;
+      }
+    } catch {
+      // pending or expired
+    }
+    return false;
+  }, [loginWithToken]);
 
   const startPolling = useCallback((initToken: string) => {
     if (pollRef.current) clearInterval(pollRef.current);
@@ -52,31 +65,42 @@ export default function AccountPage() {
         stopPolling();
         return;
       }
-      try {
-        const data = await apiFetch<{token: string}>(`/api/auth/telegram/poll?token=${encodeURIComponent(initToken)}`);
-        if (data.token) {
-          stopPolling();
-          await loginWithToken(data.token);
-        }
-      } catch {
-        // 202 = pending, keep polling; 410/404 = expired/gone
-      }
+      const success = await tryPoll(initToken);
+      if (success) stopPolling();
     }, 2000);
-  }, [stopPolling, loginWithToken]);
+  }, [stopPolling, tryPoll]);
 
-  // Resume polling if page reloads while waiting for Telegram auth
+  // Resume polling on mount if token exists (page reload / return from TG)
   useEffect(() => {
-    const savedToken = sessionStorage.getItem('tg_init_token');
+    const savedToken = localStorage.getItem('tg_init_token');
     if (savedToken && !isAuthenticated) {
-      startPolling(savedToken);
+      // Try immediately, then start interval
+      tryPoll(savedToken).then(success => {
+        if (success) {
+          localStorage.removeItem('tg_init_token');
+        } else {
+          startPolling(savedToken);
+        }
+      });
     }
-  }, [startPolling, isAuthenticated]);
-
-  useEffect(() => {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Immediate poll when tab becomes visible (user returns from TG app)
+  useEffect(() => {
+    const handleVisibility = async () => {
+      if (document.visibilityState !== 'visible') return;
+      const savedToken = localStorage.getItem('tg_init_token');
+      if (!savedToken) return;
+      const success = await tryPoll(savedToken);
+      if (success) stopPolling();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [tryPoll, stopPolling]);
 
   const handleModeSwitch = (loginMode: boolean) => {
     if (loginMode === isLoginMode) return;
@@ -157,7 +181,7 @@ export default function AccountPage() {
     try {
       const result = await initTelegramAuth();
       if (result.success && result.deepLink && result.initToken) {
-        sessionStorage.setItem('tg_init_token', result.initToken);
+        localStorage.setItem('tg_init_token', result.initToken);
         window.location.href = result.deepLink;
       } else {
         setError(t('errors.genericError'));
