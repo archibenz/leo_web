@@ -465,7 +465,27 @@
     "settings": {
       "title": "Настройки",
       "signOut": "Выйти",
-      "backToProfile": "Профиль"
+      "backToProfile": "Профиль",
+      "linkEmail": {
+        "title": "Привязать Email",
+        "description": "Привяжите email, чтобы входить по email и паролю",
+        "emailLabel": "Email",
+        "emailPlaceholder": "email@example.com",
+        "sendCode": "Отправить код",
+        "codeLabel": "Код подтверждения",
+        "codePlaceholder": "000000",
+        "codeHint": "Код отправлен на {email}",
+        "passwordLabel": "Придумайте пароль",
+        "passwordPlaceholder": "Минимум 6 символов",
+        "submit": "Привязать",
+        "success": "Email успешно привязан!",
+        "alreadyLinked": "Email уже привязан",
+        "didntReceive": "Не получили код?",
+        "resend": "Отправить ещё раз",
+        "resendIn": "Повторно через {seconds}с",
+        "sending": "Отправка...",
+        "linking": "Привязка..."
+      }
     }
   },
   "product": {

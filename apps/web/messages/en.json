@@ -465,7 +465,27 @@
     "settings": {
       "title": "Settings",
       "signOut": "Sign out",
-      "backToProfile": "Profile"
+      "backToProfile": "Profile",
+      "linkEmail": {
+        "title": "Link Email",
+        "description": "Link your email to sign in with email and password",
+        "emailLabel": "Email",
+        "emailPlaceholder": "email@example.com",
+        "sendCode": "Send code",
+        "codeLabel": "Verification code",
+        "codePlaceholder": "000000",
+        "codeHint": "Code sent to {email}",
+        "passwordLabel": "Create a password",
+        "passwordPlaceholder": "At least 6 characters",
+        "submit": "Link email",
+        "success": "Email linked successfully!",
+        "alreadyLinked": "Email is already linked",
+        "didntReceive": "Didn't receive the code?",
+        "resend": "Resend",
+        "resendIn": "Resend in {seconds}s",
+        "sending": "Sending...",
+        "linking": "Linking..."
+      }
     }
   },
   "product": {

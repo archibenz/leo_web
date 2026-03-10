@@ -30,6 +30,7 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<{success: boolean; error?: string}>;
   sendCode: (email: string) => Promise<{success: boolean; error?: string}>;
   register: (data: RegisterData) => Promise<{success: boolean; error?: string}>;
+  linkEmail: (email: string, password: string, code: string) => Promise<{success: boolean; error?: string}>;
   initTelegramAuth: () => Promise<{success: boolean; deepLink?: string; initToken?: string; error?: string}>;
   loginWithToken: (jwt: string) => Promise<void>;
   logout: () => void;
@@ -178,6 +179,36 @@ export function AuthProvider({children}: {children: ReactNode}) {
     }
   }, []);
 
+  const linkEmail = useCallback(async (email: string, password: string, code: string): Promise<{success: boolean; error?: string}> => {
+    if (!isValidEmail(email)) {
+      return {success: false, error: 'invalid_email'};
+    }
+    if (password.length < 6) {
+      return {success: false, error: 'password_too_short'};
+    }
+
+    try {
+      await apiFetch<{message: string}>('/api/auth/link-email', {
+        method: 'POST',
+        body: JSON.stringify({email: email.trim(), password, code: code.trim()}),
+      });
+
+      // Refresh user data
+      const me = await apiFetch<MeApiResponse>('/api/auth/me');
+      setUser({id: me.id, email: me.email, name: me.name, surname: me.surname, createdAt: me.createdAt, role: me.role});
+      return {success: true};
+    } catch (err: unknown) {
+      const apiErr = err as {status?: number; body?: {error?: string}};
+      if (apiErr.status === 409) {
+        return {success: false, error: 'email_already_linked'};
+      }
+      if (apiErr.status === 400) {
+        return {success: false, error: 'invalid_code'};
+      }
+      return {success: false, error: 'link_failed'};
+    }
+  }, []);
+
   const initTelegramAuth = useCallback(async (): Promise<{success: boolean; deepLink?: string; initToken?: string; error?: string}> => {
     try {
       const data = await apiFetch<TelegramInitApiResponse>('/api/auth/telegram/init', {
@@ -211,6 +242,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
         login,
         sendCode,
         register,
+        linkEmail,
         initTelegramAuth,
         loginWithToken,
         logout,
@@ -230,6 +262,7 @@ const defaultAuthContext: AuthContextType = {
   login: async () => ({success: false}),
   sendCode: async () => ({success: false}),
   register: async () => ({success: false}),
+  linkEmail: async () => ({success: false}),
   initTelegramAuth: async () => ({success: false}),
   loginWithToken: async () => {},
   logout: () => {},
