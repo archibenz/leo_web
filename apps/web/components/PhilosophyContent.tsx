@@ -147,12 +147,6 @@ export default function PhilosophyContent({
 
   return (
     <div className="relative min-h-[60vh] px-5 py-16 sm:min-h-screen sm:px-6 sm:py-24 lg:px-8">
-      {/* Dark backdrop for contrast */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{ background: 'radial-gradient(ellipse 100% 80% at 50% 40%, rgba(17,10,7,0.85) 0%, rgba(17,10,7,0.5) 60%, transparent 100%)' }}
-        aria-hidden="true"
-      />
       {/* Spotlight glow */}
       <div
         className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[60vh] max-w-[900px]"
