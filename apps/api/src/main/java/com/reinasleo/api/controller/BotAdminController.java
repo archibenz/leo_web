@@ -7,9 +7,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -19,8 +26,15 @@ public class BotAdminController {
     private final AdminProductService adminProductService;
     private final CollectionService collectionService;
 
+    private static final Set<String> ALLOWED_TYPES = Set.of(
+            "image/jpeg", "image/png", "image/webp", "image/jpg"
+    );
+
     @Value("${app.bot.api-secret}")
     private String botApiSecret;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     public BotAdminController(AdminProductService adminProductService,
                               CollectionService collectionService) {
@@ -78,5 +92,73 @@ public class BotAdminController {
             @RequestHeader("X-Bot-Secret") String secret) {
         validateSecret(secret);
         return ResponseEntity.ok(collectionService.listAll());
+    }
+
+    @PostMapping("/products")
+    public ResponseEntity<AdminProductResponse> createProduct(
+            @RequestHeader("X-Bot-Secret") String secret,
+            @RequestBody AdminProductRequest request) {
+        validateSecret(secret);
+        return ResponseEntity.ok(adminProductService.create(request));
+    }
+
+    @PutMapping("/products/{id}")
+    public ResponseEntity<AdminProductResponse> updateProduct(
+            @RequestHeader("X-Bot-Secret") String secret,
+            @PathVariable String id,
+            @RequestBody AdminProductRequest request) {
+        validateSecret(secret);
+        return ResponseEntity.ok(adminProductService.update(id, request));
+    }
+
+    @DeleteMapping("/products/{id}")
+    public ResponseEntity<Void> deleteProduct(
+            @RequestHeader("X-Bot-Secret") String secret,
+            @PathVariable String id,
+            @RequestParam(defaultValue = "false") boolean permanent) {
+        validateSecret(secret);
+        if (permanent) {
+            adminProductService.hardDelete(id);
+        } else {
+            adminProductService.deactivate(id);
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/collections")
+    public ResponseEntity<CollectionResponse> createCollection(
+            @RequestHeader("X-Bot-Secret") String secret,
+            @RequestBody CollectionRequest request) {
+        validateSecret(secret);
+        return ResponseEntity.ok(collectionService.create(request));
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<Map<String, String>> upload(
+            @RequestHeader("X-Bot-Secret") String secret,
+            @RequestParam("file") MultipartFile file) {
+        validateSecret(secret);
+
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only JPG, PNG, WebP");
+        }
+        try {
+            Path uploadPath = Paths.get(uploadDir, "products");
+            Files.createDirectories(uploadPath);
+            String originalName = file.getOriginalFilename();
+            String ext = "";
+            if (originalName != null && originalName.contains(".")) {
+                ext = originalName.substring(originalName.lastIndexOf("."));
+            }
+            String filename = UUID.randomUUID() + ext;
+            file.transferTo(uploadPath.resolve(filename).toFile());
+            return ResponseEntity.ok(Map.of("url", "/uploads/products/" + filename));
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Upload failed");
+        }
     }
 }
