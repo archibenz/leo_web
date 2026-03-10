@@ -158,8 +158,7 @@ export default function AccountPage() {
       const result = await initTelegramAuth();
       if (result.success && result.deepLink && result.initToken) {
         sessionStorage.setItem('tg_init_token', result.initToken);
-        window.open(result.deepLink, '_blank');
-        startPolling(result.initToken);
+        window.location.href = result.deepLink;
       } else {
         setError(t('errors.genericError'));
         setTgLoading(false);
