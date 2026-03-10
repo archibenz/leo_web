@@ -68,6 +68,7 @@ public class BotAuthService {
         loginEntry.setUserId(user.getId());
         tokenRepository.save(loginEntry);
 
+        entry.setUserId(user.getId());
         entry.markUsed();
         tokenRepository.save(entry);
 
@@ -102,10 +103,35 @@ public class BotAuthService {
         loginEntry.setUserId(user.getId());
         tokenRepository.save(loginEntry);
 
+        entry.setUserId(user.getId());
         entry.markUsed();
         tokenRepository.save(entry);
 
         return new BotAuthResponse(loginToken);
+    }
+
+    @Transactional
+    public LoginResponse pollAuth(String initToken) {
+        TelegramAuthToken entry = tokenRepository.findById(initToken)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "token_not_found"));
+
+        if (entry.getExpiresAt().isBefore(Instant.now())) {
+            throw new ResponseStatusException(HttpStatus.GONE, "token_expired");
+        }
+
+        if (entry.getUserId() == null) {
+            throw new ResponseStatusException(HttpStatus.ACCEPTED, "pending");
+        }
+
+        if (entry.isUsed() && entry.getUserId() != null) {
+            User user = userRepository.findById(entry.getUserId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user_not_found"));
+
+            String jwt = jwtService.generateToken(user.getId(), user.getEmail());
+            return new LoginResponse(jwt, user.getId(), user.getEmail(), user.getName(), user.getSurname(), user.getRole());
+        }
+
+        throw new ResponseStatusException(HttpStatus.ACCEPTED, "pending");
     }
 
     @Transactional(readOnly = true)

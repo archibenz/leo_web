@@ -420,7 +420,9 @@
       "browseShop": "Магазин",
       "myOrders": "История заказов",
       "myFavorites": "Избранное",
-      "telegramLogin": "Войти через Telegram"
+      "telegramLogin": "Войти через Telegram",
+      "waitingTelegram": "Завершите вход в Telegram...",
+      "cancel": "Отмена"
     },
     "footer": {
       "noAccount": "Нет аккаунта?",

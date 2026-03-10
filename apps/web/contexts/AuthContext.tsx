@@ -30,7 +30,7 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<{success: boolean; error?: string}>;
   sendCode: (email: string) => Promise<{success: boolean; error?: string}>;
   register: (data: RegisterData) => Promise<{success: boolean; error?: string}>;
-  initTelegramAuth: () => Promise<{success: boolean; deepLink?: string; error?: string}>;
+  initTelegramAuth: () => Promise<{success: boolean; deepLink?: string; initToken?: string; error?: string}>;
   loginWithToken: (jwt: string) => Promise<void>;
   logout: () => void;
   validateEmail: (email: string) => boolean;
@@ -178,12 +178,12 @@ export function AuthProvider({children}: {children: ReactNode}) {
     }
   }, []);
 
-  const initTelegramAuth = useCallback(async (): Promise<{success: boolean; deepLink?: string; error?: string}> => {
+  const initTelegramAuth = useCallback(async (): Promise<{success: boolean; deepLink?: string; initToken?: string; error?: string}> => {
     try {
       const data = await apiFetch<TelegramInitApiResponse>('/api/auth/telegram/init', {
         method: 'POST',
       });
-      return {success: true, deepLink: data.deepLink};
+      return {success: true, deepLink: data.deepLink, initToken: data.token};
     } catch {
       return {success: false, error: 'telegram_init_failed'};
     }

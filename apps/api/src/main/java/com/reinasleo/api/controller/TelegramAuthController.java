@@ -25,4 +25,9 @@ public class TelegramAuthController {
     public ResponseEntity<LoginResponse> exchange(@RequestParam String token) {
         return ResponseEntity.ok(botAuthService.exchangeToken(token));
     }
+
+    @GetMapping("/poll")
+    public ResponseEntity<LoginResponse> poll(@RequestParam String token) {
+        return ResponseEntity.ok(botAuthService.pollAuth(token));
+    }
 }

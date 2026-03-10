@@ -1,9 +1,10 @@
 'use client';
 
-import {useState} from 'react';
+import {useState, useEffect, useRef, useCallback} from 'react';
 import {useTranslations, useLocale} from 'next-intl';
 import {useRouter} from 'next/navigation';
 import {useAuth} from '../../../contexts';
+import {apiFetch} from '../../../lib/api';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import Link from 'next/link';
 
@@ -11,7 +12,7 @@ export default function AccountPage() {
   const t = useTranslations('account');
   const locale = useLocale();
   const router = useRouter();
-  const {user, isAuthenticated, isLoading, login, register, initTelegramAuth, logout, validateEmail} = useAuth();
+  const {user, isAuthenticated, isLoading, login, register, initTelegramAuth, loginWithToken, logout, validateEmail} = useAuth();
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,10 +21,62 @@ export default function AccountPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [tgLoading, setTgLoading] = useState(false);
+  const [tgPolling, setTgPolling] = useState(false);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+
+  const stopPolling = useCallback(() => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+    sessionStorage.removeItem('tg_init_token');
+    setTgPolling(false);
+    setTgLoading(false);
+  }, []);
+
+  const startPolling = useCallback((initToken: string) => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    setTgPolling(true);
+    setTgLoading(true);
+
+    let attempts = 0;
+    const maxAttempts = 150;
+
+    pollRef.current = setInterval(async () => {
+      attempts++;
+      if (attempts > maxAttempts) {
+        stopPolling();
+        return;
+      }
+      try {
+        const data = await apiFetch<{token: string}>(`/api/auth/telegram/poll?token=${encodeURIComponent(initToken)}`);
+        if (data.token) {
+          stopPolling();
+          await loginWithToken(data.token);
+        }
+      } catch {
+        // 202 = pending, keep polling; 410/404 = expired/gone
+      }
+    }, 2000);
+  }, [stopPolling, loginWithToken]);
+
+  // Resume polling if page reloads while waiting for Telegram auth
+  useEffect(() => {
+    const savedToken = sessionStorage.getItem('tg_init_token');
+    if (savedToken && !isAuthenticated) {
+      startPolling(savedToken);
+    }
+  }, [startPolling, isAuthenticated]);
+
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
 
   const handleModeSwitch = (loginMode: boolean) => {
     if (loginMode === isLoginMode) return;
@@ -103,14 +156,16 @@ export default function AccountPage() {
     setError('');
     try {
       const result = await initTelegramAuth();
-      if (result.success && result.deepLink) {
-        window.location.href = result.deepLink;
+      if (result.success && result.deepLink && result.initToken) {
+        sessionStorage.setItem('tg_init_token', result.initToken);
+        window.open(result.deepLink, '_blank');
+        startPolling(result.initToken);
       } else {
         setError(t('errors.genericError'));
+        setTgLoading(false);
       }
     } catch {
       setError(t('errors.genericError'));
-    } finally {
       setTgLoading(false);
     }
   };
@@ -389,21 +444,37 @@ export default function AccountPage() {
                 <span className="mx-4 text-xs uppercase tracking-widest text-ink-soft">{t('footer.or')}</span>
                 <div className="flex-1 border-t border-ink/10" />
               </div>
-              <button
-                type="button"
-                onClick={handleTelegramLogin}
-                disabled={tgLoading}
-                className="relative w-full overflow-hidden rounded-full border border-ink/20 bg-paper px-8 py-4 text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:border-accent/40 hover:shadow-md disabled:opacity-50 flex items-center justify-center gap-3"
-              >
-                <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current text-[#229ED9]" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.932z"/>
-                </svg>
-                {tgLoading ? (
-                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-ink border-t-transparent" />
-                ) : (
-                  t('buttons.telegramLogin')
-                )}
-              </button>
+              {tgPolling ? (
+                <div className="w-full rounded-2xl border border-accent/30 bg-accent/5 px-6 py-4 text-center space-y-3">
+                  <div className="flex items-center justify-center gap-3">
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+                    <span className="text-sm text-ink">{t('buttons.waitingTelegram')}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={stopPolling}
+                    className="text-xs text-ink-soft underline underline-offset-2 hover:text-ink transition-colors"
+                  >
+                    {t('buttons.cancel')}
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleTelegramLogin}
+                  disabled={tgLoading}
+                  className="relative w-full overflow-hidden rounded-full border border-ink/20 bg-paper px-8 py-4 text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:border-accent/40 hover:shadow-md disabled:opacity-50 flex items-center justify-center gap-3"
+                >
+                  <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current text-[#229ED9]" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.932z"/>
+                  </svg>
+                  {tgLoading ? (
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-ink border-t-transparent" />
+                  ) : (
+                    t('buttons.telegramLogin')
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Footer text */}
