@@ -1,62 +1,23 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import Link from 'next/link';
 
 interface PhilosophyContentProps {
   locale: string;
   eyebrow: string;
   title: string;
   statements: string[];
-  editorialCard: {
-    quote: string;
-    label: string;
-    title: string;
-    description: string;
-    cta: string;
-  };
-  qualityMarks: string[];
 }
-
-/* ── SVG icons for value blocks ── */
-const FabricIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M20.38 3.46L16 2 12 3.46 8 2 3.62 3.46a2 2 0 0 0-1.34 1.89v13.3a2 2 0 0 0 1.34 1.89L8 22l4-1.46L16 22l4.38-1.46a2 2 0 0 0 1.34-1.89V5.35a2 2 0 0 0-1.34-1.89z" />
-    <line x1="8" y1="2" x2="8" y2="22" />
-    <line x1="16" y1="2" x2="16" y2="22" />
-  </svg>
-);
-
-const PrecisionIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <circle cx="12" cy="12" r="6" />
-    <circle cx="12" cy="12" r="2" />
-  </svg>
-);
-
-const LimitedIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 2L2 7l10 5 10-5-10-5z" />
-    <path d="M2 17l10 5 10-5" />
-    <path d="M2 12l10 5 10-5" />
-  </svg>
-);
-
-const valueIcons = [FabricIcon, PrecisionIcon, LimitedIcon];
 
 export default function PhilosophyContent({
   locale,
   eyebrow,
   title,
   statements,
-  editorialCard,
-  qualityMarks,
 }: PhilosophyContentProps) {
   const firstRef = useRef<HTMLSpanElement>(null);
   const secondRef = useRef<HTMLSpanElement>(null);
   const statementsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const gridRef = useRef<HTMLDivElement>(null);
   const eyebrowRef = useRef<HTMLParagraphElement>(null);
   const titleContainerRef = useRef<HTMLDivElement>(null);
 
@@ -70,7 +31,7 @@ export default function PhilosophyContent({
         el.style.opacity = '1';
         el.style.transform = 'none';
       };
-      [eyebrowRef, titleContainerRef, gridRef].forEach(r => showAll(r.current));
+      [eyebrowRef, titleContainerRef].forEach(r => showAll(r.current));
       statementsRef.current.forEach(el => showAll(el));
     }
 
@@ -122,16 +83,6 @@ export default function PhilosophyContent({
           el.style.opacity = String(eased);
           el.style.transform = `translate3d(0, ${25 * (1 - eased)}px, 0)`;
         });
-
-        if (gridRef.current) {
-          const r = gridRef.current.getBoundingClientRect();
-          const center = r.top + r.height / 2;
-          const raw = (vh * 0.95 - center) / (vh * 0.95 - vh * 0.5);
-          const p = Math.max(0, Math.min(1, raw));
-          const eased = 1 - Math.pow(1 - p, 3);
-          gridRef.current.style.opacity = String(eased);
-          gridRef.current.style.transform = `translate3d(0, ${30 * (1 - eased)}px, 0)`;
-        }
       }
 
       requestAnimationFrame(tick);
@@ -184,8 +135,8 @@ export default function PhilosophyContent({
           </span>
         </div>
 
-        {/* Centered statements — full width, no columns */}
-        <div className="mx-auto max-w-3xl text-center space-y-12 sm:space-y-14 mb-16 sm:mb-20">
+        {/* Centered statements */}
+        <div className="mx-auto max-w-3xl text-center space-y-12 sm:space-y-14">
           {statements.map((statement, index) => (
             <div
               key={index}
@@ -197,73 +148,6 @@ export default function PhilosophyContent({
               </p>
             </div>
           ))}
-        </div>
-
-        {/* Bottom grid: 3 value blocks + CTA */}
-        <div
-          ref={gridRef}
-          className="mx-auto max-w-4xl"
-          style={{ opacity: 0, transform: 'translate3d(0, 30px, 0)', willChange: 'opacity, transform' }}
-        >
-          {/* Value blocks */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5 mb-8">
-            {qualityMarks.map((mark, i) => {
-              const Icon = valueIcons[i] || PrecisionIcon;
-              return (
-                <div
-                  key={i}
-                  className="group relative flex items-center gap-4 rounded-2xl px-5 py-5 sm:flex-col sm:items-center sm:gap-3 sm:px-4 sm:py-6 sm:text-center transition-all duration-500"
-                  style={{
-                    background: 'linear-gradient(145deg, rgba(212,165,116,0.10) 0%, rgba(212,165,116,0.04) 100%)',
-                    border: '1px solid rgba(212,165,116,0.25)',
-                  }}
-                >
-                  {/* Hover glow */}
-                  <div
-                    className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                    style={{ background: 'radial-gradient(circle at 50% 50%, rgba(212,165,116,0.06) 0%, transparent 70%)' }}
-                  />
-
-                  <div className="relative flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-xl text-[#D4A574] transition-colors duration-300 group-hover:text-[#D4A574] sm:h-11 sm:w-11"
-                    style={{ background: 'rgba(212,165,116,0.12)' }}
-                  >
-                    <Icon />
-                  </div>
-                  <span className="relative font-display text-[12px] font-medium uppercase tracking-[0.1em] text-[#F2E6D8]/90 transition-colors duration-300 group-hover:text-[#F2E6D8] sm:text-[11px]">
-                    {mark}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* CTA row */}
-          <div className="flex items-center justify-between gap-4 pt-4">
-            {/* Quote */}
-            <p className="hidden sm:block font-display text-[14px] italic font-light text-[#F2E6D8]/80 max-w-md">
-              {editorialCard.quote}
-            </p>
-
-            {/* Button */}
-            <Link
-              href={`/${locale}/about`}
-              className="group inline-flex items-center gap-3 rounded-full px-6 py-3 transition-all duration-400 hover:gap-4"
-              style={{
-                background: 'linear-gradient(135deg, rgba(212,165,116,0.18) 0%, rgba(212,165,116,0.08) 100%)',
-                border: '1px solid rgba(212,165,116,0.35)',
-              }}
-            >
-              <span className="font-display text-[11px] font-medium uppercase tracking-[0.12em] text-[#D4A574] group-hover:text-[#D4A574] transition-colors duration-300">
-                {editorialCard.cta}
-              </span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
-                className="text-[#D4A574] transition-all duration-300 group-hover:translate-x-0.5"
-              >
-                <path d="M5 12h14" />
-                <path d="M12 5l7 7-7 7" />
-              </svg>
-            </Link>
-          </div>
         </div>
       </div>
     </div>
