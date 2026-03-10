@@ -196,83 +196,68 @@ export default function PhilosophyContent({
             ))}
           </div>
 
-          {/* Right: Editorial card */}
+          {/* Right: Editorial panel */}
           <div
             ref={editorialRef}
-            className="lg:sticky lg:top-32"
+            className="lg:sticky lg:top-32 flex flex-col gap-8"
             style={{ opacity: 0, transform: 'translate3d(0, 40px, 0) scale(0.97)', willChange: 'opacity, transform' }}
           >
-            <Link
-              href={`/${locale}/about`}
-              className="group relative block overflow-hidden rounded-2xl border border-[#F2E6D8]/8 p-6 pt-10 sm:p-8 sm:pt-12 transition-all duration-500 hover:border-[#D4A574]/25 hover:shadow-[0_24px_64px_rgba(0,0,0,0.4)]"
-              style={{
-                background: 'linear-gradient(160deg, rgba(30,18,13,0.8), rgba(43,23,17,0.55))',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-              }}
-            >
-              {/* Decorative large opening quote */}
-              <span
-                className="absolute -top-3 left-4 font-display text-[100px] leading-none text-[#D4A574]/[0.08] select-none pointer-events-none sm:left-5 sm:text-[120px]"
-                aria-hidden="true"
-              >
-                &ldquo;
-              </span>
-
-              {/* Vertical accent line */}
+            {/* Quote — standalone, no card */}
+            <div className="relative pl-5 sm:pl-6">
+              {/* Animated accent bar */}
               <div
-                className="absolute left-0 top-8 bottom-8 w-[2px] bg-gradient-to-b from-transparent via-[#D4A574]/30 to-transparent group-hover:via-[#D4A574]/50 transition-all duration-500"
-                aria-hidden="true"
+                className="absolute left-0 top-0 bottom-0 w-[3px] rounded-full"
+                style={{
+                  background: 'linear-gradient(180deg, #D4A574 0%, rgba(212,165,116,0.2) 100%)',
+                }}
               />
-
-              {/* Pull quote */}
-              <p className="relative mb-6 font-display text-[16px] italic leading-[1.65] text-[#F2E6D8]/85 sm:text-[18px] sm:mb-8">
+              <p className="font-display text-[17px] italic font-light leading-[1.7] text-[#F2E6D8]/75 sm:text-[19px]">
                 {editorialCard.quote}
               </p>
+            </div>
 
-              {/* Thin divider */}
-              <div className="mb-5 h-px w-12 bg-gradient-to-r from-[#D4A574]/30 to-transparent group-hover:w-20 transition-all duration-500 sm:mb-6" />
-
-              {/* Label */}
-              <p className="mb-2 font-display text-[10px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/60 sm:mb-3">
-                {editorialCard.label}
-              </p>
-
-              {/* Title */}
-              <h3 className="mb-3 font-display text-[18px] uppercase tracking-[0.06em] text-[#F2E6D8] sm:text-xl sm:mb-4 group-hover:text-[#D4A574] transition-colors duration-300">
-                {editorialCard.title}
-              </h3>
-
-              {/* Description */}
-              <p className="mb-6 font-sans text-[13px] leading-[1.75] text-[#F2E6D8]/55 sm:text-[14px] sm:mb-8">
-                {editorialCard.description}
-              </p>
-
-              {/* CTA */}
-              <span className="inline-flex items-center gap-2.5 font-display text-[11px] font-medium uppercase tracking-[0.14em] text-[#D4A574]/70 group-hover:text-[#D4A574] transition-colors duration-300">
-                {editorialCard.cta}
-                <svg
-                  width="16" height="16" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
-                  className="transition-transform duration-400 group-hover:translate-x-1.5"
-                >
+            {/* Story link — modern horizontal card */}
+            <Link
+              href={`/${locale}/about`}
+              className="group relative flex items-center gap-5 rounded-xl px-5 py-4 sm:px-6 sm:py-5 transition-all duration-500 hover:bg-[#D4A574]/[0.04]"
+              style={{
+                background: 'linear-gradient(135deg, rgba(212,165,116,0.03) 0%, transparent 100%)',
+              }}
+            >
+              {/* Icon circle */}
+              <div className="flex-shrink-0 flex items-center justify-center h-11 w-11 rounded-full border border-[#D4A574]/15 bg-[#D4A574]/[0.06] transition-all duration-500 group-hover:border-[#D4A574]/30 group-hover:bg-[#D4A574]/10 group-hover:scale-110">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4A574" strokeWidth="1.5" strokeLinecap="round" className="opacity-60 group-hover:opacity-100 transition-opacity duration-300">
                   <path d="M5 12h14" />
                   <path d="M12 5l7 7-7 7" />
                 </svg>
-              </span>
+              </div>
+
+              {/* Text */}
+              <div className="min-w-0">
+                <p className="font-display text-[10px] font-medium uppercase tracking-[0.18em] text-[#D4A574]/50 mb-1 group-hover:text-[#D4A574]/70 transition-colors duration-300">
+                  {editorialCard.label}
+                </p>
+                <h3 className="font-display text-[15px] font-semibold uppercase tracking-[0.04em] text-[#F2E6D8]/90 group-hover:text-[#D4A574] transition-colors duration-300 sm:text-[16px]">
+                  {editorialCard.title}
+                </h3>
+                <p className="mt-1 text-[12px] leading-[1.6] text-[#F2E6D8]/40 group-hover:text-[#F2E6D8]/55 transition-colors duration-300 sm:text-[13px]">
+                  {editorialCard.description}
+                </p>
+              </div>
             </Link>
 
-            {/* Quality marks */}
+            {/* Quality marks — horizontal line */}
             <div
               ref={qualityRef}
-              className="mt-6 flex flex-wrap gap-3 sm:mt-8"
+              className="flex flex-wrap gap-2.5 pt-2"
               style={{ opacity: 0, transform: 'translate3d(0, 20px, 0)', willChange: 'opacity, transform' }}
             >
               {qualityMarks.map((mark, i) => (
                 <span
                   key={i}
-                  className="rounded-full border border-[#F2E6D8]/10 bg-[#F2E6D8]/[0.05] px-3.5 py-1.5 font-display text-[11px] uppercase tracking-[0.12em] text-[#F2E6D8]/55"
+                  className="px-3 py-1 font-display text-[10px] uppercase tracking-[0.14em] text-[#D4A574]/35"
                 >
+                  {i > 0 && <span className="mr-2.5 text-[#D4A574]/15">/</span>}
                   {mark}
                 </span>
               ))}
