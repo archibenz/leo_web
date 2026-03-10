@@ -1,0 +1,1097 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --paper-base: #1e120d;
+  --paper-muted: #2b1711;
+  --ink: #f3e9da;
+  --ink-soft: #f2e6d8;
+  --accent: #D4A574;
+  --texture-opacity: 0.08;
+  --crumple-opacity: 0.06;
+
+  /* ── Luxury background tokens ── */
+  --lux-bg-base: #110a07;
+  --lux-bg-mid: #1a0f0b;
+  --lux-bg-warm: #241510;
+  --lux-bg-deep: #0d0705;
+  --lux-bg-vignette: rgba(8, 4, 2, 0.6);
+
+  /* ── Luxury button tokens ── */
+  --lux-btn-bg: linear-gradient(135deg, rgba(212, 165, 116, 0.14), rgba(212, 165, 116, 0.06));
+  --lux-btn-border: rgba(212, 165, 116, 0.22);
+  --lux-btn-glow: 0 0 16px rgba(212, 165, 116, 0.08);
+  --lux-btn-hover-border: rgba(212, 165, 116, 0.4);
+  --lux-btn-hover-glow: 0 0 20px rgba(212, 165, 116, 0.14);
+  --lux-btn-primary-from: #c9955f;
+  --lux-btn-primary-to: #a87a48;
+}
+
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+* {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  height: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  background:
+    radial-gradient(ellipse 120% 60% at 50% 0%, var(--lux-bg-warm) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 50% at 80% 80%, rgba(30, 18, 13, 0.5) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 15% 60%, rgba(26, 15, 11, 0.4) 0%, transparent 45%),
+    linear-gradient(180deg, var(--lux-bg-base) 0%, var(--lux-bg-mid) 40%, var(--lux-bg-deep) 100%);
+  color: var(--ink);
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body::before {
+  background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22 viewBox=%220 0 40 40%22%3E%3Cfilter id=%22n%22 x=%220%22 y=%220%22 width=%22100%25%22 height=%22100%25%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%2240%22 height=%2240%22 filter=%22url(%23n)%22 opacity=%220.24%22/%3E%3C/svg%3E');
+  opacity: var(--texture-opacity);
+  mix-blend-mode: multiply;
+}
+
+body::after {
+  background:
+    radial-gradient(ellipse at 50% 0%, transparent 40%, var(--lux-bg-vignette) 100%),
+    radial-gradient(ellipse at 50% 100%, transparent 50%, var(--lux-bg-vignette) 100%),
+    radial-gradient(ellipse at 0% 50%, var(--lux-bg-vignette) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 50%, var(--lux-bg-vignette) 0%, transparent 50%);
+  opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+  body::after {
+    display: none;
+  }
+}
+
+a {
+  color: inherit;
+}
+
+/* ============================================
+   Focus & Selection Styles - Elegant & Minimal
+   ============================================ */
+
+/* Remove all outlines - use box-shadow only */
+:focus-visible {
+  outline: none !important;
+}
+
+:focus {
+  outline: none !important;
+}
+
+/* Input/textarea/select focus - glow effect */
+input:focus,
+textarea:focus,
+select:focus,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none !important;
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 1px var(--accent), 0 0 8px rgba(212, 165, 116, 0.15);
+}
+
+/* Naked inputs (e.g. search) — no focus glow */
+input.focus-bare:focus,
+input.focus-bare:focus-visible {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Buttons - no outline, subtle glow only */
+button:focus,
+button:focus-visible {
+  outline: none !important;
+}
+
+/* Text selection colors (for allowed elements) */
+::selection {
+  background: rgba(212, 165, 116, 0.35);
+  color: var(--ink);
+}
+
+::-moz-selection {
+  background: rgba(212, 165, 116, 0.35);
+  color: var(--ink);
+}
+
+/* ============================================
+   Text Selection Control
+   ============================================ */
+
+/* Disable text selection globally */
+body {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Allow selection for interactive elements */
+input,
+textarea,
+[contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+/* Allow selection for links (email, social, etc.) */
+a {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+/* Utility class for selectable content */
+.selectable,
+[data-selectable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+/* Product/item titles - for future use */
+.product-title,
+.item-title {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+}
+
+.paper-card {
+  background: linear-gradient(180deg, #2b1711, #1e120d);
+  border: 1px solid rgba(243, 233, 218, 0.12);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.3);
+  border-radius: 18px;
+  position: relative;
+}
+
+.paper-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(145deg, rgba(212, 165, 116, 0.05), rgba(30, 18, 13, 0.08));
+  mix-blend-mode: overlay;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* Admin input */
+.admin-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(243, 233, 218, 0.12);
+  background: rgba(43, 23, 17, 0.6);
+  color: var(--ink);
+  font-size: 0.875rem;
+  transition: border-color 0.2s;
+}
+.admin-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.admin-input::placeholder {
+  color: rgba(242, 230, 216, 0.3);
+}
+
+/* Accent card - ties to hero gradient palette */
+.accent-card {
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(170, 0, 13, 0.22), transparent 55%),
+    linear-gradient(135deg, rgba(43, 23, 17, 0.92), rgba(33, 33, 33, 0.78));
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(170, 0, 13, 0.15) inset;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Grain overlay for accent card */
+.grain-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22 viewBox=%220 0 40 40%22%3E%3Cfilter id=%22n%22 x=%220%22 y=%220%22 width=%22100%25%22 height=%22100%25%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%2240%22 height=%2240%22 filter=%22url(%23n)%22 opacity=%220.3%22/%3E%3C/svg%3E');
+  opacity: 0.08;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.collage-frame {
+  background: #2b1711;
+  border: 1px solid rgba(243, 233, 218, 0.16);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.4), 0 2px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.collage-frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.2), transparent 32%, rgba(0, 0, 0, 0.2));
+  mix-blend-mode: multiply;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.tape {
+  position: absolute;
+  width: 90px;
+  height: 18px;
+  background: linear-gradient(120deg, rgba(43, 23, 17, 0.6), rgba(30, 18, 13, 0.7));
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+  transform: rotate(-4deg);
+  border-radius: 3px;
+  mix-blend-mode: normal;
+}
+
+.tape--right {
+  right: 12%;
+  top: -10px;
+  transform: rotate(6deg);
+}
+
+.tape--left {
+  left: 10%;
+  top: -16px;
+}
+
+.capsule-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  border: 1px solid rgba(243, 233, 218, 0.22);
+  background: rgba(212, 165, 116, 0.1);
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.7rem;
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.capsule-tag:hover {
+  border-color: rgba(212, 165, 116, 0.35);
+  background: rgba(212, 165, 116, 0.15);
+}
+
+.ribbon-line {
+  position: relative;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(243, 233, 218, 0), rgba(243, 233, 218, 0.3), rgba(243, 233, 218, 0));
+}
+
+/* ============================================
+   Display Typography - Sans-serif Headings
+   ============================================ */
+.font-display {
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+}
+
+/* Large uppercase headings - tighter tracking */
+h1.font-display,
+h2.font-display,
+.heading-display {
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  font-weight: 600;
+}
+
+/* Responsive heading utility */
+.heading-hero {
+  font-size: clamp(1.75rem, 4vw, 3.5rem);
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+}
+
+.heading-section {
+  font-size: clamp(1.5rem, 3.5vw, 3rem);
+  line-height: 1.15;
+  letter-spacing: 0.05em;
+}
+
+.fade-in {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: fadeInUp 0.9s ease forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Brand Loader Animation - premium subtle rotation + breathing */
+@keyframes brandLoaderRotate {
+  0% {
+    transform: rotate(0deg) scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: rotate(180deg) scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+    opacity: 0.85;
+  }
+}
+
+.brand-loader-animate {
+  animation: brandLoaderRotate 1.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px rgba(212, 165, 116, 0.4));
+}
+
+/* ============================================
+   LIQUID GLASS - Premium glassmorphism effect
+   ============================================ */
+.liquid-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(18, 11, 8, 0.85),
+    rgba(26, 15, 11, 0.78)
+  );
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid rgba(242, 230, 216, 0.08);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(242, 230, 216, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.liquid-glass-strong {
+  background: linear-gradient(
+    135deg,
+    rgba(18, 11, 8, 0.92),
+    rgba(26, 15, 11, 0.88)
+  );
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  border: 1px solid rgba(242, 230, 216, 0.1);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(242, 230, 216, 0.08),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+}
+
+/* Non-selectable brand assets */
+.brand-asset {
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: auto;
+}
+
+/* ============================================
+   Hamburger → X animation - SYMMETRIC CROSS
+   ============================================ */
+
+/* 
+ * Use fill-box so transform-origin: center is relative to each line's bounding box.
+ * This ensures rotation happens around the center of each line after translation.
+ */
+.hamburger-line {
+  transform-box: fill-box;
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+
+/* Hamburger → X: top line moves to center then rotates 45° */
+@keyframes hamburgerToX-top {
+  0% { 
+    transform: translateY(0) rotate(0deg); 
+  }
+  50% { 
+    transform: translateY(5px) rotate(0deg); 
+  }
+  100% { 
+    transform: translateY(5px) rotate(45deg); 
+  }
+}
+
+/* Hamburger → X: middle line fades out */
+@keyframes hamburgerToX-middle {
+  0% { 
+    opacity: 1; 
+  }
+  100% { 
+    opacity: 0; 
+  }
+}
+
+/* Hamburger → X: bottom line moves to center then rotates -45° */
+@keyframes hamburgerToX-bottom {
+  0% { 
+    transform: translateY(0) rotate(0deg); 
+  }
+  50% { 
+    transform: translateY(-5px) rotate(0deg); 
+  }
+  100% { 
+    transform: translateY(-5px) rotate(-45deg); 
+  }
+}
+
+/* X → Hamburger: reverse animations */
+@keyframes XToHamburger-top {
+  0% { 
+    transform: translateY(5px) rotate(45deg); 
+  }
+  50% { 
+    transform: translateY(5px) rotate(0deg); 
+  }
+  100% { 
+    transform: translateY(0) rotate(0deg); 
+  }
+}
+
+@keyframes XToHamburger-middle {
+  0% { 
+    opacity: 0; 
+  }
+  100% { 
+    opacity: 1; 
+  }
+}
+
+@keyframes XToHamburger-bottom {
+  0% { 
+    transform: translateY(-5px) rotate(-45deg); 
+  }
+  50% { 
+    transform: translateY(-5px) rotate(0deg); 
+  }
+  100% { 
+    transform: translateY(0) rotate(0deg); 
+  }
+}
+
+/* OPEN state - animate to X */
+.hamburger-open .hamburger-top {
+  animation: hamburgerToX-top 350ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.hamburger-open .hamburger-middle {
+  animation: hamburgerToX-middle 200ms ease-out forwards;
+}
+
+.hamburger-open .hamburger-bottom {
+  animation: hamburgerToX-bottom 350ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* CLOSE state - animate back to hamburger */
+.hamburger-close .hamburger-top {
+  animation: XToHamburger-top 350ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.hamburger-close .hamburger-middle {
+  animation: XToHamburger-middle 200ms ease-out 150ms forwards;
+}
+
+.hamburger-close .hamburger-bottom {
+  animation: XToHamburger-bottom 350ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Reduced motion: instant transitions */
+@media (prefers-reduced-motion: reduce) {
+  .hamburger-open .hamburger-top,
+  .hamburger-open .hamburger-middle,
+  .hamburger-open .hamburger-bottom,
+  .hamburger-close .hamburger-top,
+  .hamburger-close .hamburger-middle,
+  .hamburger-close .hamburger-bottom {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+  
+  .search-expand-input {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Search input expand animation */
+.search-expand-input {
+  transition: width 280ms cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 200ms ease-out,
+              padding 280ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   Poster Gradient Animations
+   ============================================ */
+
+/* Constant slow drift - always active on poster-gradient */
+@keyframes posterDrift {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.015) rotate(0.3deg);
+  }
+  50% {
+    transform: scale(1.025) rotate(0deg);
+  }
+  75% {
+    transform: scale(1.015) rotate(-0.3deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Always animate the poster gradient for constant "life" */
+.poster-gradient {
+  --pg-spot-1-size: 45%;
+  --pg-spot-2-size: 42%;
+  --pg-spot-3-size: 52%;
+  --pg-shift-1-size: 50%;
+  --pg-shift-2-size: 45%;
+  animation: posterDrift 40s linear infinite;
+}
+
+/* Stronger animation for fallback when no WebGL */
+@keyframes posterGradientShift {
+  0% {
+    transform: scale(1) translate(0, 0);
+  }
+  25% {
+    transform: scale(1.03) translate(-0.8%, 0.6%);
+  }
+  50% {
+    transform: scale(1.05) translate(0.6%, -0.4%);
+  }
+  75% {
+    transform: scale(1.02) translate(-0.4%, -0.6%);
+  }
+  100% {
+    transform: scale(1) translate(0, 0);
+  }
+}
+
+/* Color shift animation for overlay layer */
+@keyframes posterColorShift {
+  0% {
+    opacity: 0.5;
+    transform: scale(1) rotate(0deg);
+  }
+  33% {
+    opacity: 0.75;
+    transform: scale(1.12) rotate(2.5deg);
+  }
+  66% {
+    opacity: 0.4;
+    transform: scale(0.92) rotate(-1.5deg);
+  }
+  100% {
+    opacity: 0.5;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.poster-gradient-animated {
+  animation: posterGradientShift 25s ease-in-out infinite;
+}
+
+.poster-gradient-color-shift {
+  animation: posterColorShift 18s ease-in-out infinite;
+}
+
+/* Mobile: tighter gradient spots & more visible wave movement */
+@keyframes posterDriftMobile {
+  0%   { transform: scale(1) rotate(0deg); }
+  25%  { transform: scale(1.02) rotate(0.5deg); }
+  50%  { transform: scale(1.035) rotate(0deg); }
+  75%  { transform: scale(1.02) rotate(-0.5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes posterGradientShiftMobile {
+  0%   { transform: scale(1) translate(0, 0); }
+  25%  { transform: scale(1.04) translate(-1.2%, 0.9%); }
+  50%  { transform: scale(1.065) translate(0.9%, -0.6%); }
+  75%  { transform: scale(1.03) translate(-0.6%, -0.9%); }
+  100% { transform: scale(1) translate(0, 0); }
+}
+
+@keyframes posterColorShiftMobile {
+  0%   { opacity: 0.5; transform: scale(1) rotate(0deg); }
+  33%  { opacity: 0.8; transform: scale(1.15) rotate(3deg); }
+  66%  { opacity: 0.35; transform: scale(0.88) rotate(-2deg); }
+  100% { opacity: 0.5; transform: scale(1) rotate(0deg); }
+}
+
+@media (max-width: 768px) {
+  .poster-gradient {
+    --pg-spot-1-size: 32%;
+    --pg-spot-2-size: 30%;
+    --pg-spot-3-size: 38%;
+    --pg-shift-1-size: 36%;
+    --pg-shift-2-size: 33%;
+    animation-name: posterDriftMobile;
+  }
+
+  .poster-gradient-animated {
+    animation-name: posterGradientShiftMobile;
+  }
+
+  .poster-gradient-color-shift {
+    animation-name: posterColorShiftMobile;
+  }
+}
+
+/* Reduced motion: disable poster animations */
+@media (prefers-reduced-motion: reduce) {
+  .poster-gradient,
+  .poster-gradient-animated,
+  .poster-gradient-color-shift {
+    animation: none !important;
+  }
+}
+
+/* ============================================
+   Collection Showcase - Hero pulse animation
+   ============================================ */
+
+@keyframes showcaseHeroPulse {
+  0% {
+    transform: scale(1) translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.05) translate(-1%, 0.5%) rotate(0.5deg);
+  }
+  50% {
+    transform: scale(1.03) translate(0.5%, -0.8%) rotate(-0.3deg);
+  }
+  75% {
+    transform: scale(1.06) translate(-0.5%, 0.3%) rotate(0.2deg);
+  }
+  100% {
+    transform: scale(1) translate(0, 0) rotate(0deg);
+  }
+}
+
+.showcase-hero-animate {
+  animation: showcaseHeroPulse 20s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .showcase-hero-animate {
+    animation: none !important;
+  }
+}
+
+/* ============================================
+   Menu Panel - Tavern Sign Animation
+   ============================================ */
+
+/* Swing down from header like a tavern sign */
+@keyframes menuSwingIn {
+  0% {
+    transform: translateY(-100%) rotateX(15deg) scale(0.95);
+    opacity: 0;
+  }
+  40% {
+    transform: translateY(0) rotateX(-2deg) scale(1);
+    opacity: 1;
+  }
+  60% {
+    transform: translateY(0) rotateX(1.5deg) scale(1);
+  }
+  80% {
+    transform: translateY(0) rotateX(-0.8deg) scale(1);
+  }
+  100% {
+    transform: translateY(0) rotateX(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Swing back up behind header */
+@keyframes menuSwingOut {
+  0% {
+    transform: translateY(0) rotateX(0deg) scale(1);
+    opacity: 1;
+  }
+  30% {
+    transform: translateY(0) rotateX(-3deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100%) rotateX(15deg) scale(0.95);
+    opacity: 0;
+  }
+}
+
+.menu-panel {
+  transform-origin: top center;
+  perspective: 1000px;
+}
+
+.menu-panel-open {
+  animation: menuSwingIn 450ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.menu-panel-close {
+  animation: menuSwingOut 350ms cubic-bezier(0.4, 0, 0.6, 1) forwards;
+}
+
+/* Reduced motion: simple fade */
+@media (prefers-reduced-motion: reduce) {
+  .menu-panel-open,
+  .menu-panel-close {
+    animation: none !important;
+  }
+  
+  .menu-panel-open {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  
+  .menu-panel-close {
+    transform: translateY(-20px) scale(0.98);
+    opacity: 0;
+  }
+}
+
+/* ============================================
+   Lookbook — SVG Mountain + Interactive Cards
+   No canvas/WebGL. Pure SVG + CSS transitions.
+   ============================================ */
+
+/* ── Page wrapper ── */
+.mtn-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.mtn-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+/* ── Layout: mountain + cards side-by-side ── */
+.mtn {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (min-width: 768px) {
+  .mtn {
+    grid-template-columns: 1.3fr 1fr;
+    gap: 2.5rem;
+    align-items: center;
+  }
+}
+
+/* ── Mountain visual ── */
+.mtn__visual {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.mtn__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Bottom gradient — soft dissolve into page bg */
+.mtn__fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  background: linear-gradient(to bottom, transparent, var(--paper-base));
+  pointer-events: none;
+}
+
+/* ── SVG zone transitions ── */
+.mtn__zone {
+  transition:
+    opacity 0.45s ease,
+    transform 0.5s cubic-bezier(0.34, 1.3, 0.64, 1);
+}
+
+.mtn__zone-hl {
+  transition: opacity 0.4s ease;
+}
+
+/* ── Cards panel ── */
+.mtn__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mtn__card {
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid rgba(243, 233, 218, 0.06);
+  background: var(--paper-muted);
+  cursor: pointer;
+  transition:
+    background 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.mtn__card:focus {
+  outline: none;
+}
+
+.mtn__card:hover {
+  border-color: rgba(212, 165, 116, 0.15);
+}
+
+.mtn__card:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(212, 165, 116, 0.2);
+}
+
+/* Active card */
+.mtn__card--on {
+  background: linear-gradient(135deg, rgba(43, 23, 17, 0.95), rgba(30, 18, 13, 0.98));
+  border-color: rgba(212, 165, 116, 0.3);
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(212, 165, 116, 0.06);
+}
+
+/* Card head row */
+.mtn__card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.mtn__card-num {
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+
+.mtn__card--on .mtn__card-num {
+  opacity: 0.9;
+}
+
+.mtn__card-title {
+  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+}
+
+.mtn__card--on .mtn__card-title {
+  color: var(--accent);
+}
+
+/* Description — typing animation reveals it */
+.mtn__card-desc {
+  margin-top: 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  min-height: 2.5em;
+}
+
+/* Typing cursor */
+.mtn__cursor {
+  display: inline-block;
+  width: 1px;
+  height: 1em;
+  background: var(--accent);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: mtnBlink 0.7s step-end infinite;
+}
+
+@keyframes mtnBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .mtn__zone {
+    transition: opacity 0.01ms ease !important;
+    transform: none !important;
+  }
+
+  .mtn__zone-hl {
+    transition: none !important;
+  }
+
+  .mtn__card {
+    transition: none !important;
+  }
+
+  .mtn__cursor {
+    animation: none !important;
+    display: none;
+  }
+}
+
+/* ============================================
+   Luxury Button System
+   ============================================ */
+
+/* Primary CTA - warm gold gradient */
+.lux-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.875rem 2.25rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, var(--lux-btn-primary-from), var(--lux-btn-primary-to));
+  border: 1px solid rgba(212, 165, 116, 0.3);
+  color: var(--paper-base);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 4px 16px rgba(201, 149, 95, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lux-btn-primary:hover {
+  background: linear-gradient(135deg, #d4a574, #b8884e);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.25),
+    0 8px 24px rgba(201, 149, 95, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.lux-btn-primary:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--paper-base),
+    0 0 0 4px rgba(212, 165, 116, 0.5),
+    0 4px 16px rgba(201, 149, 95, 0.15);
+}
+
+.lux-btn-primary:active {
+  transform: translateY(0);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.3),
+    inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Secondary/ghost CTA */
+.lux-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 2rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.1), rgba(212, 165, 116, 0.04));
+  border: 1px solid var(--lux-btn-border);
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  box-shadow: var(--lux-btn-glow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lux-btn-secondary:hover {
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.18), rgba(212, 165, 116, 0.08));
+  border-color: var(--lux-btn-hover-border);
+  box-shadow: var(--lux-btn-hover-glow);
+  transform: translateY(-1px);
+}
+
+.lux-btn-secondary:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--paper-base),
+    0 0 0 4px rgba(212, 165, 116, 0.4);
+}
+
+.lux-btn-secondary:active {
+  transform: translateY(0);
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.2), rgba(212, 165, 116, 0.1));
+}
+
+/* Premium control (selects, checkboxes containers) */
+.lux-control {
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(18, 11, 8, 0.7), rgba(26, 15, 11, 0.5));
+  border: 1px solid rgba(242, 230, 216, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.25s ease;
+}
+
+.lux-control:hover {
+  border-color: rgba(212, 165, 116, 0.2);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+.lux-control:focus-within {
+  border-color: rgba(212, 165, 116, 0.35);
+  box-shadow: 0 0 0 1px rgba(212, 165, 116, 0.15), 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================
+   Scrollbar hide utility
+   ============================================ */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+

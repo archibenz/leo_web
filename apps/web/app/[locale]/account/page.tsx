@@ -1,0 +1,438 @@
+'use client';
+
+import {useState} from 'react';
+import {useTranslations, useLocale} from 'next-intl';
+import {useRouter} from 'next/navigation';
+import {useAuth} from '../../../contexts';
+import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
+import Link from 'next/link';
+
+export default function AccountPage() {
+  const t = useTranslations('account');
+  const locale = useLocale();
+  const router = useRouter();
+  const {user, isAuthenticated, isLoading, login, register, initTelegramAuth, logout, validateEmail} = useAuth();
+  const [isLoginMode, setIsLoginMode] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [regPassword, setRegPassword] = useState('');
+  const [error, setError] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [tgLoading, setTgLoading] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+
+  const handleModeSwitch = (loginMode: boolean) => {
+    if (loginMode === isLoginMode) return;
+    setIsTransitioning(true);
+    setError('');
+
+    setTimeout(() => {
+      setIsLoginMode(loginMode);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 50);
+    }, 200);
+  };
+
+  const getErrorMessage = (errorCode: string): string => {
+    const errorMessages: Record<string, string> = {
+      'invalid_email': t('errors.invalidEmail'),
+      'user_not_found': t('errors.userNotFound'),
+      'invalid_password': t('errors.invalidPassword'),
+      'password_too_short': t('errors.passwordTooShort'),
+      'email_exists': t('errors.emailExists'),
+      'registration_failed': t('errors.registerFailed'),
+      'invalid_credentials': t('errors.invalidCredentials'),
+      'login_failed': t('errors.loginFailed'),
+      'send_code_failed': t('errors.sendCodeFailed'),
+    };
+    return errorMessages[errorCode] || t('errors.genericError');
+  };
+
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (!validateEmail(email)) {
+      setError(t('errors.invalidEmail'));
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const result = await login(email, password);
+      if (!result.success && result.error) {
+        setError(getErrorMessage(result.error));
+      }
+    } catch {
+      setError(t('errors.genericError'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    setSubmitting(true);
+    try {
+      const result = await register({
+        email,
+        firstName,
+        password: regPassword,
+        newsletter: false,
+        privacyAccepted: true,
+      });
+      if (!result.success && result.error) {
+        setError(getErrorMessage(result.error));
+      }
+    } catch {
+      setError(t('errors.genericError'));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleTelegramLogin = async () => {
+    setTgLoading(true);
+    setError('');
+    try {
+      const result = await initTelegramAuth();
+      if (result.success && result.deepLink) {
+        window.location.href = result.deepLink;
+      } else {
+        setError(t('errors.genericError'));
+      }
+    } catch {
+      setError(t('errors.genericError'));
+    } finally {
+      setTgLoading(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="relative min-h-screen pt-28 pb-6">
+        <HeroShaderBackgroundClient />
+        <div className="relative z-10 flex min-h-[60vh] items-center justify-center px-6 lg:px-8">
+          <div className="paper-card p-10 text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+            <p className="mt-4 text-ink-soft">{t('loading')}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Logged in state
+  if (isAuthenticated && user) {
+    const initials = [user.name, user.surname]
+      .filter(Boolean)
+      .map(w => w![0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+
+    const memberSinceDate = user.createdAt
+      ? new Intl.DateTimeFormat(locale, {year: 'numeric', month: 'long'}).format(new Date(user.createdAt))
+      : null;
+
+    return (
+      <div className="relative min-h-screen pt-28 pb-6">
+        <HeroShaderBackgroundClient />
+        <div className="relative z-10 flex min-h-[60vh] items-center justify-center px-6 lg:px-8">
+          <div className="w-full max-w-lg space-y-6">
+            {/* Avatar + greeting */}
+            <div className="flex flex-col items-center gap-4">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-ink/[0.06] border border-ink/10">
+                <svg viewBox="0 0 24 24" className="h-9 w-9 text-ink/40" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                </svg>
+              </div>
+              <div className="text-center">
+                <h1 className="font-display text-ink text-[clamp(1.5rem,3.5vw,2.25rem)]">
+                  {t('welcome')}, {user.name}
+                </h1>
+                {memberSinceDate && (
+                  <p className="mt-1 text-sm text-ink-soft">
+                    {t('profile.memberSince', {date: memberSinceDate})}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Profile info */}
+            <div className="paper-card space-y-4 p-6">
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-widest text-ink-soft">{t('profile.name')}</p>
+                <p className="text-sm text-ink">{user.name}</p>
+              </div>
+              {user.surname && (
+                <>
+                  <div className="h-px bg-ink/8" />
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs uppercase tracking-widest text-ink-soft">{t('profile.surname')}</p>
+                    <p className="text-sm text-ink">{user.surname}</p>
+                  </div>
+                </>
+              )}
+              <div className="h-px bg-ink/8" />
+              <div className="flex items-center justify-between gap-2 overflow-hidden">
+                <p className="text-xs uppercase tracking-widest text-ink-soft flex-shrink-0">{t('profile.email')}</p>
+                <div className="flex items-center gap-2 min-w-0">
+                  {user.email ? (
+                    <>
+                      <p className="text-sm text-ink truncate">{user.email}</p>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-green-400 flex-shrink-0">
+                        <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                        {t('profile.emailVerified')}
+                      </span>
+                    </>
+                  ) : (
+                    <p className="text-sm text-ink-soft italic">{t('profile.emailNotLinked')}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Action buttons */}
+            <div className="grid grid-cols-2 gap-3">
+              <Link
+                href={`/${locale}/favorites`}
+                className="paper-card flex items-center justify-center gap-2 p-3 sm:p-4 text-center transition-all duration-200 hover:shadow-lg hover:scale-[1.02] min-w-0"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent flex-shrink-0">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                </svg>
+                <span className="text-[11px] sm:text-xs uppercase tracking-wider sm:tracking-widest text-ink-soft truncate">{t('profile.favorites')}</span>
+              </Link>
+              <Link
+                href={`/${locale}/account/settings`}
+                className="paper-card flex items-center justify-center gap-2 p-3 sm:p-4 text-center transition-all duration-200 hover:shadow-lg hover:scale-[1.02] min-w-0"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent flex-shrink-0">
+                  <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+                </svg>
+                <span className="text-[11px] sm:text-xs uppercase tracking-wider sm:tracking-widest text-ink-soft truncate">{t('profile.settings')}</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Login / Register (email-only step) form
+  return (
+    <div className="relative min-h-screen pt-28 pb-6">
+      <HeroShaderBackgroundClient />
+      <div className="relative z-10 flex min-h-[60vh] items-center justify-center px-6 lg:px-8">
+        <div className="w-full max-w-lg">
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <p className="capsule-tag mx-auto">{t('tag')}</p>
+            <h1
+              className={`mt-4 font-display text-ink text-[clamp(1.75rem,4vw,2.75rem)] transition-all duration-300 ${
+                isTransitioning ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
+              }`}
+            >
+              {isLoginMode ? t('signIn') : t('signUp')}
+            </h1>
+          </div>
+
+          {/* Card with form */}
+          <div className="paper-card overflow-hidden p-8">
+            {/* Mode toggle tabs */}
+            <div className="relative mb-8 flex rounded-full bg-ink/5 p-1">
+              <div
+                className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-full bg-button transition-all duration-300 ease-out"
+                style={{
+                  left: isLoginMode ? '4px' : 'calc(50% + 0px)',
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => handleModeSwitch(true)}
+                className={`relative z-10 flex-1 py-3 text-sm font-medium uppercase tracking-wider transition-colors duration-300 ${
+                  isLoginMode ? 'text-ink' : 'text-ink-soft hover:text-ink'
+                }`}
+              >
+                {t('tabs.login')}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleModeSwitch(false)}
+                className={`relative z-10 flex-1 py-3 text-sm font-medium uppercase tracking-wider transition-colors duration-300 ${
+                  !isLoginMode ? 'text-ink' : 'text-ink-soft hover:text-ink'
+                }`}
+              >
+                {t('tabs.register')}
+              </button>
+            </div>
+
+            {/* Form */}
+            <form
+              onSubmit={isLoginMode ? handleLoginSubmit : handleRegisterSubmit}
+              className={`space-y-5 transition-all duration-300 ${
+                isTransitioning ? 'opacity-0 translate-x-4' : 'opacity-100 translate-x-0'
+              }`}
+            >
+              <div className="space-y-2">
+                <label htmlFor="email" className="block text-sm uppercase tracking-widest text-ink-soft">
+                  {t('form.email')}
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => setEmailFocused(true)}
+                  onBlur={() => setEmailFocused(false)}
+                  className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-base text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper placeholder:transition-opacity placeholder:duration-200"
+                  placeholder={emailFocused ? '' : t('form.emailPlaceholder')}
+                  required
+                />
+              </div>
+
+              {/* Login: password field */}
+              {isLoginMode && (
+                <div className="space-y-2">
+                  <label htmlFor="password" className="block text-sm uppercase tracking-widest text-ink-soft">
+                    {t('form.password')}
+                  </label>
+                  <input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setPasswordFocused(true)}
+                    onBlur={() => setPasswordFocused(false)}
+                    className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-base text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper placeholder:transition-opacity placeholder:duration-200"
+                    placeholder={passwordFocused ? '' : t('form.passwordPlaceholder')}
+                    minLength={6}
+                  />
+                </div>
+              )}
+
+              {/* Register: name + password fields */}
+              {!isLoginMode && (
+                <>
+                  <div className="space-y-2">
+                    <label htmlFor="firstName" className="block text-sm uppercase tracking-widest text-ink-soft">
+                      {t('form.name')}
+                    </label>
+                    <input
+                      id="firstName"
+                      type="text"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-base text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper"
+                      placeholder={t('form.namePlaceholder')}
+                      minLength={2}
+                      maxLength={40}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="regPassword" className="block text-sm uppercase tracking-widest text-ink-soft">
+                      {t('form.password')}
+                    </label>
+                    <input
+                      id="regPassword"
+                      type="password"
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-base text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper"
+                      placeholder={t('form.passwordPlaceholder')}
+                      minLength={6}
+                      required
+                    />
+                  </div>
+                </>
+              )}
+
+              {/* Error message */}
+              <div
+                className={`overflow-hidden transition-all duration-300 ${
+                  error ? 'max-h-16 opacity-100' : 'max-h-0 opacity-0'
+                }`}
+              >
+                <p className="rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-400">{error}</p>
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="relative w-full overflow-hidden rounded-full bg-button px-8 py-4 text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85 hover:shadow-lg hover:shadow-button/25 disabled:opacity-50 disabled:hover:shadow-none"
+              >
+                <span className={`inline-block transition-all duration-300 ${submitting ? 'opacity-0' : 'opacity-100'}`}>
+                  {isLoginMode ? t('buttons.signIn') : t('buttons.signUp')}
+                </span>
+                {submitting && (
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-ink border-t-transparent" />
+                  </span>
+                )}
+              </button>
+            </form>
+
+            {/* Telegram login */}
+            <div className="mt-4">
+              <div className="relative flex items-center py-2">
+                <div className="flex-1 border-t border-ink/10" />
+                <span className="mx-4 text-xs uppercase tracking-widest text-ink-soft">{t('footer.or')}</span>
+                <div className="flex-1 border-t border-ink/10" />
+              </div>
+              <button
+                type="button"
+                onClick={handleTelegramLogin}
+                disabled={tgLoading}
+                className="relative w-full overflow-hidden rounded-full border border-ink/20 bg-paper px-8 py-4 text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:border-accent/40 hover:shadow-md disabled:opacity-50 flex items-center justify-center gap-3"
+              >
+                <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current text-[#229ED9]" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.932z"/>
+                </svg>
+                {tgLoading ? (
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-ink border-t-transparent" />
+                ) : (
+                  t('buttons.telegramLogin')
+                )}
+              </button>
+            </div>
+
+            {/* Footer text */}
+            <p className="mt-6 text-center text-sm text-ink-soft">
+              {isLoginMode ? (
+                <>{t('footer.noAccount')}{' '}
+                  <button
+                    type="button"
+                    onClick={() => handleModeSwitch(false)}
+                    className="text-accent transition hover:text-accent/80"
+                  >
+                    {t('footer.createOne')}
+                  </button>
+                </>
+              ) : (
+                <>{t('footer.hasAccount')}{' '}
+                  <button
+                    type="button"
+                    onClick={() => handleModeSwitch(true)}
+                    className="text-accent transition hover:text-accent/80"
+                  >
+                    {t('footer.signInLink')}
+                  </button>
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

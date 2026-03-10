@@ -1,0 +1,688 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "switchTo": "Switch to {locale}"
+  },
+  "languageSelect": {
+    "label": "Language",
+    "soon": "Soon"
+  },
+  "nav": {
+    "about": "About",
+    "atelier": "Atelier",
+    "quality": "Quality",
+    "shop": "Shop",
+    "contact": "Contact"
+  },
+  "header": {
+    "search": "Search...",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "openSearch": "Open search",
+    "closeSearch": "Close search",
+    "profile": "Profile",
+    "favorites": "Favorites",
+    "cart": "Shopping cart",
+    "goHome": "REINASLEO - go to home",
+    "greeting": "Hi, {name}",
+    "catalog": "Catalog",
+    "collections": "Collections",
+    "dropdown": {
+      "greeting": "Hi, {name}",
+      "profile": "Profile",
+      "orders": "Orders",
+      "favourites": "Favourites",
+      "settings": "Settings",
+      "logOut": "Log out",
+      "admin": "Admin Panel",
+      "loginPrompt": "Sign in to view orders, favourites and settings",
+      "signIn": "Sign in"
+    }
+  },
+  "menu": {
+    "categories": {
+      "new": "New",
+      "evening": "Evening",
+      "everyday": "Everyday",
+      "outerwear": "Outerwear",
+      "dresses": "Dresses",
+      "knitwear": "Knitwear",
+      "accessories": "Accessories",
+      "care": "Care"
+    },
+    "collections": "Collections",
+    "winter": "Winter Collection",
+    "spring": "Spring Collection",
+    "summer": "Summer Collection",
+    "autumn": "Autumn Collection",
+    "viewAllCollections": "View all collections",
+    "clothing": {
+      "skirts": "Skirts",
+      "dresses": "Dresses",
+      "jackets": "Jackets",
+      "coats": "Coats",
+      "trousers": "Trousers",
+      "blouses": "Blouses",
+      "eveningDresses": "Evening Dresses",
+      "tops": "Tops",
+      "suits": "Suits",
+      "midiSkirts": "Midi Skirts",
+      "cardigans": "Cardigans"
+    },
+    "footer": {
+      "copyright": "© 2026 REINASLEO",
+      "tagline": "Made with precision"
+    }
+  },
+  "products": {
+    "eveningCoat": "Evening Coat",
+    "silkBlouse": "Silk Blouse",
+    "tailoredTrousers": "Tailored Trousers",
+    "cashmereKnit": "Cashmere Knit",
+    "woolDress": "Wool Dress",
+    "leatherBelt": "Leather Belt",
+    "categories": {
+      "outerwear": "Outerwear",
+      "tops": "Tops",
+      "bottoms": "Bottoms",
+      "knitwear": "Knitwear",
+      "dresses": "Dresses",
+      "accessories": "Accessories"
+    }
+  },
+  "footer": {
+    "tagline": "Editorial womenswear crafted with precision.",
+    "studio": "Atelier: made-to-order & limited runs",
+    "email": "reinasleo@gmail.com",
+    "rights": "© 2026 REINASLEO. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  },
+  "home": {
+    "hero": {
+      "tag": "New House",
+      "title": "Regal confidence. Sculpted femininity.",
+      "subtitle": "A curated wardrobe of deliberate silhouettes, tactile fabrics, and couture-grade finishing—built for women who collect details as art.",
+      "ctaPrimary": "Explore the brand",
+      "ctaSecondary": "Request a fitting",
+      "caption": "Editorial frame placeholder — drop your hero visual here.",
+      "badge": "Limited atelier drops"
+    },
+    "philosophy": {
+      "eyebrow": "REINASLEO \u00b7 EDITORIAL",
+      "tag": "Our Essence",
+      "title": "Brand Philosophy",
+      "statements": [
+        "We believe in the power of a perfectly tailored silhouette to transform not just how you look, but how you move through the world.",
+        "Every piece is designed to last\u2014not just seasons, but years. Crafted with intention, finished by hand, meant to be treasured.",
+        "REINASLEO is for women who understand that true luxury lives in the details others might miss."
+      ],
+      "editorialCard": {
+        "quote": "Luxury lies in the details you feel, not the ones you see.",
+        "label": "Our Story",
+        "title": "Behind the Atelier",
+        "description": "How each piece comes to life — from the first sketch to the final stitch. A journey where nothing is left to chance.",
+        "cta": "Discover the story"
+      }
+    },
+    "qualityMarks": [
+      "Premium fabrics",
+      "Precision fit",
+      "Limited drops"
+    ],
+    "newDrops": {
+      "tag": "New Arrivals",
+      "title": "Latest Collection",
+      "viewAll": "View all"
+    },
+    "showcase": {
+      "heroTitle": "Spring / Summer 2026",
+      "heroSubtitle": "New arrivals",
+      "heroSeason": "ss26",
+      "items": [
+        {"slug": "silk-evening-gown", "label": "Silk Evening Gown", "description": "Evening · Silk"},
+        {"slug": "sculptured-wool-coat", "label": "Sculptured Wool Coat", "description": "Outerwear · Wool"},
+        {"slug": "cashmere-cardigan", "label": "Cashmere Draped Cardigan", "description": "Knitwear · Cashmere"},
+        {"slug": "tailored-trousers", "label": "Tailored Wide-Leg Trousers", "description": "Tailoring · Wool"},
+        {"slug": "ivory-midi-skirt", "label": "Ivory Midi Skirt", "description": "Ceremony · Silk"},
+        {"slug": "linen-blouse", "label": "Linen Resort Blouse", "description": "Resort · Linen"},
+        {"slug": "structured-blazer", "label": "Structured Blazer", "description": "Office · Wool"},
+        {"slug": "draped-silk-camisole", "label": "Draped Silk Camisole", "description": "Evening · Silk"}
+      ]
+    },
+    "shopHero": {
+      "title": "Shop",
+      "subtitle": "Explore the collection"
+    },
+    "categories": {
+      "title": "Categories",
+      "items": [
+        {"key": "dresses", "label": "Dresses", "description": "Evening & casual"},
+        {"key": "coats", "label": "Coats", "description": "Outerwear"},
+        {"key": "knitwear", "label": "Knitwear", "description": "Cashmere & wool"},
+        {"key": "skirts", "label": "Skirts", "description": "Midi & maxi"},
+        {"key": "blouses", "label": "Blouses", "description": "Silk & linen"},
+        {"key": "trousers", "label": "Trousers", "description": "Tailored cuts"},
+        {"key": "blazers", "label": "Blazers", "description": "Structured fits"},
+        {"key": "accessories", "label": "Accessories", "description": "Finishing touches"}
+      ]
+    },
+    "popular": {
+      "title": "Popular",
+      "items": [
+        {"slug": "silk-evening-gown", "label": "Silk Evening Gown", "description": "Evening · Silk"},
+        {"slug": "cashmere-cardigan", "label": "Cashmere Cardigan", "description": "Knitwear · Cashmere"},
+        {"slug": "sculptured-wool-coat", "label": "Sculptured Wool Coat", "description": "Outerwear · Wool"},
+        {"slug": "structured-blazer", "label": "Structured Blazer", "description": "Office · Wool"},
+        {"slug": "ivory-midi-skirt", "label": "Ivory Midi Skirt", "description": "Ceremony · Silk"},
+        {"slug": "tailored-trousers", "label": "Tailored Trousers", "description": "Tailoring · Wool"},
+        {"slug": "linen-blouse", "label": "Linen Blouse", "description": "Resort · Linen"},
+        {"slug": "cashmere-turtleneck", "label": "Cashmere Turtleneck", "description": "Casual · Cashmere"}
+      ]
+    },
+    "manifesto": {
+      "tag": "Manifesto",
+      "silhouette": {
+        "title": "Silhouette",
+        "body": "Architected lines that honor the body—elongated proportions, sculpted waists, poised structure without stiffness."
+      },
+      "details": {
+        "title": "Details",
+        "body": "French seams, hand-tacked linings, custom-dyed trims. Every edge is considered to feel intimate and intentional."
+      },
+      "craft": {
+        "title": "Craft",
+        "body": "Small-batch atelier production with couture-influenced finishing. Made to last, made to feel personal."
+      }
+    },
+    "atelier": {
+      "tag": "Atelier",
+      "title": "A quiet, disciplined atelier for women who notice everything.",
+      "body": "REINASLEO collections are assembled in focused capsules—allowing time for fabric testing, pattern refinements, and hand-finishing. Each release is meant to be lived in, layered, and treasured."
+    },
+    "quality": {
+      "tag": "Catalog Card",
+      "fabric": {
+        "title": "Fabric",
+        "bullets": [
+          "Italian wool-silk blends",
+          "Organic cotton sateen linings",
+          "Custom dye baths in house palette"
+        ]
+      },
+      "construction": {
+        "title": "Construction",
+        "bullets": [
+          "Precision pattern grading",
+          "Hand-tacked canvassing",
+          "French or bound seams"
+        ]
+      },
+      "hardware": {
+        "title": "Hardware",
+        "bullets": [
+          "Brushed brass zips",
+          "Mother-of-pearl buttons",
+          "Signature RL oval studs"
+        ]
+      }
+    },
+    "shopPreview": {
+      "title": "Shop preview",
+      "cta": "View all",
+      "labels": ["Evening", "Everyday", "Outerwear", "Knit", "Dress", "Atelier"]
+    },
+    "newsletter": {
+      "tag": "Join the list",
+      "title": "Quiet drops, first access.",
+      "body": "Receive atelier release notes, fitting invitations, and new collection drops. No noise—just the essentials.",
+      "emailLabel": "Email",
+      "phonePlaceholder": "Optional phone",
+      "cta": "Join",
+      "consent": "I agree to receive updates and consent to data processing."
+    }
+  },
+  "about": {
+    "tag": "Story",
+    "title": "REINASLEO is an editorial lens on modern femininity.",
+    "body": "Founded to bridge couture techniques with contemporary practicality, REINASLEO curates tightly edited capsules. Each piece is designed to hold structure, move with grace, and photograph beautifully. We obsess over tactile contrasts—crisp wovens against fluid drape, matte suiting beside luminous silk.",
+    "note": "This is a placeholder page. Expand with atelier photography, founder notes, and process imagery."
+  },
+  "shop": {
+    "tag": "Shop",
+    "title": "Shop",
+    "showFilters": "Show filters",
+    "hideFilters": "Hide filters",
+    "sortBy": "Sort by",
+    "groupByTheme": "Group by theme",
+    "resetFilters": "Reset filters",
+    "noResults": "No pieces match your selection",
+    "pieces": "pieces",
+    "sort": {
+      "newest": "Newest",
+      "priceLow": "Price: Low to High",
+      "priceHigh": "Price: High to Low",
+      "themeAz": "Theme (A–Z)"
+    },
+    "filters": {
+      "occasion": "Occasion",
+      "category": "Category",
+      "color": "Colour",
+      "size": "Size",
+      "price": "Price",
+      "material": "Material"
+    },
+    "occasions": {
+      "evening": "Evening",
+      "office": "Office",
+      "casual": "Casual",
+      "resort": "Resort",
+      "ceremony": "Ceremony"
+    },
+    "categories": {
+      "dresses": "Dresses",
+      "outerwear": "Outerwear",
+      "tailoring": "Tailoring",
+      "knitwear": "Knitwear",
+      "blouses": "Blouses",
+      "skirts": "Skirts",
+      "trousers": "Trousers"
+    },
+    "colors": {
+      "neutrals": "Neutrals",
+      "black": "Black",
+      "ivory": "Ivory",
+      "chocolate": "Chocolate",
+      "burgundy": "Burgundy"
+    },
+    "sizes": {
+      "XS": "XS",
+      "S": "S",
+      "M": "M",
+      "L": "L"
+    },
+    "priceRanges": {
+      "under200": "Under €200",
+      "r200to500": "€200 – €500",
+      "r500to800": "€500 – €800",
+      "r800to1200": "€800 – €1 200",
+      "over1200": "Over €1 200"
+    },
+    "materials": {
+      "silk": "Silk",
+      "wool": "Wool",
+      "cottonBlend": "Cotton blend",
+      "cashmere": "Cashmere",
+      "linen": "Linen"
+    }
+  },
+  "contact": {
+    "tag": "Contact",
+    "title": "Request a fitting or collaboration.",
+    "subtitle": "Share your request below. The form posts to the Spring Boot API at /api/contact.",
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Your full name",
+      "email": "Email",
+      "emailPlaceholder": "email@domain.com",
+      "message": "Message",
+      "messagePlaceholder": "Tell us about the occasion, sizing, or partnership idea.",
+      "consent": "I consent to storing my details for reply.",
+      "submit": "Send",
+      "sending": "Sending...",
+      "success": "Thank you. We will reply shortly.",
+      "error": "Something went wrong. Please try again."
+    }
+  },
+  "favorites": {
+    "tag": "Favorites",
+    "title": "Wishlist",
+    "loading": "Loading...",
+    "empty": {
+      "title": "No favorites yet",
+      "subtitle": "Items you love will appear here",
+      "cta": "Explore collection"
+    },
+    "clearAll": "Clear all",
+    "addToBag": "Add to bag",
+    "remove": "Remove from favorites"
+  },
+  "cart": {
+    "tag": "Cart",
+    "title": "Your cart",
+    "loading": "Loading...",
+    "empty": {
+      "title": "Your cart is empty",
+      "subtitle": "Add something beautiful",
+      "cta": "Explore collection"
+    },
+    "clearAll": "Clear all",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "summary": "Summary",
+    "checkout": "Proceed to checkout",
+    "remove": "Remove from cart",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity",
+    "favoritesSection": "Your favourites",
+    "recommendations": "You may also like",
+    "favoritesEmpty": "Save pieces you love — they will appear here",
+    "recentlyViewed": "Recently viewed",
+    "recentlyViewedEmpty": "Items you have browsed will appear here",
+    "toCollections": "View collections",
+    "testProductWarning": "Your cart contains demo products. Demo products cannot be purchased — they are for preview only.",
+    "checkoutDisabled": "Remove demo products to proceed to checkout"
+  },
+  "account": {
+    "tag": "Account",
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "welcome": "Welcome",
+    "loading": "Loading...",
+    "tabs": {
+      "login": "Sign in",
+      "register": "Register"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "email@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "••••••••"
+    },
+    "register": {
+      "emailHint": "We'll send a verification code to this email"
+    },
+    "confirm": {
+      "tag": "Verification",
+      "title": "Complete registration",
+      "subtitle": "We sent a code to {email}",
+      "codeLabel": "Verification code",
+      "didntReceive": "Didn't receive it?",
+      "resend": "Resend code",
+      "resendIn": "Resend in {seconds}s",
+      "firstName": "First name",
+      "firstNamePlaceholder": "Your first name",
+      "surname": "Surname",
+      "surnamePlaceholder": "Your surname",
+      "dateOfBirth": "Date of birth",
+      "newsletter": "Subscribe to our newsletter for updates on new collections, exclusive offers, and special promotions",
+      "privacyPolicy": "I have read and accept the Privacy Policy"
+    },
+    "buttons": {
+      "signIn": "Sign in",
+      "signUp": "Create account",
+      "continue": "Continue",
+      "signOut": "Sign out",
+      "goHome": "Go to Home",
+      "pleaseWait": "Please wait...",
+      "browseShop": "Browse Shop",
+      "myOrders": "Order History",
+      "myFavorites": "Favorites",
+      "telegramLogin": "Sign in with Telegram"
+    },
+    "footer": {
+      "noAccount": "Don't have an account?",
+      "createOne": "Create one",
+      "hasAccount": "Already have an account?",
+      "signInLink": "Sign in",
+      "or": "or"
+    },
+    "errors": {
+      "loginFailed": "Login failed. Please check your connection and try again.",
+      "registerFailed": "Registration failed. Please try again.",
+      "nameRequired": "Name is required",
+      "genericError": "An error occurred. Please try again.",
+      "invalidEmail": "Please enter a valid email address",
+      "userNotFound": "No account found with this email",
+      "invalidPassword": "Incorrect password",
+      "passwordTooShort": "Password must be at least 6 characters",
+      "emailExists": "An account with this email already exists",
+      "invalidCredentials": "Invalid email or password",
+      "invalidCode": "Invalid or expired verification code",
+      "privacyRequired": "You must accept the privacy policy",
+      "sendCodeFailed": "Failed to send verification code. Please try again.",
+      "nameLength": "Name must be between 2 and 40 characters",
+      "surnameLength": "Surname must be between 2 and 40 characters"
+    },
+    "profile": {
+      "title": "Profile",
+      "name": "Name",
+      "surname": "Surname",
+      "email": "Email",
+      "emailVerified": "Verified",
+      "emailNotLinked": "Not linked",
+      "memberSince": "Member of REINASLEO since {date}",
+      "favorites": "Your Favourites",
+      "settings": "Account Settings"
+    },
+    "settings": {
+      "title": "Settings",
+      "signOut": "Sign out",
+      "backToProfile": "Profile"
+    }
+  },
+  "product": {
+    "back": "Back",
+    "addToBag": "Add to Bag",
+    "favourite": "Favourite",
+    "favouriteAdded": "Favourited",
+    "selectSize": "Select Size",
+    "sizeGuide": "Size Guide",
+    "color": "Colour",
+    "sku": "Style",
+    "material": "Material",
+    "description": "Description",
+    "viewDetails": "View Product Details",
+    "deliveryTitle": "Delivery & Returns",
+    "deliveryBody": "Standard delivery 3–5 business days. Free returns within 30 days of purchase. Items must be unworn with tags attached.",
+    "reviewsTitle": "Reviews",
+    "youMightLike": "You Might Also Like",
+    "outOfStock": "Out of Stock",
+    "pickup": "Pickup",
+    "pickupBody": "Find a store near you.",
+    "findStore": "Find a Store",
+    "sizeUnavailable": "Unavailable",
+    "selectSizeFirst": "Please select a size",
+    "inCart": "In cart",
+    "decreaseQty": "Decrease quantity",
+    "increaseQty": "Increase quantity",
+    "size": "Size",
+    "notFound": "Product not found"
+  },
+  "collections": {
+    "tag": "Collections",
+    "title": "Seasonal Collections",
+    "subtitle": "Each season tells its own story through fabric, silhouette, and color.",
+    "seasons": {
+      "winter": {
+        "name": "Winter Collection",
+        "description": "Structured warmth — wool coats, cashmere layers, and evening silhouettes for the coldest months."
+      },
+      "spring": {
+        "name": "Spring Collection",
+        "description": "Light transitions — flowing blouses, tailored trousers, and soft palettes for the new season."
+      },
+      "summer": {
+        "name": "Summer Collection",
+        "description": "Effortless movement — silk dresses, linen tops, and resort-ready pieces for warm days."
+      },
+      "autumn": {
+        "name": "Autumn Collection",
+        "description": "Rich textures — midi skirts, knit cardigans, and tailored suits in deep seasonal tones."
+      }
+    }
+  },
+  "privacy": {
+    "tag": "Legal",
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: February 2026",
+    "sections": [
+      {
+        "heading": "1. General Provisions",
+        "body": "This Privacy Policy describes how REINASLEO (\"we\", \"us\", or \"our\") collects, uses, and protects your personal data when you use our website and services. By accessing our website, you agree to the terms outlined in this policy."
+      },
+      {
+        "heading": "2. Data We Collect",
+        "body": "We collect the following types of personal data: name, email address, phone number, delivery address, order history, browsing behavior on our website, and Telegram account information if you choose to link it. Data is collected when you create an account, place an order, subscribe to our newsletter, or contact us."
+      },
+      {
+        "heading": "3. Purpose of Data Processing",
+        "body": "Your personal data is used to process and fulfil orders, provide customer support, send newsletters and promotional offers (with your consent), improve our website and services, prevent fraud, and comply with legal obligations."
+      },
+      {
+        "heading": "4. Data Storage and Security",
+        "body": "Your data is stored on secure servers within the European Economic Area. We employ industry-standard encryption, access controls, and regular security audits to protect your information. Data is retained for as long as necessary to fulfil the purposes described in this policy, or as required by law."
+      },
+      {
+        "heading": "5. Third-Party Sharing",
+        "body": "We do not sell your personal data. We may share data with payment processors to complete transactions, delivery services to fulfil orders, analytics providers to improve our services, and law enforcement when required by law. All third parties are contractually bound to protect your data."
+      },
+      {
+        "heading": "6. Your Rights",
+        "body": "You have the right to access, correct, or delete your personal data, restrict or object to data processing, request data portability, and withdraw consent at any time. To exercise these rights, contact us at hello@reinasleo.com."
+      },
+      {
+        "heading": "7. Cookies",
+        "body": "Our website uses essential cookies required for basic functionality, analytics cookies to understand how visitors use our site, and preference cookies to remember your settings. You can manage cookie preferences in your browser settings."
+      },
+      {
+        "heading": "8. Policy Changes",
+        "body": "We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated revision date. We encourage you to review this policy periodically. Continued use of our services after changes constitutes acceptance of the updated policy."
+      }
+    ]
+  },
+  "terms": {
+    "tag": "Legal",
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: February 2026",
+    "sections": [
+      {
+        "heading": "1. General Provisions",
+        "body": "These Terms of Service govern your use of the REINASLEO website and services. By accessing or using our website, you agree to be bound by these terms. If you do not agree, please do not use our services."
+      },
+      {
+        "heading": "2. Registration and Account",
+        "body": "To place orders and access certain features, you must create an account. You are responsible for maintaining the confidentiality of your login credentials and for all activity under your account. You agree to provide accurate and complete information during registration."
+      },
+      {
+        "heading": "3. Rules of Use",
+        "body": "You agree not to use our website for any unlawful purpose, interfere with the operation of the website, upload malicious content, attempt to gain unauthorized access to our systems, or use automated tools to scrape or collect data without our prior written consent."
+      },
+      {
+        "heading": "4. Intellectual Property",
+        "body": "All content on this website — including designs, photographs, text, logos, and graphics — is the property of REINASLEO or its licensors and is protected by copyright and trademark laws. You may not reproduce, distribute, or create derivative works without our explicit permission."
+      },
+      {
+        "heading": "5. Limitation of Liability",
+        "body": "REINASLEO provides the website and services \"as is\" without warranties of any kind. To the maximum extent permitted by law, we shall not be liable for any indirect, incidental, or consequential damages arising from your use of our services."
+      },
+      {
+        "heading": "6. Orders and Payments",
+        "body": "All orders are subject to availability and confirmation. Prices are displayed in euros and include applicable taxes. We reserve the right to refuse or cancel orders in cases of pricing errors, suspected fraud, or stock unavailability. Payment is processed securely through our authorized payment providers."
+      },
+      {
+        "heading": "7. Changes to Terms",
+        "body": "We reserve the right to modify these Terms of Service at any time. Changes take effect upon posting to the website. Your continued use of our services after changes are posted constitutes acceptance of the revised terms. We encourage you to review these terms regularly."
+      },
+      {
+        "heading": "8. Contact Information",
+        "body": "If you have questions about these Terms of Service, please contact us at hello@reinasleo.com. For legal inquiries, you may also reach us by post at our registered office address."
+      }
+    ]
+  },
+  "philosophy": {
+    "brand": "REINASLEO",
+    "title": "Brand Philosophy",
+    "scrollHint": "Scroll to reveal",
+    "heading": "In short",
+    "body1": "We make premium womenswear where quality is visible and comfort is felt. No slogans — just pieces that work in real life.",
+    "body2": "Every design starts with fit: silhouette, balance, fabric, and hardware — everything in its right place.",
+    "principles": {
+      "quality": { "title": "Quality", "text": "Materials, fit, attention to detail." },
+      "comfort": { "title": "Comfort", "text": "Freedom in movement and rhythm of the day." },
+      "honestCut": { "title": "Honest cut", "text": "The silhouette works with the figure, not against it." },
+      "longevity": { "title": "Longevity", "text": "Pieces that stay in the wardrobe for years." },
+      "subtlety": { "title": "Subtlety", "text": "Careful accents instead of noise." },
+      "care": { "title": "Care", "text": "Thoughtfulness from fabric to hardware." }
+    }
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "collections": "Collections",
+    "inventory": "Inventory",
+    "alerts": "Alerts",
+    "deleteBtn": "Delete",
+    "confirmDelete": "Delete \"{name}\"? This action cannot be undone.",
+    "stats": {
+      "totalProducts": "Total Products",
+      "totalCollections": "Collections",
+      "lowStock": "Low Stock",
+      "outOfStock": "Out of Stock",
+      "unreadAlerts": "Unread Alerts"
+    },
+    "product": {
+      "add": "Add Product",
+      "edit": "Edit Product",
+      "title": "Title",
+      "description": "Description",
+      "price": "Price",
+      "category": "Category",
+      "sizes": "Sizes",
+      "collection": "Collection",
+      "stock": "Stock Quantity",
+      "threshold": "Low Stock Threshold",
+      "occasion": "Occasion",
+      "color": "Color",
+      "material": "Material",
+      "subtitle": "Subtitle",
+      "sku": "SKU",
+      "active": "Active",
+      "images": "Images",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Deactivate",
+      "id": "Product ID (slug)",
+      "idHint": "Unique identifier, e.g. silk-evening-gown",
+      "isTest": "Demo product",
+      "real": "Real",
+      "demo": "Demo",
+      "noProducts": "No products yet",
+      "updateStock": "Update Stock",
+      "created": "Product created",
+      "updated": "Product updated"
+    },
+    "collection": {
+      "add": "Add Collection",
+      "edit": "Edit Collection",
+      "name": "Name",
+      "description": "Description",
+      "image": "Cover Image",
+      "sortOrder": "Sort Order",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Deactivate",
+      "productCount": "products",
+      "noCollections": "No collections yet",
+      "created": "Collection created",
+      "updated": "Collection updated"
+    },
+    "alert": {
+      "lowStock": "Low stock",
+      "outOfStock": "Out of stock",
+      "acknowledge": "Dismiss",
+      "noAlerts": "No alerts",
+      "current": "Current stock"
+    },
+    "upload": {
+      "dropzone": "Drop images here or click to upload",
+      "uploading": "Uploading...",
+      "maxSize": "Max 10MB per file (JPG, PNG, WebP)"
+    },
+    "accessDenied": "Access denied. Admin role required.",
+    "backToSite": "Back to site"
+  }
+}
