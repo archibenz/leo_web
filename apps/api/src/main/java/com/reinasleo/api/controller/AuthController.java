@@ -77,6 +77,10 @@ public class AuthController {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "email_already_linked");
         }
         String normalizedEmail = request.email().trim().toLowerCase();
+
+        // Verify the code first
+        verificationService.verifyCode(normalizedEmail, request.code());
+
         userRepository.findByEmailIgnoreCase(normalizedEmail).ifPresent(existing -> {
             throw new EmailAlreadyExistsException(normalizedEmail);
         });
