@@ -29,7 +29,6 @@ export default function PhilosophyContent({
   const firstRef = useRef<HTMLSpanElement>(null);
   const secondRef = useRef<HTMLSpanElement>(null);
   const statementsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const linesRef = useRef<(HTMLDivElement | null)[]>([]);
   const editorialRef = useRef<HTMLDivElement>(null);
   const qualityRef = useRef<HTMLDivElement>(null);
   const eyebrowRef = useRef<HTMLParagraphElement>(null);
@@ -47,9 +46,6 @@ export default function PhilosophyContent({
       };
       [eyebrowRef, titleContainerRef, editorialRef, qualityRef].forEach(r => showAll(r.current));
       statementsRef.current.forEach(el => showAll(el));
-      linesRef.current.forEach(el => {
-        if (el) { el.style.opacity = '1'; el.style.transform = 'scaleX(1)'; }
-      });
     }
 
     const tick = () => {
@@ -64,7 +60,6 @@ export default function PhilosophyContent({
         const p = Math.max(0, Math.min(1, raw));
         eyebrowRef.current.style.opacity = String(p);
         eyebrowRef.current.style.transform = `translate3d(0, ${12 * (1 - p)}px, 0)`;
-        eyebrowRef.current.style.letterSpacing = `${0.25 + 0.08 * (1 - p)}em`;
       }
 
       // --- Title spread animation ---
@@ -89,53 +84,41 @@ export default function PhilosophyContent({
         }
       }
 
-      // --- Content reveal animations ---
+      // --- Content reveal ---
       if (!prefersReducedMotion) {
-        const reveal = (
-          el: HTMLElement | null,
-          translateY = 30,
-          translateX = 0,
-          scale = 1,
-          startVh = 0.92,
-          endVh = 0.55,
-        ) => {
+        statementsRef.current.forEach((el, i) => {
           if (!el) return;
           const r = el.getBoundingClientRect();
           const center = r.top + r.height / 2;
-          const raw = (vh * startVh - center) / (vh * startVh - vh * endVh);
+          const stagger = i * 0.05;
+          const raw = (vh * (0.92 - stagger) - center) / (vh * (0.92 - stagger) - vh * (0.5 - stagger));
           const p = Math.max(0, Math.min(1, raw));
           const eased = 1 - Math.pow(1 - p, 3);
           el.style.opacity = String(eased);
-          const ty = translateY * (1 - eased);
-          const tx = translateX * (1 - eased);
-          const s = scale + (1 - scale) * eased;
-          el.style.transform = `translate3d(${tx}px, ${ty}px, 0) scale(${s})`;
-        };
-
-        // Statements — staggered, each from slightly different offset
-        statementsRef.current.forEach((el, i) => {
-          const stagger = i * 0.04;
-          reveal(el, 35, -15, 1, 0.92 - stagger, 0.48 - stagger);
-        });
-
-        // Divider lines — grow horizontally
-        linesRef.current.forEach((el, i) => {
-          if (!el) return;
-          const r = el.getBoundingClientRect();
-          const center = r.top + r.height / 2;
-          const stagger = i * 0.04;
-          const raw = (vh * (0.88 - stagger) - center) / (vh * (0.88 - stagger) - vh * (0.50 - stagger));
-          const p = Math.max(0, Math.min(1, raw));
-          const eased = 1 - Math.pow(1 - p, 3);
-          el.style.opacity = String(eased * 0.5);
-          el.style.transform = `scaleX(${eased})`;
+          el.style.transform = `translate3d(0, ${25 * (1 - eased)}px, 0)`;
         });
 
         // Editorial card
-        reveal(editorialRef.current, 40, 0, 0.97, 0.95, 0.45);
+        if (editorialRef.current) {
+          const r = editorialRef.current.getBoundingClientRect();
+          const center = r.top + r.height / 2;
+          const raw = (vh * 0.95 - center) / (vh * 0.95 - vh * 0.45);
+          const p = Math.max(0, Math.min(1, raw));
+          const eased = 1 - Math.pow(1 - p, 3);
+          editorialRef.current.style.opacity = String(eased);
+          editorialRef.current.style.transform = `translate3d(0, ${40 * (1 - eased)}px, 0) scale(${0.97 + 0.03 * eased})`;
+        }
 
         // Quality marks
-        reveal(qualityRef.current, 20, 0, 1, 0.95, 0.50);
+        if (qualityRef.current) {
+          const r = qualityRef.current.getBoundingClientRect();
+          const center = r.top + r.height / 2;
+          const raw = (vh * 0.95 - center) / (vh * 0.95 - vh * 0.50);
+          const p = Math.max(0, Math.min(1, raw));
+          const eased = 1 - Math.pow(1 - p, 3);
+          qualityRef.current.style.opacity = String(eased);
+          qualityRef.current.style.transform = `translate3d(0, ${20 * (1 - eased)}px, 0)`;
+        }
       }
 
       requestAnimationFrame(tick);
@@ -189,46 +172,26 @@ export default function PhilosophyContent({
         </div>
 
         {/* Content */}
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_340px] lg:gap-16 xl:gap-20 items-start">
-          {/* Left: Numbered statements */}
-          <div className="space-y-0">
+        <div className="grid grid-cols-1 gap-14 lg:grid-cols-[1fr_340px] lg:gap-16 xl:gap-20 items-start">
+          {/* Left: Statements as centered editorial blocks */}
+          <div className="flex flex-col items-center gap-14 sm:gap-16 text-center max-w-xl mx-auto lg:mx-0 lg:max-w-none lg:items-start lg:text-left">
             {statements.map((statement, index) => (
-              <div key={index}>
-                {/* Divider line between statements */}
-                {index > 0 && (
-                  <div
-                    ref={(el) => { linesRef.current[index - 1] = el; }}
-                    className="my-8 h-px sm:my-10"
-                    style={{
-                      background: 'linear-gradient(90deg, rgba(212,165,116,0.25) 0%, rgba(212,165,116,0.08) 60%, transparent 100%)',
-                      transformOrigin: 'left center',
-                      opacity: 0,
-                      transform: 'scaleX(0)',
-                      willChange: 'opacity, transform',
-                    }}
-                  />
-                )}
+              <div
+                key={index}
+                ref={(el) => { statementsRef.current[index] = el; }}
+                className="relative"
+                style={{
+                  opacity: 0,
+                  transform: 'translate3d(0, 25px, 0)',
+                  willChange: 'opacity, transform',
+                }}
+              >
+                {/* Decorative em-dash before text on desktop */}
+                <div className="hidden lg:block absolute -left-8 top-[0.65em] w-4 h-px bg-[#D4A574]/30" />
 
-                {/* Statement with number */}
-                <div
-                  ref={(el) => { statementsRef.current[index] = el; }}
-                  className="flex gap-5 sm:gap-6"
-                  style={{
-                    opacity: 0,
-                    transform: 'translate3d(-15px, 35px, 0)',
-                    willChange: 'opacity, transform',
-                  }}
-                >
-                  {/* Number */}
-                  <span className="flex-shrink-0 pt-1 font-display text-[13px] font-medium tabular-nums tracking-[0.08em] text-[#D4A574]/40 sm:text-[14px]">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-
-                  {/* Text */}
-                  <p className="font-display text-[17px] leading-[1.7] tracking-[0.01em] text-[#F2E6D8]/90 sm:text-[19px] sm:leading-[1.75] lg:text-[21px]">
-                    {statement}
-                  </p>
-                </div>
+                <p className="font-display italic text-[18px] font-light leading-[1.8] tracking-[0.005em] text-[#F2E6D8]/70 sm:text-[20px] sm:leading-[1.85] lg:text-[22px]">
+                  {statement}
+                </p>
               </div>
             ))}
           </div>
