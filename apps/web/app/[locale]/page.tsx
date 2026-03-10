@@ -48,14 +48,6 @@ export default async function HomePage({params}: Props) {
             eyebrow={t('philosophy.eyebrow')}
             title={t('philosophy.title')}
             statements={t.raw('philosophy.statements') as string[]}
-            editorialCard={{
-              quote: t('philosophy.editorialCard.quote'),
-              label: t('philosophy.editorialCard.label'),
-              title: t('philosophy.editorialCard.title'),
-              description: t('philosophy.editorialCard.description'),
-              cta: t('philosophy.editorialCard.cta'),
-            }}
-            qualityMarks={t.raw('qualityMarks') as string[]}
           />
 
           {/* Transition fade: transparent → semi-transparent overlay */}
