@@ -1,0 +1,19 @@
+{
+  "name": "reinasleo",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "web:dev": "cd apps/web && npm run dev",
+    "web:build": "cd apps/web && npm run build",
+    "web:start": "cd apps/web && npm start",
+    "api:dev": "cd apps/api && gradle bootRun",
+    "api:build": "cd apps/api && gradle build"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "REINASLEO",
+  "short_name": "REINASLEO",
+  "description": "Premium womenswear with sculpted silhouettes and precision craftsmanship.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#110a07",
+  "theme_color": "#110a07",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
