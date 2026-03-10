@@ -18,6 +18,33 @@ interface PhilosophyContentProps {
   qualityMarks: string[];
 }
 
+/* ── SVG icons for value blocks ── */
+const FabricIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.38 3.46L16 2 12 3.46 8 2 3.62 3.46a2 2 0 0 0-1.34 1.89v13.3a2 2 0 0 0 1.34 1.89L8 22l4-1.46L16 22l4.38-1.46a2 2 0 0 0 1.34-1.89V5.35a2 2 0 0 0-1.34-1.89z" />
+    <line x1="8" y1="2" x2="8" y2="22" />
+    <line x1="16" y1="2" x2="16" y2="22" />
+  </svg>
+);
+
+const PrecisionIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" />
+  </svg>
+);
+
+const LimitedIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 2L2 7l10 5 10-5-10-5z" />
+    <path d="M2 17l10 5 10-5" />
+    <path d="M2 12l10 5 10-5" />
+  </svg>
+);
+
+const valueIcons = [FabricIcon, PrecisionIcon, LimitedIcon];
+
 export default function PhilosophyContent({
   locale,
   eyebrow,
@@ -29,8 +56,7 @@ export default function PhilosophyContent({
   const firstRef = useRef<HTMLSpanElement>(null);
   const secondRef = useRef<HTMLSpanElement>(null);
   const statementsRef = useRef<(HTMLDivElement | null)[]>([]);
-  const editorialRef = useRef<HTMLDivElement>(null);
-  const qualityRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
   const eyebrowRef = useRef<HTMLParagraphElement>(null);
   const titleContainerRef = useRef<HTMLDivElement>(null);
 
@@ -44,7 +70,7 @@ export default function PhilosophyContent({
         el.style.opacity = '1';
         el.style.transform = 'none';
       };
-      [eyebrowRef, titleContainerRef, editorialRef, qualityRef].forEach(r => showAll(r.current));
+      [eyebrowRef, titleContainerRef, gridRef].forEach(r => showAll(r.current));
       statementsRef.current.forEach(el => showAll(el));
     }
 
@@ -52,7 +78,7 @@ export default function PhilosophyContent({
       if (!running) return;
       const vh = window.innerHeight;
 
-      // --- Eyebrow fade ---
+      // Eyebrow
       if (eyebrowRef.current && !prefersReducedMotion) {
         const r = eyebrowRef.current.getBoundingClientRect();
         const center = r.top + r.height / 2;
@@ -62,7 +88,7 @@ export default function PhilosophyContent({
         eyebrowRef.current.style.transform = `translate3d(0, ${12 * (1 - p)}px, 0)`;
       }
 
-      // --- Title spread animation ---
+      // Title spread
       if (firstRef.current && secondRef.current) {
         const el = firstRef.current.parentElement;
         if (el) {
@@ -75,7 +101,6 @@ export default function PhilosophyContent({
           const spread = progress * 8;
           firstRef.current.style.transform = `translateX(-${spread}vw)`;
           secondRef.current.style.transform = `translateX(${spread}vw)`;
-
           if (!prefersReducedMotion && titleContainerRef.current) {
             const titleRaw = (vh * 0.85 - titleCenter) / (vh * 0.85 - vh * 0.55);
             const titleP = Math.max(0, Math.min(1, titleRaw));
@@ -84,7 +109,7 @@ export default function PhilosophyContent({
         }
       }
 
-      // --- Content reveal ---
+      // Content reveal
       if (!prefersReducedMotion) {
         statementsRef.current.forEach((el, i) => {
           if (!el) return;
@@ -98,26 +123,14 @@ export default function PhilosophyContent({
           el.style.transform = `translate3d(0, ${25 * (1 - eased)}px, 0)`;
         });
 
-        // Editorial card
-        if (editorialRef.current) {
-          const r = editorialRef.current.getBoundingClientRect();
+        if (gridRef.current) {
+          const r = gridRef.current.getBoundingClientRect();
           const center = r.top + r.height / 2;
-          const raw = (vh * 0.95 - center) / (vh * 0.95 - vh * 0.45);
+          const raw = (vh * 0.95 - center) / (vh * 0.95 - vh * 0.5);
           const p = Math.max(0, Math.min(1, raw));
           const eased = 1 - Math.pow(1 - p, 3);
-          editorialRef.current.style.opacity = String(eased);
-          editorialRef.current.style.transform = `translate3d(0, ${40 * (1 - eased)}px, 0) scale(${0.97 + 0.03 * eased})`;
-        }
-
-        // Quality marks
-        if (qualityRef.current) {
-          const r = qualityRef.current.getBoundingClientRect();
-          const center = r.top + r.height / 2;
-          const raw = (vh * 0.95 - center) / (vh * 0.95 - vh * 0.50);
-          const p = Math.max(0, Math.min(1, raw));
-          const eased = 1 - Math.pow(1 - p, 3);
-          qualityRef.current.style.opacity = String(eased);
-          qualityRef.current.style.transform = `translate3d(0, ${20 * (1 - eased)}px, 0)`;
+          gridRef.current.style.opacity = String(eased);
+          gridRef.current.style.transform = `translate3d(0, ${30 * (1 - eased)}px, 0)`;
         }
       }
 
@@ -141,7 +154,7 @@ export default function PhilosophyContent({
         aria-hidden="true"
       />
 
-      <div className="relative mx-auto max-w-6xl">
+      <div className="relative mx-auto max-w-5xl">
         {/* Eyebrow */}
         <p
           ref={eyebrowRef}
@@ -171,97 +184,85 @@ export default function PhilosophyContent({
           </span>
         </div>
 
-        {/* Content */}
-        <div className="grid grid-cols-1 gap-14 lg:grid-cols-[1fr_340px] lg:gap-16 xl:gap-20 items-start">
-          {/* Left: Statements as centered editorial blocks */}
-          <div className="flex flex-col items-center gap-14 sm:gap-16 text-center max-w-xl mx-auto lg:mx-0 lg:max-w-none lg:items-start lg:text-left">
-            {statements.map((statement, index) => (
-              <div
-                key={index}
-                ref={(el) => { statementsRef.current[index] = el; }}
-                className="relative"
-                style={{
-                  opacity: 0,
-                  transform: 'translate3d(0, 25px, 0)',
-                  willChange: 'opacity, transform',
-                }}
-              >
-                {/* Decorative em-dash before text on desktop */}
-                <div className="hidden lg:block absolute -left-8 top-[0.65em] w-4 h-px bg-[#D4A574]/30" />
-
-                <p className="font-display italic text-[18px] font-light leading-[1.8] tracking-[0.005em] text-[#F2E6D8]/70 sm:text-[20px] sm:leading-[1.85] lg:text-[22px]">
-                  {statement}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {/* Right: Editorial panel */}
-          <div
-            ref={editorialRef}
-            className="lg:sticky lg:top-32 flex flex-col gap-8"
-            style={{ opacity: 0, transform: 'translate3d(0, 40px, 0) scale(0.97)', willChange: 'opacity, transform' }}
-          >
-            {/* Quote — standalone, no card */}
-            <div className="relative pl-5 sm:pl-6">
-              {/* Animated accent bar */}
-              <div
-                className="absolute left-0 top-0 bottom-0 w-[3px] rounded-full"
-                style={{
-                  background: 'linear-gradient(180deg, #D4A574 0%, rgba(212,165,116,0.2) 100%)',
-                }}
-              />
-              <p className="font-display text-[17px] italic font-light leading-[1.7] text-[#F2E6D8]/75 sm:text-[19px]">
-                {editorialCard.quote}
+        {/* Centered statements — full width, no columns */}
+        <div className="mx-auto max-w-3xl text-center space-y-12 sm:space-y-14 mb-16 sm:mb-20">
+          {statements.map((statement, index) => (
+            <div
+              key={index}
+              ref={(el) => { statementsRef.current[index] = el; }}
+              style={{ opacity: 0, transform: 'translate3d(0, 25px, 0)', willChange: 'opacity, transform' }}
+            >
+              <p className="font-display italic text-[18px] font-light leading-[1.8] tracking-[0.005em] text-[#F2E6D8]/70 sm:text-[20px] sm:leading-[1.85] lg:text-[22px]">
+                {statement}
               </p>
             </div>
+          ))}
+        </div>
 
-            {/* Story link — modern horizontal card */}
+        {/* Bottom grid: 3 value blocks + CTA */}
+        <div
+          ref={gridRef}
+          className="mx-auto max-w-4xl"
+          style={{ opacity: 0, transform: 'translate3d(0, 30px, 0)', willChange: 'opacity, transform' }}
+        >
+          {/* Value blocks */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5 mb-8">
+            {qualityMarks.map((mark, i) => {
+              const Icon = valueIcons[i] || PrecisionIcon;
+              return (
+                <div
+                  key={i}
+                  className="group relative flex items-center gap-4 rounded-2xl px-5 py-5 sm:flex-col sm:items-center sm:gap-3 sm:px-4 sm:py-6 sm:text-center transition-all duration-500"
+                  style={{
+                    background: 'linear-gradient(145deg, rgba(212,165,116,0.04) 0%, rgba(212,165,116,0.01) 100%)',
+                    border: '1px solid rgba(212,165,116,0.08)',
+                  }}
+                >
+                  {/* Hover glow */}
+                  <div
+                    className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                    style={{ background: 'radial-gradient(circle at 50% 50%, rgba(212,165,116,0.06) 0%, transparent 70%)' }}
+                  />
+
+                  <div className="relative flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-xl text-[#D4A574]/40 transition-colors duration-300 group-hover:text-[#D4A574]/70 sm:h-11 sm:w-11"
+                    style={{ background: 'rgba(212,165,116,0.06)' }}
+                  >
+                    <Icon />
+                  </div>
+                  <span className="relative font-display text-[12px] font-medium uppercase tracking-[0.1em] text-[#F2E6D8]/50 transition-colors duration-300 group-hover:text-[#F2E6D8]/70 sm:text-[11px]">
+                    {mark}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* CTA row */}
+          <div className="flex items-center justify-between gap-4 pt-4">
+            {/* Quote */}
+            <p className="hidden sm:block font-display text-[14px] italic font-light text-[#F2E6D8]/40 max-w-md">
+              {editorialCard.quote}
+            </p>
+
+            {/* Button */}
             <Link
               href={`/${locale}/about`}
-              className="group relative flex items-center gap-5 rounded-xl px-5 py-4 sm:px-6 sm:py-5 transition-all duration-500 hover:bg-[#D4A574]/[0.04]"
+              className="group inline-flex items-center gap-3 rounded-full px-6 py-3 transition-all duration-400 hover:gap-4"
               style={{
-                background: 'linear-gradient(135deg, rgba(212,165,116,0.03) 0%, transparent 100%)',
+                background: 'linear-gradient(135deg, rgba(212,165,116,0.12) 0%, rgba(212,165,116,0.04) 100%)',
+                border: '1px solid rgba(212,165,116,0.15)',
               }}
             >
-              {/* Icon circle */}
-              <div className="flex-shrink-0 flex items-center justify-center h-11 w-11 rounded-full border border-[#D4A574]/15 bg-[#D4A574]/[0.06] transition-all duration-500 group-hover:border-[#D4A574]/30 group-hover:bg-[#D4A574]/10 group-hover:scale-110">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4A574" strokeWidth="1.5" strokeLinecap="round" className="opacity-60 group-hover:opacity-100 transition-opacity duration-300">
-                  <path d="M5 12h14" />
-                  <path d="M12 5l7 7-7 7" />
-                </svg>
-              </div>
-
-              {/* Text */}
-              <div className="min-w-0">
-                <p className="font-display text-[10px] font-medium uppercase tracking-[0.18em] text-[#D4A574]/50 mb-1 group-hover:text-[#D4A574]/70 transition-colors duration-300">
-                  {editorialCard.label}
-                </p>
-                <h3 className="font-display text-[15px] font-semibold uppercase tracking-[0.04em] text-[#F2E6D8]/90 group-hover:text-[#D4A574] transition-colors duration-300 sm:text-[16px]">
-                  {editorialCard.title}
-                </h3>
-                <p className="mt-1 text-[12px] leading-[1.6] text-[#F2E6D8]/40 group-hover:text-[#F2E6D8]/55 transition-colors duration-300 sm:text-[13px]">
-                  {editorialCard.description}
-                </p>
-              </div>
+              <span className="font-display text-[11px] font-medium uppercase tracking-[0.12em] text-[#D4A574]/80 group-hover:text-[#D4A574] transition-colors duration-300">
+                {editorialCard.cta}
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
+                className="text-[#D4A574]/60 transition-all duration-300 group-hover:text-[#D4A574] group-hover:translate-x-0.5"
+              >
+                <path d="M5 12h14" />
+                <path d="M12 5l7 7-7 7" />
+              </svg>
             </Link>
-
-            {/* Quality marks — horizontal line */}
-            <div
-              ref={qualityRef}
-              className="flex flex-wrap gap-2.5 pt-2"
-              style={{ opacity: 0, transform: 'translate3d(0, 20px, 0)', willChange: 'opacity, transform' }}
-            >
-              {qualityMarks.map((mark, i) => (
-                <span
-                  key={i}
-                  className="px-3 py-1 font-display text-[10px] uppercase tracking-[0.14em] text-[#D4A574]/35"
-                >
-                  {i > 0 && <span className="mr-2.5 text-[#D4A574]/15">/</span>}
-                  {mark}
-                </span>
-              ))}
-            </div>
           </div>
         </div>
       </div>
