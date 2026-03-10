@@ -25,7 +25,7 @@ export const MenuItem = ({
   href?: string;
   children?: React.ReactNode;
 }) => {
-  const labelClass = `cursor-pointer text-[13px] leading-none font-[family-name:var(--font-display)] font-medium uppercase tracking-[0.12em] transition-colors duration-200 ${
+  const labelClass = `cursor-pointer text-[13px] leading-none font-display font-medium uppercase tracking-[0.12em] transition-colors duration-200 ${
     active === item ? "text-accent" : "text-ink/70 hover:text-ink"
   }`;
 
@@ -118,11 +118,11 @@ export const CategoryCard = ({
       href={href}
       className="group flex flex-col gap-1.5 rounded-xl px-5 py-4 transition-colors duration-200 hover:bg-ink/[0.05]"
     >
-      <span className="text-[16px] font-[family-name:var(--font-display)] font-semibold text-ink/80 transition-colors group-hover:text-accent">
+      <span className="text-[16px] font-display font-semibold text-ink/80 transition-colors group-hover:text-accent">
         {label}
       </span>
       {description && (
-        <span className="text-[13px] font-[family-name:var(--font-display)] text-ink/40 leading-snug">{description}</span>
+        <span className="text-[13px] font-display text-ink/40 leading-snug">{description}</span>
       )}
     </Link>
   );
@@ -154,7 +154,7 @@ export const CollectionCard = ({
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-paper/80 via-transparent to-transparent" />
           <div className="absolute bottom-0 left-0 right-0 p-5">
-            <p className="text-[16px] font-[family-name:var(--font-display)] font-semibold uppercase tracking-[0.1em] text-ink/90 transition-colors group-hover:text-accent">
+            <p className="text-[16px] font-display font-semibold uppercase tracking-[0.1em] text-ink/90 transition-colors group-hover:text-accent">
               {title}
             </p>
             {subtitle && (
@@ -168,7 +168,7 @@ export const CollectionCard = ({
           <Link
             key={item.label}
             href={item.href}
-            className="text-[15px] py-0.5 font-[family-name:var(--font-display)] text-ink/45 transition-colors duration-150 hover:text-accent"
+            className="text-[15px] py-0.5 font-display text-ink/45 transition-colors duration-150 hover:text-accent"
           >
             {item.label}
           </Link>

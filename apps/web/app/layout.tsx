@@ -51,7 +51,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
 
   return (
     <html lang={lang}>
-      <body className={`${display.variable} ${body.variable} bg-paper text-ink`}>
+      <body className={`${display.variable} ${body.variable} font-sans bg-paper text-ink`}>
         {children}
       </body>
     </html>

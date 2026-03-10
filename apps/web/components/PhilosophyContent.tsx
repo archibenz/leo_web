@@ -128,7 +128,7 @@ export default function PhilosophyContent({
 
       <div className="relative mx-auto max-w-6xl">
         {/* Eyebrow */}
-        <p className="mb-10 text-center text-[11px] font-medium uppercase tracking-[0.25em] text-[#F2E6D8]/45 sm:mb-14 sm:text-[12px]">
+        <p className="mb-10 text-center font-display text-[11px] font-medium uppercase tracking-[0.25em] text-[#F2E6D8]/45 sm:mb-14 sm:text-[12px]">
           {eyebrow}
         </p>
 
@@ -154,17 +154,16 @@ export default function PhilosophyContent({
           <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_340px] lg:gap-16 xl:gap-20 items-start">
             {/* Left: Philosophy content */}
             <div>
-              <div className="space-y-6 sm:space-y-8 max-w-2xl">
+              <div className="space-y-8 sm:space-y-10 max-w-2xl">
                 {statements.map((statement, index) => (
                   <p
                     key={index}
                     ref={(el) => { statementsRef.current[index] = el; }}
-                    className="text-base leading-[1.9] text-[#F2E6D8] sm:text-lg sm:leading-[2] lg:text-[19px]"
+                    className="font-display text-[17px] leading-[1.7] tracking-[0.01em] text-[#F2E6D8]/90 sm:text-[19px] sm:leading-[1.75] lg:text-[21px]"
                     style={{
                       opacity: 0,
                       transform: 'translate3d(0, 30px, 0)',
                       willChange: 'opacity, transform',
-                      textShadow: '0 1px 8px rgba(0,0,0,0.3)',
                     }}
                   >
                     {statement}
@@ -205,7 +204,7 @@ export default function PhilosophyContent({
                 />
 
                 {/* Pull quote */}
-                <p className="relative mb-6 font-display text-[15px] italic leading-[1.7] text-[#F2E6D8]/80 sm:text-[17px] sm:mb-8">
+                <p className="relative mb-6 font-display text-[16px] italic leading-[1.65] text-[#F2E6D8]/85 sm:text-[18px] sm:mb-8">
                   {editorialCard.quote}
                 </p>
 
@@ -213,22 +212,22 @@ export default function PhilosophyContent({
                 <div className="mb-5 h-px w-12 bg-gradient-to-r from-[#D4A574]/30 to-transparent group-hover:w-20 transition-all duration-500 sm:mb-6" />
 
                 {/* Label */}
-                <p className="mb-2 text-[10px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/60 sm:mb-3">
+                <p className="mb-2 font-display text-[10px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/60 sm:mb-3">
                   {editorialCard.label}
                 </p>
 
                 {/* Title */}
-                <h3 className="mb-3 font-display text-lg uppercase tracking-[0.06em] text-[#F2E6D8] sm:text-xl sm:mb-4 group-hover:text-[#D4A574] transition-colors duration-300">
+                <h3 className="mb-3 font-display text-[18px] uppercase tracking-[0.06em] text-[#F2E6D8] sm:text-xl sm:mb-4 group-hover:text-[#D4A574] transition-colors duration-300">
                   {editorialCard.title}
                 </h3>
 
                 {/* Description */}
-                <p className="mb-6 text-[13px] leading-[1.75] text-[#F2E6D8]/55 sm:text-sm sm:mb-8">
+                <p className="mb-6 font-sans text-[13px] leading-[1.75] text-[#F2E6D8]/55 sm:text-[14px] sm:mb-8">
                   {editorialCard.description}
                 </p>
 
                 {/* CTA */}
-                <span className="inline-flex items-center gap-2.5 text-[11px] font-medium uppercase tracking-[0.14em] text-[#D4A574]/70 group-hover:text-[#D4A574] transition-colors duration-300">
+                <span className="inline-flex items-center gap-2.5 font-display text-[11px] font-medium uppercase tracking-[0.14em] text-[#D4A574]/70 group-hover:text-[#D4A574] transition-colors duration-300">
                   {editorialCard.cta}
                   <svg
                     width="16"
@@ -255,7 +254,7 @@ export default function PhilosophyContent({
                 {qualityMarks.map((mark, i) => (
                   <span
                     key={i}
-                    className="rounded-full border border-[#F2E6D8]/10 bg-[#F2E6D8]/[0.05] px-3 py-1.5 text-[11px] uppercase tracking-[0.12em] text-[#F2E6D8]/55"
+                    className="rounded-full border border-[#F2E6D8]/10 bg-[#F2E6D8]/[0.05] px-3.5 py-1.5 font-display text-[11px] uppercase tracking-[0.12em] text-[#F2E6D8]/55"
                   >
                     {mark}
                   </span>

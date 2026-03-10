@@ -181,7 +181,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
                   ))}
                 </div>
                 <div className="border-t border-ink/8 px-8 py-4 text-center">
-                  <Link href={`/${locale}/collections`} className="text-[13px] font-[family-name:var(--font-display)] uppercase tracking-[0.1em] text-ink/50 transition-colors hover:text-accent">
+                  <Link href={`/${locale}/collections`} className="text-[13px] font-display uppercase tracking-[0.1em] text-ink/50 transition-colors hover:text-accent">
                     {menuT('viewAllCollections')}
                   </Link>
                 </div>
@@ -189,7 +189,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
 
               <div className="relative" onMouseEnter={() => setActive(null)}>
                 <Link href={`/${locale}/shop`}
-                  className="cursor-pointer text-[13px] leading-none font-[family-name:var(--font-display)] font-medium uppercase tracking-[0.12em] text-ink/70 transition-colors duration-200 hover:text-ink">
+                  className="cursor-pointer text-[13px] leading-none font-display font-medium uppercase tracking-[0.12em] text-ink/70 transition-colors duration-200 hover:text-ink">
                   {navT('shop')}
                 </Link>
               </div>
