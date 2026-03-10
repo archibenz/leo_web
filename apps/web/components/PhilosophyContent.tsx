@@ -192,7 +192,7 @@ export default function PhilosophyContent({
               ref={(el) => { statementsRef.current[index] = el; }}
               style={{ opacity: 0, transform: 'translate3d(0, 25px, 0)', willChange: 'opacity, transform' }}
             >
-              <p className="font-display italic text-[18px] font-light leading-[1.8] tracking-[0.005em] text-[#F2E6D8]/70 sm:text-[20px] sm:leading-[1.85] lg:text-[22px]">
+              <p className="font-display italic text-[18px] font-light leading-[1.8] tracking-[0.005em] text-[#F2E6D8] sm:text-[20px] sm:leading-[1.85] lg:text-[22px]">
                 {statement}
               </p>
             </div>
@@ -215,7 +215,7 @@ export default function PhilosophyContent({
                   className="group relative flex items-center gap-4 rounded-2xl px-5 py-5 sm:flex-col sm:items-center sm:gap-3 sm:px-4 sm:py-6 sm:text-center transition-all duration-500"
                   style={{
                     background: 'linear-gradient(145deg, rgba(212,165,116,0.04) 0%, rgba(212,165,116,0.01) 100%)',
-                    border: '1px solid rgba(212,165,116,0.08)',
+                    border: '1px solid rgba(212,165,116,0.12)',
                   }}
                 >
                   {/* Hover glow */}
@@ -224,12 +224,12 @@ export default function PhilosophyContent({
                     style={{ background: 'radial-gradient(circle at 50% 50%, rgba(212,165,116,0.06) 0%, transparent 70%)' }}
                   />
 
-                  <div className="relative flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-xl text-[#D4A574]/40 transition-colors duration-300 group-hover:text-[#D4A574]/70 sm:h-11 sm:w-11"
+                  <div className="relative flex-shrink-0 flex items-center justify-center h-10 w-10 rounded-xl text-[#D4A574]/70 transition-colors duration-300 group-hover:text-[#D4A574] sm:h-11 sm:w-11"
                     style={{ background: 'rgba(212,165,116,0.06)' }}
                   >
                     <Icon />
                   </div>
-                  <span className="relative font-display text-[12px] font-medium uppercase tracking-[0.1em] text-[#F2E6D8]/50 transition-colors duration-300 group-hover:text-[#F2E6D8]/70 sm:text-[11px]">
+                  <span className="relative font-display text-[12px] font-medium uppercase tracking-[0.1em] text-[#F2E6D8]/75 transition-colors duration-300 group-hover:text-[#F2E6D8] sm:text-[11px]">
                     {mark}
                   </span>
                 </div>
@@ -240,7 +240,7 @@ export default function PhilosophyContent({
           {/* CTA row */}
           <div className="flex items-center justify-between gap-4 pt-4">
             {/* Quote */}
-            <p className="hidden sm:block font-display text-[14px] italic font-light text-[#F2E6D8]/40 max-w-md">
+            <p className="hidden sm:block font-display text-[14px] italic font-light text-[#F2E6D8]/65 max-w-md">
               {editorialCard.quote}
             </p>
 
@@ -250,14 +250,14 @@ export default function PhilosophyContent({
               className="group inline-flex items-center gap-3 rounded-full px-6 py-3 transition-all duration-400 hover:gap-4"
               style={{
                 background: 'linear-gradient(135deg, rgba(212,165,116,0.12) 0%, rgba(212,165,116,0.04) 100%)',
-                border: '1px solid rgba(212,165,116,0.15)',
+                border: '1px solid rgba(212,165,116,0.22)',
               }}
             >
-              <span className="font-display text-[11px] font-medium uppercase tracking-[0.12em] text-[#D4A574]/80 group-hover:text-[#D4A574] transition-colors duration-300">
+              <span className="font-display text-[11px] font-medium uppercase tracking-[0.12em] text-[#D4A574] group-hover:text-[#D4A574] transition-colors duration-300">
                 {editorialCard.cta}
               </span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"
-                className="text-[#D4A574]/60 transition-all duration-300 group-hover:text-[#D4A574] group-hover:translate-x-0.5"
+                className="text-[#D4A574]/80 transition-all duration-300 group-hover:text-[#D4A574] group-hover:translate-x-0.5"
               >
                 <path d="M5 12h14" />
                 <path d="M12 5l7 7-7 7" />
