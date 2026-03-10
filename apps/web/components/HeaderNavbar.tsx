@@ -226,7 +226,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
 
             <div ref={profileDropdownRef} className="relative" onMouseEnter={handleProfileMouseEnter} onMouseLeave={handleProfileMouseLeave}>
               {isAuthenticated && user ? (
-                <button type="button" onClick={() => isDesktop ? go('/account') : setIsProfileOpen(p => !p)} aria-label={t('profile')}
+                <button type="button" onClick={() => go('/account')} aria-label={t('profile')}
                   className="relative flex h-9 items-center gap-1 rounded-full px-2.5 text-ink/55 transition-all duration-200 hover:bg-ink/[0.06] hover:text-accent focus:outline-none">
                   <span className="truncate max-w-[120px] sm:max-w-[160px] text-[11px] font-medium">
                     <span className="hidden sm:inline">{t('greeting', { name: user.name })}</span>
@@ -238,7 +238,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
                 <IconBtn onClick={() => go('/account')} ariaLabel={t('profile')}><ProfileIcon /></IconBtn>
               )}
               <AnimatePresence>
-                {isProfileOpen && (
+                {isProfileOpen && isDesktop && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.85, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -339,13 +339,6 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
         />
       )}
 
-      {/* Backdrop for mobile profile dropdown */}
-      {isProfileOpen && !isDesktop && (
-        <div
-          className="fixed inset-0 z-[198] bg-black/30 md:hidden"
-          onClick={() => setIsProfileOpen(false)}
-        />
-      )}
 
       <MenuOverlay isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} locale={locale} />
     </>

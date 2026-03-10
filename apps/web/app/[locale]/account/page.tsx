@@ -12,7 +12,7 @@ export default function AccountPage() {
   const t = useTranslations('account');
   const locale = useLocale();
   const router = useRouter();
-  const {user, isAuthenticated, isLoading, login, register, initTelegramAuth, loginWithToken, logout, validateEmail} = useAuth();
+  const {user, isAuthenticated, isLoading, isAdmin, login, register, initTelegramAuth, loginWithToken, logout, validateEmail} = useAuth();
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -279,27 +279,55 @@ export default function AccountPage() {
               </div>
             </div>
 
-            {/* Action buttons */}
-            <div className="grid grid-cols-2 gap-3">
-              <Link
-                href={`/${locale}/favorites`}
-                className="paper-card flex items-center justify-center gap-2 p-3 sm:p-4 text-center transition-all duration-200 hover:shadow-lg hover:scale-[1.02] min-w-0"
-              >
+            {/* Menu */}
+            <div className="paper-card overflow-hidden">
+              <Link href={`/${locale}/favorites`} className="flex items-center gap-3 px-5 py-4 transition-colors hover:bg-ink/[0.04] active:bg-ink/[0.06]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent flex-shrink-0">
                   <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
                 </svg>
-                <span className="text-[11px] sm:text-xs uppercase tracking-wider sm:tracking-widest text-ink-soft truncate">{t('profile.favorites')}</span>
+                <span className="text-sm text-ink">{t('profile.favorites')}</span>
+                <svg viewBox="0 0 24 24" className="ml-auto h-4 w-4 text-ink/25" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18l6-6-6-6" /></svg>
               </Link>
-              <Link
-                href={`/${locale}/account/settings`}
-                className="paper-card flex items-center justify-center gap-2 p-3 sm:p-4 text-center transition-all duration-200 hover:shadow-lg hover:scale-[1.02] min-w-0"
-              >
+              <div className="h-px bg-ink/8 mx-5" />
+              <span className="flex items-center gap-3 px-5 py-4 cursor-default">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-ink/25 flex-shrink-0">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
+                </svg>
+                <span className="text-sm text-ink/30">{t('profile.orders')}</span>
+              </span>
+              <div className="h-px bg-ink/8 mx-5" />
+              <Link href={`/${locale}/account/settings`} className="flex items-center gap-3 px-5 py-4 transition-colors hover:bg-ink/[0.04] active:bg-ink/[0.06]">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent flex-shrink-0">
                   <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
                 </svg>
-                <span className="text-[11px] sm:text-xs uppercase tracking-wider sm:tracking-widest text-ink-soft truncate">{t('profile.settings')}</span>
+                <span className="text-sm text-ink">{t('profile.settings')}</span>
+                <svg viewBox="0 0 24 24" className="ml-auto h-4 w-4 text-ink/25" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18l6-6-6-6" /></svg>
               </Link>
+              {isAdmin && (
+                <>
+                  <div className="h-px bg-ink/8 mx-5" />
+                  <Link href={`/${locale}/admin`} className="flex items-center gap-3 px-5 py-4 transition-colors hover:bg-ink/[0.04] active:bg-ink/[0.06]">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent flex-shrink-0">
+                      <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
+                    </svg>
+                    <span className="text-sm text-accent">{t('profile.admin')}</span>
+                    <svg viewBox="0 0 24 24" className="ml-auto h-4 w-4 text-ink/25" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 18l6-6-6-6" /></svg>
+                  </Link>
+                </>
+              )}
             </div>
+
+            {/* Logout */}
+            <button
+              type="button"
+              onClick={logout}
+              className="w-full paper-card flex items-center justify-center gap-2.5 px-5 py-4 transition-colors hover:bg-ink/[0.04] active:bg-ink/[0.06]"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-ink/50 flex-shrink-0">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              <span className="text-sm text-ink/60">{t('profile.logOut')}</span>
+            </button>
           </div>
         </div>
       </div>

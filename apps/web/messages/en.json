@@ -456,8 +456,11 @@
       "emailVerified": "Verified",
       "emailNotLinked": "Not linked",
       "memberSince": "Member of REINASLEO since {date}",
-      "favorites": "Your Favourites",
-      "settings": "Account Settings"
+      "favorites": "Favourites",
+      "settings": "Settings",
+      "orders": "Order History",
+      "admin": "Admin Panel",
+      "logOut": "Sign Out"
     },
     "settings": {
       "title": "Settings",

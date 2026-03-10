@@ -456,8 +456,11 @@
       "emailVerified": "Подтверждён",
       "emailNotLinked": "Не привязан",
       "memberSince": "Участник REINASLEO с {date}",
-      "favorites": "Ваше избранное",
-      "settings": "Настройки аккаунта"
+      "favorites": "Избранное",
+      "settings": "Настройки",
+      "orders": "История заказов",
+      "admin": "Панель управления",
+      "logOut": "Выйти"
     },
     "settings": {
       "title": "Настройки",
