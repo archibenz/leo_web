@@ -11,16 +11,29 @@ export type User = {
   surname?: string;
   createdAt?: string;
   role?: string;
+  newsletterPromos?: boolean;
+  newsletterCollections?: boolean;
+  newsletterProjects?: boolean;
 };
 
 type RegisterData = {
   email: string;
+  code: string;
   firstName: string;
   surname?: string;
   password: string;
   dateOfBirth?: string;
   newsletter: boolean;
+  newsletterPromos: boolean;
+  newsletterCollections: boolean;
+  newsletterProjects: boolean;
   privacyAccepted: boolean;
+};
+
+type NewsletterPreferences = {
+  promos: boolean;
+  collections: boolean;
+  projects: boolean;
 };
 
 type AuthContextType = {
@@ -30,7 +43,8 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<{success: boolean; error?: string}>;
   sendCode: (email: string) => Promise<{success: boolean; error?: string}>;
   register: (data: RegisterData) => Promise<{success: boolean; error?: string}>;
-  linkEmail: (email: string, password: string, code: string) => Promise<{success: boolean; error?: string}>;
+  linkEmail: (email: string, code: string) => Promise<{success: boolean; error?: string}>;
+  updateNewsletterPreferences: (prefs: NewsletterPreferences) => Promise<{success: boolean; error?: string}>;
   initTelegramAuth: () => Promise<{success: boolean; deepLink?: string; initToken?: string; error?: string}>;
   loginWithToken: (jwt: string) => Promise<void>;
   logout: () => void;
@@ -62,13 +76,25 @@ type MeApiResponse = {
   dateOfBirth?: string;
   createdAt: string;
   role?: string;
+  newsletterPromos?: boolean;
+  newsletterCollections?: boolean;
+  newsletterProjects?: boolean;
 };
+
+function meToUser(data: MeApiResponse): User {
+  return {
+    id: data.id, email: data.email, name: data.name, surname: data.surname,
+    createdAt: data.createdAt, role: data.role,
+    newsletterPromos: data.newsletterPromos,
+    newsletterCollections: data.newsletterCollections,
+    newsletterProjects: data.newsletterProjects,
+  };
+}
 
 export function AuthProvider({children}: {children: ReactNode}) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Restore session from token on mount
   useEffect(() => {
     const token = getToken();
     if (!token) {
@@ -77,15 +103,9 @@ export function AuthProvider({children}: {children: ReactNode}) {
     }
 
     apiFetch<MeApiResponse>('/api/auth/me')
-      .then(data => {
-        setUser({id: data.id, email: data.email, name: data.name, surname: data.surname, createdAt: data.createdAt, role: data.role});
-      })
-      .catch(() => {
-        clearToken();
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .then(data => setUser(meToUser(data)))
+      .catch(() => clearToken())
+      .finally(() => setIsLoading(false));
   }, []);
 
   const validateEmail = useCallback((email: string): boolean => {
@@ -158,11 +178,15 @@ export function AuthProvider({children}: {children: ReactNode}) {
         method: 'POST',
         body: JSON.stringify({
           email: data.email.trim(),
+          code: data.code.trim(),
           firstName: data.firstName.trim(),
           surname: data.surname?.trim() || null,
           password: data.password,
           dateOfBirth: data.dateOfBirth || null,
           newsletter: data.newsletter,
+          newsletterPromos: data.newsletterPromos,
+          newsletterCollections: data.newsletterCollections,
+          newsletterProjects: data.newsletterProjects,
           privacyAccepted: data.privacyAccepted,
         }),
       });
@@ -179,23 +203,17 @@ export function AuthProvider({children}: {children: ReactNode}) {
     }
   }, []);
 
-  const linkEmail = useCallback(async (email: string, password: string, code: string): Promise<{success: boolean; error?: string}> => {
+  const linkEmail = useCallback(async (email: string, code: string): Promise<{success: boolean; error?: string}> => {
     if (!isValidEmail(email)) {
       return {success: false, error: 'invalid_email'};
     }
-    if (password.length < 6) {
-      return {success: false, error: 'password_too_short'};
-    }
 
     try {
-      await apiFetch<{message: string}>('/api/auth/link-email', {
+      const data = await apiFetch<MeApiResponse>('/api/auth/link-email', {
         method: 'POST',
-        body: JSON.stringify({email: email.trim(), password, code: code.trim()}),
+        body: JSON.stringify({email: email.trim(), code: code.trim()}),
       });
-
-      // Refresh user data
-      const me = await apiFetch<MeApiResponse>('/api/auth/me');
-      setUser({id: me.id, email: me.email, name: me.name, surname: me.surname, createdAt: me.createdAt, role: me.role});
+      setUser(meToUser(data));
       return {success: true};
     } catch (err: unknown) {
       const apiErr = err as {status?: number; body?: {error?: string}};
@@ -206,6 +224,19 @@ export function AuthProvider({children}: {children: ReactNode}) {
         return {success: false, error: 'invalid_code'};
       }
       return {success: false, error: 'link_failed'};
+    }
+  }, []);
+
+  const updateNewsletterPreferences = useCallback(async (prefs: NewsletterPreferences): Promise<{success: boolean; error?: string}> => {
+    try {
+      const data = await apiFetch<MeApiResponse>('/api/auth/newsletter-preferences', {
+        method: 'PUT',
+        body: JSON.stringify(prefs),
+      });
+      setUser(meToUser(data));
+      return {success: true};
+    } catch {
+      return {success: false, error: 'update_failed'};
     }
   }, []);
 
@@ -223,7 +254,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
   const loginWithToken = useCallback(async (jwt: string) => {
     setToken(jwt);
     const data = await apiFetch<MeApiResponse>('/api/auth/me');
-    setUser({id: data.id, email: data.email, name: data.name, surname: data.surname, createdAt: data.createdAt, role: data.role});
+    setUser(meToUser(data));
   }, []);
 
   const isAdmin = user?.role === 'admin';
@@ -243,6 +274,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
         sendCode,
         register,
         linkEmail,
+        updateNewsletterPreferences,
         initTelegramAuth,
         loginWithToken,
         logout,
@@ -263,6 +295,7 @@ const defaultAuthContext: AuthContextType = {
   sendCode: async () => ({success: false}),
   register: async () => ({success: false}),
   linkEmail: async () => ({success: false}),
+  updateNewsletterPreferences: async () => ({success: false}),
   initTelegramAuth: async () => ({success: false}),
   loginWithToken: async () => {},
   logout: () => {},

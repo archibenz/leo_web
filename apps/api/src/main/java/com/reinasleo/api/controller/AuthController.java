@@ -61,13 +61,11 @@ public class AuthController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        return ResponseEntity.ok(new UserResponse(
-                user.getId(), user.getEmail(), user.getName(),
-                user.getSurname(), user.getDateOfBirth(), user.getCreatedAt(), user.getRole()));
+        return ResponseEntity.ok(toUserResponse(user));
     }
 
     @PostMapping("/link-email")
-    public ResponseEntity<Map<String, String>> linkEmail(
+    public ResponseEntity<UserResponse> linkEmail(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody LinkEmailRequest request) {
         if (user == null) {
@@ -78,15 +76,34 @@ public class AuthController {
         }
         String normalizedEmail = request.email().trim().toLowerCase();
 
-        // Verify the code first
         verificationService.verifyCode(normalizedEmail, request.code());
 
         userRepository.findByEmailIgnoreCase(normalizedEmail).ifPresent(existing -> {
             throw new EmailAlreadyExistsException(normalizedEmail);
         });
         user.setEmail(normalizedEmail);
-        user.setPasswordHash(passwordEncoder.encode(request.password()));
         userRepository.save(user);
-        return ResponseEntity.ok(Map.of("message", "email_linked"));
+        return ResponseEntity.ok(toUserResponse(user));
+    }
+
+    @PutMapping("/newsletter-preferences")
+    public ResponseEntity<UserResponse> updateNewsletterPreferences(
+            @AuthenticationPrincipal User user,
+            @RequestBody NewsletterPreferencesRequest request) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        user.setNewsletterPromos(request.promos());
+        user.setNewsletterCollections(request.collections());
+        user.setNewsletterProjects(request.projects());
+        userRepository.save(user);
+        return ResponseEntity.ok(toUserResponse(user));
+    }
+
+    private UserResponse toUserResponse(User user) {
+        return new UserResponse(
+                user.getId(), user.getEmail(), user.getName(),
+                user.getSurname(), user.getDateOfBirth(), user.getCreatedAt(), user.getRole(),
+                user.isNewsletterPromos(), user.isNewsletterCollections(), user.isNewsletterProjects());
     }
 }

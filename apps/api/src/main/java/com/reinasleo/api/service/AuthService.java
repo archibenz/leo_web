@@ -18,17 +18,22 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final VerificationService verificationService;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                       JwtService jwtService) {
+                       JwtService jwtService, VerificationService verificationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.verificationService = verificationService;
     }
 
     @Transactional
     public LoginResponse register(RegisterRequest request) {
         String normalizedEmail = request.email().trim().toLowerCase();
+
+        // Verify email code
+        verificationService.verifyCode(normalizedEmail, request.code());
 
         // Check email uniqueness
         userRepository.findByEmailIgnoreCase(normalizedEmail).ifPresent(existing -> {
@@ -49,9 +54,12 @@ public class AuthService {
                 request.newsletter(),
                 request.privacyAccepted()
         );
+        user.setNewsletterPromos(request.newsletterPromos());
+        user.setNewsletterCollections(request.newsletterCollections());
+        user.setNewsletterProjects(request.newsletterProjects());
+
         User saved = userRepository.save(user);
 
-        // Auto-login: generate token immediately
         String token = jwtService.generateToken(saved.getId(), saved.getEmail());
         return new LoginResponse(token, saved.getId(), saved.getEmail(), saved.getName(), saved.getSurname(), saved.getRole());
     }

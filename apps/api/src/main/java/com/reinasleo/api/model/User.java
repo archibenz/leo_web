@@ -40,6 +40,15 @@ public class User {
     @Column(name = "privacy_accepted", nullable = false)
     private boolean privacyAccepted;
 
+    @Column(name = "newsletter_promos", nullable = false)
+    private boolean newsletterPromos;
+
+    @Column(name = "newsletter_collections", nullable = false)
+    private boolean newsletterCollections;
+
+    @Column(name = "newsletter_projects", nullable = false)
+    private boolean newsletterProjects;
+
     @Column(nullable = false, length = 32)
     private String role = "user";
 
@@ -101,6 +110,13 @@ public class User {
     public void setTelegramId(Long telegramId) { this.telegramId = telegramId; }
     public void setPhone(String phone) { this.phone = phone; }
     public void setSurname(String surname) { this.surname = surname; }
+
+    public boolean isNewsletterPromos() { return newsletterPromos; }
+    public void setNewsletterPromos(boolean v) { this.newsletterPromos = v; }
+    public boolean isNewsletterCollections() { return newsletterCollections; }
+    public void setNewsletterCollections(boolean v) { this.newsletterCollections = v; }
+    public boolean isNewsletterProjects() { return newsletterProjects; }
+    public void setNewsletterProjects(boolean v) { this.newsletterProjects = v; }
 
     public String getFullName() {
         if (surname == null || surname.isBlank()) return name;
