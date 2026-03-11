@@ -7,24 +7,28 @@ import {useAuth} from '../../../../contexts';
 import HeroShaderBackgroundClient from '../../../../components/HeroShaderBackgroundClient';
 import Link from 'next/link';
 
-type LinkStep = 'email' | 'code' | 'password';
+type LinkStep = 'email' | 'code';
 
 export default function SettingsPage() {
   const t = useTranslations('account');
   const locale = useLocale();
   const router = useRouter();
-  const {user, isAuthenticated, isLoading, logout, sendCode, linkEmail} = useAuth();
+  const {user, isAuthenticated, isLoading, logout, sendCode, linkEmail, updateNewsletterPreferences} = useAuth();
 
-  // Link email form state
   const [linkStep, setLinkStep] = useState<LinkStep>('email');
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [sending, setSending] = useState(false);
   const [linking, setLinking] = useState(false);
   const [success, setSuccess] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+
+  // Newsletter toggles
+  const [promos, setPromos] = useState(false);
+  const [collections, setCollections] = useState(false);
+  const [projects, setProjects] = useState(false);
+  const [savingPrefs, setSavingPrefs] = useState(false);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -32,7 +36,15 @@ export default function SettingsPage() {
     }
   }, [isAuthenticated, isLoading, locale, router]);
 
-  // Cooldown timer for resend
+  // Sync newsletter state from user
+  useEffect(() => {
+    if (user) {
+      setPromos(user.newsletterPromos ?? false);
+      setCollections(user.newsletterCollections ?? false);
+      setProjects(user.newsletterProjects ?? false);
+    }
+  }, [user]);
+
   useEffect(() => {
     if (cooldown <= 0) return;
     const timer = setTimeout(() => setCooldown(c => c - 1), 1000);
@@ -48,11 +60,7 @@ export default function SettingsPage() {
       setLinkStep('code');
       setCooldown(60);
     } else {
-      if (result.error === 'invalid_email') {
-        setError(t('errors.invalidEmail'));
-      } else {
-        setError(t('errors.sendCodeFailed'));
-      }
+      setError(result.error === 'invalid_email' ? t('errors.invalidEmail') : t('errors.sendCodeFailed'));
     }
   }, [email, sendCode, t]);
 
@@ -61,46 +69,39 @@ export default function SettingsPage() {
     setSending(true);
     const result = await sendCode(email);
     setSending(false);
-    if (result.success) {
-      setCooldown(60);
-    }
+    if (result.success) setCooldown(60);
   }, [email, cooldown, sendCode]);
 
-  const handleCodeSubmit = useCallback(() => {
+  const handleLink = useCallback(async () => {
     if (code.trim().length !== 6) {
       setError(t('errors.invalidCode'));
       return;
     }
     setError('');
-    setLinkStep('password');
-  }, [code, t]);
-
-  const handleLink = useCallback(async () => {
-    setError('');
-    if (password.length < 6) {
-      setError(t('errors.passwordTooShort'));
-      return;
-    }
     setLinking(true);
-    const result = await linkEmail(email, password, code);
+    const result = await linkEmail(email, code);
     setLinking(false);
     if (result.success) {
       setSuccess(true);
+    } else if (result.error === 'email_already_linked') {
+      setError(t('settings.linkEmail.alreadyLinked'));
+    } else if (result.error === 'invalid_code') {
+      setError(t('errors.invalidCode'));
     } else {
-      if (result.error === 'email_already_linked') {
-        setError(t('settings.linkEmail.alreadyLinked'));
-      } else if (result.error === 'invalid_code') {
-        setError(t('errors.invalidCode'));
-        setLinkStep('code');
-      } else if (result.error === 'invalid_email') {
-        setError(t('errors.invalidEmail'));
-      } else if (result.error === 'password_too_short') {
-        setError(t('errors.passwordTooShort'));
-      } else {
-        setError(t('errors.genericError'));
-      }
+      setError(t('errors.genericError'));
     }
-  }, [email, password, code, linkEmail, t]);
+  }, [email, code, linkEmail, t]);
+
+  const handleToggle = useCallback(async (key: 'promos' | 'collections' | 'projects', value: boolean) => {
+    const newPrefs = {promos, collections, projects, [key]: value};
+    if (key === 'promos') setPromos(value);
+    if (key === 'collections') setCollections(value);
+    if (key === 'projects') setProjects(value);
+
+    setSavingPrefs(true);
+    await updateNewsletterPreferences(newPrefs);
+    setSavingPrefs(false);
+  }, [promos, collections, projects, updateNewsletterPreferences]);
 
   if (isLoading) {
     return (
@@ -118,7 +119,7 @@ export default function SettingsPage() {
 
   if (!isAuthenticated) return null;
 
-  const emailAlreadyLinked = !!user?.email;
+  const emailLinked = !!user?.email;
 
   return (
     <div className="relative min-h-screen pt-28 pb-6">
@@ -131,150 +132,150 @@ export default function SettingsPage() {
             </h1>
           </div>
 
-          {/* Link Email Section */}
-          {!emailAlreadyLinked && (
-            <div className="paper-card p-6 space-y-5">
-              <div>
-                <h2 className="font-display text-[16px] font-semibold text-ink tracking-wide">
-                  {t('settings.linkEmail.title')}
-                </h2>
-                <p className="mt-1 text-[13px] text-ink/50">
-                  {t('settings.linkEmail.description')}
-                </p>
-              </div>
-
-              {success ? (
-                <div className="rounded-xl bg-[#D4A574]/10 border border-[#D4A574]/20 px-4 py-3">
-                  <p className="text-[14px] text-[#D4A574] font-medium">
-                    {t('settings.linkEmail.success')}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Step 1: Email */}
-                  <div>
-                    <label className="block text-[12px] font-medium uppercase tracking-wider text-ink/50 mb-1.5">
-                      {t('settings.linkEmail.emailLabel')}
-                    </label>
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder={t('settings.linkEmail.emailPlaceholder')}
-                      disabled={linkStep !== 'email'}
-                      className="admin-input disabled:opacity-50"
-                      onKeyDown={(e) => e.key === 'Enter' && linkStep === 'email' && handleSendCode()}
-                    />
-                    {linkStep === 'email' && (
-                      <button
-                        onClick={handleSendCode}
-                        disabled={sending || !email.trim()}
-                        className="mt-3 w-full lux-btn-primary disabled:opacity-50"
-                      >
-                        {sending ? t('settings.linkEmail.sending') : t('settings.linkEmail.sendCode')}
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Step 2: Code */}
-                  {(linkStep === 'code' || linkStep === 'password') && (
-                    <div>
-                      <label className="block text-[12px] font-medium uppercase tracking-wider text-ink/50 mb-1.5">
-                        {t('settings.linkEmail.codeLabel')}
-                      </label>
-                      <p className="text-[12px] text-ink/40 mb-2">
-                        {t('settings.linkEmail.codeHint', {email})}
-                      </p>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={6}
-                        value={code}
-                        onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder={t('settings.linkEmail.codePlaceholder')}
-                        disabled={linkStep === 'password'}
-                        className="admin-input text-center text-lg tracking-[0.3em] disabled:opacity-50"
-                        onKeyDown={(e) => e.key === 'Enter' && linkStep === 'code' && handleCodeSubmit()}
-                      />
-                      {linkStep === 'code' && (
-                        <>
-                          <button
-                            onClick={handleCodeSubmit}
-                            disabled={code.length !== 6}
-                            className="mt-3 w-full lux-btn-primary disabled:opacity-50"
-                          >
-                            {t('buttons.continue')}
-                          </button>
-                          <div className="mt-2 flex items-center justify-center gap-2 text-[12px]">
-                            <span className="text-ink/40">{t('settings.linkEmail.didntReceive')}</span>
-                            {cooldown > 0 ? (
-                              <span className="text-ink/30">
-                                {t('settings.linkEmail.resendIn', {seconds: cooldown})}
-                              </span>
-                            ) : (
-                              <button
-                                onClick={handleResend}
-                                disabled={sending}
-                                className="text-[#D4A574] hover:text-[#D4A574]/80 transition-colors"
-                              >
-                                {t('settings.linkEmail.resend')}
-                              </button>
-                            )}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Step 3: Password */}
-                  {linkStep === 'password' && (
-                    <div>
-                      <label className="block text-[12px] font-medium uppercase tracking-wider text-ink/50 mb-1.5">
-                        {t('settings.linkEmail.passwordLabel')}
-                      </label>
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder={t('settings.linkEmail.passwordPlaceholder')}
-                        className="admin-input"
-                        onKeyDown={(e) => e.key === 'Enter' && handleLink()}
-                      />
-                      <button
-                        onClick={handleLink}
-                        disabled={linking || password.length < 6}
-                        className="mt-3 w-full lux-btn-primary disabled:opacity-50"
-                      >
-                        {linking ? t('settings.linkEmail.linking') : t('settings.linkEmail.submit')}
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Error */}
-                  {error && (
-                    <p className="text-[13px] text-red-400">{error}</p>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Already linked info */}
-          {emailAlreadyLinked && (
-            <div className="paper-card p-6 space-y-3">
+          {/* ── Link Email ── */}
+          <div className="paper-card p-6 space-y-5">
+            <div>
               <h2 className="font-display text-[16px] font-semibold text-ink tracking-wide">
-                Email
+                {t('settings.linkEmail.title')}
               </h2>
+              <p className="mt-1 text-[13px] text-ink/50">
+                {t('settings.linkEmail.description')}
+              </p>
+            </div>
+
+            {emailLinked && !success ? (
               <div className="flex items-center gap-2">
                 <span className="text-[14px] text-ink/70">{user?.email}</span>
-                <span className="inline-flex items-center rounded-full bg-[#D4A574]/10 px-2 py-0.5 text-[11px] font-medium text-[#D4A574]">
+                <span className="inline-flex items-center rounded-full bg-[#D4A574]/10 px-2.5 py-0.5 text-[11px] font-medium text-[#D4A574]">
                   {t('profile.emailVerified')}
                 </span>
               </div>
-            </div>
-          )}
+            ) : success ? (
+              <div className="rounded-xl bg-[#D4A574]/10 border border-[#D4A574]/20 px-4 py-3">
+                <p className="text-[14px] text-[#D4A574] font-medium">
+                  {t('settings.linkEmail.success')}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Email input */}
+                <div>
+                  <label className="block text-[12px] font-medium uppercase tracking-wider text-ink/50 mb-1.5">
+                    {t('settings.linkEmail.emailLabel')}
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t('settings.linkEmail.emailPlaceholder')}
+                    disabled={linkStep !== 'email'}
+                    className="admin-input disabled:opacity-50"
+                    onKeyDown={(e) => e.key === 'Enter' && linkStep === 'email' && handleSendCode()}
+                  />
+                  {linkStep === 'email' && (
+                    <button
+                      onClick={handleSendCode}
+                      disabled={sending || !email.trim()}
+                      className="mt-3 w-full lux-btn-primary disabled:opacity-50"
+                    >
+                      {sending ? t('settings.linkEmail.sending') : t('settings.linkEmail.sendCode')}
+                    </button>
+                  )}
+                </div>
 
-          {/* Sign out */}
+                {/* Code input */}
+                {linkStep === 'code' && (
+                  <div>
+                    <label className="block text-[12px] font-medium uppercase tracking-wider text-ink/50 mb-1.5">
+                      {t('settings.linkEmail.codeLabel')}
+                    </label>
+                    <p className="text-[12px] text-ink/40 mb-2">
+                      {t('settings.linkEmail.codeHint', {email})}
+                    </p>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={code}
+                      onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      placeholder={t('settings.linkEmail.codePlaceholder')}
+                      className="admin-input text-center text-lg tracking-[0.3em]"
+                      onKeyDown={(e) => e.key === 'Enter' && handleLink()}
+                    />
+                    <button
+                      onClick={handleLink}
+                      disabled={linking || code.length !== 6}
+                      className="mt-3 w-full lux-btn-primary disabled:opacity-50"
+                    >
+                      {linking ? t('settings.linkEmail.linking') : t('settings.linkEmail.submit')}
+                    </button>
+                    <div className="mt-2 flex items-center justify-center gap-2 text-[12px]">
+                      <span className="text-ink/40">{t('settings.linkEmail.didntReceive')}</span>
+                      {cooldown > 0 ? (
+                        <span className="text-ink/30">
+                          {t('settings.linkEmail.resendIn', {seconds: cooldown})}
+                        </span>
+                      ) : (
+                        <button
+                          onClick={handleResend}
+                          disabled={sending}
+                          className="text-[#D4A574] hover:text-[#D4A574]/80 transition-colors"
+                        >
+                          {t('settings.linkEmail.resend')}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {error && <p className="text-[13px] text-red-400">{error}</p>}
+              </div>
+            )}
+          </div>
+
+          {/* ── Newsletter Preferences ── */}
+          <div className="paper-card p-6 space-y-5">
+            <div>
+              <h2 className="font-display text-[16px] font-semibold text-ink tracking-wide">
+                {t('settings.newsletter.title')}
+              </h2>
+              <p className="mt-1 text-[13px] text-ink/50">
+                {t('settings.newsletter.description')}
+              </p>
+            </div>
+
+            {!emailLinked && !success ? (
+              <p className="text-[13px] text-ink/40 italic">
+                {t('settings.newsletter.needEmail')}
+              </p>
+            ) : (
+              <div className="space-y-4">
+                <ToggleRow
+                  label={t('settings.newsletter.promos')}
+                  hint={t('settings.newsletter.promosHint')}
+                  checked={promos}
+                  disabled={savingPrefs}
+                  onChange={(v) => handleToggle('promos', v)}
+                />
+                <ToggleRow
+                  label={t('settings.newsletter.collections')}
+                  hint={t('settings.newsletter.collectionsHint')}
+                  checked={collections}
+                  disabled={savingPrefs}
+                  onChange={(v) => handleToggle('collections', v)}
+                />
+                <ToggleRow
+                  label={t('settings.newsletter.projects')}
+                  hint={t('settings.newsletter.projectsHint')}
+                  checked={projects}
+                  disabled={savingPrefs}
+                  onChange={(v) => handleToggle('projects', v)}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* ── Sign out ── */}
           <div className="paper-card p-6">
             <button
               onClick={logout}
@@ -295,6 +296,39 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ToggleRow({label, hint, checked, disabled, onChange}: {
+  label: string;
+  hint: string;
+  checked: boolean;
+  disabled: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div className="min-w-0">
+        <p className="text-[14px] text-ink/80 font-medium">{label}</p>
+        <p className="text-[12px] text-ink/40 mt-0.5">{hint}</p>
+      </div>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        disabled={disabled}
+        onClick={() => onChange(!checked)}
+        className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${
+          checked ? 'bg-[#D4A574]' : 'bg-ink/15'
+        } ${disabled ? 'opacity-50' : 'cursor-pointer'}`}
+      >
+        <span
+          className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transform transition-transform duration-200 mt-0.5 ${
+            checked ? 'translate-x-[22px]' : 'translate-x-0.5'
+          }`}
+        />
+      </button>
     </div>
   );
 }

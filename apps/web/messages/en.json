@@ -468,16 +468,14 @@
       "backToProfile": "Profile",
       "linkEmail": {
         "title": "Link Email",
-        "description": "Link your email to sign in with email and password",
+        "description": "Link your email to receive newsletters about sales, new arrivals and projects",
         "emailLabel": "Email",
         "emailPlaceholder": "email@example.com",
         "sendCode": "Send code",
         "codeLabel": "Verification code",
         "codePlaceholder": "000000",
         "codeHint": "Code sent to {email}",
-        "passwordLabel": "Create a password",
-        "passwordPlaceholder": "At least 6 characters",
-        "submit": "Link email",
+        "submit": "Confirm",
         "success": "Email linked successfully!",
         "alreadyLinked": "Email is already linked",
         "didntReceive": "Didn't receive the code?",
@@ -485,6 +483,17 @@
         "resendIn": "Resend in {seconds}s",
         "sending": "Sending...",
         "linking": "Linking..."
+      },
+      "newsletter": {
+        "title": "Newsletters",
+        "description": "Choose which notifications you'd like to receive",
+        "promos": "Sales & Promotions",
+        "promosHint": "Special offers and promo codes",
+        "collections": "New Arrivals & Collections",
+        "collectionsHint": "New clothing and accessories",
+        "projects": "REINASLEO Projects",
+        "projectsHint": "Brand news and collaborations",
+        "needEmail": "Link your email above to manage newsletters"
       }
     }
   },

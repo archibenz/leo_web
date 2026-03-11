@@ -11,5 +11,8 @@ public record UserResponse(
         String surname,
         LocalDate dateOfBirth,
         Instant createdAt,
-        String role
+        String role,
+        boolean newsletterPromos,
+        boolean newsletterCollections,
+        boolean newsletterProjects
 ) {}
