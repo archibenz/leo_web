@@ -13,6 +13,10 @@ public record RegisterRequest(
         @Size(max = 255, message = "Email must be at most 255 characters")
         String email,
 
+        @NotBlank(message = "Verification code is required")
+        @Size(min = 6, max = 6, message = "Code must be 6 digits")
+        String code,
+
         @NotBlank(message = "First name is required")
         @Size(min = 2, max = 40, message = "First name must be between 2 and 40 characters")
         String firstName,
@@ -27,6 +31,9 @@ public record RegisterRequest(
         LocalDate dateOfBirth,
 
         boolean newsletter,
+        boolean newsletterPromos,
+        boolean newsletterCollections,
+        boolean newsletterProjects,
 
         @NotNull(message = "Privacy policy must be accepted")
         Boolean privacyAccepted

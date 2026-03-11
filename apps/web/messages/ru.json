@@ -468,16 +468,14 @@
       "backToProfile": "Профиль",
       "linkEmail": {
         "title": "Привязать Email",
-        "description": "Привяжите email, чтобы входить по email и паролю",
+        "description": "Привяжите email для получения рассылок об акциях, новинках и проектах",
         "emailLabel": "Email",
         "emailPlaceholder": "email@example.com",
         "sendCode": "Отправить код",
         "codeLabel": "Код подтверждения",
         "codePlaceholder": "000000",
         "codeHint": "Код отправлен на {email}",
-        "passwordLabel": "Придумайте пароль",
-        "passwordPlaceholder": "Минимум 6 символов",
-        "submit": "Привязать",
+        "submit": "Подтвердить",
         "success": "Email успешно привязан!",
         "alreadyLinked": "Email уже привязан",
         "didntReceive": "Не получили код?",
@@ -485,6 +483,17 @@
         "resendIn": "Повторно через {seconds}с",
         "sending": "Отправка...",
         "linking": "Привязка..."
+      },
+      "newsletter": {
+        "title": "Рассылки",
+        "description": "Выберите, какие уведомления хотите получать",
+        "promos": "Акции и скидки",
+        "promosHint": "Специальные предложения и промокоды",
+        "collections": "Новинки и коллекции",
+        "collectionsHint": "Новые поступления одежды и аксессуаров",
+        "projects": "Проекты REINASLEO",
+        "projectsHint": "Новости бренда и коллаборации",
+        "needEmail": "Привяжите email выше, чтобы управлять рассылками"
       }
     }
   },
