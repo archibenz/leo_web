@@ -18,7 +18,8 @@ const config: Config = {
       },
       fontFamily: {
         display: ['var(--font-display)', 'Georgia', 'serif'],
-        sans: ['var(--font-body)', 'system-ui', 'sans-serif']
+        sans: ['var(--font-body)', 'system-ui', 'sans-serif'],
+        accent: ['var(--font-accent)', 'Georgia', 'serif']
       },
       boxShadow: {
         card: '0 24px 48px rgba(43, 23, 17, 0.08)',

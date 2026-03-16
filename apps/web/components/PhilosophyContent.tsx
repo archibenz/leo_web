@@ -109,7 +109,7 @@ export default function PhilosophyContent({
         {/* Eyebrow */}
         <p
           ref={eyebrowRef}
-          className="mb-10 text-center font-display text-[11px] font-medium uppercase tracking-[0.25em] text-[#F2E6D8]/60 sm:mb-14 sm:text-[12px]"
+          className="mb-10 text-center font-accent text-[11px] font-medium uppercase tracking-[0.25em] text-[#F2E6D8]/60 sm:mb-14 sm:text-[12px]"
           style={{ opacity: 0, transform: 'translate3d(0, 12px, 0)', willChange: 'opacity, transform' }}
         >
           {eyebrow}
@@ -143,7 +143,7 @@ export default function PhilosophyContent({
               ref={(el) => { statementsRef.current[index] = el; }}
               style={{ opacity: 0, transform: 'translate3d(0, 25px, 0)', willChange: 'opacity, transform' }}
             >
-              <p className="font-display italic text-[18px] font-light leading-[1.8] tracking-[0.005em] text-[#F2E6D8] sm:text-[20px] sm:leading-[1.85] lg:text-[22px]">
+              <p className="font-accent italic text-[18px] font-light leading-[1.8] tracking-[0.005em] text-[#F2E6D8] sm:text-[20px] sm:leading-[1.85] lg:text-[22px]">
                 {statement}
               </p>
             </div>

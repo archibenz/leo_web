@@ -166,7 +166,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               <MenuItem setActive={setActive} active={active} item={t('catalog')} href={`/${locale}/shop`}>
                 <div className="p-2" style={{ width: '720px' }}>
                   <div className="mb-3 px-4 pt-3">
-                    <p className="font-display text-[10px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{t('catalog')}</p>
+                    <p className="font-accent text-[10px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{t('catalog')}</p>
                   </div>
                   <div className="grid grid-cols-4 gap-0">
                     {categoryKeys.map((key) => (
@@ -186,7 +186,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               <MenuItem setActive={setActive} active={active} item={t('collections')} href={`/${locale}/collections`}>
                 <div className="p-2" style={{ width: '1000px' }}>
                   <div className="mb-3 px-5 pt-3">
-                    <p className="font-display text-[10px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{t('collections')}</p>
+                    <p className="font-accent text-[10px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{t('collections')}</p>
                   </div>
                   <div className="grid grid-cols-4 gap-6 px-5 pb-4">
                     {collections.map((col, i) => (
@@ -216,7 +216,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               <MenuItem setActive={setActive} active={active} item={navT('about')} href={`/${locale}/about`}>
                 <div className="p-2" style={{ width: '280px' }}>
                   <div className="mb-2 px-4 pt-3">
-                    <p className="font-display text-[10px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{navT('about')}</p>
+                    <p className="font-accent text-[10px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{navT('about')}</p>
                   </div>
                   <div className="flex flex-col gap-0">
                     <CategoryCard href={`/${locale}/about`} label={navT('about')} description={desc(aboutDescMap, 'about')} />
