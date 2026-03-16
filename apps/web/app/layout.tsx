@@ -1,21 +1,31 @@
 import type {Metadata, Viewport} from 'next';
 import {cookies} from 'next/headers';
-import {Spectral, IBM_Plex_Sans} from 'next/font/google';
+import {Cormorant_Garamond, Jost, Cormorant} from 'next/font/google';
 import {defaultLocale, locales, type Locale} from '../i18n';
 import './globals.css';
 
-const display = Spectral({
+const display = Cormorant_Garamond({
   subsets: ['latin', 'cyrillic'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600'],
+  style: ['normal', 'italic'],
   variable: '--font-display',
   display: 'swap',
   preload: true
 });
 
-const body = IBM_Plex_Sans({
+const body = Jost({
   subsets: ['latin', 'cyrillic'],
   weight: ['300', '400', '500', '600'],
   variable: '--font-body',
+  display: 'swap',
+  preload: true
+});
+
+const accent = Cormorant({
+  subsets: ['latin', 'cyrillic'],
+  weight: ['300', '400', '500', '600'],
+  style: ['normal', 'italic'],
+  variable: '--font-accent',
   display: 'swap',
   preload: true
 });
@@ -51,7 +61,7 @@ export default async function RootLayout({children}: {children: React.ReactNode}
 
   return (
     <html lang={lang}>
-      <body className={`${display.variable} ${body.variable} font-sans bg-paper text-ink`}>
+      <body className={`${display.variable} ${body.variable} ${accent.variable} font-sans bg-paper text-ink`}>
         {children}
       </body>
     </html>

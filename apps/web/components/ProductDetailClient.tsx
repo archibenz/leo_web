@@ -245,7 +245,7 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
             <h1 className="text-2xl font-display text-[var(--ink)] sm:text-3xl">
               {product.title}
             </h1>
-            <p className="mt-2 text-xl text-[var(--ink)]">
+            <p className="mt-2 text-xl font-accent text-[var(--ink)]">
               &euro;{product.price.toLocaleString()}
             </p>
           </div>

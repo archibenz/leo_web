@@ -262,7 +262,7 @@ export default function ShopClient() {
             {item.occasion ? t(`occasions.${item.occasion}`) : item.category ?? ''}
           </span>
           <h3 className="text-[13px] font-normal text-[var(--ink)] leading-snug sm:text-sm">{item.title}</h3>
-          <span className="text-[13px] text-[var(--ink-soft)] sm:text-sm">&euro;{item.price.toLocaleString()}</span>
+          <span className="text-[13px] font-accent text-[var(--ink-soft)] sm:text-sm">&euro;{item.price.toLocaleString()}</span>
         </div>
       </Link>
     );

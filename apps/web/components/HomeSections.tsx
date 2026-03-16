@@ -200,7 +200,7 @@ function ShopHeroCard({title, subtitle, locale}: {title: string; subtitle: strin
         style={{opacity: 0, transition: 'opacity 500ms ease'}}
       >
         <div className="text-center px-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-[#F2E6D8]/70 lg:text-sm">
+          <p className="font-accent text-xs uppercase tracking-[0.2em] text-[#F2E6D8]/70 lg:text-sm">
             {subtitle}
           </p>
           <h3 className="mt-3 font-display text-3xl uppercase tracking-[0.08em] text-[#F2E6D8] sm:text-4xl lg:text-5xl">
@@ -211,7 +211,7 @@ function ShopHeroCard({title, subtitle, locale}: {title: string; subtitle: strin
 
       {/* Mobile: always visible */}
       <div className="absolute inset-x-0 bottom-0 z-[2] p-5 md:hidden">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-[#F2E6D8]/60">{subtitle}</p>
+        <p className="font-accent text-[10px] uppercase tracking-[0.2em] text-[#F2E6D8]/60">{subtitle}</p>
         <h3 className="mt-1 font-display text-xl uppercase tracking-[0.06em] text-[#F2E6D8]">{title}</h3>
       </div>
     </Link>
