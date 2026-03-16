@@ -1,42 +1,72 @@
 package com.reinasleo.api.service;
 
-import jakarta.mail.internet.InternetAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 
 @Service
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+    private static final String RESEND_API_URL = "https://api.resend.com/emails";
 
-    private final JavaMailSender mailSender;
+    private final HttpClient httpClient;
 
-    @Value("${spring.mail.username:}")
+    @Value("${app.resend.api-key:}")
+    private String resendApiKey;
+
+    @Value("${app.resend.from:REINASLEO <noreply@reinasleo.com>}")
     private String fromAddress;
 
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
+    public EmailService() {
+        this.httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
     }
 
     public void sendVerificationCode(String toEmail, String code) {
-        if (fromAddress == null || fromAddress.isBlank()) {
-            log.warn("Mail not configured — verification code for {}: {}", toEmail, code);
+        if (resendApiKey == null || resendApiKey.isBlank()) {
+            log.warn("Resend API key not configured — verification code for {}: {}", toEmail, code);
             return;
         }
 
         try {
-            var message = mailSender.createMimeMessage();
-            var helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(new InternetAddress(fromAddress, "REINASLEO"));
-            helper.setTo(toEmail);
-            helper.setSubject("REINASLEO — Код подтверждения / Verification code");
-            helper.setText(buildHtml(code), true);
-            mailSender.send(message);
-            log.info("Verification code sent to {}", toEmail);
+            String jsonBody = """
+                    {
+                      "from": "%s",
+                      "to": ["%s"],
+                      "subject": "REINASLEO — Код подтверждения / Verification code",
+                      "html": %s
+                    }
+                    """.formatted(
+                    escapeJson(fromAddress),
+                    escapeJson(toEmail),
+                    toJsonString(buildHtml(code))
+            );
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(RESEND_API_URL))
+                    .timeout(Duration.ofSeconds(15))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + resendApiKey)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                log.info("Verification code sent to {} via Resend", toEmail);
+            } else {
+                log.error("Resend API error ({}): {}", response.statusCode(), response.body());
+                log.warn("Fallback — verification code for {}: {}", toEmail, code);
+            }
         } catch (Exception e) {
             log.error("Failed to send verification email to {}: {}", toEmail, e.getMessage());
             log.warn("Fallback — verification code for {}: {}", toEmail, code);
@@ -80,5 +110,19 @@ public class EmailService {
                   </div>
                 </div>
                 """.formatted(code);
+    }
+
+    private static String escapeJson(String value) {
+        return value.replace("\\", "\\\\").replace("\"", "\\\"");
+    }
+
+    private static String toJsonString(String value) {
+        return "\"" + value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t")
+                + "\"";
     }
 }
