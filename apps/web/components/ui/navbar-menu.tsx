@@ -48,7 +48,7 @@ export const MenuItem = ({
             exit={{ opacity: 0, scale: 0.9, y: 8 }}
             transition={transition}
           >
-            <div className="absolute top-full left-1/2 -translate-x-1/2 pt-3">
+            <div className="absolute top-full left-1/2 -translate-x-1/2 pt-5">
               <motion.div
                 transition={transition}
                 layoutId="active"
