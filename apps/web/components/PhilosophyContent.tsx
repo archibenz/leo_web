@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, FC, ReactNode } from 'react';
+import { useRef, useEffect, useState, FC, ReactNode } from 'react';
 import { motion, MotionValue, useScroll, useTransform } from 'framer-motion';
 
 interface PhilosophyContentProps {
@@ -35,18 +35,20 @@ export default function PhilosophyContent({
   text,
 }: PhilosophyContentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isClient, setIsClient] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ['start start', 'end end'],
+    offset: ['start 0.6', 'end 0.4'],
   });
 
   const words = text.split(' ');
-
-  const prefersReducedMotion =
-    typeof window !== 'undefined'
-      ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      : false;
 
   return (
     <div ref={containerRef} className="relative" style={{ height: '200vh' }}>
@@ -70,7 +72,7 @@ export default function PhilosophyContent({
 
           {/* Scroll-reveal text */}
           <p className="text-center font-accent italic text-[clamp(1.35rem,3.2vw,2.6rem)] font-light leading-[1.7] sm:leading-[1.75]">
-            {prefersReducedMotion
+            {!isClient || reducedMotion
               ? (
                   <span className="text-[#F2E6D8]">{text}</span>
                 )
