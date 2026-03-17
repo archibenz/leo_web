@@ -363,7 +363,7 @@ export default function ShopClient() {
       <div className="mt-6 flex flex-col gap-8 sm:flex-row">
         {/* ---- filter sidebar (independent scroll) ---- */}
         {filtersOpen && (
-          <aside className="w-full shrink-0 sm:w-56 lg:w-64 sm:sticky sm:top-4 sm:self-start">
+          <aside className="w-full shrink-0 sm:w-56 lg:w-64 sm:sticky sm:top-4 sm:self-start sm:max-h-[calc(100vh-2rem)] sm:overflow-y-auto scrollbar-none">
             <div className="lux-control flex flex-col gap-2 p-5">
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-widest text-[var(--ink-soft)]">
