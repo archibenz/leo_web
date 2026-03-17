@@ -360,10 +360,10 @@ export default function ShopClient() {
       </div>
 
       {/* ---- main area ---- */}
-      <div className="mt-6 flex flex-col gap-8 sm:flex-row" style={{height: 'calc(100vh - 220px)', minHeight: '400px'}}>
+      <div className="mt-6 flex flex-col gap-8 sm:flex-row">
         {/* ---- filter sidebar (independent scroll) ---- */}
         {filtersOpen && (
-          <aside className="w-full shrink-0 sm:w-56 lg:w-64 overflow-y-auto overscroll-contain scrollbar-none" style={{maxHeight: '100%'}}>
+          <aside className="w-full shrink-0 sm:w-56 lg:w-64 sm:sticky sm:top-4 sm:self-start">
             <div className="lux-control flex flex-col gap-2 p-5">
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-widest text-[var(--ink-soft)]">
@@ -390,7 +390,7 @@ export default function ShopClient() {
         )}
 
         {/* ---- grid (independent scroll) ---- */}
-        <div className="min-w-0 flex-1 overflow-y-auto overscroll-contain scrollbar-none" style={{maxHeight: '100%'}}>
+        <div className="min-w-0 flex-1">
           {filteredAndSorted.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-4 py-20 text-center">
               <p className="text-lg text-[var(--ink-soft)]">{t('noResults')}</p>
