@@ -19,7 +19,7 @@ export default function ScrollHint({text, heroVh = 1.5}: ScrollHintProps) {
   const FADE_DISTANCE = 400;
 
   const update = useCallback(() => {
-    const scrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    const scrollY = document.body.scrollTop || window.scrollY || document.documentElement.scrollTop || 0;
     const vh = window.innerHeight;
     const bannerPageY = vh * heroVh;
 
@@ -47,16 +47,16 @@ export default function ScrollHint({text, heroVh = 1.5}: ScrollHintProps) {
       update();
     }, 2500);
 
-    // Listen on window, document, and body — covers all scroll containers
+    // body is the scroll container in this layout (overflow: auto on body)
+    document.body.addEventListener('scroll', onScroll, {passive: true});
     window.addEventListener('scroll', onScroll, {passive: true});
-    document.addEventListener('scroll', onScroll, {passive: true});
     window.addEventListener('resize', onScroll, {passive: true});
 
     return () => {
       clearTimeout(timer);
       cancelAnimationFrame(rafRef.current);
+      document.body.removeEventListener('scroll', onScroll);
       window.removeEventListener('scroll', onScroll);
-      document.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
   }, [onScroll, update]);
