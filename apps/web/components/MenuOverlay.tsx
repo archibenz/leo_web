@@ -141,7 +141,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
 
             {/* Collections section */}
             <div className="mb-4 sm:mb-6">
-              <p className="mb-2 font-accent text-xs uppercase tracking-[0.1em] sm:tracking-[0.18em] text-[#F2E6D8]/40 sm:mb-4">
+              <p className="mb-2 font-accent text-sm uppercase tracking-[0.1em] sm:tracking-[0.18em] text-[#F2E6D8]/40 sm:mb-4">
                 {t('collections')}
               </p>
               <div className="grid grid-cols-2 gap-x-3 gap-y-1 sm:gap-x-10 sm:gap-y-2 md:grid-cols-4">

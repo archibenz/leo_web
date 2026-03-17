@@ -25,7 +25,7 @@ export const MenuItem = ({
   href?: string;
   children?: React.ReactNode;
 }) => {
-  const labelClass = `cursor-pointer text-[13px] leading-none font-display font-medium uppercase tracking-[0.12em] transition-colors duration-200 ${
+  const labelClass = `cursor-pointer text-[15px] leading-none font-display font-medium uppercase tracking-[0.12em] transition-colors duration-200 ${
     active === item ? "text-accent" : "text-ink/70 hover:text-ink"
   }`;
 
@@ -98,7 +98,7 @@ export const HoveredLink = ({
   return (
     <Link
       {...rest}
-      className="block text-[15px] leading-relaxed text-ink/50 transition-colors duration-200 hover:text-accent"
+      className="block text-[16px] leading-relaxed text-ink/50 transition-colors duration-200 hover:text-accent"
     >
       {children}
     </Link>
@@ -122,11 +122,11 @@ export const CategoryCard = ({
       {/* Hover accent line */}
       <div className="absolute left-0 top-1/2 -translate-y-1/2 h-0 w-[2px] rounded-full bg-[#D4A574]/40 transition-all duration-300 group-hover:h-[60%]" />
 
-      <span className="font-display text-[14px] font-semibold tracking-[0.02em] text-ink/80 transition-colors duration-200 group-hover:text-[#D4A574]">
+      <span className="font-display text-[15px] font-semibold tracking-[0.02em] text-ink/80 transition-colors duration-200 group-hover:text-[#D4A574]">
         {label}
       </span>
       {description && (
-        <span className="font-accent text-[12px] text-ink/35 leading-snug transition-colors duration-200 group-hover:text-ink/50">
+        <span className="font-accent text-[13px] text-ink/35 leading-snug transition-colors duration-200 group-hover:text-ink/50">
           {description}
         </span>
       )}
@@ -169,7 +169,7 @@ export const CollectionCard = ({
               {title}
             </p>
             {subtitle && (
-              <p className="mt-0.5 text-[11px] uppercase tracking-[0.08em] text-ink/40">{subtitle}</p>
+              <p className="mt-0.5 text-[12px] uppercase tracking-[0.08em] text-ink/40">{subtitle}</p>
             )}
           </div>
         </div>
