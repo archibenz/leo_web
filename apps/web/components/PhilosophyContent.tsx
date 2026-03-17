@@ -52,7 +52,12 @@ export default function PhilosophyContent({
     return () => { running = false; };
   }, []);
 
-  const words = text.split(' ');
+  // Split text into characters, preserving word boundaries as spaces
+  const chars: { char: string; isSpace: boolean }[] = [];
+  for (const ch of text) {
+    chars.push({ char: ch, isSpace: ch === ' ' });
+  }
+  const totalChars = chars.filter(c => !c.isSpace).length;
 
   return (
     <div ref={containerRef} className="relative" style={{ height: '200vh' }}>
@@ -74,35 +79,37 @@ export default function PhilosophyContent({
             {eyebrow}
           </p>
 
-          {/* Scroll-reveal text */}
+          {/* Scroll-reveal text — per character */}
           <p className="text-center font-accent italic text-[clamp(1.35rem,3.2vw,2.6rem)] font-light leading-[1.7] sm:leading-[1.75]">
             {!isClient || reducedMotion
               ? (
                   <span className="text-[#F2E6D8]">{text}</span>
                 )
-              : (
-                  words.map((word, i) => {
-                    const wordProgress = i / words.length;
-                    const wordEnd = (i + 1) / words.length;
-                    // Each word fades from 0 to 1 over its range
-                    const raw = (progress - wordProgress) / (wordEnd - wordProgress);
+              : (() => {
+                  let charIndex = 0;
+                  return chars.map((c, i) => {
+                    if (c.isSpace) {
+                      return <span key={`sp-${i}`}>{' '}</span>;
+                    }
+                    const idx = charIndex++;
+                    const charProgress = idx / totalChars;
+                    const charEnd = (idx + 1) / totalChars;
+                    const raw = (progress - charProgress) / (charEnd - charProgress);
                     const opacity = Math.max(0, Math.min(1, raw));
-                    // Dim base (0.15) + revealed portion
                     const finalOpacity = 0.15 + opacity * 0.85;
 
                     return (
                       <span
-                        key={`${word}-${i}`}
-                        className="mx-[0.14em] my-[0.08em] inline-block transition-none"
+                        key={`ch-${i}`}
                         style={{
                           color: `rgba(242, 230, 216, ${finalOpacity})`,
                         }}
                       >
-                        {word}
+                        {c.char}
                       </span>
                     );
-                  })
-                )}
+                  });
+                })()}
           </p>
         </div>
       </div>
