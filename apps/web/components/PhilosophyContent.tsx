@@ -91,7 +91,7 @@ export default function PhilosophyContent({
 
         <div className="relative mx-auto max-w-4xl px-6 sm:px-10 lg:px-12">
           {/* Big title — curtain mask reveal */}
-          <div className="relative mb-6">
+          <div className="relative mb-6 overflow-visible">
             {/* Revealed text — clipped from left to right */}
             <h2
               className="text-center font-display uppercase text-[#F2E6D8]"
