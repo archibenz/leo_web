@@ -205,7 +205,7 @@ export function Carousel({ slides }: CarouselProps) {
                   <h3 className="font-display text-base sm:text-lg md:text-xl lg:text-2xl uppercase tracking-[0.06em] text-[#F2E6D8] leading-tight">
                     {slide.title}
                   </h3>
-                  <span className="inline-block mt-3 px-4 py-2 text-[10px] sm:text-xs uppercase tracking-[0.1em] text-[#F2E6D8]/80 bg-white/10 backdrop-blur-sm border border-[#D4A574]/25 rounded-full">
+                  <span className="inline-block mt-3 px-4 py-2 text-[12px] sm:text-[14px] uppercase tracking-[0.1em] text-[#F2E6D8]/80 bg-white/10 backdrop-blur-sm border border-[#D4A574]/25 rounded-full">
                     {slide.button}
                   </span>
                 </div>
