@@ -10,35 +10,30 @@ interface ScrollHintProps {
 
 export default function ScrollHint({text, heroVh = 1.5}: ScrollHintProps) {
   const [show, setShow] = useState(false);
-  const [style, setStyle] = useState<React.CSSProperties>({opacity: 0});
+  const [bottom, setBottom] = useState(40);
+  const [opacity, setOpacity] = useState(1);
   const rafRef = useRef(0);
 
-  const HINT_BOTTOM = 40;
+  const DEFAULT_BOTTOM = 40;
   const GAP_ABOVE_BANNER = 80;
   const FADE_DISTANCE = 400;
 
   const update = useCallback(() => {
     const scrollY = window.scrollY;
     const vh = window.innerHeight;
-    const bannerTop = vh * heroVh;
-    const stopAt = bannerTop - GAP_ABOVE_BANNER;
-    const hintFixedY = scrollY + vh - HINT_BOTTOM;
+    const bannerPageY = vh * heroVh;
 
-    if (hintFixedY < stopAt) {
-      setStyle({
-        position: 'fixed',
-        bottom: HINT_BOTTOM,
-        opacity: 1,
-      });
-    } else {
-      const overshoot = hintFixedY - stopAt;
-      const fadeOpacity = Math.max(0, 1 - overshoot / FADE_DISTANCE);
-      setStyle({
-        position: 'absolute',
-        top: stopAt,
-        opacity: fadeOpacity,
-      });
-    }
+    // How far the banner top is from viewport top
+    const bannerViewportY = bannerPageY - scrollY;
+
+    // How high bottom must be to keep hint 80px above the banner
+    const neededBottom = vh - bannerViewportY + GAP_ABOVE_BANNER;
+    const b = Math.max(DEFAULT_BOTTOM, neededBottom);
+    setBottom(b);
+
+    // Fade based on how much hint was pushed up from default position
+    const pushAmount = Math.max(0, neededBottom - DEFAULT_BOTTOM);
+    setOpacity(Math.max(0, 1 - pushAmount / FADE_DISTANCE));
   }, [heroVh]);
 
   const onScroll = useCallback(() => {
@@ -63,14 +58,15 @@ export default function ScrollHint({text, heroVh = 1.5}: ScrollHintProps) {
     };
   }, [onScroll, update]);
 
-  if (!show) return null;
+  if (!show || opacity <= 0) return null;
 
   return (
     <div
-      className="left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3 pointer-events-none"
+      className="fixed left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3 pointer-events-none"
       style={{
-        ...style,
-        transition: 'opacity 0.15s ease-out',
+        bottom,
+        opacity,
+        transition: 'bottom 0.1s ease-out, opacity 0.15s ease-out',
       }}
     >
       <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">
