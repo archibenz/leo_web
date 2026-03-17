@@ -271,7 +271,7 @@
       "category": "Category",
       "color": "Colour",
       "size": "Size",
-      "price": "Price",
+      "season": "Season",
       "material": "Material"
     },
     "occasions": {
@@ -303,12 +303,15 @@
       "M": "M",
       "L": "L"
     },
-    "priceRanges": {
-      "under200": "Under €200",
-      "r200to500": "€200 – €500",
-      "r500to800": "€500 – €800",
-      "r800to1200": "€800 – €1 200",
-      "over1200": "Over €1 200"
+    "seasons": {
+      "spring2026": "Spring 2026",
+      "summer2026": "Summer 2026",
+      "autumn2025": "Autumn 2025",
+      "winter2025": "Winter 2025",
+      "spring2025": "Spring 2025",
+      "summer2025": "Summer 2025",
+      "autumn2024": "Autumn 2024",
+      "winter2024": "Winter 2024"
     },
     "materials": {
       "silk": "Silk",
