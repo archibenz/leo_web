@@ -51,7 +51,7 @@ export default function PhilosophyContent({
   }, []);
 
   const words = text.split(' ');
-  const totalWords = words.length;
+  const totalChars = words.reduce((sum, w) => sum + w.length, 0);
 
   // === Title: per-letter fade-in + rise, wave from center (0% → 18% scroll) ===
   const titleChars = Array.from(title);
@@ -146,34 +146,42 @@ export default function PhilosophyContent({
             {eyebrow}
           </p>
 
-          {/* Scroll-reveal text — per word with blur */}
+          {/* Scroll-reveal text — per letter with blur */}
           <p className="text-center font-accent italic text-[clamp(1.35rem,3.2vw,2.6rem)] font-light leading-[1.7] sm:leading-[1.75] flex flex-wrap justify-center gap-x-[0.3em] gap-y-0">
             {reducedMotion
               ? <span className="text-[#F2E6D8]">{text}</span>
-              : words.map((word, i) => {
-                  const wordStart = wordsStart + (i / totalWords) * (wordsEnd - wordsStart);
-                  const wordEnd = wordsStart + ((i + 1) / totalWords) * (wordsEnd - wordsStart);
-                  const raw = (progress - wordStart) / (wordEnd - wordStart);
-                  const t = Math.max(0, Math.min(1, raw));
+              : (() => {
+                  let charIndex = 0;
+                  return words.map((word, wi) => (
+                    <span key={wi} className="inline-block whitespace-nowrap">
+                      {Array.from(word).map((char) => {
+                        const ci = charIndex++;
+                        const charStart = wordsStart + (ci / totalChars) * (wordsEnd - wordsStart);
+                        const charEnd = wordsStart + ((ci + 1) / totalChars) * (wordsEnd - wordsStart);
+                        const raw = (progress - charStart) / (charEnd - charStart);
+                        const t = Math.max(0, Math.min(1, raw));
 
-                  const opacity = 0.12 + t * 0.88;
-                  const blur = (1 - t) * 8;
-                  const translateY = (1 - t) * 6;
+                        const opacity = 0.08 + t * 0.92;
+                        const blur = (1 - t) * 10;
+                        const translateY = (1 - t) * 8;
 
-                  return (
-                    <span
-                      key={i}
-                      className="inline-block text-[#F2E6D8] will-change-[filter,opacity,transform]"
-                      style={{
-                        opacity,
-                        filter: `blur(${blur}px)`,
-                        transform: `translateY(${translateY}px)`,
-                      }}
-                    >
-                      {word}
+                        return (
+                          <span
+                            key={ci}
+                            className="inline-block text-[#F2E6D8] will-change-[filter,opacity,transform]"
+                            style={{
+                              opacity,
+                              filter: `blur(${blur}px)`,
+                              transform: `translateY(${translateY}px)`,
+                            }}
+                          >
+                            {char}
+                          </span>
+                        );
+                      })}
                     </span>
-                  );
-                })}
+                  ));
+                })()}
           </p>
         </div>
       </div>

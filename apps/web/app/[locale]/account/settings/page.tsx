@@ -5,6 +5,7 @@ import {useTranslations, useLocale} from 'next-intl';
 import {useRouter} from 'next/navigation';
 import {useAuth} from '../../../../contexts';
 import HeroShaderBackgroundClient from '../../../../components/HeroShaderBackgroundClient';
+import Spinner from '../../../../components/ui/Spinner';
 import Link from 'next/link';
 
 type LinkStep = 'email' | 'code';
@@ -109,7 +110,7 @@ export default function SettingsPage() {
         <HeroShaderBackgroundClient />
         <div className="relative z-10 flex min-h-[60vh] items-center justify-center px-6 lg:px-8">
           <div className="paper-card p-10 text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+            <Spinner size="lg" />
             <p className="mt-4 text-ink-soft">{t('loading')}</p>
           </div>
         </div>

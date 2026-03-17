@@ -8,6 +8,7 @@ import {useCart} from '../contexts/CartContext';
 import {useFavorites} from '../contexts/FavoritesContext';
 import ProductGallery from './ProductGallery';
 import type {ProductImage} from './ProductGallery';
+import Spinner from './ui/Spinner';
 import SizeSelector from './SizeSelector';
 import type {SizeOption} from './SizeSelector';
 import ProductAccordion from './ProductAccordion';
@@ -115,7 +116,7 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
     return (
       <div className="mx-auto max-w-7xl px-4 pt-28 pb-16 sm:px-6 lg:px-8">
         <div className="flex min-h-[40vh] items-center justify-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+          <Spinner size="lg" />
         </div>
       </div>
     );

@@ -3,6 +3,7 @@
 import {useEffect} from 'react';
 import {useRouter, usePathname} from 'next/navigation';
 import {useAuth} from '../../contexts/AuthContext';
+import Spinner from '../ui/Spinner';
 import {useTranslations} from 'next-intl';
 
 export default function AdminGuard({children}: {children: React.ReactNode}) {
@@ -21,7 +22,7 @@ export default function AdminGuard({children}: {children: React.ReactNode}) {
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+        <Spinner size="md" />
       </div>
     );
   }

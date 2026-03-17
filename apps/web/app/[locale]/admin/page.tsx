@@ -3,6 +3,7 @@
 import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
 import AdminLayout from '../../../components/admin/AdminLayout';
+import Spinner from '../../../components/ui/Spinner';
 import {apiFetch} from '../../../lib/api';
 
 type Dashboard = {
@@ -58,7 +59,7 @@ export default function AdminDashboardPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+            <Spinner size="md" />
           </div>
         ) : (
           <>

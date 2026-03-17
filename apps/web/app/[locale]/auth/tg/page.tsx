@@ -5,6 +5,7 @@ import {useSearchParams, useRouter} from 'next/navigation';
 import {useLocale} from 'next-intl';
 import {apiFetch} from '../../../../lib/api';
 import {useAuth} from '../../../../contexts';
+import Spinner from '../../../../components/ui/Spinner';
 
 type ExchangeResponse = {
   token: string;
@@ -60,7 +61,7 @@ function TelegramAuthContent() {
   return (
     <div className="relative min-h-screen pt-28 pb-6 flex items-center justify-center px-6">
       <div className="paper-card p-10 text-center">
-        <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+        <Spinner size="lg" />
         <p className="mt-4 text-ink-soft">Выполняем вход...</p>
       </div>
     </div>
@@ -73,7 +74,7 @@ export default function TelegramAuthPage() {
       fallback={
         <div className="relative min-h-screen pt-28 pb-6 flex items-center justify-center px-6">
           <div className="paper-card p-10 text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+            <Spinner size="lg" />
           </div>
         </div>
       }

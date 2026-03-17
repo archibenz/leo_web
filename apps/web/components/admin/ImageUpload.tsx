@@ -3,6 +3,7 @@
 import {useState, useRef, useCallback} from 'react';
 import {useTranslations} from 'next-intl';
 import {apiFetch, getToken} from '../../lib/api';
+import Spinner from '../ui/Spinner';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8080';
 
@@ -101,7 +102,7 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
       >
         {uploading ? (
           <div className="flex items-center gap-2 text-sm text-[var(--ink-soft)]">
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+            <Spinner size="sm" />
             {t('uploading')}
           </div>
         ) : (
