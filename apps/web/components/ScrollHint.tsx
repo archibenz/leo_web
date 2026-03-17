@@ -1,76 +1,73 @@
 'use client';
 
-import {useEffect, useState, useCallback, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 interface ScrollHintProps {
   text: string;
-  /** Hero section height as vh multiplier (e.g. 1.5 for 150vh) */
   heroVh?: number;
 }
 
 export default function ScrollHint({text, heroVh = 1.5}: ScrollHintProps) {
-  const [show, setShow] = useState(false);
-  const [bottom, setBottom] = useState(40);
-  const [opacity, setOpacity] = useState(1);
-  const rafRef = useRef(0);
-
-  const DEFAULT_BOTTOM = 40;
-  const GAP_ABOVE_BANNER = 80;
-  const FADE_DISTANCE = 400;
-
-  const update = useCallback(() => {
-    const scrollY = document.body.scrollTop || window.scrollY || document.documentElement.scrollTop || 0;
-    const vh = window.innerHeight;
-    const bannerPageY = vh * heroVh;
-
-    // How far the banner top is from viewport top
-    const bannerViewportY = bannerPageY - scrollY;
-
-    // How high bottom must be to keep hint 80px above the banner
-    const neededBottom = vh - bannerViewportY + GAP_ABOVE_BANNER;
-    const b = Math.max(DEFAULT_BOTTOM, neededBottom);
-    setBottom(b);
-
-    // Fade based on how much hint was pushed up from default position
-    const pushAmount = Math.max(0, neededBottom - DEFAULT_BOTTOM);
-    setOpacity(Math.max(0, 1 - pushAmount / FADE_DISTANCE));
-  }, [heroVh]);
-
-  const onScroll = useCallback(() => {
-    cancelAnimationFrame(rafRef.current);
-    rafRef.current = requestAnimationFrame(update);
-  }, [update]);
+  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const DEFAULT_BOTTOM = 40;
+    const GAP = 80;
+    const FADE = 400;
+
+    // Hide initially, show after logo animation
+    el.style.opacity = '0';
+    el.style.bottom = `${DEFAULT_BOTTOM}px`;
+
+    const update = () => {
+      const scrollY = document.body.scrollTop || window.scrollY || 0;
+      const vh = window.innerHeight;
+      const bannerY = vh * heroVh;
+      const needed = vh - (bannerY - scrollY) + GAP;
+      const b = Math.max(DEFAULT_BOTTOM, needed);
+      const push = Math.max(0, needed - DEFAULT_BOTTOM);
+      const o = Math.max(0, 1 - push / FADE);
+
+      el.style.bottom = `${b}px`;
+      el.style.opacity = String(o);
+    };
+
     const timer = setTimeout(() => {
-      setShow(true);
-      update();
+      el.style.opacity = '1';
+      el.style.transition = 'opacity 0.8s ease-out';
+      // After fade-in, remove transition so scroll updates are instant
+      setTimeout(() => {
+        el.style.transition = '';
+        update();
+      }, 900);
     }, 2500);
 
-    // body is the scroll container in this layout (overflow: auto on body)
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(update);
+    };
+
     document.body.addEventListener('scroll', onScroll, {passive: true});
     window.addEventListener('scroll', onScroll, {passive: true});
     window.addEventListener('resize', onScroll, {passive: true});
 
     return () => {
       clearTimeout(timer);
-      cancelAnimationFrame(rafRef.current);
+      cancelAnimationFrame(raf);
       document.body.removeEventListener('scroll', onScroll);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
     };
-  }, [onScroll, update]);
-
-  if (!show || opacity <= 0) return null;
+  }, [heroVh]);
 
   return (
     <div
+      ref={ref}
       className="fixed left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3 pointer-events-none"
-      style={{
-        bottom,
-        opacity,
-        transition: 'bottom 0.1s ease-out, opacity 0.15s ease-out',
-      }}
     >
       <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">
         {text}
