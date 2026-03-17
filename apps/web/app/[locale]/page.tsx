@@ -45,6 +45,7 @@ export default async function HomePage({params}: Props) {
           {/* Screen 2: Editorial Philosophy — scroll-driven title split */}
           <PhilosophyContent
             locale={locale}
+            title={t('philosophy.title')}
             eyebrow={t('philosophy.eyebrow')}
             text={t('philosophy.text')}
           />
