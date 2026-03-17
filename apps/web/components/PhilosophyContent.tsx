@@ -46,8 +46,11 @@ export default function PhilosophyContent({
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ['start end', 'end start'],
+    offset: ['start start', 'end end'],
   });
+
+  // Remap scroll progress so words finish revealing at ~85% scroll
+  const clampedProgress = useTransform(scrollYProgress, [0, 0.85], [0, 1]);
 
   const words = text.split(' ');
 
@@ -81,7 +84,7 @@ export default function PhilosophyContent({
                   return (
                     <Word
                       key={i}
-                      progress={scrollYProgress}
+                      progress={clampedProgress}
                       range={[start, end]}
                     >
                       {word}
