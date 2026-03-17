@@ -46,8 +46,7 @@ export default async function HomePage({params}: Props) {
           <PhilosophyContent
             locale={locale}
             eyebrow={t('philosophy.eyebrow')}
-            title={t('philosophy.title')}
-            statements={t.raw('philosophy.statements') as string[]}
+            text={t('philosophy.text')}
           />
 
           {/* Transition fade: transparent → semi-transparent overlay */}
