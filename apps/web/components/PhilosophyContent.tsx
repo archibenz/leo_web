@@ -53,25 +53,26 @@ export default function PhilosophyContent({
   const words = text.split(' ');
   const totalWords = words.length;
 
-  // === Title: golden shimmer sweep (0% → 20% scroll) ===
-  // A golden light sweeps left-to-right across the text
-  const titleProgress = Math.min(1, progress / 0.20);
-  // Background position: starts at 200% (shimmer off-screen right), sweeps to -100% (off-screen left)
-  // Then text stays revealed in gold
-  const shimmerPos = reducedMotion ? -100 : 200 - titleProgress * 300;
-  // Title opacity: fades in during first 8%
-  const titleFadeIn = Math.min(1, progress / 0.08);
-  const titleOpacity = reducedMotion ? 1 : titleFadeIn;
+  // === Title: curtain mask reveal (0% → 18% scroll) ===
+  // A horizontal line sweeps left-to-right, revealing text behind it
+  const titleProgress = Math.min(1, progress / 0.18);
+  // clip-path: the revealed portion grows from left (0%) to full width (100%)
+  const revealPercent = reducedMotion ? 100 : titleProgress * 100;
+  // Title opacity fades in quickly in first 5%
+  const titleOpacity = reducedMotion ? 1 : Math.min(1, progress / 0.05);
 
-  // Decorative line: grows (8% - 22%)
-  const lineProgress = Math.max(0, Math.min(1, (progress - 0.08) / 0.14));
+  // The "curtain line" position — a thin bright line at the reveal edge
+  const lineX = reducedMotion ? 110 : titleProgress * 110; // goes past 100 to exit
 
-  // Eyebrow: fades in (12% - 24%)
-  const eyebrowProgress = Math.max(0, Math.min(1, (progress - 0.12) / 0.12));
+  // Decorative divider: grows (10% - 22%)
+  const dividerProgress = Math.max(0, Math.min(1, (progress - 0.10) / 0.12));
+
+  // Eyebrow: fades in (14% - 24%)
+  const eyebrowProgress = Math.max(0, Math.min(1, (progress - 0.14) / 0.10));
   const eyebrowOpacity = reducedMotion ? 0.5 : eyebrowProgress * 0.5;
 
-  // Words start revealing at 25% scroll, finish at 90%
-  const wordsStart = 0.25;
+  // Words start revealing at 26% scroll, finish at 90%
+  const wordsStart = 0.26;
   const wordsEnd = 0.90;
 
   return (
@@ -89,47 +90,65 @@ export default function PhilosophyContent({
         />
 
         <div className="relative mx-auto max-w-4xl px-6 sm:px-10 lg:px-12">
-          {/* Big title — golden shimmer sweep */}
-          <h2
-            className="mb-6 text-center font-display uppercase will-change-[opacity]"
-            style={{
-              fontSize: 'clamp(2.2rem, 5.5vw, 4.5rem)',
-              lineHeight: 1.15,
-              letterSpacing: '0.06em',
-              opacity: titleOpacity,
-              // Golden shimmer gradient sweeping across text
-              background: `linear-gradient(
-                90deg,
-                rgba(242, 230, 216, 0.25) 0%,
-                rgba(212, 165, 116, 0.9) ${shimmerPos - 15}%,
-                rgba(255, 245, 230, 1) ${shimmerPos}%,
-                rgba(212, 165, 116, 0.9) ${shimmerPos + 15}%,
-                rgba(242, 230, 216, ${0.25 + titleProgress * 0.75}) 100%
-              )`,
-              WebkitBackgroundClip: 'text',
-              backgroundClip: 'text',
-              color: 'transparent',
-            }}
-          >
-            {title}
-          </h2>
+          {/* Big title — curtain mask reveal */}
+          <div className="relative mb-6">
+            {/* Revealed text — clipped from left to right */}
+            <h2
+              className="text-center font-display uppercase text-[#F2E6D8]"
+              style={{
+                fontSize: 'clamp(2.2rem, 5.5vw, 4.5rem)',
+                lineHeight: 1.15,
+                letterSpacing: '0.06em',
+                opacity: titleOpacity,
+                clipPath: `inset(0 ${100 - revealPercent}% 0 0)`,
+              }}
+            >
+              {title}
+            </h2>
 
-          {/* Thin decorative line — grows from center */}
+            {/* Ghost text underneath — dimmed, always visible */}
+            <h2
+              className="absolute inset-0 text-center font-display uppercase text-[#F2E6D8]/[0.08]"
+              style={{
+                fontSize: 'clamp(2.2rem, 5.5vw, 4.5rem)',
+                lineHeight: 1.15,
+                letterSpacing: '0.06em',
+              }}
+              aria-hidden="true"
+            >
+              {title}
+            </h2>
+
+            {/* Curtain line — the bright vertical sweep */}
+            {!reducedMotion && titleProgress > 0 && titleProgress < 1 && (
+              <div
+                className="pointer-events-none absolute top-0 h-full"
+                style={{
+                  left: `${lineX}%`,
+                  width: '2px',
+                  background: 'linear-gradient(180deg, transparent 5%, rgba(212,165,116,0.7) 30%, rgba(255,245,230,0.9) 50%, rgba(212,165,116,0.7) 70%, transparent 95%)',
+                  boxShadow: '0 0 12px 3px rgba(212,165,116,0.3), 0 0 30px 6px rgba(212,165,116,0.1)',
+                  transform: 'translateX(-50%)',
+                }}
+              />
+            )}
+          </div>
+
+          {/* Thin decorative divider — grows from center */}
           <div className="flex justify-center mb-6 sm:mb-8">
             <div
-              className="will-change-[width,opacity]"
               style={{
-                width: `${lineProgress * 120}px`,
+                width: `${dividerProgress * 120}px`,
                 height: '1px',
                 background: 'linear-gradient(90deg, transparent, rgba(212,165,116,0.5), transparent)',
-                opacity: lineProgress,
+                opacity: dividerProgress,
               }}
             />
           </div>
 
           {/* Eyebrow */}
           <p
-            className="mb-8 text-center font-accent text-[13px] font-medium uppercase tracking-[0.25em] sm:mb-10 sm:text-[14px] will-change-[opacity]"
+            className="mb-8 text-center font-accent text-[13px] font-medium uppercase tracking-[0.25em] sm:mb-10 sm:text-[14px]"
             style={{
               color: `rgba(212, 165, 116, ${eyebrowOpacity})`,
             }}
