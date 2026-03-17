@@ -53,17 +53,21 @@ export default function PhilosophyContent({
   const words = text.split(' ');
   const totalWords = words.length;
 
-  // === Title: vertical cut reveal (0% - 18% scroll) ===
-  // Letters slide up from behind a clip mask, staggered from center
-  const titleChars = Array.from(title);
-  const titleCenter = titleChars.length / 2;
-  const titleProgress = Math.min(1, progress / 0.18);
+  // === Title: golden shimmer sweep (0% → 20% scroll) ===
+  // A golden light sweeps left-to-right across the text
+  const titleProgress = Math.min(1, progress / 0.20);
+  // Background position: starts at 200% (shimmer off-screen right), sweeps to -100% (off-screen left)
+  // Then text stays revealed in gold
+  const shimmerPos = reducedMotion ? -100 : 200 - titleProgress * 300;
+  // Title opacity: fades in during first 8%
+  const titleFadeIn = Math.min(1, progress / 0.08);
+  const titleOpacity = reducedMotion ? 1 : titleFadeIn;
 
-  // Decorative line: grows with title (5% - 20%)
-  const lineProgress = Math.max(0, Math.min(1, (progress - 0.05) / 0.15));
+  // Decorative line: grows (8% - 22%)
+  const lineProgress = Math.max(0, Math.min(1, (progress - 0.08) / 0.14));
 
-  // Eyebrow: fades in (10% - 22%)
-  const eyebrowProgress = Math.max(0, Math.min(1, (progress - 0.10) / 0.12));
+  // Eyebrow: fades in (12% - 24%)
+  const eyebrowProgress = Math.max(0, Math.min(1, (progress - 0.12) / 0.12));
   const eyebrowOpacity = reducedMotion ? 0.5 : eyebrowProgress * 0.5;
 
   // Words start revealing at 25% scroll, finish at 90%
@@ -85,51 +89,29 @@ export default function PhilosophyContent({
         />
 
         <div className="relative mx-auto max-w-4xl px-6 sm:px-10 lg:px-12">
-          {/* Big title — vertical cut reveal per letter */}
+          {/* Big title — golden shimmer sweep */}
           <h2
-            className="mb-6 text-center font-display uppercase"
+            className="mb-6 text-center font-display uppercase will-change-[opacity]"
             style={{
               fontSize: 'clamp(2.2rem, 5.5vw, 4.5rem)',
               lineHeight: 1.15,
               letterSpacing: '0.06em',
+              opacity: titleOpacity,
+              // Golden shimmer gradient sweeping across text
+              background: `linear-gradient(
+                90deg,
+                rgba(242, 230, 216, 0.25) 0%,
+                rgba(212, 165, 116, 0.9) ${shimmerPos - 15}%,
+                rgba(255, 245, 230, 1) ${shimmerPos}%,
+                rgba(212, 165, 116, 0.9) ${shimmerPos + 15}%,
+                rgba(242, 230, 216, ${0.25 + titleProgress * 0.75}) 100%
+              )`,
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              color: 'transparent',
             }}
           >
-            {reducedMotion
-              ? <span className="text-[#F2E6D8]">{title}</span>
-              : titleChars.map((char, i) => {
-                  // Stagger from center: chars near center appear first
-                  const distFromCenter = Math.abs(i - titleCenter) / titleCenter;
-                  // Each char needs titleProgress to pass its threshold
-                  const charThreshold = distFromCenter * 0.7;
-                  const charT = Math.max(0, Math.min(1, (titleProgress - charThreshold) / (1 - charThreshold)));
-
-                  // Cubic ease-out for smooth deceleration
-                  const eased = 1 - Math.pow(1 - charT, 3);
-
-                  // translateY: 110% -> 0% (slides up from below clip mask)
-                  const yPercent = (1 - eased) * 110;
-
-                  if (char === ' ') {
-                    return <span key={i}>&nbsp;</span>;
-                  }
-
-                  return (
-                    <span
-                      key={i}
-                      className="inline-block overflow-hidden"
-                      style={{ lineHeight: 'inherit' }}
-                    >
-                      <span
-                        className="inline-block text-[#F2E6D8] will-change-transform"
-                        style={{
-                          transform: `translateY(${yPercent}%)`,
-                        }}
-                      >
-                        {char}
-                      </span>
-                    </span>
-                  );
-                })}
+            {title}
           </h2>
 
           {/* Thin decorative line — grows from center */}
