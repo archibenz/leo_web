@@ -86,7 +86,7 @@ export default function PhilosophyContent({
         <div className="relative mx-auto max-w-4xl px-6 sm:px-10 lg:px-12">
           {/* Big title — per-letter fade + rise from center */}
           <h2
-            className="mb-6 text-center font-display uppercase"
+            className="mb-6 text-center font-display uppercase whitespace-nowrap"
             style={{
               fontSize: 'clamp(2.2rem, 5.5vw, 4.5rem)',
               lineHeight: 1.15,
