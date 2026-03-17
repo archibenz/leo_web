@@ -1,7 +1,6 @@
 'use client';
 
-import { FC, ReactNode, useRef, useEffect, useState } from 'react';
-import { motion, MotionValue, useScroll, useTransform } from 'framer-motion';
+import { useRef, useEffect, useState } from 'react';
 
 interface PhilosophyContentProps {
   locale: string;
@@ -9,50 +8,48 @@ interface PhilosophyContentProps {
   text: string;
 }
 
-interface WordProps {
-  children: ReactNode;
-  progress: MotionValue<number>;
-  range: [number, number];
-}
-
-const Word: FC<WordProps> = ({ children, progress, range }) => {
-  const opacity = useTransform(progress, range, [0.12, 1]);
-  const blurValue = useTransform(progress, range, [8, 0]);
-  const y = useTransform(progress, range, [6, 0]);
-  const filter = useTransform(blurValue, (v) => `blur(${v}px)`);
-
-  return (
-    <motion.span
-      style={{ opacity, filter, y }}
-      className="inline-block text-[#F2E6D8]"
-    >
-      {children}
-    </motion.span>
-  );
-};
-
 export default function PhilosophyContent({
   eyebrow,
   text,
 }: PhilosophyContentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
-    setReducedMotion(
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    );
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setReducedMotion(prefersReduced);
+    if (prefersReduced) {
+      setProgress(1);
+      return;
+    }
+
+    let running = true;
+
+    const tick = () => {
+      if (!running || !containerRef.current) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const containerHeight = rect.height;
+      const viewportHeight = window.innerHeight;
+
+      const scrolled = -rect.top;
+      const scrollRange = containerHeight - viewportHeight;
+
+      if (scrollRange > 0) {
+        const raw = scrolled / scrollRange;
+        setProgress(Math.max(0, Math.min(1, raw)));
+      }
+
+      requestAnimationFrame(tick);
+    };
+
+    requestAnimationFrame(tick);
+    return () => { running = false; };
   }, []);
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end end'],
-  });
-
-  // Remap scroll progress so words finish revealing at ~85% scroll
-  const clampedProgress = useTransform(scrollYProgress, [0, 0.85], [0, 1]);
-
   const words = text.split(' ');
+  const totalWords = words.length;
 
   return (
     <div ref={containerRef} className="relative" style={{ height: '200vh' }}>
@@ -74,21 +71,35 @@ export default function PhilosophyContent({
             {eyebrow}
           </p>
 
-          {/* Scroll-reveal text — per word */}
+          {/* Scroll-reveal text — per word with blur */}
           <p className="text-center font-accent italic text-[clamp(1.35rem,3.2vw,2.6rem)] font-light leading-[1.7] sm:leading-[1.75] flex flex-wrap justify-center gap-x-[0.3em] gap-y-0">
             {reducedMotion
               ? <span className="text-[#F2E6D8]">{text}</span>
               : words.map((word, i) => {
-                  const start = i / words.length;
-                  const end = (i + 1) / words.length;
+                  // Each word reveals over a portion of total scroll
+                  const wordStart = i / totalWords;
+                  const wordEnd = (i + 1) / totalWords;
+                  // Compress to 85% so last words finish before end of scroll
+                  const mappedProgress = progress / 0.85;
+                  const raw = (mappedProgress - wordStart) / (wordEnd - wordStart);
+                  const t = Math.max(0, Math.min(1, raw));
+
+                  const opacity = 0.12 + t * 0.88;
+                  const blur = (1 - t) * 8;
+                  const translateY = (1 - t) * 6;
+
                   return (
-                    <Word
+                    <span
                       key={i}
-                      progress={clampedProgress}
-                      range={[start, end]}
+                      className="inline-block text-[#F2E6D8] will-change-[filter,opacity,transform]"
+                      style={{
+                        opacity,
+                        filter: `blur(${blur}px)`,
+                        transform: `translateY(${translateY}px)`,
+                      }}
                     >
                       {word}
-                    </Word>
+                    </span>
                   );
                 })}
           </p>
