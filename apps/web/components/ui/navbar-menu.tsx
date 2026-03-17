@@ -122,11 +122,11 @@ export const CategoryCard = ({
       {/* Hover accent line */}
       <div className="absolute left-0 top-1/2 -translate-y-1/2 h-0 w-[2px] rounded-full bg-[#D4A574]/40 transition-all duration-300 group-hover:h-[60%]" />
 
-      <span className="font-display text-[15px] font-semibold tracking-[0.02em] text-ink/80 transition-colors duration-200 group-hover:text-[#D4A574]">
+      <span className="font-display text-[16px] font-semibold tracking-[0.02em] text-ink/80 transition-colors duration-200 group-hover:text-[#D4A574]">
         {label}
       </span>
       {description && (
-        <span className="font-accent text-[13px] text-ink/35 leading-snug transition-colors duration-200 group-hover:text-ink/50">
+        <span className="font-accent text-[14px] text-ink/35 leading-snug transition-colors duration-200 group-hover:text-ink/50">
           {description}
         </span>
       )}
@@ -165,11 +165,11 @@ export const CollectionCard = ({
           <div className="absolute inset-0 rounded-xl border border-transparent transition-all duration-500 group-hover:border-[#D4A574]/20 group-hover:shadow-[inset_0_0_20px_rgba(212,165,116,0.06)]" />
 
           <div className="absolute bottom-0 left-0 right-0 p-4">
-            <p className="font-display text-[15px] font-semibold uppercase tracking-[0.08em] text-ink/90 transition-colors duration-300 group-hover:text-[#D4A574]">
+            <p className="font-display text-[16px] font-semibold uppercase tracking-[0.08em] text-ink/90 transition-colors duration-300 group-hover:text-[#D4A574]">
               {title}
             </p>
             {subtitle && (
-              <p className="mt-0.5 text-[12px] uppercase tracking-[0.08em] text-ink/40">{subtitle}</p>
+              <p className="mt-0.5 text-[14px] uppercase tracking-[0.08em] text-ink/40">{subtitle}</p>
             )}
           </div>
         </div>
@@ -179,7 +179,7 @@ export const CollectionCard = ({
           <Link
             key={item.label}
             href={item.href}
-            className="group/item flex items-center gap-2 py-1 text-[13px] font-display text-ink/40 transition-colors duration-200 hover:text-[#D4A574]"
+            className="group/item flex items-center gap-2 py-1 text-[14px] font-display text-ink/40 transition-colors duration-200 hover:text-[#D4A574]"
           >
             <span className="inline-block h-px w-0 bg-[#D4A574]/50 transition-all duration-300 group-hover/item:w-3" />
             {item.label}
