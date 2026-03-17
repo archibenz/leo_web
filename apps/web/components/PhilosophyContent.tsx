@@ -16,23 +16,18 @@ interface WordProps {
 }
 
 const Word: FC<WordProps> = ({ children, progress, range }) => {
-  const opacity = useTransform(progress, range, [0, 1]);
+  const opacity = useTransform(progress, range, [0.12, 1]);
   const blurValue = useTransform(progress, range, [8, 0]);
   const y = useTransform(progress, range, [6, 0]);
   const filter = useTransform(blurValue, (v) => `blur(${v}px)`);
 
   return (
-    <span className="relative inline-block">
-      {/* Ghost layer — always visible, gives preview of full text */}
-      <span className="text-[#F2E6D8]/[0.12]">{children}</span>
-      {/* Animated layer — reveals on scroll */}
-      <motion.span
-        style={{ opacity, filter, y }}
-        className="absolute inset-0 text-[#F2E6D8]"
-      >
-        {children}
-      </motion.span>
-    </span>
+    <motion.span
+      style={{ opacity, filter, y }}
+      className="inline-block text-[#F2E6D8]"
+    >
+      {children}
+    </motion.span>
   );
 };
 
@@ -51,7 +46,7 @@ export default function PhilosophyContent({
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ['start start', 'end start'],
+    offset: ['start end', 'end start'],
   });
 
   const words = text.split(' ');
