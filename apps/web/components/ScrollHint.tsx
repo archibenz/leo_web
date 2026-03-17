@@ -9,18 +9,24 @@ interface ScrollHintProps {
 
 export default function ScrollHint({text, heroVh = 1.5}: ScrollHintProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    const textEl = textRef.current;
+    if (!el || !textEl) return;
 
     const DEFAULT_BOTTOM = 40;
     const GAP = 80;
     const FADE = 400;
+    const TEXT_SHOW_SCROLL = 50; // px of scroll before text appears
 
-    // Hide initially, show after logo animation
+    // Initially: container hidden, text hidden separately
     el.style.opacity = '0';
     el.style.bottom = `${DEFAULT_BOTTOM}px`;
+    textEl.style.opacity = '0';
+    textEl.style.transform = 'translateY(8px)';
+    textEl.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
 
     const update = () => {
       const scrollY = document.body.scrollTop || window.scrollY || 0;
@@ -33,12 +39,20 @@ export default function ScrollHint({text, heroVh = 1.5}: ScrollHintProps) {
 
       el.style.bottom = `${b}px`;
       el.style.opacity = String(o);
+
+      // Show text after scrolling a bit
+      if (scrollY > TEXT_SHOW_SCROLL) {
+        textEl.style.opacity = '1';
+        textEl.style.transform = 'translateY(0)';
+      } else {
+        textEl.style.opacity = '0';
+        textEl.style.transform = 'translateY(8px)';
+      }
     };
 
     const timer = setTimeout(() => {
       el.style.opacity = '1';
       el.style.transition = 'opacity 0.8s ease-out';
-      // After fade-in, remove transition so scroll updates are instant
       setTimeout(() => {
         el.style.transition = '';
         update();
@@ -69,7 +83,10 @@ export default function ScrollHint({text, heroVh = 1.5}: ScrollHintProps) {
       ref={ref}
       className="fixed left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3 pointer-events-none"
     >
-      <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">
+      <span
+        ref={textRef}
+        className="text-[10px] uppercase tracking-[0.3em] text-white/40"
+      >
         {text}
       </span>
       <svg
