@@ -1,6 +1,7 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { FC, ReactNode, useRef, useEffect, useState } from 'react';
+import { motion, MotionValue, useScroll, useTransform } from 'framer-motion';
 
 interface PhilosophyContentProps {
   locale: string;
@@ -8,56 +9,52 @@ interface PhilosophyContentProps {
   text: string;
 }
 
+interface WordProps {
+  children: ReactNode;
+  progress: MotionValue<number>;
+  range: [number, number];
+}
+
+const Word: FC<WordProps> = ({ children, progress, range }) => {
+  const opacity = useTransform(progress, range, [0, 1]);
+  const blurValue = useTransform(progress, range, [8, 0]);
+  const y = useTransform(progress, range, [6, 0]);
+  const filter = useTransform(blurValue, (v) => `blur(${v}px)`);
+
+  return (
+    <span className="relative inline-block">
+      {/* Ghost layer — always visible, gives preview of full text */}
+      <span className="text-[#F2E6D8]/[0.12]">{children}</span>
+      {/* Animated layer — reveals on scroll */}
+      <motion.span
+        style={{ opacity, filter, y }}
+        className="absolute inset-0 text-[#F2E6D8]"
+      >
+        {children}
+      </motion.span>
+    </span>
+  );
+};
+
 export default function PhilosophyContent({
   eyebrow,
   text,
 }: PhilosophyContentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [progress, setProgress] = useState(0);
-  const [isClient, setIsClient] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
-    setIsClient(true);
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    setReducedMotion(prefersReduced);
-    if (prefersReduced) {
-      setProgress(1);
-      return;
-    }
-
-    let running = true;
-
-    const tick = () => {
-      if (!running || !containerRef.current) return;
-
-      const rect = containerRef.current.getBoundingClientRect();
-      const containerHeight = rect.height;
-      const viewportHeight = window.innerHeight;
-
-      // How far the container has scrolled past the viewport top
-      // rect.top starts positive (below viewport), goes negative (above viewport)
-      const scrolled = -rect.top;
-      const scrollRange = containerHeight - viewportHeight;
-
-      if (scrollRange > 0) {
-        const raw = scrolled / scrollRange;
-        setProgress(Math.max(0, Math.min(1, raw)));
-      }
-
-      requestAnimationFrame(tick);
-    };
-
-    requestAnimationFrame(tick);
-    return () => { running = false; };
+    setReducedMotion(
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
   }, []);
 
-  // Split text into characters, preserving word boundaries as spaces
-  const chars: { char: string; isSpace: boolean }[] = [];
-  for (const ch of text) {
-    chars.push({ char: ch, isSpace: ch === ' ' });
-  }
-  const totalChars = chars.filter(c => !c.isSpace).length;
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start start', 'end start'],
+  });
+
+  const words = text.split(' ');
 
   return (
     <div ref={containerRef} className="relative" style={{ height: '200vh' }}>
@@ -79,37 +76,23 @@ export default function PhilosophyContent({
             {eyebrow}
           </p>
 
-          {/* Scroll-reveal text — per character */}
-          <p className="text-center font-accent italic text-[clamp(1.35rem,3.2vw,2.6rem)] font-light leading-[1.7] sm:leading-[1.75]">
-            {!isClient || reducedMotion
-              ? (
-                  <span className="text-[#F2E6D8]">{text}</span>
-                )
-              : (() => {
-                  let charIndex = 0;
-                  return chars.map((c, i) => {
-                    if (c.isSpace) {
-                      return <span key={`sp-${i}`}>{' '}</span>;
-                    }
-                    const idx = charIndex++;
-                    const charProgress = idx / totalChars;
-                    const charEnd = (idx + 1) / totalChars;
-                    const raw = (progress - charProgress) / (charEnd - charProgress);
-                    const opacity = Math.max(0, Math.min(1, raw));
-                    const finalOpacity = 0.15 + opacity * 0.85;
-
-                    return (
-                      <span
-                        key={`ch-${i}`}
-                        style={{
-                          color: `rgba(242, 230, 216, ${finalOpacity})`,
-                        }}
-                      >
-                        {c.char}
-                      </span>
-                    );
-                  });
-                })()}
+          {/* Scroll-reveal text — per word */}
+          <p className="text-center font-accent italic text-[clamp(1.35rem,3.2vw,2.6rem)] font-light leading-[1.7] sm:leading-[1.75] flex flex-wrap justify-center gap-x-[0.3em] gap-y-0">
+            {reducedMotion
+              ? <span className="text-[#F2E6D8]">{text}</span>
+              : words.map((word, i) => {
+                  const start = i / words.length;
+                  const end = (i + 1) / words.length;
+                  return (
+                    <Word
+                      key={i}
+                      progress={scrollYProgress}
+                      range={[start, end]}
+                    >
+                      {word}
+                    </Word>
+                  );
+                })}
           </p>
         </div>
       </div>
