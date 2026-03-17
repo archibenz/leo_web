@@ -1,7 +1,7 @@
 import {getTranslations} from 'next-intl/server';
 import HeroShaderBackgroundClient from '../../components/HeroShaderBackgroundClient';
 import BlurReveal from '../../components/BlurReveal';
-import PhilosophyContent from '../../components/PhilosophyContent';
+
 import CollectionShowcase from '../../components/CollectionShowcase';
 import HomeSections from '../../components/HomeSections';
 import type {Locale} from '../../i18n';
@@ -29,7 +29,7 @@ export default async function HomePage({params}: Props) {
       {/* SCROLLABLE CONTENT */}
       <div className="relative z-10">
         {/* HERO SECTION — transparent, shader visible behind */}
-        <section className="relative" style={{minHeight: '200vh'}}>
+        <section className="relative" style={{minHeight: '100vh'}}>
           {/* Screen 1: Centered brand */}
           <div className="flex min-h-screen flex-col items-center justify-center px-6 py-32 text-center lg:py-40">
             <BlurReveal delay={200} duration={1200} blur={16} translateY={0}>
@@ -41,14 +41,6 @@ export default async function HomePage({params}: Props) {
               />
             </BlurReveal>
           </div>
-
-          {/* Screen 2: Editorial Philosophy — scroll-driven title split */}
-          <PhilosophyContent
-            locale={locale}
-            title={t('philosophy.title')}
-            eyebrow={t('philosophy.eyebrow')}
-            text={t('philosophy.text')}
-          />
 
           {/* Transition fade: transparent → semi-transparent overlay */}
           <div
