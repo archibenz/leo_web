@@ -249,7 +249,7 @@ export default function HomeSections({
           </BlurReveal>
           <ScrollRow>
             {categories.map((cat, i) => (
-              <BlurReveal key={cat.key} delay={i * 70} duration={800} blur={10} translateY={16}>
+              <BlurReveal key={cat.key} mode="scroll" blur={10} translateY={16}>
                 <Link
                   href={`/${locale}/shop?category=${cat.key}`}
                   className="group flex-shrink-0 w-52 sm:w-64 lg:w-72 hover:z-20 relative"
@@ -289,7 +289,7 @@ export default function HomeSections({
           </BlurReveal>
           <ScrollRow>
             {popularItems.slice(0, 4).map((item, i) => (
-              <BlurReveal key={item.slug} delay={i * 70} duration={800} blur={10} translateY={16}>
+              <BlurReveal key={item.slug} mode="scroll" blur={10} translateY={16}>
                 <Link
                   href={`/${locale}/product/${item.slug}`}
                   className="group flex-shrink-0 w-52 sm:w-64 lg:w-72 hover:z-20 relative"
