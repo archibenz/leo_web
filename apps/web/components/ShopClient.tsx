@@ -27,14 +27,14 @@ interface ShopItem {
   collectionName: string | null;
 }
 
-type FilterKey = 'occasion' | 'category' | 'color' | 'size' | 'price' | 'material';
+type FilterKey = 'occasion' | 'category' | 'color' | 'size' | 'season' | 'material';
 
 interface Filters {
   occasion: string[];
   category: string[];
   color: string[];
   size: string[];
-  price: string[];
+  season: string[];
   material: string[];
 }
 
@@ -46,25 +46,10 @@ const OCCASION_OPTIONS  = ['evening', 'office', 'casual', 'resort', 'ceremony'] 
 const CATEGORY_OPTIONS  = ['dresses', 'outerwear', 'tailoring', 'knitwear', 'blouses', 'skirts', 'trousers'] as const;
 const COLOR_OPTIONS     = ['neutrals', 'black', 'ivory', 'chocolate', 'burgundy'] as const;
 const SIZE_OPTIONS      = ['XS', 'S', 'M', 'L'] as const;
-const PRICE_OPTIONS     = ['under200', 'r200to500', 'r500to800', 'r800to1200', 'over1200'] as const;
+const SEASON_OPTIONS    = ['spring2026', 'summer2026', 'autumn2025', 'winter2025', 'spring2025', 'summer2025', 'autumn2024', 'winter2024'] as const;
 const MATERIAL_OPTIONS  = ['silk', 'wool', 'cottonBlend', 'cashmere', 'linen'] as const;
 
-const SORT_OPTIONS = ['newest', 'priceLow', 'priceHigh', 'themeAz'] as const;
-
-/* ------------------------------------------------------------------ */
-/*  Price range helper                                                 */
-/* ------------------------------------------------------------------ */
-
-function matchesPriceRange(price: number, range: string): boolean {
-  switch (range) {
-    case 'under200':   return price < 200;
-    case 'r200to500':  return price >= 200 && price <= 500;
-    case 'r500to800':  return price > 500 && price <= 800;
-    case 'r800to1200': return price > 800 && price <= 1200;
-    case 'over1200':   return price > 1200;
-    default:           return false;
-  }
-}
+const SORT_OPTIONS = ['newest', 'themeAz'] as const;
 
 /* ------------------------------------------------------------------ */
 /*  Gradient palette                                                   */
@@ -102,7 +87,7 @@ export default function ShopClient() {
     category: [],
     color: [],
     size: [],
-    price: [],
+    season: [],
     material: [],
   });
 
@@ -147,7 +132,7 @@ export default function ShopClient() {
   }, []);
 
   const resetFilters = useCallback(() => {
-    setFilters({occasion: [], category: [], color: [], size: [], price: [], material: []});
+    setFilters({occasion: [], category: [], color: [], size: [], season: [], material: []});
   }, []);
 
   /* ---- derived data ---- */
@@ -158,13 +143,11 @@ export default function ShopClient() {
       if (filters.color.length     > 0 && (!item.color || !filters.color.includes(item.color)))                return false;
       if (filters.size.length      > 0 && (!item.sizes || !filters.size.some(s => item.sizes!.includes(s))))   return false;
       if (filters.material.length  > 0 && (!item.material || !filters.material.includes(item.material)))       return false;
-      if (filters.price.length     > 0 && !filters.price.some(r => matchesPriceRange(item.price, r))) return false;
+      if (filters.season.length    > 0 && (!item.collectionName || !filters.season.includes(item.collectionName))) return false;
       return true;
     });
 
     switch (sortKey) {
-      case 'priceLow':  result = [...result].sort((a, b) => a.price - b.price); break;
-      case 'priceHigh': result = [...result].sort((a, b) => b.price - a.price); break;
       case 'themeAz':   result = [...result].sort((a, b) => (a.occasion ?? '').localeCompare(b.occasion ?? '')); break;
       default: break;
     }
@@ -382,7 +365,7 @@ export default function ShopClient() {
               <FilterSection label={t('filters.category')}  group="category"  options={CATEGORY_OPTIONS}  translationPrefix="categories" />
               <FilterSection label={t('filters.color')}     group="color"     options={COLOR_OPTIONS}     translationPrefix="colors" />
               <FilterSection label={t('filters.size')}      group="size"      options={SIZE_OPTIONS}      translationPrefix="sizes" />
-              <FilterSection label={t('filters.price')}     group="price"     options={PRICE_OPTIONS}     translationPrefix="priceRanges" />
+              <FilterSection label={t('filters.season')}    group="season"    options={SEASON_OPTIONS}    translationPrefix="seasons" />
               <FilterSection label={t('filters.material')}  group="material"  options={MATERIAL_OPTIONS}  translationPrefix="materials" />
             </div>
           </aside>
