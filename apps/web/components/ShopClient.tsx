@@ -200,28 +200,27 @@ export default function ShopClient() {
     label: string; group: FilterKey; options: readonly string[]; translationPrefix: string;
   }) {
     return (
-      <details className="group border-b border-[rgba(243,233,218,0.12)] pb-3" open>
-        <summary className="flex cursor-pointer items-center justify-between py-2 text-sm font-medium tracking-wide text-[var(--ink)] select-none">
+      <div className="border-b border-[rgba(243,233,218,0.12)] pb-2.5">
+        <p className="py-1.5 text-xs font-medium uppercase tracking-wide text-[var(--ink)]">
           {label}
-          <span className="text-[var(--ink-soft)] transition-transform group-open:rotate-180">&#9662;</span>
-        </summary>
-        <div className="flex flex-col gap-1.5 pt-1 pl-1">
+        </p>
+        <div className="grid grid-cols-2 gap-x-2 gap-y-1 pt-0.5">
           {options.map(opt => {
             const checked = filters[group].includes(opt);
             return (
-              <label key={opt} className="flex items-center gap-2 text-sm text-[var(--ink-soft)] hover:text-[var(--ink)] cursor-pointer">
+              <label key={opt} className="flex items-center gap-1.5 text-[13px] text-[var(--ink-soft)] hover:text-[var(--ink)] cursor-pointer leading-tight">
                 <input
                   type="checkbox"
                   checked={checked}
                   onChange={() => toggleFilter(group, opt)}
-                  className="accent-[var(--accent)] h-3.5 w-3.5 rounded"
+                  className="accent-[var(--accent)] h-3 w-3 rounded shrink-0"
                 />
                 {t(`${translationPrefix}.${opt}`)}
               </label>
             );
           })}
         </div>
-      </details>
+      </div>
     );
   }
 
@@ -363,8 +362,8 @@ export default function ShopClient() {
       <div className="mt-6 flex flex-col gap-8 sm:flex-row">
         {/* ---- filter sidebar (independent scroll) ---- */}
         {filtersOpen && (
-          <aside className="w-full shrink-0 sm:w-56 lg:w-64 sm:sticky sm:top-24 sm:self-start">
-            <div className="lux-control flex flex-col gap-2 p-5">
+          <aside className="w-full shrink-0 sm:w-64 lg:w-80 sm:sticky sm:top-24 sm:self-start">
+            <div className="lux-control flex flex-col gap-1.5 p-4">
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-widest text-[var(--ink-soft)]">
                   {t('showFilters')}
