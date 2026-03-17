@@ -29,7 +29,7 @@ export default async function HomePage({params}: Props) {
       {/* SCROLLABLE CONTENT */}
       <div className="relative z-10">
         {/* HERO SECTION — transparent, shader visible behind */}
-        <section className="relative" style={{minHeight: '100vh'}}>
+        <section className="relative" style={{minHeight: '150vh'}}>
           {/* Screen 1: Centered brand */}
           <div className="flex min-h-screen flex-col items-center justify-center px-6 py-32 text-center lg:py-40">
             <BlurReveal delay={200} duration={1200} blur={16} translateY={0}>
