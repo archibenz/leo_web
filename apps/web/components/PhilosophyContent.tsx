@@ -1,7 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState, FC, ReactNode } from 'react';
-import { motion, MotionValue, useScroll, useTransform } from 'framer-motion';
+import { useRef, useEffect, useState } from 'react';
 
 interface PhilosophyContentProps {
   locale: string;
@@ -9,44 +8,49 @@ interface PhilosophyContentProps {
   text: string;
 }
 
-interface WordProps {
-  children: ReactNode;
-  progress: MotionValue<number>;
-  range: [number, number];
-}
-
-const Word: FC<WordProps> = ({ children, progress, range }) => {
-  const opacity = useTransform(progress, range, [0, 1]);
-  return (
-    <span className="relative mx-[0.14em] my-[0.08em] inline-block">
-      <span className="text-[#F2E6D8]/[0.15]">{children}</span>
-      <motion.span
-        style={{ opacity }}
-        className="absolute inset-0 text-[#F2E6D8]"
-      >
-        {children}
-      </motion.span>
-    </span>
-  );
-};
-
 export default function PhilosophyContent({
   eyebrow,
   text,
 }: PhilosophyContentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [progress, setProgress] = useState(0);
   const [isClient, setIsClient] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    setReducedMotion(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  }, []);
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setReducedMotion(prefersReduced);
+    if (prefersReduced) {
+      setProgress(1);
+      return;
+    }
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start 0.6', 'end 0.4'],
-  });
+    let running = true;
+
+    const tick = () => {
+      if (!running || !containerRef.current) return;
+
+      const rect = containerRef.current.getBoundingClientRect();
+      const containerHeight = rect.height;
+      const viewportHeight = window.innerHeight;
+
+      // How far the container has scrolled past the viewport top
+      // rect.top starts positive (below viewport), goes negative (above viewport)
+      const scrolled = -rect.top;
+      const scrollRange = containerHeight - viewportHeight;
+
+      if (scrollRange > 0) {
+        const raw = scrolled / scrollRange;
+        setProgress(Math.max(0, Math.min(1, raw)));
+      }
+
+      requestAnimationFrame(tick);
+    };
+
+    requestAnimationFrame(tick);
+    return () => { running = false; };
+  }, []);
 
   const words = text.split(' ');
 
@@ -78,16 +82,24 @@ export default function PhilosophyContent({
                 )
               : (
                   words.map((word, i) => {
-                    const start = i / words.length;
-                    const end = start + 1 / words.length;
+                    const wordProgress = i / words.length;
+                    const wordEnd = (i + 1) / words.length;
+                    // Each word fades from 0 to 1 over its range
+                    const raw = (progress - wordProgress) / (wordEnd - wordProgress);
+                    const opacity = Math.max(0, Math.min(1, raw));
+                    // Dim base (0.15) + revealed portion
+                    const finalOpacity = 0.15 + opacity * 0.85;
+
                     return (
-                      <Word
+                      <span
                         key={`${word}-${i}`}
-                        progress={scrollYProgress}
-                        range={[start, end]}
+                        className="mx-[0.14em] my-[0.08em] inline-block transition-none"
+                        style={{
+                          color: `rgba(242, 230, 216, ${finalOpacity})`,
+                        }}
                       >
                         {word}
-                      </Word>
+                      </span>
                     );
                   })
                 )}
