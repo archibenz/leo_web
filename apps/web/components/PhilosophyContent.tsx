@@ -53,16 +53,10 @@ export default function PhilosophyContent({
   const words = text.split(' ');
   const totalWords = words.length;
 
-  // === Title: curtain mask reveal (0% → 18% scroll) ===
-  // A horizontal line sweeps left-to-right, revealing text behind it
+  // === Title: per-letter fade-in + rise, wave from center (0% → 18% scroll) ===
+  const titleChars = Array.from(title);
+  const titleCenter = (titleChars.length - 1) / 2;
   const titleProgress = Math.min(1, progress / 0.18);
-  // clip-path: the revealed portion grows from left (0%) to full width (100%)
-  const revealPercent = reducedMotion ? 100 : titleProgress * 100;
-  // Title opacity fades in quickly in first 5%
-  const titleOpacity = reducedMotion ? 1 : Math.min(1, progress / 0.05);
-
-  // The "curtain line" position — a thin bright line at the reveal edge
-  const lineX = reducedMotion ? 110 : titleProgress * 110; // goes past 100 to exit
 
   // Decorative divider: grows (10% - 22%)
   const dividerProgress = Math.max(0, Math.min(1, (progress - 0.10) / 0.12));
@@ -90,51 +84,45 @@ export default function PhilosophyContent({
         />
 
         <div className="relative mx-auto max-w-4xl px-6 sm:px-10 lg:px-12">
-          {/* Big title — curtain mask reveal */}
-          <div className="relative mb-6 overflow-visible">
-            {/* Revealed text — clipped from left to right */}
-            <h2
-              className="text-center font-display uppercase text-[#F2E6D8]"
-              style={{
-                fontSize: 'clamp(2.2rem, 5.5vw, 4.5rem)',
-                lineHeight: 1.15,
-                letterSpacing: '0.06em',
-                opacity: titleOpacity,
-                clipPath: `inset(0 ${100 - revealPercent}% 0 0)`,
-              }}
-            >
-              {title}
-            </h2>
+          {/* Big title — per-letter fade + rise from center */}
+          <h2
+            className="mb-6 text-center font-display uppercase"
+            style={{
+              fontSize: 'clamp(2.2rem, 5.5vw, 4.5rem)',
+              lineHeight: 1.15,
+              letterSpacing: '0.06em',
+            }}
+          >
+            {reducedMotion
+              ? <span className="text-[#F2E6D8]">{title}</span>
+              : titleChars.map((char, i) => {
+                  if (char === ' ') return <span key={i}>&nbsp;</span>;
 
-            {/* Ghost text underneath — dimmed, always visible */}
-            <h2
-              className="absolute inset-0 text-center font-display uppercase text-[#F2E6D8]/[0.08]"
-              style={{
-                fontSize: 'clamp(2.2rem, 5.5vw, 4.5rem)',
-                lineHeight: 1.15,
-                letterSpacing: '0.06em',
-              }}
-              aria-hidden="true"
-            >
-              {title}
-            </h2>
+                  // Distance from center normalized 0-1
+                  const dist = Math.abs(i - titleCenter) / titleCenter;
+                  // Center letters appear first (threshold 0), edge letters last (threshold ~0.5)
+                  const threshold = dist * 0.5;
+                  const charT = Math.max(0, Math.min(1, (titleProgress - threshold) / (1 - threshold)));
+                  // Ease out cubic
+                  const eased = 1 - Math.pow(1 - charT, 3);
 
-            {/* Curtain line — the bright vertical sweep */}
-            {!reducedMotion && titleProgress > 0 && titleProgress < 1 && (
-              <div
-                className="pointer-events-none absolute"
-                style={{
-                  left: `${lineX}%`,
-                  top: '-30%',
-                  height: '160%',
-                  width: '1px',
-                  background: 'linear-gradient(180deg, transparent 0%, rgba(212,165,116,0.5) 25%, rgba(255,245,230,0.8) 50%, rgba(212,165,116,0.5) 75%, transparent 100%)',
-                  boxShadow: '0 0 8px 2px rgba(212,165,116,0.2), 0 0 20px 4px rgba(212,165,116,0.08)',
-                  transform: 'translateX(-50%)',
-                }}
-              />
-            )}
-          </div>
+                  const opacity = eased;
+                  const translateY = (1 - eased) * 24;
+
+                  return (
+                    <span
+                      key={i}
+                      className="inline-block text-[#F2E6D8] will-change-[opacity,transform]"
+                      style={{
+                        opacity,
+                        transform: `translateY(${translateY}px)`,
+                      }}
+                    >
+                      {char}
+                    </span>
+                  );
+                })}
+          </h2>
 
           {/* Thin decorative divider — grows from center */}
           <div className="flex justify-center mb-6 sm:mb-8">
