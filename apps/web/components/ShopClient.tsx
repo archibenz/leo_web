@@ -258,11 +258,11 @@ export default function ShopClient() {
           )}
         </div>
         <div className="flex flex-col gap-px pt-2 pb-1">
-          <span className="text-[9px] uppercase tracking-widest text-[var(--ink-soft)] sm:text-[10px]">
+          <span className="text-[11px] uppercase tracking-widest text-[var(--ink-soft)] sm:text-[12px]">
             {item.occasion ? t(`occasions.${item.occasion}`) : item.category ?? ''}
           </span>
-          <h3 className="text-[13px] font-normal text-[var(--ink)] leading-snug sm:text-sm">{item.title}</h3>
-          <span className="text-[13px] font-accent text-[var(--ink-soft)] sm:text-sm">&euro;{item.price.toLocaleString()}</span>
+          <h3 className="text-sm font-normal text-[var(--ink)] leading-snug sm:text-[15px]">{item.title}</h3>
+          <span className="text-sm font-accent text-[var(--ink-soft)] sm:text-[15px]">&euro;{item.price.toLocaleString()}</span>
         </div>
       </Link>
     );

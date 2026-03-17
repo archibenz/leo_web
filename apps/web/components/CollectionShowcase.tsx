@@ -78,7 +78,7 @@ function HeroCard({title, subtitle, locale, season}: {title: string; subtitle: s
         style={{opacity: 0, transition: 'opacity 500ms ease'}}
       >
         <div className="text-center px-6">
-          <p className="font-accent text-[10px] uppercase tracking-[0.2em] text-[#F2E6D8]/70 sm:text-xs lg:text-sm">
+          <p className="font-accent text-[12px] uppercase tracking-[0.2em] text-[#F2E6D8]/70 sm:text-xs lg:text-sm">
             {subtitle}
           </p>
           <h3 className="mt-2 font-display text-2xl uppercase tracking-[0.08em] text-[#F2E6D8] sm:text-4xl lg:text-5xl">
@@ -89,7 +89,7 @@ function HeroCard({title, subtitle, locale, season}: {title: string; subtitle: s
 
       {/* Mobile: always-visible label */}
       <div className="absolute inset-x-0 bottom-0 z-[2] p-4 md:hidden">
-        <p className="font-accent text-[10px] uppercase tracking-[0.2em] text-[#F2E6D8]/60">{subtitle}</p>
+        <p className="font-accent text-[12px] uppercase tracking-[0.2em] text-[#F2E6D8]/60">{subtitle}</p>
         <h3 className="mt-0.5 font-display text-lg uppercase tracking-[0.06em] text-[#F2E6D8]">{title}</h3>
       </div>
     </Link>
