@@ -109,7 +109,7 @@ export default function PhilosophyContent({
         {/* Eyebrow */}
         <p
           ref={eyebrowRef}
-          className="mb-10 text-center font-accent text-[11px] font-medium uppercase tracking-[0.25em] text-[#F2E6D8]/60 sm:mb-14 sm:text-[12px]"
+          className="mb-10 text-center font-accent text-[13px] font-medium uppercase tracking-[0.25em] text-[#F2E6D8]/60 sm:mb-14 sm:text-[14px]"
           style={{ opacity: 0, transform: 'translate3d(0, 12px, 0)', willChange: 'opacity, transform' }}
         >
           {eyebrow}

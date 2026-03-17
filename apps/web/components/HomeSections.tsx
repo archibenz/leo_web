@@ -200,7 +200,7 @@ function ShopHeroCard({title, subtitle, locale}: {title: string; subtitle: strin
         style={{opacity: 0, transition: 'opacity 500ms ease'}}
       >
         <div className="text-center px-6">
-          <p className="font-accent text-xs uppercase tracking-[0.2em] text-[#F2E6D8]/70 lg:text-sm">
+          <p className="font-accent text-[14px] uppercase tracking-[0.2em] text-[#F2E6D8]/70 lg:text-[16px]">
             {subtitle}
           </p>
           <h3 className="mt-3 font-display text-3xl uppercase tracking-[0.08em] text-[#F2E6D8] sm:text-4xl lg:text-5xl">
@@ -267,7 +267,7 @@ export default function HomeSections({
                     <h3 className="text-sm font-medium text-[#F2E6D8] truncate sm:text-base">
                       {cat.label}
                     </h3>
-                    <p className="text-[13px] tracking-[0.04em] sm:tracking-[0.1em] text-[#F2E6D8]/50 sm:text-xs line-clamp-2">
+                    <p className="text-[13px] tracking-[0.04em] sm:tracking-[0.1em] text-[#F2E6D8]/50 sm:text-[14px] line-clamp-2">
                       {cat.description}
                     </p>
                   </div>
@@ -307,7 +307,7 @@ export default function HomeSections({
                     <h3 className="text-sm font-medium text-[#F2E6D8] truncate sm:text-base">
                       {item.label}
                     </h3>
-                    <p className="text-[13px] tracking-[0.04em] sm:tracking-[0.1em] text-[#F2E6D8]/50 sm:text-xs line-clamp-2">
+                    <p className="text-[13px] tracking-[0.04em] sm:tracking-[0.1em] text-[#F2E6D8]/50 sm:text-[14px] line-clamp-2">
                       {item.description}
                     </p>
                   </div>

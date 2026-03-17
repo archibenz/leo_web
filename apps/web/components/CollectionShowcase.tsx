@@ -78,7 +78,7 @@ function HeroCard({title, subtitle, locale, season}: {title: string; subtitle: s
         style={{opacity: 0, transition: 'opacity 500ms ease'}}
       >
         <div className="text-center px-6">
-          <p className="font-accent text-[12px] uppercase tracking-[0.2em] text-[#F2E6D8]/70 sm:text-xs lg:text-sm">
+          <p className="font-accent text-[12px] uppercase tracking-[0.2em] text-[#F2E6D8]/70 sm:text-[14px] lg:text-[16px]">
             {subtitle}
           </p>
           <h3 className="mt-2 font-display text-2xl uppercase tracking-[0.08em] text-[#F2E6D8] sm:text-4xl lg:text-5xl">
