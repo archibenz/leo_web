@@ -42,6 +42,20 @@ export default async function HomePage({params}: Props) {
             </BlurReveal>
           </div>
 
+          {/* Scroll hint */}
+          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-[2]">
+            <BlurReveal delay={2000} duration={1000} blur={8} translateY={12}>
+              <div className="flex flex-col items-center gap-3">
+                <span className="text-[10px] uppercase tracking-[0.3em] text-white/40">
+                  {t('scrollHint')}
+                </span>
+                <svg className="h-4 w-4 text-white/30 animate-scroll-bounce" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </BlurReveal>
+          </div>
+
           {/* Transition fade: transparent → semi-transparent overlay */}
           <div
             className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[35vh]"
