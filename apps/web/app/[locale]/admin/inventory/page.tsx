@@ -5,6 +5,7 @@ import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '../../../../components/admin/AdminLayout';
+import Spinner from '../../../../components/ui/Spinner';
 import {apiFetch} from '../../../../lib/api';
 
 type Product = {
@@ -52,7 +53,7 @@ export default function AdminInventoryPage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+            <Spinner size="md" />
           </div>
         ) : products.length === 0 ? (
           <p className="text-sm text-[var(--ink-soft)]">{t('product.noProducts')}</p>

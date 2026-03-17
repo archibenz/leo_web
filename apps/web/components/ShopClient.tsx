@@ -3,6 +3,7 @@
 import {useState, useMemo, useCallback, useEffect, useRef} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname, useSearchParams} from 'next/navigation';
+import Spinner from './ui/Spinner';
 import Link from 'next/link';
 
 /* ------------------------------------------------------------------ */
@@ -277,7 +278,7 @@ export default function ShopClient() {
       <section className="mx-auto w-full max-w-7xl px-4 pt-28 pb-10 sm:px-6 lg:px-8">
         <div className="flex min-h-[40vh] items-center justify-center">
           <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+            <Spinner size="lg" />
           </div>
         </div>
       </section>

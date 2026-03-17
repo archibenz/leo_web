@@ -7,6 +7,7 @@ import {useTranslations} from 'next-intl';
 import {useCart} from '../../../contexts/CartContext';
 import {useAuth} from '../../../contexts/AuthContext';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
+import Spinner from '../../../components/ui/Spinner';
 
 /* ── Recently-viewed item shape ── */
 interface RecentItem {
@@ -81,7 +82,7 @@ export default function CartPage() {
         <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
           <div className="flex min-h-[40vh] items-center justify-center">
             <div className="text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+              <Spinner size="lg" />
               <p className="mt-4 text-ink-soft">{t('loading')}</p>
             </div>
           </div>
