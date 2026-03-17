@@ -293,7 +293,7 @@ export default function ShopClient() {
       </p>
 
       {/* ---- toolbar ---- */}
-      <div className="relative z-20 flex flex-wrap items-end justify-between gap-4 border-b border-[rgba(243,233,218,0.08)] pb-5">
+      <div className="relative z-20 flex flex-wrap items-end gap-6 sm:gap-8 border-b border-[rgba(243,233,218,0.08)] pb-5">
         <h1 className="text-2xl font-light tracking-tight text-[var(--ink)] sm:text-3xl">
           {t('title')}
         </h1>
@@ -363,7 +363,7 @@ export default function ShopClient() {
       <div className="mt-6 flex flex-col gap-8 sm:flex-row">
         {/* ---- filter sidebar (independent scroll) ---- */}
         {filtersOpen && (
-          <aside className="w-full shrink-0 sm:w-56 lg:w-64 sm:sticky sm:top-4 sm:self-start sm:max-h-[calc(100vh-2rem)] sm:overflow-y-auto scrollbar-none">
+          <aside className="w-full shrink-0 sm:w-56 lg:w-64">
             <div className="lux-control flex flex-col gap-2 p-5">
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-widest text-[var(--ink-soft)]">
