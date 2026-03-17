@@ -122,12 +122,14 @@ export default function PhilosophyContent({
             {/* Curtain line — the bright vertical sweep */}
             {!reducedMotion && titleProgress > 0 && titleProgress < 1 && (
               <div
-                className="pointer-events-none absolute top-0 h-full"
+                className="pointer-events-none absolute"
                 style={{
                   left: `${lineX}%`,
-                  width: '2px',
-                  background: 'linear-gradient(180deg, transparent 5%, rgba(212,165,116,0.7) 30%, rgba(255,245,230,0.9) 50%, rgba(212,165,116,0.7) 70%, transparent 95%)',
-                  boxShadow: '0 0 12px 3px rgba(212,165,116,0.3), 0 0 30px 6px rgba(212,165,116,0.1)',
+                  top: '-30%',
+                  height: '160%',
+                  width: '1px',
+                  background: 'linear-gradient(180deg, transparent 0%, rgba(212,165,116,0.5) 25%, rgba(255,245,230,0.8) 50%, rgba(212,165,116,0.5) 75%, transparent 100%)',
+                  boxShadow: '0 0 8px 2px rgba(212,165,116,0.2), 0 0 20px 4px rgba(212,165,116,0.08)',
                   transform: 'translateX(-50%)',
                 }}
               />
