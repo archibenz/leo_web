@@ -41,7 +41,7 @@ export default async function Footer({locale}: FooterProps) {
                   draggable="false"
                 />
               </div>
-              <p className="max-w-[260px] text-[14px] leading-relaxed text-[#F2E6D8]/40">
+              <p className="max-w-[260px] text-[15px] leading-relaxed text-[#F2E6D8]/40">
                 {t('tagline')}
               </p>
               <p className="text-[13px] leading-relaxed text-[#F2E6D8]/25">
@@ -51,14 +51,14 @@ export default async function Footer({locale}: FooterProps) {
 
             {/* Center: Navigation */}
             <nav className="flex flex-col items-center gap-3 pt-1">
-              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-[#D4A574]/40">
+              <span className="font-accent text-[14px] uppercase tracking-[0.2em] text-[#D4A574]/40">
                 {locale === 'ru' ? 'Навигация' : 'Navigate'}
               </span>
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="font-display text-sm uppercase tracking-[0.12em] text-[#F2E6D8]/60 transition-colors duration-200 hover:text-[#D4A574]"
+                  className="font-display text-[15px] uppercase tracking-[0.12em] text-[#F2E6D8]/60 transition-colors duration-200 hover:text-[#D4A574]"
                   prefetch
                 >
                   {item.label}
@@ -68,12 +68,12 @@ export default async function Footer({locale}: FooterProps) {
 
             {/* Right: Contact + social */}
             <div className="flex flex-col items-end gap-3 pt-1">
-              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-[#D4A574]/40">
+              <span className="font-accent text-[14px] uppercase tracking-[0.2em] text-[#D4A574]/40">
                 {locale === 'ru' ? 'Связь' : 'Connect'}
               </span>
               <Link
                 href={`mailto:${t('email')}`}
-                className="text-sm text-[#F2E6D8]/60 transition-colors duration-200 hover:text-[#D4A574]"
+                className="text-[15px] text-[#F2E6D8]/60 transition-colors duration-200 hover:text-[#D4A574]"
               >
                 {t('email')}
               </Link>
@@ -123,8 +123,8 @@ export default async function Footer({locale}: FooterProps) {
 
           {/* Bottom bar */}
           <div className="flex items-center justify-between border-t border-[#F2E6D8]/[0.06] py-5">
-            <p className="text-[12px] text-[#F2E6D8]/25">{t('rights')}</p>
-            <div className="flex items-center gap-5 text-[12px] text-[#F2E6D8]/25">
+            <p className="text-[13px] text-[#F2E6D8]/25">{t('rights')}</p>
+            <div className="flex items-center gap-5 text-[13px] text-[#F2E6D8]/25">
               <Link href={`/${locale}/privacy`} className="transition-colors hover:text-[#F2E6D8]/50" prefetch>
                 {t('privacy')}
               </Link>
@@ -157,21 +157,21 @@ export default async function Footer({locale}: FooterProps) {
             />
           </div>
 
-          <p className="text-[13px] leading-relaxed text-[#F2E6D8]/35">
+          <p className="text-[14px] leading-relaxed text-[#F2E6D8]/35">
             {t('tagline')}
           </p>
 
           {/* Nav + Contact side by side */}
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2.5">
-              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-[#D4A574]/40">
+              <span className="font-accent text-[14px] uppercase tracking-[0.2em] text-[#D4A574]/40">
                 {locale === 'ru' ? 'Навигация' : 'Navigate'}
               </span>
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="block text-[14px] text-[#F2E6D8]/55 transition hover:text-[#D4A574]"
+                  className="block text-[15px] text-[#F2E6D8]/55 transition hover:text-[#D4A574]"
                   prefetch
                 >
                   {item.label}
@@ -179,12 +179,12 @@ export default async function Footer({locale}: FooterProps) {
               ))}
             </div>
             <div className="space-y-2.5">
-              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-[#D4A574]/40">
+              <span className="font-accent text-[14px] uppercase tracking-[0.2em] text-[#D4A574]/40">
                 {locale === 'ru' ? 'Связь' : 'Connect'}
               </span>
               <Link
                 href={`mailto:${t('email')}`}
-                className="block text-[14px] text-[#F2E6D8]/55 transition hover:text-[#D4A574]"
+                className="block text-[15px] text-[#F2E6D8]/55 transition hover:text-[#D4A574]"
               >
                 {t('email')}
               </Link>
@@ -204,7 +204,7 @@ export default async function Footer({locale}: FooterProps) {
 
           {/* Language + legal */}
           <div className="flex items-center justify-between pt-2 border-t border-[#F2E6D8]/[0.06]">
-            <div className="flex items-center gap-3 text-[12px] text-[#F2E6D8]/25">
+            <div className="flex items-center gap-3 text-[13px] text-[#F2E6D8]/25">
               <Link href={`/${locale}/privacy`} className="transition hover:text-[#F2E6D8]/50" prefetch>
                 {t('privacy')}
               </Link>
@@ -216,7 +216,7 @@ export default async function Footer({locale}: FooterProps) {
             <FooterLanguageSelect currentLocale={locale} />
           </div>
 
-          <p className="text-[12px] text-[#F2E6D8]/20">{t('rights')}</p>
+          <p className="text-[13px] text-[#F2E6D8]/20">{t('rights')}</p>
         </div>
       </div>
     </footer>

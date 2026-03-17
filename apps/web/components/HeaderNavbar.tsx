@@ -166,7 +166,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               <MenuItem setActive={setActive} active={active} item={t('catalog')} href={`/${locale}/shop`}>
                 <div className="p-2" style={{ width: '720px' }}>
                   <div className="mb-3 px-4 pt-3">
-                    <p className="font-accent text-[12px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{t('catalog')}</p>
+                    <p className="font-accent text-[13px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{t('catalog')}</p>
                   </div>
                   <div className="grid grid-cols-4 gap-0">
                     {categoryKeys.map((key) => (
@@ -175,7 +175,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
                   </div>
                   <div className="mx-4 mt-2 mb-3 h-px bg-gradient-to-r from-[#D4A574]/10 via-[#D4A574]/5 to-transparent" />
                   <div className="px-4 pb-3">
-                    <Link href={`/${locale}/shop`} className="group/all inline-flex items-center gap-2 font-display text-[13px] uppercase tracking-[0.12em] text-ink/40 transition-colors hover:text-[#D4A574]">
+                    <Link href={`/${locale}/shop`} className="group/all inline-flex items-center gap-2 font-display text-[14px] uppercase tracking-[0.12em] text-ink/40 transition-colors hover:text-[#D4A574]">
                       {locale === 'ru' ? 'Весь каталог' : 'View all'}
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="transition-transform duration-300 group-hover/all:translate-x-1"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
                     </Link>
@@ -186,7 +186,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               <MenuItem setActive={setActive} active={active} item={t('collections')} href={`/${locale}/collections`}>
                 <div className="p-2" style={{ width: '1000px' }}>
                   <div className="mb-3 px-5 pt-3">
-                    <p className="font-accent text-[12px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{t('collections')}</p>
+                    <p className="font-accent text-[13px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{t('collections')}</p>
                   </div>
                   <div className="grid grid-cols-4 gap-6 px-5 pb-4">
                     {collections.map((col, i) => (
@@ -198,7 +198,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
                   </div>
                   <div className="mx-5 h-px bg-gradient-to-r from-[#D4A574]/10 via-[#D4A574]/5 to-transparent" />
                   <div className="px-5 py-3">
-                    <Link href={`/${locale}/collections`} className="group/all inline-flex items-center gap-2 font-display text-[13px] uppercase tracking-[0.12em] text-ink/40 transition-colors hover:text-[#D4A574]">
+                    <Link href={`/${locale}/collections`} className="group/all inline-flex items-center gap-2 font-display text-[14px] uppercase tracking-[0.12em] text-ink/40 transition-colors hover:text-[#D4A574]">
                       {menuT('viewAllCollections')}
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="transition-transform duration-300 group-hover/all:translate-x-1"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
                     </Link>
@@ -216,7 +216,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               <MenuItem setActive={setActive} active={active} item={navT('about')} href={`/${locale}/about`}>
                 <div className="p-2" style={{ width: '280px' }}>
                   <div className="mb-2 px-4 pt-3">
-                    <p className="font-accent text-[12px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{navT('about')}</p>
+                    <p className="font-accent text-[13px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{navT('about')}</p>
                   </div>
                   <div className="flex flex-col gap-0">
                     <CategoryCard href={`/${locale}/about`} label={navT('about')} description={desc(aboutDescMap, 'about')} />
