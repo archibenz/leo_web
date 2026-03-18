@@ -93,9 +93,9 @@ export default function AdminHomepagePage() {
           body: JSON.stringify({value: seasonYear}),
         }),
       ]);
-      setMessage('Settings saved');
+      setMessage(t('settingsSaved'));
     } catch {
-      setMessage('Error saving settings');
+      setMessage(t('recommendationsError'));
     } finally {
       setSaving(false);
     }
@@ -124,7 +124,7 @@ export default function AdminHomepagePage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-display text-[var(--ink)]">Homepage Settings</h1>
+        <h1 className="text-2xl font-display text-[var(--ink)]">{t('homepageSettings')}</h1>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -134,22 +134,22 @@ export default function AdminHomepagePage() {
           <>
             {/* Current Season */}
             <div className="paper-card p-6 space-y-4">
-              <h2 className="text-lg font-medium text-[var(--ink)]">Current Season</h2>
+              <h2 className="text-lg font-medium text-[var(--ink)]">{t('currentSeason')}</h2>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Season</label>
+                  <label className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">{t('season')}</label>
                   <select
                     value={season}
                     onChange={e => setSeason(e.target.value)}
                     className="admin-input"
                   >
                     {SEASONS.map(s => (
-                      <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                      <option key={s} value={s}>{t(`seasons.${s}`)}</option>
                     ))}
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">Year</label>
+                  <label className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">{t('year')}</label>
                   <input
                     type="number"
                     value={seasonYear}
@@ -165,9 +165,9 @@ export default function AdminHomepagePage() {
             {/* Featured Products */}
             <div className="paper-card p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium text-[var(--ink)]">Featured Products</h2>
+                <h2 className="text-lg font-medium text-[var(--ink)]">{t('featuredProducts')}</h2>
                 <span className="text-xs text-[var(--ink-soft)]">
-                  {featuredProductIds.length} selected
+                  {featuredProductIds.length} {t('selected')}
                 </span>
               </div>
 
@@ -194,7 +194,7 @@ export default function AdminHomepagePage() {
               {/* Search */}
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder={t('searchProducts')}
                 value={productSearch}
                 onChange={e => setProductSearch(e.target.value)}
                 className="admin-input"
@@ -217,7 +217,7 @@ export default function AdminHomepagePage() {
                     <span className="text-xs text-[var(--ink-soft)]">&euro;{product.price}</span>
                     {!product.active && (
                       <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-400">
-                        Inactive
+                        {t('inactive')}
                       </span>
                     )}
                   </label>
@@ -228,9 +228,9 @@ export default function AdminHomepagePage() {
             {/* Homepage Collections */}
             <div className="paper-card p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium text-[var(--ink)]">Homepage Collections</h2>
+                <h2 className="text-lg font-medium text-[var(--ink)]">{t('homepageCollections')}</h2>
                 <span className="text-xs text-[var(--ink-soft)]">
-                  {homepageCollectionIds.length} selected
+                  {homepageCollectionIds.length} {t('selected')}
                 </span>
               </div>
 
@@ -257,7 +257,7 @@ export default function AdminHomepagePage() {
               {/* Search */}
               <input
                 type="text"
-                placeholder="Search collections..."
+                placeholder={t('searchCollections')}
                 value={collectionSearch}
                 onChange={e => setCollectionSearch(e.target.value)}
                 className="admin-input"
@@ -289,7 +289,7 @@ export default function AdminHomepagePage() {
                 disabled={saving}
                 className="lux-btn-primary"
               >
-                {saving ? '...' : 'Save Settings'}
+                {saving ? '...' : t('saveSettings')}
               </button>
               {message && (
                 <span className="text-sm text-[var(--accent)]">{message}</span>

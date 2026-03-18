@@ -90,8 +90,8 @@ export default function AdminDashboardPage() {
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-[var(--ink)]">Homepage Settings</p>
-                  <p className="text-xs text-[var(--ink-soft)]">Featured products, collections, season</p>
+                  <p className="text-sm font-medium text-[var(--ink)]">{t('homepageSettings')}</p>
+                  <p className="text-xs text-[var(--ink-soft)]">{t('homepageDesc')}</p>
                 </div>
               </Link>
             </div>
