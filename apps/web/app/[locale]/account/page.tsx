@@ -3,6 +3,7 @@
 import {useState, useEffect, useRef, useCallback} from 'react';
 import {useTranslations, useLocale} from 'next-intl';
 import {useRouter} from 'next/navigation';
+import {createPortal} from 'react-dom';
 import {motion, AnimatePresence} from 'framer-motion';
 import {useAuth, useFavorites} from '../../../contexts';
 import {useRecentlyViewed} from '../../../hooks/useRecentlyViewed';
@@ -561,6 +562,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
     }`;
 
   return (
+    <>
     <div className="relative min-h-screen pt-28 pb-6">
       <HeroShaderBackgroundClient />
       <div className="relative z-10 mx-auto max-w-4xl px-6 lg:px-8">
@@ -793,54 +795,59 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
 
         </div>
 
-        {/* ── Logout Confirmation Modal ── */}
-        <AnimatePresence>
-          {showLogoutConfirm && (
-            <>
-              <motion.div
-                initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}
-                className="fixed inset-0 z-[300] bg-black/50 backdrop-blur-sm"
-                onClick={() => setShowLogoutConfirm(false)}
-              />
-              <motion.div
-                initial={{opacity: 0, scale: 0.9, y: 20}}
-                animate={{opacity: 1, scale: 1, y: 0}}
-                exit={{opacity: 0, scale: 0.9, y: 20}}
-                transition={{type: 'spring', mass: 0.5, damping: 15, stiffness: 200}}
-                className="fixed left-1/2 top-1/2 z-[301] -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-sm"
-              >
-                <div className="paper-card p-8 text-center space-y-5">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-ink/[0.06] border border-ink/10">
-                    <svg viewBox="0 0 24 24" className="h-6 w-6 text-ink/40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h3 className="font-display text-lg text-ink">{locale === 'ru' ? 'Выйти из аккаунта?' : 'Sign out?'}</h3>
-                    <p className="mt-1.5 text-sm text-ink-soft">{locale === 'ru' ? 'Вы уверены, что хотите выйти?' : 'Are you sure you want to sign out?'}</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setShowLogoutConfirm(false)}
-                      className="flex-1 rounded-full border border-ink/20 bg-transparent px-4 py-3 text-sm font-medium uppercase tracking-wider text-ink/60 transition-all duration-200 hover:bg-ink/5 hover:border-ink/30"
-                    >
-                      {locale === 'ru' ? 'Отмена' : 'Cancel'}
-                    </button>
-                    <button
-                      onClick={() => { setShowLogoutConfirm(false); logout(); }}
-                      className="flex-1 rounded-full bg-button px-4 py-3 text-sm font-medium uppercase tracking-wider text-ink transition-all duration-200 hover:bg-button/85"
-                    >
-                      {locale === 'ru' ? 'Выйти' : 'Sign out'}
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>
-
       </div>
     </div>
+
+    {/* ── Logout Confirmation Modal (Portal to body) ── */}
+    {typeof document !== 'undefined' && createPortal(
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <>
+            <motion.div
+              initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}
+              className="fixed inset-0 z-[300] bg-black/50 backdrop-blur-sm"
+              onClick={() => setShowLogoutConfirm(false)}
+            />
+            <motion.div
+              initial={{opacity: 0, scale: 0.9, y: 20}}
+              animate={{opacity: 1, scale: 1, y: 0}}
+              exit={{opacity: 0, scale: 0.9, y: 20}}
+              transition={{type: 'spring', mass: 0.5, damping: 15, stiffness: 200}}
+              className="fixed inset-0 z-[301] flex items-center justify-center p-4"
+            >
+              <div className="paper-card w-full max-w-sm p-8 text-center space-y-5" onClick={(e) => e.stopPropagation()}>
+                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-ink/[0.06] border border-ink/10">
+                  <svg viewBox="0 0 24 24" className="h-6 w-6 text-ink/40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-display text-lg text-ink">{locale === 'ru' ? 'Выйти из аккаунта?' : 'Sign out?'}</h3>
+                  <p className="mt-1.5 text-sm text-ink-soft">{locale === 'ru' ? 'Вы уверены, что хотите выйти?' : 'Are you sure you want to sign out?'}</p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowLogoutConfirm(false)}
+                    className="flex-1 rounded-full border border-ink/20 bg-transparent px-4 py-3 text-sm font-medium uppercase tracking-wider text-ink/60 transition-all duration-200 hover:bg-ink/5 hover:border-ink/30"
+                  >
+                    {locale === 'ru' ? 'Отмена' : 'Cancel'}
+                  </button>
+                  <button
+                    onClick={() => { setShowLogoutConfirm(false); logout(); }}
+                    className="flex-1 rounded-full bg-button px-4 py-3 text-sm font-medium uppercase tracking-wider text-ink transition-all duration-200 hover:bg-button/85"
+                  >
+                    {locale === 'ru' ? 'Выйти' : 'Sign out'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>,
+      document.body
+    )}
+
+    </>
   );
 }
 
