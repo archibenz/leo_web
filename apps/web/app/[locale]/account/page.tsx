@@ -563,14 +563,14 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
       <div className="relative z-10 mx-auto max-w-4xl px-6 lg:px-8">
 
         {/* ── Top Navigation Tabs ── */}
-        <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:gap-x-8 py-4 mb-10">
+        <nav className="flex flex-wrap items-baseline justify-center gap-x-6 gap-y-2 sm:gap-x-8 py-4 mb-10">
           <button type="button" onClick={() => setActiveTab('profile')} className={tabClass('profile')}>{t('profile.name')}</button>
-          <span className="text-sm font-display uppercase tracking-[0.12em] text-ink/25 cursor-default">{t('profile.orders')}</span>
+          <span className="text-sm font-display uppercase tracking-[0.12em] text-ink/25 cursor-default pb-1">{t('profile.orders')}</span>
           <button type="button" onClick={() => setActiveTab('favorites')} className={tabClass('favorites')}>{t('profile.favorites')}</button>
           <button type="button" onClick={() => setActiveTab('settings')} className={tabClass('settings')}>{t('profile.settings')}</button>
-          <button type="button" onClick={logout} className="text-sm font-display uppercase tracking-[0.12em] text-ink/60 transition-colors duration-200 hover:text-ink">{t('profile.logOut')}</button>
+          <button type="button" onClick={logout} className="text-sm font-display uppercase tracking-[0.12em] text-ink/60 transition-colors duration-200 hover:text-ink pb-1">{t('profile.logOut')}</button>
           {isAdmin && (
-            <Link href={`/${locale}/admin`} className="text-sm font-display uppercase tracking-[0.12em] text-accent/70 transition-colors duration-200 hover:text-accent border-l border-ink/10 pl-6">{t('profile.admin')}</Link>
+            <Link href={`/${locale}/admin`} className="text-sm font-display uppercase tracking-[0.12em] text-accent/70 transition-colors duration-200 hover:text-accent border-l border-ink/10 pl-6 pb-1">{t('profile.admin')}</Link>
           )}
         </nav>
 
@@ -597,28 +597,47 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
         {/* ── Content Card ── */}
         <div className="paper-card p-6 sm:p-8">
 
-          {/* ── PROFILE TAB: Recently Viewed ── */}
+          {/* ── PROFILE TAB: Orders + Recommendations ── */}
           {activeTab === 'profile' && (
-            <div>
-              <h2 className="font-display text-lg text-ink mb-2">{t('profile.orders')}</h2>
-              <p className="text-sm text-ink-soft mb-6">{t('profile.emailNotLinked') === t('profile.emailNotLinked') ? '' : ''}</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {recentItems.map((item) => (
-                  <Link key={item.id} href={`/${locale}/product/${item.id}`} className="group block">
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-paperMuted">
-                      {item.image ? (
-                        <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-paperMuted to-paper">
-                          <svg viewBox="0 0 24 24" className="h-12 w-12 text-ink/10" fill="none" stroke="currentColor" strokeWidth="0.8">
-                            <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                    <p className="mt-2 text-sm text-ink truncate">{item.title}</p>
+            <div className="space-y-10">
+              {/* Order History */}
+              <div>
+                <h2 className="font-display text-lg text-ink mb-4">{t('profile.orders')}</h2>
+                <div className="text-center py-8 rounded-xl bg-ink/[0.03] border border-ink/5">
+                  <svg viewBox="0 0 24 24" className="mx-auto h-10 w-10 text-ink/15 mb-3" fill="none" stroke="currentColor" strokeWidth="1.2">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
+                  </svg>
+                  <p className="text-sm text-ink/40">{locale === 'ru' ? 'Пока что пусто' : 'No orders yet'}</p>
+                  <Link href={`/${locale}/shop`} className="inline-block mt-3 text-sm text-accent hover:text-accent/80 transition-colors">
+                    {locale === 'ru' ? 'Перейти в магазин' : 'Browse shop'}
                   </Link>
-                ))}
+                </div>
+              </div>
+
+              <div className="h-px bg-gradient-to-r from-transparent via-ink/8 to-transparent" />
+
+              {/* Recommendations */}
+              <div>
+                <h2 className="font-display text-lg text-ink mb-2">{locale === 'ru' ? 'Возможно вас заинтересует' : 'You might like'}</h2>
+                <p className="text-sm text-ink-soft mb-6">{locale === 'ru' ? 'Подобрано специально для вас' : 'Curated just for you'}</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {recentItems.map((item) => (
+                    <Link key={item.id} href={`/${locale}/product/${item.id}`} className="group block">
+                      <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-paperMuted">
+                        {item.image ? (
+                          <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-paperMuted to-paper">
+                            <svg viewBox="0 0 24 24" className="h-12 w-12 text-ink/10" fill="none" stroke="currentColor" strokeWidth="0.8">
+                              <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                      <p className="mt-2 text-sm text-ink truncate">{item.title}</p>
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
           )}
