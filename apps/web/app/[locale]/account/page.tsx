@@ -480,7 +480,7 @@ export default function AccountPage() {
 }
 
 function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t}: {
-  user: {name: string; surname?: string; email?: string; createdAt?: string};
+  user: {name: string; surname?: string | null; email?: string | null; createdAt?: string | null};
   locale: string; isAdmin: boolean; logout: () => void; memberSinceDate: string | null;
   t: (key: string, values?: Record<string, string>) => string;
 }) {
