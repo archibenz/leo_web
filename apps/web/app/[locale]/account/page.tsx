@@ -270,119 +270,84 @@ export default function AccountPage() {
 
   // Logged in state
   if (isAuthenticated && user) {
+    const memberSinceDate = user.createdAt
+      ? new Intl.DateTimeFormat(locale, {year: 'numeric', month: 'long'}).format(new Date(user.createdAt))
+      : null;
+
     return (
       <div className="relative min-h-screen pt-28 pb-6">
         <HeroShaderBackgroundClient />
-        <div className="relative z-10 mx-auto max-w-2xl px-6 lg:px-8 min-h-[60vh] flex flex-col justify-center">
-          <div className="w-full space-y-8">
+        <div className="relative z-10 mx-auto max-w-4xl px-6 lg:px-8">
 
-            {/* ── Zone 1: Hero Profile Header ── */}
-            <div className="text-center space-y-5">
-              <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border-2 border-accent/30 bg-ink/[0.04]">
-                <svg viewBox="0 0 24 24" className="h-10 w-10 text-accent/50" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-                </svg>
-              </div>
-              <h1 className="font-display text-ink text-[clamp(1.75rem,4vw,2.75rem)]">
+          {/* ── Top Navigation Tabs ── */}
+          <nav className="flex items-center justify-center gap-6 sm:gap-8 py-4 mb-10">
+            <span className="text-sm font-display uppercase tracking-[0.12em] text-accent border-b border-accent pb-1">{t('profile.name')}</span>
+            <span className="text-sm font-display uppercase tracking-[0.12em] text-ink/25 cursor-default">{t('profile.orders')}</span>
+            <Link href={`/${locale}/favorites`} className="text-sm font-display uppercase tracking-[0.12em] text-ink/60 transition-colors hover:text-ink">{t('profile.favorites')}</Link>
+            <Link href={`/${locale}/account/settings`} className="text-sm font-display uppercase tracking-[0.12em] text-ink/60 transition-colors hover:text-ink">{t('profile.settings')}</Link>
+            {isAdmin && (
+              <Link href={`/${locale}/admin`} className="text-sm font-display uppercase tracking-[0.12em] text-accent/70 transition-colors hover:text-accent">{t('profile.admin')}</Link>
+            )}
+          </nav>
+
+          <div className="h-px bg-gradient-to-r from-transparent via-ink/10 to-transparent" />
+
+          {/* ── Profile Header: Avatar + Name + Member Since ── */}
+          <div className="flex items-center gap-6 py-10">
+            <div className="flex-shrink-0 flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full bg-ink/[0.06] border border-ink/10">
+              <svg viewBox="0 0 24 24" className="h-9 w-9 sm:h-10 sm:w-10 text-ink/30" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="font-display text-ink text-[clamp(1.5rem,3.5vw,2.25rem)]">
                 {user.name}{user.surname ? ` ${user.surname}` : ''}
               </h1>
-              <div className="ribbon-line mx-auto w-24" />
-            </div>
-
-            {/* ── Zone 2: Profile Details Card ── */}
-            <div className="paper-card border-t-2 border-t-accent/20 p-4 sm:p-5">
-              <div className="flex items-center justify-between py-2.5">
-                <span className="text-xs uppercase tracking-[0.15em] text-accent/60 font-medium">{t('profile.name')}</span>
-                <span className="text-sm text-ink font-light">{user.name}</span>
-              </div>
-              {user.surname && (
-                <>
-                  <div className="h-px bg-gradient-to-r from-transparent via-ink/8 to-transparent" />
-                  <div className="flex items-center justify-between py-2.5">
-                    <span className="text-xs uppercase tracking-[0.15em] text-accent/60 font-medium">{t('profile.surname')}</span>
-                    <span className="text-sm text-ink font-light">{user.surname}</span>
-                  </div>
-                </>
-              )}
-              <div className="h-px bg-gradient-to-r from-transparent via-ink/8 to-transparent" />
-              <div className="flex items-center justify-between gap-2 py-2.5 overflow-hidden">
-                <span className="text-xs uppercase tracking-[0.15em] text-accent/60 font-medium flex-shrink-0">{t('profile.email')}</span>
-                <div className="flex items-center gap-2 min-w-0">
-                  {user.email ? (
-                    <>
-                      <p className="text-sm text-ink font-light truncate">{user.email}</p>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-green-400 flex-shrink-0">
-                        <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                        {t('profile.emailVerified')}
-                      </span>
-                    </>
-                  ) : (
-                    <p className="text-sm text-ink-soft italic font-light">{t('profile.emailNotLinked')}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* ── Zone 3: Navigation Grid ── */}
-            <div className={`grid gap-3 sm:gap-4 ${isAdmin ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
-              <Link href={`/${locale}/favorites`}
-                className="paper-card group flex flex-col items-center gap-3 p-4 sm:p-5 text-center transition-all duration-300 hover:border-accent/25 hover:shadow-[0_0_20px_rgba(212,165,116,0.08)]">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/8 transition-colors duration-300 group-hover:bg-accent/15">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
-                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
-                  </svg>
-                </div>
-                <span className="text-sm text-ink font-medium tracking-wide">{t('profile.favorites')}</span>
-              </Link>
-
-              <span className="paper-card flex flex-col items-center gap-3 p-4 sm:p-5 text-center opacity-40 cursor-default">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-ink/5">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-ink/30">
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
-                  </svg>
-                </div>
-                <span className="text-sm text-ink/30 tracking-wide">{t('profile.orders')}</span>
-              </span>
-
-              <Link href={`/${locale}/account/settings`}
-                className="paper-card group flex flex-col items-center gap-3 p-4 sm:p-5 text-center transition-all duration-300 hover:border-accent/25 hover:shadow-[0_0_20px_rgba(212,165,116,0.08)]">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/8 transition-colors duration-300 group-hover:bg-accent/15">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
-                    <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
-                  </svg>
-                </div>
-                <span className="text-sm text-ink font-medium tracking-wide">{t('profile.settings')}</span>
-              </Link>
-
-              {isAdmin && (
-                <Link href={`/${locale}/admin`}
-                  className="paper-card border-t-2 border-t-accent/30 group flex flex-col items-center gap-3 p-4 sm:p-5 text-center transition-all duration-300 hover:border-accent/25 hover:shadow-[0_0_20px_rgba(212,165,116,0.08)]">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 transition-colors duration-300 group-hover:bg-accent/25">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
-                      <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
-                    </svg>
-                  </div>
-                  <span className="text-sm text-accent font-medium tracking-wide">{t('profile.admin')}</span>
-                </Link>
+              {memberSinceDate && (
+                <p className="mt-1 text-sm text-ink-soft">
+                  {t('profile.memberSince', {date: memberSinceDate})}
+                </p>
               )}
             </div>
-
-            {/* ── Zone 4: Logout ── */}
-            <div className="flex justify-center pt-4">
-              <button
-                type="button"
-                onClick={logout}
-                className="group flex items-center gap-2 px-4 py-2 text-xs uppercase tracking-[0.15em] text-ink/40 transition-colors duration-300 hover:text-ink/70"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-ink/30 transition-colors duration-300 group-hover:text-ink/50">
-                  <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-                <span>{t('profile.logOut')}</span>
-              </button>
-            </div>
-
           </div>
+
+          <div className="h-px bg-gradient-to-r from-transparent via-ink/10 to-transparent" />
+
+          {/* ── Profile Details ── */}
+          <div className="py-8 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs uppercase tracking-[0.15em] text-ink-soft">{t('profile.email')}</span>
+              <div className="flex items-center gap-2">
+                {user.email ? (
+                  <>
+                    <span className="text-sm text-ink">{user.email}</span>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-green-400">
+                      <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                      {t('profile.emailVerified')}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-sm text-ink-soft italic">{t('profile.emailNotLinked')}</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="h-px bg-gradient-to-r from-transparent via-ink/10 to-transparent" />
+
+          {/* ── Sign Out ── */}
+          <div className="py-8">
+            <button
+              type="button"
+              onClick={logout}
+              className="text-sm text-ink/40 transition-colors duration-300 hover:text-ink/70"
+            >
+              {t('profile.logOut')}
+            </button>
+          </div>
+
+        </div>
         </div>
       </div>
     );
