@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect, useCallback} from 'react';
+import {useState} from 'react';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
@@ -8,55 +8,7 @@ import {useCart} from '../../../contexts/CartContext';
 import {useAuth} from '../../../contexts/AuthContext';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import Spinner from '../../../components/ui/Spinner';
-
-/* ── Recently-viewed item shape ── */
-interface RecentItem {
-  id: string;
-  title: string;
-  image?: string;
-}
-
-/* ── LocalStorage key ── */
-const RECENT_KEY = 'reinasleo_recently_viewed';
-const MAX_RECENT = 8;
-
-/* ── Placeholder items shown when localStorage is empty ── */
-const PLACEHOLDER_RECENT: RecentItem[] = [
-  {id: 'ph-1', title: 'Silk Evening Gown'},
-  {id: 'ph-2', title: 'Sculptured Wool Coat'},
-  {id: 'ph-3', title: 'Tailored Wide-Leg Trousers'},
-  {id: 'ph-4', title: 'Cashmere Draped Cardigan'},
-];
-
-function loadRecent(): RecentItem[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(RECENT_KEY);
-    return raw ? (JSON.parse(raw) as RecentItem[]).slice(0, MAX_RECENT) : [];
-  } catch {
-    return [];
-  }
-}
-
-/* ── Hook: useRecentlyViewed ── */
-function useRecentlyViewed() {
-  const [items, setItems] = useState<RecentItem[]>([]);
-
-  useEffect(() => {
-    const stored = loadRecent();
-    setItems(stored.length > 0 ? stored : PLACEHOLDER_RECENT);
-  }, []);
-
-  const add = useCallback((item: RecentItem) => {
-    setItems(prev => {
-      const next = [item, ...prev.filter(i => i.id !== item.id)].slice(0, MAX_RECENT);
-      try { localStorage.setItem(RECENT_KEY, JSON.stringify(next)); } catch { /* quota */ }
-      return next;
-    });
-  }, []);
-
-  return {items, add};
-}
+import {useRecentlyViewed} from '../../../hooks/useRecentlyViewed';
 
 export default function CartPage() {
   const t = useTranslations('cart');

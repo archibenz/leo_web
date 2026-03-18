@@ -3,7 +3,8 @@
 import {useState, useEffect, useRef, useCallback} from 'react';
 import {useTranslations, useLocale} from 'next-intl';
 import {useRouter} from 'next/navigation';
-import {useAuth, useFavorites, useCart} from '../../../contexts';
+import {useAuth, useFavorites} from '../../../contexts';
+import {useRecentlyViewed} from '../../../hooks/useRecentlyViewed';
 import {apiFetch} from '../../../lib/api';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import Spinner from '../../../components/ui/Spinner';
@@ -480,18 +481,80 @@ export default function AccountPage() {
 }
 
 function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t}: {
-  user: {name: string; surname?: string | null; email?: string | null; createdAt?: string | null};
+  user: {name: string; surname?: string | null; email?: string | null; createdAt?: string | null; newsletterPromos?: boolean | null; newsletterCollections?: boolean | null; newsletterProjects?: boolean | null};
   locale: string; isAdmin: boolean; logout: () => void; memberSinceDate: string | null;
-  t: (key: string, values?: Record<string, string>) => string;
+  t: (key: string, values?: Record<string, string | number>) => string;
 }) {
-  const [activeTab, setActiveTab] = useState<'profile' | 'favorites'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'settings'>('profile');
   const {items: favoriteItems, removeItem: removeFavorite, isLoading: favLoading} = useFavorites();
-  const {addItem: addToCart} = useCart();
+  const {sendCode, linkEmail, updateNewsletterPreferences} = useAuth();
   const favT = useTranslations('favorites');
+  const {items: recentItems} = useRecentlyViewed();
 
-  const tabClass = (active: boolean) =>
+  // Settings state
+  const [linkStep, setLinkStep] = useState<'email' | 'code'>('email');
+  const [settingsEmail, setSettingsEmail] = useState('');
+  const [settingsCode, setSettingsCode] = useState('');
+  const [settingsError, setSettingsError] = useState('');
+  const [sending, setSending] = useState(false);
+  const [linking, setLinking] = useState(false);
+  const [linkSuccess, setLinkSuccess] = useState(false);
+  const [settingsCooldown, setSettingsCooldown] = useState(0);
+  const [promos, setPromos] = useState(user.newsletterPromos ?? false);
+  const [collections, setCollections] = useState(user.newsletterCollections ?? false);
+  const [projects, setProjects] = useState(user.newsletterProjects ?? false);
+  const [savingPrefs, setSavingPrefs] = useState(false);
+
+  useEffect(() => {
+    if (settingsCooldown <= 0) return;
+    const timer = setTimeout(() => setSettingsCooldown(c => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [settingsCooldown]);
+
+  const handleSettingsSendCode = useCallback(async () => {
+    setSettingsError('');
+    setSending(true);
+    const result = await sendCode(settingsEmail);
+    setSending(false);
+    if (result.success) { setLinkStep('code'); setSettingsCooldown(60); }
+    else { setSettingsError(result.error === 'invalid_email' ? t('errors.invalidEmail') : t('errors.sendCodeFailed')); }
+  }, [settingsEmail, sendCode, t]);
+
+  const handleSettingsResend = useCallback(async () => {
+    if (settingsCooldown > 0) return;
+    setSending(true);
+    const result = await sendCode(settingsEmail);
+    setSending(false);
+    if (result.success) setSettingsCooldown(60);
+  }, [settingsEmail, settingsCooldown, sendCode]);
+
+  const handleLink = useCallback(async () => {
+    if (settingsCode.trim().length !== 6) { setSettingsError(t('errors.invalidCode')); return; }
+    setSettingsError('');
+    setLinking(true);
+    const result = await linkEmail(settingsEmail, settingsCode);
+    setLinking(false);
+    if (result.success) setLinkSuccess(true);
+    else if (result.error === 'email_already_linked') setSettingsError(t('settings.linkEmail.alreadyLinked'));
+    else if (result.error === 'invalid_code') setSettingsError(t('errors.invalidCode'));
+    else setSettingsError(t('errors.genericError'));
+  }, [settingsEmail, settingsCode, linkEmail, t]);
+
+  const handleToggle = useCallback(async (key: 'promos' | 'collections' | 'projects', value: boolean) => {
+    const newPrefs = {promos, collections, projects, [key]: value};
+    if (key === 'promos') setPromos(value);
+    if (key === 'collections') setCollections(value);
+    if (key === 'projects') setProjects(value);
+    setSavingPrefs(true);
+    await updateNewsletterPreferences(newPrefs);
+    setSavingPrefs(false);
+  }, [promos, collections, projects, updateNewsletterPreferences]);
+
+  const emailLinked = !!user.email;
+
+  const tabClass = (tab: string) =>
     `text-sm font-display uppercase tracking-[0.12em] pb-1 transition-colors duration-200 ${
-      active ? 'text-accent border-b border-accent' : 'text-ink/60 hover:text-ink'
+      activeTab === tab ? 'text-accent border-b border-accent' : 'text-ink/60 hover:text-ink'
     }`;
 
   return (
@@ -500,19 +563,20 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
       <div className="relative z-10 mx-auto max-w-4xl px-6 lg:px-8">
 
         {/* ── Top Navigation Tabs ── */}
-        <nav className="flex items-center justify-center gap-6 sm:gap-8 py-4 mb-10">
-          <button type="button" onClick={() => setActiveTab('profile')} className={tabClass(activeTab === 'profile')}>{t('profile.name')}</button>
+        <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 sm:gap-x-8 py-4 mb-10">
+          <button type="button" onClick={() => setActiveTab('profile')} className={tabClass('profile')}>{t('profile.name')}</button>
           <span className="text-sm font-display uppercase tracking-[0.12em] text-ink/25 cursor-default">{t('profile.orders')}</span>
-          <button type="button" onClick={() => setActiveTab('favorites')} className={tabClass(activeTab === 'favorites')}>{t('profile.favorites')}</button>
-          <Link href={`/${locale}/account/settings`} className="text-sm font-display uppercase tracking-[0.12em] text-ink/60 transition-colors duration-200 hover:text-ink">{t('profile.settings')}</Link>
+          <button type="button" onClick={() => setActiveTab('favorites')} className={tabClass('favorites')}>{t('profile.favorites')}</button>
+          <button type="button" onClick={() => setActiveTab('settings')} className={tabClass('settings')}>{t('profile.settings')}</button>
+          <button type="button" onClick={logout} className="text-sm font-display uppercase tracking-[0.12em] text-ink/60 transition-colors duration-200 hover:text-ink">{t('profile.logOut')}</button>
           {isAdmin && (
-            <Link href={`/${locale}/admin`} className="text-sm font-display uppercase tracking-[0.12em] text-accent/70 transition-colors duration-200 hover:text-accent">{t('profile.admin')}</Link>
+            <Link href={`/${locale}/admin`} className="text-sm font-display uppercase tracking-[0.12em] text-accent/70 transition-colors duration-200 hover:text-accent border-l border-ink/10 pl-6">{t('profile.admin')}</Link>
           )}
         </nav>
 
         <div className="h-px bg-gradient-to-r from-transparent via-ink/10 to-transparent" />
 
-        {/* ── Profile Header: Avatar + Name + Member Since (NO card background) ── */}
+        {/* ── Profile Header (NO card background) ── */}
         <div className="flex items-center gap-6 py-10">
           <div className="flex-shrink-0 flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full bg-ink/[0.06] border border-ink/10">
             <svg viewBox="0 0 24 24" className="h-9 w-9 sm:h-10 sm:w-10 text-ink/30" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
@@ -525,52 +589,45 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
               {user.name}{user.surname ? ` ${user.surname}` : ''}
             </h1>
             {memberSinceDate && (
-              <p className="mt-1 text-sm text-ink-soft">
-                {t('profile.memberSince', {date: memberSinceDate})}
-              </p>
+              <p className="mt-1 text-sm text-ink-soft">{t('profile.memberSince', {date: memberSinceDate})}</p>
             )}
           </div>
         </div>
 
         {/* ── Content Card ── */}
         <div className="paper-card p-6 sm:p-8">
+
+          {/* ── PROFILE TAB: Recently Viewed ── */}
           {activeTab === 'profile' && (
-            <>
-              <div className="flex items-center justify-between py-2">
-                <span className="text-xs uppercase tracking-[0.15em] text-ink-soft">{t('profile.email')}</span>
-                <div className="flex items-center gap-2">
-                  {user.email ? (
-                    <>
-                      <span className="text-sm text-ink">{user.email}</span>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-green-400">
-                        <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                        {t('profile.emailVerified')}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-sm text-ink-soft italic">{t('profile.emailNotLinked')}</span>
-                  )}
-                </div>
+            <div>
+              <h2 className="font-display text-lg text-ink mb-2">{t('profile.orders')}</h2>
+              <p className="text-sm text-ink-soft mb-6">{t('profile.emailNotLinked') === t('profile.emailNotLinked') ? '' : ''}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                {recentItems.map((item) => (
+                  <Link key={item.id} href={`/${locale}/product/${item.id}`} className="group block">
+                    <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-paperMuted">
+                      {item.image ? (
+                        <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-paperMuted to-paper">
+                          <svg viewBox="0 0 24 24" className="h-12 w-12 text-ink/10" fill="none" stroke="currentColor" strokeWidth="0.8">
+                            <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <p className="mt-2 text-sm text-ink truncate">{item.title}</p>
+                  </Link>
+                ))}
               </div>
-
-              <div className="h-px bg-gradient-to-r from-transparent via-ink/8 to-transparent my-4" />
-
-              <button
-                type="button"
-                onClick={logout}
-                className="text-sm text-ink/40 transition-colors duration-300 hover:text-ink/70"
-              >
-                {t('profile.logOut')}
-              </button>
-            </>
+            </div>
           )}
 
+          {/* ── FAVORITES TAB ── */}
           {activeTab === 'favorites' && (
             <>
               {favLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Spinner size="lg" />
-                </div>
+                <div className="flex items-center justify-center py-12"><Spinner size="lg" /></div>
               ) : favoriteItems.length === 0 ? (
                 <div className="text-center py-12 space-y-4">
                   <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-ink/5">
@@ -580,12 +637,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                   </div>
                   <p className="font-display text-lg text-ink">{favT('empty.title')}</p>
                   <p className="text-sm text-ink-soft">{favT('empty.subtitle')}</p>
-                  <Link
-                    href={`/${locale}/shop`}
-                    className="inline-block rounded-full bg-button px-6 py-3 text-sm font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85"
-                  >
-                    {favT('empty.cta')}
-                  </Link>
+                  <Link href={`/${locale}/shop`} className="inline-block rounded-full bg-button px-6 py-3 text-sm font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85">{favT('empty.cta')}</Link>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -602,11 +654,8 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                               </svg>
                             </div>
                           )}
-                          <button
-                            onClick={(e) => { e.preventDefault(); removeFavorite(item.id); }}
-                            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-paper/80 text-ink-soft backdrop-blur-sm transition-all hover:bg-paper hover:text-ink"
-                            aria-label={favT('remove')}
-                          >
+                          <button onClick={(e) => { e.preventDefault(); removeFavorite(item.id); }}
+                            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-paper/80 text-ink-soft backdrop-blur-sm transition-all hover:bg-paper hover:text-ink" aria-label={favT('remove')}>
                             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                           </button>
                         </div>
@@ -618,9 +667,112 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
               )}
             </>
           )}
-        </div>
 
+          {/* ── SETTINGS TAB ── */}
+          {activeTab === 'settings' && (
+            <div className="space-y-8">
+              {/* Email linking */}
+              <div className="space-y-5">
+                <div>
+                  <h2 className="font-display text-[16px] font-semibold text-ink tracking-wide">{t('settings.linkEmail.title')}</h2>
+                  <p className="mt-1 text-[13px] text-ink/50">{t('settings.linkEmail.description')}</p>
+                </div>
+                {emailLinked && !linkSuccess ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-[14px] text-ink/70">{user.email}</span>
+                    <span className="inline-flex items-center rounded-full bg-[#D4A574]/10 px-2.5 py-0.5 text-[11px] font-medium text-[#D4A574]">{t('profile.emailVerified')}</span>
+                  </div>
+                ) : linkSuccess ? (
+                  <div className="rounded-xl bg-[#D4A574]/10 border border-[#D4A574]/20 px-4 py-3">
+                    <p className="text-[14px] text-[#D4A574] font-medium">{t('settings.linkEmail.success')}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-[12px] font-medium uppercase tracking-wider text-ink/50 mb-1.5">{t('settings.linkEmail.emailLabel')}</label>
+                      <input type="email" value={settingsEmail} onChange={(e) => setSettingsEmail(e.target.value)}
+                        placeholder={t('settings.linkEmail.emailPlaceholder')} disabled={linkStep !== 'email'}
+                        className="admin-input disabled:opacity-50" onKeyDown={(e) => e.key === 'Enter' && linkStep === 'email' && handleSettingsSendCode()} />
+                      {linkStep === 'email' && (
+                        <button onClick={handleSettingsSendCode} disabled={sending || !settingsEmail.trim()} className="mt-3 w-full lux-btn-primary disabled:opacity-50">
+                          {sending ? t('settings.linkEmail.sending') : t('settings.linkEmail.sendCode')}
+                        </button>
+                      )}
+                    </div>
+                    {linkStep === 'code' && (
+                      <div>
+                        <label className="block text-[12px] font-medium uppercase tracking-wider text-ink/50 mb-1.5">{t('settings.linkEmail.codeLabel')}</label>
+                        <p className="text-[12px] text-ink/40 mb-2">{t('settings.linkEmail.codeHint', {email: settingsEmail})}</p>
+                        <input type="text" inputMode="numeric" maxLength={6} value={settingsCode}
+                          onChange={(e) => setSettingsCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                          placeholder={t('settings.linkEmail.codePlaceholder')} className="admin-input text-center text-lg tracking-[0.3em]"
+                          onKeyDown={(e) => e.key === 'Enter' && handleLink()} />
+                        <button onClick={handleLink} disabled={linking || settingsCode.length !== 6} className="mt-3 w-full lux-btn-primary disabled:opacity-50">
+                          {linking ? t('settings.linkEmail.linking') : t('settings.linkEmail.submit')}
+                        </button>
+                        <div className="mt-2 flex items-center justify-center gap-2 text-[12px]">
+                          <span className="text-ink/40">{t('settings.linkEmail.didntReceive')}</span>
+                          {settingsCooldown > 0 ? (
+                            <span className="text-ink/30">{t('settings.linkEmail.resendIn', {seconds: settingsCooldown})}</span>
+                          ) : (
+                            <button onClick={handleSettingsResend} disabled={sending} className="text-[#D4A574] hover:text-[#D4A574]/80 transition-colors">{t('settings.linkEmail.resend')}</button>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {settingsError && <p className="text-[13px] text-red-400">{settingsError}</p>}
+                  </div>
+                )}
+              </div>
+
+              <div className="h-px bg-gradient-to-r from-transparent via-ink/8 to-transparent" />
+
+              {/* Newsletter */}
+              <div className="space-y-5">
+                <div>
+                  <h2 className="font-display text-[16px] font-semibold text-ink tracking-wide">{t('settings.newsletter.title')}</h2>
+                  <p className="mt-1 text-[13px] text-ink/50">{t('settings.newsletter.description')}</p>
+                </div>
+                {!emailLinked && !linkSuccess ? (
+                  <p className="text-[13px] text-ink/40 italic">{t('settings.newsletter.needEmail')}</p>
+                ) : (
+                  <div className="space-y-4">
+                    <SettingsToggleRow label={t('settings.newsletter.promos')} hint={t('settings.newsletter.promosHint')} checked={promos} disabled={savingPrefs} onChange={(v) => handleToggle('promos', v)} />
+                    <SettingsToggleRow label={t('settings.newsletter.collections')} hint={t('settings.newsletter.collectionsHint')} checked={collections} disabled={savingPrefs} onChange={(v) => handleToggle('collections', v)} />
+                    <SettingsToggleRow label={t('settings.newsletter.projects')} hint={t('settings.newsletter.projectsHint')} checked={projects} disabled={savingPrefs} onChange={(v) => handleToggle('projects', v)} />
+                  </div>
+                )}
+              </div>
+
+              <div className="h-px bg-gradient-to-r from-transparent via-ink/8 to-transparent" />
+
+              {/* Sign Out */}
+              <button onClick={logout}
+                className="w-full rounded-full border border-ink/20 bg-transparent px-6 py-3.5 text-sm font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-ink/5 hover:border-ink/40">
+                {t('settings.signOut')}
+              </button>
+            </div>
+          )}
+
+        </div>
       </div>
+    </div>
+  );
+}
+
+function SettingsToggleRow({label, hint, checked, disabled, onChange}: {
+  label: string; hint: string; checked: boolean; disabled: boolean; onChange: (v: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <div className="min-w-0">
+        <p className="text-[14px] text-ink/80 font-medium">{label}</p>
+        <p className="text-[12px] text-ink/40 mt-0.5">{hint}</p>
+      </div>
+      <button type="button" role="switch" aria-checked={checked} disabled={disabled} onClick={() => onChange(!checked)}
+        className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${checked ? 'bg-[#D4A574]' : 'bg-ink/15'} ${disabled ? 'opacity-50' : 'cursor-pointer'}`}>
+        <span className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transform transition-transform duration-200 mt-0.5 ${checked ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
+      </button>
     </div>
   );
 }
