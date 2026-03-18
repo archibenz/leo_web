@@ -291,22 +291,22 @@ export default function AccountPage() {
             </div>
 
             {/* ── Zone 2: Profile Details Card ── */}
-            <div className="paper-card border-t-2 border-t-accent/20 p-6 sm:p-8">
-              <div className="flex items-center justify-between py-3.5">
+            <div className="paper-card border-t-2 border-t-accent/20 p-4 sm:p-5">
+              <div className="flex items-center justify-between py-2.5">
                 <span className="text-xs uppercase tracking-[0.15em] text-accent/60 font-medium">{t('profile.name')}</span>
                 <span className="text-sm text-ink font-light">{user.name}</span>
               </div>
               {user.surname && (
                 <>
                   <div className="h-px bg-gradient-to-r from-transparent via-ink/8 to-transparent" />
-                  <div className="flex items-center justify-between py-3.5">
+                  <div className="flex items-center justify-between py-2.5">
                     <span className="text-xs uppercase tracking-[0.15em] text-accent/60 font-medium">{t('profile.surname')}</span>
                     <span className="text-sm text-ink font-light">{user.surname}</span>
                   </div>
                 </>
               )}
               <div className="h-px bg-gradient-to-r from-transparent via-ink/8 to-transparent" />
-              <div className="flex items-center justify-between gap-2 py-3.5 overflow-hidden">
+              <div className="flex items-center justify-between gap-2 py-2.5 overflow-hidden">
                 <span className="text-xs uppercase tracking-[0.15em] text-accent/60 font-medium flex-shrink-0">{t('profile.email')}</span>
                 <div className="flex items-center gap-2 min-w-0">
                   {user.email ? (
@@ -357,7 +357,7 @@ export default function AccountPage() {
 
               {isAdmin && (
                 <Link href={`/${locale}/admin`}
-                  className="accent-card group relative flex flex-col items-center gap-3 p-4 sm:p-5 text-center transition-all duration-300 hover:shadow-[0_0_24px_rgba(212,165,116,0.15)] hover:border-accent/30">
+                  className="paper-card border-t-2 border-t-accent/30 group flex flex-col items-center gap-3 p-4 sm:p-5 text-center transition-all duration-300 hover:border-accent/25 hover:shadow-[0_0_20px_rgba(212,165,116,0.08)]">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 transition-colors duration-300 group-hover:bg-accent/25">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
                       <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
