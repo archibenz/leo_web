@@ -3,6 +3,7 @@
 import {useState, useEffect, useRef, useCallback} from 'react';
 import {useTranslations, useLocale} from 'next-intl';
 import {useRouter} from 'next/navigation';
+import {motion, AnimatePresence} from 'framer-motion';
 import {useAuth, useFavorites} from '../../../contexts';
 import {useRecentlyViewed} from '../../../hooks/useRecentlyViewed';
 import {apiFetch} from '../../../lib/api';
@@ -491,6 +492,8 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
   const favT = useTranslations('favorites');
   const {items: recentItems} = useRecentlyViewed();
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
   // Settings state
   const [linkStep, setLinkStep] = useState<'email' | 'code'>('email');
   const [settingsEmail, setSettingsEmail] = useState('');
@@ -568,7 +571,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
           <span className="text-sm font-display uppercase tracking-[0.12em] text-ink/25 cursor-default pb-1">{t('profile.orders')}</span>
           <button type="button" onClick={() => setActiveTab('favorites')} className={tabClass('favorites')}>{t('profile.favorites')}</button>
           <button type="button" onClick={() => setActiveTab('settings')} className={tabClass('settings')}>{t('profile.settings')}</button>
-          <button type="button" onClick={logout} className="text-sm font-display uppercase tracking-[0.12em] text-ink/60 transition-colors duration-200 hover:text-ink pb-1">{t('profile.logOut')}</button>
+          <button type="button" onClick={() => setShowLogoutConfirm(true)} className="text-sm font-display uppercase tracking-[0.12em] text-ink/60 transition-colors duration-200 hover:text-ink pb-1">{t('profile.logOut')}</button>
           {isAdmin && (
             <Link href={`/${locale}/admin`} className="text-sm font-display uppercase tracking-[0.12em] text-accent/70 transition-colors duration-200 hover:text-accent border-l border-ink/10 pl-6 pb-1">{t('profile.admin')}</Link>
           )}
@@ -781,7 +784,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
               <div className="h-px bg-gradient-to-r from-transparent via-ink/8 to-transparent" />
 
               {/* Sign Out */}
-              <button onClick={logout}
+              <button onClick={() => setShowLogoutConfirm(true)}
                 className="w-full rounded-full border border-ink/20 bg-transparent px-6 py-3.5 text-sm font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-ink/5 hover:border-ink/40">
                 {t('settings.signOut')}
               </button>
@@ -789,6 +792,53 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
           )}
 
         </div>
+
+        {/* ── Logout Confirmation Modal ── */}
+        <AnimatePresence>
+          {showLogoutConfirm && (
+            <>
+              <motion.div
+                initial={{opacity: 0}} animate={{opacity: 1}} exit={{opacity: 0}}
+                className="fixed inset-0 z-[300] bg-black/50 backdrop-blur-sm"
+                onClick={() => setShowLogoutConfirm(false)}
+              />
+              <motion.div
+                initial={{opacity: 0, scale: 0.9, y: 20}}
+                animate={{opacity: 1, scale: 1, y: 0}}
+                exit={{opacity: 0, scale: 0.9, y: 20}}
+                transition={{type: 'spring', mass: 0.5, damping: 15, stiffness: 200}}
+                className="fixed left-1/2 top-1/2 z-[301] -translate-x-1/2 -translate-y-1/2 w-[90vw] max-w-sm"
+              >
+                <div className="paper-card p-8 text-center space-y-5">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-ink/[0.06] border border-ink/10">
+                    <svg viewBox="0 0 24 24" className="h-6 w-6 text-ink/40" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="font-display text-lg text-ink">{locale === 'ru' ? 'Выйти из аккаунта?' : 'Sign out?'}</h3>
+                    <p className="mt-1.5 text-sm text-ink-soft">{locale === 'ru' ? 'Вы уверены, что хотите выйти?' : 'Are you sure you want to sign out?'}</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowLogoutConfirm(false)}
+                      className="flex-1 rounded-full border border-ink/20 bg-transparent px-4 py-3 text-sm font-medium uppercase tracking-wider text-ink/60 transition-all duration-200 hover:bg-ink/5 hover:border-ink/30"
+                    >
+                      {locale === 'ru' ? 'Отмена' : 'Cancel'}
+                    </button>
+                    <button
+                      onClick={() => { setShowLogoutConfirm(false); logout(); }}
+                      className="flex-1 rounded-full bg-button px-4 py-3 text-sm font-medium uppercase tracking-wider text-ink transition-all duration-200 hover:bg-button/85"
+                    >
+                      {locale === 'ru' ? 'Выйти' : 'Sign out'}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
+
       </div>
     </div>
   );
