@@ -270,10 +270,6 @@ export default function AccountPage() {
 
   // Logged in state
   if (isAuthenticated && user) {
-    const memberSinceDate = user.createdAt
-      ? new Intl.DateTimeFormat(locale, {year: 'numeric', month: 'long'}).format(new Date(user.createdAt))
-      : null;
-
     return (
       <div className="relative min-h-screen pt-28 pb-6">
         <HeroShaderBackgroundClient />
@@ -282,8 +278,6 @@ export default function AccountPage() {
 
             {/* ── Zone 1: Hero Profile Header ── */}
             <div className="text-center space-y-5">
-              <p className="capsule-tag mx-auto">{t('profile.name')}</p>
-              <div className="ribbon-line mx-auto w-16" />
               <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full border-2 border-accent/30 bg-ink/[0.04]">
                 <svg viewBox="0 0 24 24" className="h-10 w-10 text-accent/50" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="8" r="4" />
@@ -293,11 +287,6 @@ export default function AccountPage() {
               <h1 className="font-display text-ink text-[clamp(1.75rem,4vw,2.75rem)]">
                 {user.name}{user.surname ? ` ${user.surname}` : ''}
               </h1>
-              {memberSinceDate && (
-                <p className="text-xs uppercase tracking-[0.15em] text-ink-soft/60">
-                  {t('profile.memberSince', {date: memberSinceDate})}
-                </p>
-              )}
               <div className="ribbon-line mx-auto w-24" />
             </div>
 
@@ -338,7 +327,7 @@ export default function AccountPage() {
             {/* ── Zone 3: Navigation Grid ── */}
             <div className={`grid gap-3 sm:gap-4 ${isAdmin ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
               <Link href={`/${locale}/favorites`}
-                className="paper-card group flex flex-col items-center gap-3 p-6 sm:p-7 text-center transition-all duration-300 hover:border-accent/25 hover:shadow-[0_0_20px_rgba(212,165,116,0.08)]">
+                className="paper-card group flex flex-col items-center gap-3 p-4 sm:p-5 text-center transition-all duration-300 hover:border-accent/25 hover:shadow-[0_0_20px_rgba(212,165,116,0.08)]">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/8 transition-colors duration-300 group-hover:bg-accent/15">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
                     <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
@@ -347,7 +336,7 @@ export default function AccountPage() {
                 <span className="text-sm text-ink font-medium tracking-wide">{t('profile.favorites')}</span>
               </Link>
 
-              <span className="paper-card flex flex-col items-center gap-3 p-6 sm:p-7 text-center opacity-40 cursor-default">
+              <span className="paper-card flex flex-col items-center gap-3 p-4 sm:p-5 text-center opacity-40 cursor-default">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-ink/5">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-ink/30">
                     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
@@ -357,7 +346,7 @@ export default function AccountPage() {
               </span>
 
               <Link href={`/${locale}/account/settings`}
-                className="paper-card group flex flex-col items-center gap-3 p-6 sm:p-7 text-center transition-all duration-300 hover:border-accent/25 hover:shadow-[0_0_20px_rgba(212,165,116,0.08)]">
+                className="paper-card group flex flex-col items-center gap-3 p-4 sm:p-5 text-center transition-all duration-300 hover:border-accent/25 hover:shadow-[0_0_20px_rgba(212,165,116,0.08)]">
                 <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/8 transition-colors duration-300 group-hover:bg-accent/15">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
                     <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
@@ -368,14 +357,13 @@ export default function AccountPage() {
 
               {isAdmin && (
                 <Link href={`/${locale}/admin`}
-                  className="accent-card group relative flex flex-col items-center gap-3 p-6 sm:p-7 rounded-[18px] text-center transition-all duration-300 hover:shadow-[0_0_24px_rgba(170,0,13,0.12)]">
-                  <div className="grain-overlay rounded-[18px]" />
-                  <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-accent/15">
+                  className="accent-card group relative flex flex-col items-center gap-3 p-4 sm:p-5 text-center transition-all duration-300 hover:shadow-[0_0_24px_rgba(212,165,116,0.15)] hover:border-accent/30">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-accent/15 transition-colors duration-300 group-hover:bg-accent/25">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
                       <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
                     </svg>
                   </div>
-                  <span className="relative z-10 text-sm text-accent font-medium tracking-wide">{t('profile.admin')}</span>
+                  <span className="text-sm text-accent font-medium tracking-wide">{t('profile.admin')}</span>
                 </Link>
               )}
             </div>
