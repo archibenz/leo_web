@@ -599,17 +599,26 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
 
           {/* ── PROFILE TAB: Orders + Recommendations ── */}
           {activeTab === 'profile' && (
-            <div className="space-y-10">
+            <div className="space-y-0">
               {/* Order History */}
-              <div>
-                <h2 className="font-display text-lg text-ink mb-4">{t('profile.orders')}</h2>
-                <div className="text-center py-8 rounded-xl bg-ink/[0.03] border border-ink/5">
-                  <svg viewBox="0 0 24 24" className="mx-auto h-10 w-10 text-ink/15 mb-3" fill="none" stroke="currentColor" strokeWidth="1.2">
-                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
-                  </svg>
-                  <p className="text-sm text-ink/40">{locale === 'ru' ? 'Пока что пусто' : 'No orders yet'}</p>
-                  <Link href={`/${locale}/shop`} className="inline-block mt-3 text-sm text-accent hover:text-accent/80 transition-colors">
-                    {locale === 'ru' ? 'Перейти в магазин' : 'Browse shop'}
+              <div className="pb-8">
+                <h2 className="font-display text-lg text-ink mb-5">{t('profile.orders')}</h2>
+                <div className="flex flex-col items-center justify-center py-14 rounded-2xl border border-dashed border-ink/10">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-ink/[0.04] mb-5">
+                    <svg viewBox="0 0 24 24" className="h-7 w-7 text-ink/20" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="7" width="20" height="14" rx="2" />
+                      <path d="M16 7V5a4 4 0 00-8 0v2" />
+                    </svg>
+                  </div>
+                  <p className="font-display text-base text-ink/60 mb-1">
+                    {locale === 'ru' ? 'У вас пока нет заказов' : 'No orders yet'}
+                  </p>
+                  <p className="text-[13px] text-ink/30 mb-5">
+                    {locale === 'ru' ? 'Ваши покупки появятся здесь' : 'Your purchases will appear here'}
+                  </p>
+                  <Link href={`/${locale}/shop`}
+                    className="lux-btn-secondary text-[13px] px-6 py-2.5">
+                    {locale === 'ru' ? 'Перейти в каталог' : 'Browse catalog'}
                   </Link>
                 </div>
               </div>
@@ -617,9 +626,15 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
               <div className="h-px bg-gradient-to-r from-transparent via-ink/8 to-transparent" />
 
               {/* Recommendations */}
-              <div>
-                <h2 className="font-display text-lg text-ink mb-2">{locale === 'ru' ? 'Возможно вас заинтересует' : 'You might like'}</h2>
-                <p className="text-sm text-ink-soft mb-6">{locale === 'ru' ? 'Подобрано специально для вас' : 'Curated just for you'}</p>
+              <div className="pt-8">
+                <div className="flex items-baseline justify-between mb-6">
+                  <h2 className="font-display text-lg text-ink">
+                    {locale === 'ru' ? 'Подобрано для вас' : 'Curated for you'}
+                  </h2>
+                  <Link href={`/${locale}/shop`} className="text-[13px] text-accent/60 hover:text-accent transition-colors">
+                    {locale === 'ru' ? 'Смотреть всё' : 'View all'}
+                  </Link>
+                </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                   {recentItems.map((item) => (
                     <Link key={item.id} href={`/${locale}/product/${item.id}`} className="group block">
