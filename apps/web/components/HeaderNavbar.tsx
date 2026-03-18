@@ -266,9 +266,9 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.85, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: 8 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 8, pointerEvents: "none" as never }}
                     transition={{ type: 'spring', mass: 0.5, damping: 11.5, stiffness: 100, restDelta: 0.001 }}
-                    className="absolute right-0 top-full mt-3 w-56 rounded-2xl border border-[#D4A574]/[0.08] overflow-hidden z-50"
+                    className="absolute right-0 top-full mt-3 w-56 rounded-2xl border border-[#D4A574]/[0.08] overflow-hidden z-[100]"
                     style={{
                       background: 'linear-gradient(165deg, rgba(26,16,12,0.98) 0%, rgba(36,21,16,0.97) 50%, rgba(30,18,13,0.98) 100%)',
                       backdropFilter: 'blur(40px) saturate(1.2)',
