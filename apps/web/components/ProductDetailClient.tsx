@@ -92,6 +92,7 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
   const [error, setError] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
+  const [recommendations, setRecommendations] = useState<ApiProduct[]>([]);
 
   const {addItem: addToCart, getItemQuantity, updateQuantity, items: cartItems} = useCart();
   const {toggleItem, isFavorite} = useFavorites();
@@ -111,6 +112,14 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
         setLoading(false);
       });
   }, [productId]);
+
+  useEffect(() => {
+    if (!product) return;
+    fetch(`${API_BASE}/api/catalog/products/${product.id}/recommendations`)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setRecommendations(data))
+      .catch(() => {});
+  }, [product]);
 
   if (loading) {
     return (
@@ -357,6 +366,34 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
           <ProductAccordion items={accordionItems} />
         </div>
       </div>
+
+      {/* Complete the look */}
+      {recommendations.length > 0 && (
+        <div className="mt-12 pt-8 border-t border-[var(--ink)]/8">
+          <h2 className="font-display text-xl text-[var(--ink)] mb-6">
+            {locale === 'ru' ? 'Дополните образ' : 'Complete the look'}
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {recommendations.map(rec => (
+              <Link key={rec.id} href={`/${locale}/product/${rec.id}`} className="group block">
+                <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[var(--paper-muted)]">
+                  {rec.image ? (
+                    <img src={rec.image} alt={rec.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center">
+                      <span className="text-[var(--ink)]/20 text-sm">No image</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2">
+                  <p className="text-sm text-[var(--ink)] truncate">{rec.title}</p>
+                  <p className="text-sm text-[var(--ink)]/50">{new Intl.NumberFormat(locale, {style: 'currency', currency: 'RUB', maximumFractionDigits: 0}).format(rec.price)}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
