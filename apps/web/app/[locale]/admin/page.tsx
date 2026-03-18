@@ -2,6 +2,8 @@
 
 import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
+import {usePathname} from 'next/navigation';
+import Link from 'next/link';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import Spinner from '../../../components/ui/Spinner';
 import {apiFetch} from '../../../lib/api';
@@ -25,6 +27,8 @@ type Alert = {
 
 export default function AdminDashboardPage() {
   const t = useTranslations('admin');
+  const pathname = usePathname() || '/';
+  const locale = pathname.split('/')[1] || 'ru';
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +76,25 @@ export default function AdminDashboardPage() {
                 <StatCard label={t('stats.outOfStock')} value={dashboard.outOfStockCount} warn={dashboard.outOfStockCount > 0} />
               </div>
             )}
+
+            {/* Quick Links */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <Link
+                href={`/${locale}/admin/homepage`}
+                className="paper-card flex items-center gap-4 p-5 transition hover:bg-[var(--ink)]/3"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/10">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[var(--ink)]">Homepage Settings</p>
+                  <p className="text-xs text-[var(--ink-soft)]">Featured products, collections, season</p>
+                </div>
+              </Link>
+            </div>
 
             {/* Alerts */}
             <div className="space-y-3">
