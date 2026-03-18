@@ -19,7 +19,7 @@ export const MenuItem = ({
   href,
   children,
 }: {
-  setActive: (item: string) => void;
+  setActive: (item: string | null) => void;
   active: string | null;
   item: string;
   href?: string;
@@ -30,9 +30,13 @@ export const MenuItem = ({
   }`;
 
   return (
-    <div onMouseEnter={() => setActive(item)} className="relative">
+    <div
+      onMouseEnter={() => setActive(item)}
+      onMouseLeave={() => setActive(null)}
+      className="relative z-[100]"
+    >
       {href ? (
-        <Link href={href} className={labelClass}>
+        <Link href={href} onClick={() => setActive(null)} className={labelClass}>
           {item}
         </Link>
       ) : (
@@ -45,7 +49,7 @@ export const MenuItem = ({
           <motion.div
             initial={{ opacity: 0, scale: 0.85, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 8 }}
+            exit={{ opacity: 0, scale: 0.9, y: 8, pointerEvents: "none" as never }}
             transition={transition}
           >
             <div className="absolute top-full left-1/2 -translate-x-1/2 pt-5">
