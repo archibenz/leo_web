@@ -348,7 +348,6 @@ export default function AccountPage() {
           </div>
 
         </div>
-        </div>
       </div>
     );
   }
