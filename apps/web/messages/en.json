@@ -245,10 +245,45 @@
     }
   },
   "about": {
-    "tag": "Story",
-    "title": "REINASLEO is an editorial lens on modern femininity.",
-    "body": "Founded to bridge couture techniques with contemporary practicality, REINASLEO curates tightly edited capsules. Each piece is designed to hold structure, move with grace, and photograph beautifully. We obsess over tactile contrasts—crisp wovens against fluid drape, matte suiting beside luminous silk.",
-    "note": "This is a placeholder page. Expand with atelier photography, founder notes, and process imagery."
+    "tag": "About",
+    "hero": {
+      "title": "REINASLEO",
+      "subtitle": "Not just clothing — complete looks"
+    },
+    "philosophy": {
+      "tag": "Philosophy",
+      "title": "We create looks, not just clothing",
+      "text": "Every piece in the REINASLEO collection is part of a curated look where silhouette, texture, and colour work together. We believe true style is the harmony of details."
+    },
+    "looks": {
+      "tag": "Concept",
+      "title": "Stylist-curated looks",
+      "text": "Every item comes with a selection of pieces that perfectly complement the look.",
+      "point1": "Curated combinations by professional stylists",
+      "point2": "Every piece is part of a cohesive look",
+      "point3": "Only our clothing — nothing superfluous"
+    },
+    "process": {
+      "tag": "Process",
+      "title": "How we create",
+      "step1title": "Design",
+      "step1text": "Exploring silhouettes, fabrics, and the season's colour palette.",
+      "step2title": "Tailoring",
+      "step2text": "Couture techniques combined with practicality. Every detail is verified.",
+      "step3title": "Styling",
+      "step3text": "Professional stylists assemble looks — complete outfits for any occasion."
+    },
+    "values": {
+      "tag": "Values",
+      "title": "What sets us apart",
+      "quality": "Premium fabrics",
+      "qualityText": "Only the finest materials from Italy and France",
+      "handcraft": "Handcraft",
+      "handcraftText": "Attention to every detail and seam",
+      "individuality": "Individuality",
+      "individualityText": "Style that highlights your uniqueness"
+    },
+    "cta": "Explore collections"
   },
   "shop": {
     "tag": "Shop",
