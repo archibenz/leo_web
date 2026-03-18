@@ -3,7 +3,7 @@
 import {useState, useEffect, useRef, useCallback} from 'react';
 import {useTranslations, useLocale} from 'next-intl';
 import {useRouter} from 'next/navigation';
-import {useAuth} from '../../../contexts';
+import {useAuth, useFavorites, useCart} from '../../../contexts';
 import {apiFetch} from '../../../lib/api';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import Spinner from '../../../components/ui/Spinner';
@@ -274,82 +274,10 @@ export default function AccountPage() {
       ? new Intl.DateTimeFormat(locale, {year: 'numeric', month: 'long'}).format(new Date(user.createdAt))
       : null;
 
-    return (
-      <div className="relative min-h-screen pt-28 pb-6">
-        <HeroShaderBackgroundClient />
-        <div className="relative z-10 mx-auto max-w-4xl px-6 lg:px-8">
-
-          {/* ── Top Navigation Tabs ── */}
-          <nav className="flex items-center justify-center gap-6 sm:gap-8 py-4 mb-10">
-            <span className="text-sm font-display uppercase tracking-[0.12em] text-accent border-b border-accent pb-1">{t('profile.name')}</span>
-            <span className="text-sm font-display uppercase tracking-[0.12em] text-ink/25 cursor-default">{t('profile.orders')}</span>
-            <Link href={`/${locale}/favorites`} className="text-sm font-display uppercase tracking-[0.12em] text-ink/60 transition-colors hover:text-ink">{t('profile.favorites')}</Link>
-            <Link href={`/${locale}/account/settings`} className="text-sm font-display uppercase tracking-[0.12em] text-ink/60 transition-colors hover:text-ink">{t('profile.settings')}</Link>
-            {isAdmin && (
-              <Link href={`/${locale}/admin`} className="text-sm font-display uppercase tracking-[0.12em] text-accent/70 transition-colors hover:text-accent">{t('profile.admin')}</Link>
-            )}
-          </nav>
-
-          <div className="h-px bg-gradient-to-r from-transparent via-ink/10 to-transparent" />
-
-          {/* ── Profile Header: Avatar + Name + Member Since ── */}
-          <div className="flex items-center gap-6 py-10">
-            <div className="flex-shrink-0 flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full bg-ink/[0.06] border border-ink/10">
-              <svg viewBox="0 0 24 24" className="h-9 w-9 sm:h-10 sm:w-10 text-ink/30" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="8" r="4" />
-                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-              </svg>
-            </div>
-            <div>
-              <h1 className="font-display text-ink text-[clamp(1.5rem,3.5vw,2.25rem)]">
-                {user.name}{user.surname ? ` ${user.surname}` : ''}
-              </h1>
-              {memberSinceDate && (
-                <p className="mt-1 text-sm text-ink-soft">
-                  {t('profile.memberSince', {date: memberSinceDate})}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="h-px bg-gradient-to-r from-transparent via-ink/10 to-transparent" />
-
-          {/* ── Profile Details ── */}
-          <div className="py-8 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-[0.15em] text-ink-soft">{t('profile.email')}</span>
-              <div className="flex items-center gap-2">
-                {user.email ? (
-                  <>
-                    <span className="text-sm text-ink">{user.email}</span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-green-400">
-                      <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                      {t('profile.emailVerified')}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-sm text-ink-soft italic">{t('profile.emailNotLinked')}</span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="h-px bg-gradient-to-r from-transparent via-ink/10 to-transparent" />
-
-          {/* ── Sign Out ── */}
-          <div className="py-8">
-            <button
-              type="button"
-              onClick={logout}
-              className="text-sm text-ink/40 transition-colors duration-300 hover:text-ink/70"
-            >
-              {t('profile.logOut')}
-            </button>
-          </div>
-
-        </div>
-      </div>
-    );
+    return <AuthenticatedProfile
+      user={user} locale={locale} isAdmin={isAdmin} logout={logout}
+      memberSinceDate={memberSinceDate} t={t}
+    />;
   }
 
   // Login / Register form
@@ -546,6 +474,152 @@ export default function AccountPage() {
             </p>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t}: {
+  user: {name: string; surname?: string; email?: string; createdAt?: string};
+  locale: string; isAdmin: boolean; logout: () => void; memberSinceDate: string | null;
+  t: (key: string, values?: Record<string, string>) => string;
+}) {
+  const [activeTab, setActiveTab] = useState<'profile' | 'favorites'>('profile');
+  const {items: favoriteItems, removeItem: removeFavorite, isLoading: favLoading} = useFavorites();
+  const {addItem: addToCart} = useCart();
+  const favT = useTranslations('favorites');
+
+  const tabClass = (active: boolean) =>
+    `text-sm font-display uppercase tracking-[0.12em] pb-1 transition-colors duration-200 ${
+      active ? 'text-accent border-b border-accent' : 'text-ink/60 hover:text-ink'
+    }`;
+
+  return (
+    <div className="relative min-h-screen pt-28 pb-6">
+      <HeroShaderBackgroundClient />
+      <div className="relative z-10 mx-auto max-w-4xl px-6 lg:px-8">
+
+        {/* ── Top Navigation Tabs ── */}
+        <nav className="flex items-center justify-center gap-6 sm:gap-8 py-4 mb-10">
+          <button type="button" onClick={() => setActiveTab('profile')} className={tabClass(activeTab === 'profile')}>{t('profile.name')}</button>
+          <span className="text-sm font-display uppercase tracking-[0.12em] text-ink/25 cursor-default">{t('profile.orders')}</span>
+          <button type="button" onClick={() => setActiveTab('favorites')} className={tabClass(activeTab === 'favorites')}>{t('profile.favorites')}</button>
+          <Link href={`/${locale}/account/settings`} className="text-sm font-display uppercase tracking-[0.12em] text-ink/60 transition-colors duration-200 hover:text-ink">{t('profile.settings')}</Link>
+          {isAdmin && (
+            <Link href={`/${locale}/admin`} className="text-sm font-display uppercase tracking-[0.12em] text-accent/70 transition-colors duration-200 hover:text-accent">{t('profile.admin')}</Link>
+          )}
+        </nav>
+
+        <div className="h-px bg-gradient-to-r from-transparent via-ink/10 to-transparent" />
+
+        {/* ── Profile Header: Avatar + Name + Member Since (NO card background) ── */}
+        <div className="flex items-center gap-6 py-10">
+          <div className="flex-shrink-0 flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full bg-ink/[0.06] border border-ink/10">
+            <svg viewBox="0 0 24 24" className="h-9 w-9 sm:h-10 sm:w-10 text-ink/30" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="font-display text-ink text-[clamp(1.5rem,3.5vw,2.25rem)]">
+              {user.name}{user.surname ? ` ${user.surname}` : ''}
+            </h1>
+            {memberSinceDate && (
+              <p className="mt-1 text-sm text-ink-soft">
+                {t('profile.memberSince', {date: memberSinceDate})}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* ── Content Card ── */}
+        <div className="paper-card p-6 sm:p-8">
+          {activeTab === 'profile' && (
+            <>
+              <div className="flex items-center justify-between py-2">
+                <span className="text-xs uppercase tracking-[0.15em] text-ink-soft">{t('profile.email')}</span>
+                <div className="flex items-center gap-2">
+                  {user.email ? (
+                    <>
+                      <span className="text-sm text-ink">{user.email}</span>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-green-400">
+                        <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                        {t('profile.emailVerified')}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-sm text-ink-soft italic">{t('profile.emailNotLinked')}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="h-px bg-gradient-to-r from-transparent via-ink/8 to-transparent my-4" />
+
+              <button
+                type="button"
+                onClick={logout}
+                className="text-sm text-ink/40 transition-colors duration-300 hover:text-ink/70"
+              >
+                {t('profile.logOut')}
+              </button>
+            </>
+          )}
+
+          {activeTab === 'favorites' && (
+            <>
+              {favLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Spinner size="lg" />
+                </div>
+              ) : favoriteItems.length === 0 ? (
+                <div className="text-center py-12 space-y-4">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-ink/5">
+                    <svg viewBox="0 0 24 24" className="h-8 w-8 text-ink/20" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                    </svg>
+                  </div>
+                  <p className="font-display text-lg text-ink">{favT('empty.title')}</p>
+                  <p className="text-sm text-ink-soft">{favT('empty.subtitle')}</p>
+                  <Link
+                    href={`/${locale}/shop`}
+                    className="inline-block rounded-full bg-button px-6 py-3 text-sm font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85"
+                  >
+                    {favT('empty.cta')}
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {favoriteItems.map((item) => (
+                    <div key={item.id} className="group relative">
+                      <Link href={`/${locale}/product/${item.id}`} className="block">
+                        <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-paperMuted">
+                          {item.image ? (
+                            <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-paperMuted to-paper">
+                              <svg viewBox="0 0 24 24" className="h-12 w-12 text-ink/10" fill="none" stroke="currentColor" strokeWidth="0.8">
+                                <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" />
+                              </svg>
+                            </div>
+                          )}
+                          <button
+                            onClick={(e) => { e.preventDefault(); removeFavorite(item.id); }}
+                            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-paper/80 text-ink-soft backdrop-blur-sm transition-all hover:bg-paper hover:text-ink"
+                            aria-label={favT('remove')}
+                          >
+                            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                          </button>
+                        </div>
+                      </Link>
+                      <p className="mt-2 text-sm text-ink truncate">{item.title}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
       </div>
     </div>
   );
