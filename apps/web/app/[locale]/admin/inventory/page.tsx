@@ -82,7 +82,7 @@ export default function AdminInventoryPage() {
                         onClick={() => handleUpdateStock(product.id)}
                         className="rounded-full bg-[var(--accent)] px-3 py-1 text-xs text-[var(--paper-base)]"
                       >
-                        OK
+                        {t('ok')}
                       </button>
                       <button
                         onClick={() => setEditingId(null)}

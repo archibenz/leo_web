@@ -42,6 +42,7 @@ export default function EditProductPage({params}: Props) {
 }
 
 function RecommendationsSection({productId}: {productId: string}) {
+  const t = useTranslations('admin');
   const [recommendations, setRecommendations] = useState<RecommendedProduct[]>([]);
   const [allProducts, setAllProducts] = useState<ProductOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,9 +91,9 @@ function RecommendationsSection({productId}: {productId: string}) {
         method: 'PUT',
         body: JSON.stringify({productIds: recommendations.map(r => r.id)}),
       });
-      setMessage('Recommendations saved');
+      setMessage(t('recommendationsSaved'));
     } catch {
-      setMessage('Error saving recommendations');
+      setMessage(t('recommendationsError'));
     } finally {
       setSaving(false);
     }
@@ -110,11 +111,11 @@ function RecommendationsSection({productId}: {productId: string}) {
 
   return (
     <div className="paper-card p-6 space-y-4">
-      <h2 className="text-lg font-medium text-[var(--ink)]">Recommendations</h2>
+      <h2 className="text-lg font-medium text-[var(--ink)]">{t('recommendations')}</h2>
 
       {/* Current recommendations */}
       {recommendations.length === 0 ? (
-        <p className="text-sm text-[var(--ink-soft)]">No recommendations yet.</p>
+        <p className="text-sm text-[var(--ink-soft)]">{t('noRecommendations')}</p>
       ) : (
         <div className="space-y-2">
           {recommendations.map(rec => (
@@ -126,7 +127,7 @@ function RecommendationsSection({productId}: {productId: string}) {
               <button
                 onClick={() => handleRemove(rec.id)}
                 className="shrink-0 rounded-full p-1.5 text-[var(--ink-soft)] hover:bg-red-500/10 hover:text-red-400 transition"
-                title="Remove"
+                title={t('remove')}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
@@ -142,7 +143,7 @@ function RecommendationsSection({productId}: {productId: string}) {
           onChange={e => setSelectedId(e.target.value)}
           className="admin-input flex-1"
         >
-          <option value="">Select a product...</option>
+          <option value="">{t('selectProduct')}</option>
           {availableProducts.map(p => (
             <option key={p.id} value={p.id}>{p.title}</option>
           ))}
@@ -153,7 +154,7 @@ function RecommendationsSection({productId}: {productId: string}) {
           disabled={!selectedId}
           className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--paper-base)] transition hover:opacity-90 disabled:opacity-50"
         >
-          + Add
+          {t('addRecommendation')}
         </button>
       </div>
 
@@ -164,7 +165,7 @@ function RecommendationsSection({productId}: {productId: string}) {
           disabled={saving}
           className="lux-btn-primary"
         >
-          {saving ? '...' : 'Save Recommendations'}
+          {saving ? '...' : t('saveRecommendations')}
         </button>
         {message && (
           <span className="text-sm text-[var(--accent)]">{message}</span>

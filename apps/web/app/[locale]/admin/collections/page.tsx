@@ -72,7 +72,7 @@ export default function AdminCollectionsPage() {
                     <span className="font-medium text-[var(--ink)]">{col.name}</span>
                     {!col.active && (
                       <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-400">
-                        Inactive
+                        {t('inactive')}
                       </span>
                     )}
                   </div>

@@ -757,6 +757,35 @@
       "maxSize": "Макс. 10МБ на файл (JPG, PNG, WebP)"
     },
     "accessDenied": "Доступ запрещён. Требуется роль администратора.",
-    "backToSite": "Вернуться на сайт"
+    "backToSite": "Вернуться на сайт",
+    "homepage": "Настройки главной",
+    "homepageDesc": "Популярные товары, коллекции, сезон",
+    "homepageSettings": "Настройки главной страницы",
+    "currentSeason": "Текущий сезон",
+    "season": "Сезон",
+    "year": "Год",
+    "seasons": {
+      "spring": "Весна",
+      "summer": "Лето",
+      "autumn": "Осень",
+      "winter": "Зима"
+    },
+    "featuredProducts": "Популярные товары",
+    "homepageCollections": "Коллекции на главной",
+    "searchProducts": "Поиск товаров...",
+    "searchCollections": "Поиск коллекций...",
+    "selected": "выбрано",
+    "saveSettings": "Сохранить настройки",
+    "settingsSaved": "Настройки сохранены",
+    "inactive": "Неактивен",
+    "recommendations": "Рекомендации",
+    "noRecommendations": "Рекомендаций пока нет",
+    "selectProduct": "Выберите товар...",
+    "addRecommendation": "+ Добавить",
+    "saveRecommendations": "Сохранить рекомендации",
+    "recommendationsSaved": "Рекомендации сохранены",
+    "recommendationsError": "Ошибка сохранения рекомендаций",
+    "remove": "Удалить",
+    "ok": "ОК"
   }
 }
