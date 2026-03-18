@@ -563,7 +563,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
       <div className="relative z-10 mx-auto max-w-4xl px-6 lg:px-8">
 
         {/* ── Top Navigation Tabs ── */}
-        <nav className="flex flex-wrap items-baseline justify-center gap-x-6 gap-y-2 sm:gap-x-8 py-4 mb-10">
+        <nav className="liquid-glass rounded-2xl flex flex-wrap items-baseline justify-center gap-x-6 gap-y-2 sm:gap-x-8 px-6 py-4 mb-10">
           <button type="button" onClick={() => setActiveTab('profile')} className={tabClass('profile')}>{t('profile.name')}</button>
           <span className="text-sm font-display uppercase tracking-[0.12em] text-ink/25 cursor-default pb-1">{t('profile.orders')}</span>
           <button type="button" onClick={() => setActiveTab('favorites')} className={tabClass('favorites')}>{t('profile.favorites')}</button>

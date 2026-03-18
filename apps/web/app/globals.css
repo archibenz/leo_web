@@ -33,8 +33,7 @@ html {
   scroll-behavior: smooth;
   height: 100%;
   overflow-x: hidden;
-  overscroll-behavior: none;
-  overscroll-behavior-y: none;
+  overscroll-behavior-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -47,8 +46,7 @@ body {
   height: 100%;
   min-height: 100vh;
   overflow-x: hidden;
-  overscroll-behavior: none;
-  overscroll-behavior-y: none;
+  overscroll-behavior-y: auto;
   background:
     radial-gradient(ellipse 120% 60% at 50% 0%, var(--lux-bg-warm) 0%, transparent 50%),
     radial-gradient(ellipse 80% 50% at 80% 80%, rgba(30, 18, 13, 0.5) 0%, transparent 50%),
