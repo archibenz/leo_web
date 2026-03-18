@@ -5,7 +5,6 @@ import Header from '../../components/Header';
 import SmartHeader from '../../components/SmartHeader';
 import Footer from '../../components/Footer';
 import Providers from '../../components/Providers';
-import BounceScroll from '../../components/BounceScroll';
 
 import {locales, type Locale} from '../../i18n';
 
@@ -33,7 +32,6 @@ export default async function LocaleLayout({
           </SmartHeader>
           <main className="relative z-10 flex-1">{children}</main>
           <Footer locale={locale} />
-          <BounceScroll />
         </div>
       </Providers>
     </NextIntlClientProvider>
