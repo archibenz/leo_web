@@ -1,3 +1,4 @@
+import type {Metadata} from 'next';
 import {getTranslations} from 'next-intl/server';
 import HeroShaderBackgroundClient from '../../components/HeroShaderBackgroundClient';
 import BlurReveal from '../../components/BlurReveal';
@@ -10,6 +11,23 @@ import type {Locale} from '../../i18n';
 type Props = {
   params: Promise<{locale: Locale}>;
 };
+
+export async function generateMetadata({params}: Props): Promise<Metadata> {
+  const {locale} = await params;
+  const isRu = locale === 'ru';
+  return {
+    title: isRu
+      ? 'REINASLEO — Королевская уверенность. Скульптурная женственность.'
+      : 'REINASLEO — Regal confidence. Sculpted femininity.',
+    description: isRu
+      ? 'Премиальная женская одежда: скульптурные силуэты, ручная работа, эксклюзивные коллекции.'
+      : 'Premium womenswear with sculpted silhouettes, precision craftsmanship, and editorial storytelling.',
+    alternates: {
+      canonical: `/${locale}`,
+      languages: {en: '/en', ru: '/ru'},
+    },
+  };
+}
 
 export default async function HomePage({params}: Props) {
   const {locale} = await params;
