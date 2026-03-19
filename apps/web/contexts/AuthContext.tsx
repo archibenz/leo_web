@@ -1,6 +1,6 @@
 'use client';
 
-import {createContext, useContext, useState, useEffect, useCallback, type ReactNode} from 'react';
+import {createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode} from 'react';
 import {isValidEmail} from '../lib/database';
 import {apiFetch, setToken, clearToken, getToken} from '../lib/api';
 
@@ -264,24 +264,24 @@ export function AuthProvider({children}: {children: ReactNode}) {
     setUser(null);
   }, []);
 
+  const value = useMemo(() => ({
+    user,
+    isAuthenticated: !!user,
+    isLoading,
+    login,
+    sendCode,
+    register,
+    linkEmail,
+    updateNewsletterPreferences,
+    initTelegramAuth,
+    loginWithToken,
+    logout,
+    validateEmail,
+    isAdmin,
+  }), [user, isLoading, login, sendCode, register, linkEmail, updateNewsletterPreferences, initTelegramAuth, loginWithToken, logout, validateEmail, isAdmin]);
+
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: !!user,
-        isLoading,
-        login,
-        sendCode,
-        register,
-        linkEmail,
-        updateNewsletterPreferences,
-        initTelegramAuth,
-        loginWithToken,
-        logout,
-        validateEmail,
-        isAdmin,
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

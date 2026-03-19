@@ -7,6 +7,7 @@ import com.reinasleo.api.model.StockAlert;
 import com.reinasleo.api.repository.CollectionRepository;
 import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.StockAlertRepository;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +44,7 @@ public class AdminProductService {
         return toAdminResponse(p);
     }
 
+    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
     @Transactional
     public AdminProductResponse create(AdminProductRequest req) {
         if (req.id() == null || req.id().isBlank()) {
@@ -61,6 +63,7 @@ public class AdminProductService {
         return toAdminResponse(saved);
     }
 
+    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
     @Transactional
     public AdminProductResponse update(String id, AdminProductRequest req) {
         Product p = productRepository.findById(id)
@@ -71,6 +74,7 @@ public class AdminProductService {
         return toAdminResponse(saved);
     }
 
+    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
     @Transactional
     public void deactivate(String id) {
         Product p = productRepository.findById(id)
@@ -79,6 +83,7 @@ public class AdminProductService {
         productRepository.save(p);
     }
 
+    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
     @Transactional
     public AdminProductResponse updateStock(String id, int quantity) {
         Product p = productRepository.findById(id)
@@ -89,6 +94,7 @@ public class AdminProductService {
         return toAdminResponse(saved);
     }
 
+    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
     @Transactional
     public void hardDelete(String id) {
         Product p = productRepository.findById(id)

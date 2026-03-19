@@ -1,5 +1,6 @@
 "use client";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 import { useState, useRef, useEffect, useCallback } from "react";
 
 interface SlideData {
@@ -187,11 +188,15 @@ export function Carousel({ slides }: CarouselProps) {
             >
               <div className="relative w-full h-full rounded-xl overflow-hidden cursor-pointer group">
                 {/* Image */}
-                <img
+                <Image
                   src={slide.src}
                   alt={slide.title}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  draggable="false"
+                  width={800}
+                  height={800}
+                  loading="lazy"
+                  sizes="clamp(260px, 38vw, 420px)"
+                  draggable={false}
                 />
 
                 {/* Gradient overlay */}
