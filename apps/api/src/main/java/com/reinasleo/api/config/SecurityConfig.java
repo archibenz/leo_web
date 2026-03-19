@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .headers(headers -> headers
                     .frameOptions(frame -> frame.deny())
                     .contentTypeOptions(content -> {})
+                    .cacheControl(cache -> cache.disable())
                     .referrerPolicy(referrer -> referrer.policy(
                         org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
                     .permissionsPolicy(permissions -> permissions.policy(
