@@ -58,6 +58,12 @@ The only coupling between frontend and backend is the HTTP API. Changes to API e
 - **Web env**: `NEXT_PUBLIC_API_BASE=http://localhost:8080`
 - **API env**: see `apps/api/CLAUDE.md` for full list
 
+## Code Style
+- No verbose AI-style comments ("This component renders...", "Helper function to...")
+- No unnecessary JSDoc on obvious functions
+- Comments only where logic is non-obvious
+- Code should look human-written — natural variable names, minimal documentation
+
 ## Security Rules
 
 - `.env` files are gitignored — NEVER commit them
