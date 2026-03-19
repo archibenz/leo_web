@@ -69,15 +69,15 @@ const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8080';
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export default function ShopClient() {
+export default function ShopClient({initialProducts}: {initialProducts?: ShopItem[]}) {
   const t = useTranslations('shop');
   const pathname = usePathname() || '/';
   const locale = pathname.split('/')[1] || 'ru';
   const searchParams = useSearchParams();
 
   /* ---- state ---- */
-  const [items, setItems] = useState<ShopItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<ShopItem[]>(initialProducts ?? []);
+  const [loading, setLoading] = useState(!initialProducts?.length);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sortKey, setSortKey] = useState<string>('newest');
   const [sortPanelOpen, setSortPanelOpen] = useState(false);

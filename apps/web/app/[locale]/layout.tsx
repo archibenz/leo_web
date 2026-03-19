@@ -23,9 +23,23 @@ export default async function LocaleLayout({
   const locale = localeParam as Locale;
   const messages = await getMessages();
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://82.97.240.123';
+  const orgJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'REINASLEO',
+    url: siteUrl,
+    logo: `${siteUrl}/logos/logo-white.svg`,
+    sameAs: ['https://instagram.com/reinasleo', 'https://t.me/reinasleo'],
+  };
+
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <Providers>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{__html: JSON.stringify(orgJsonLd)}}
+        />
         <div className="relative flex min-h-screen flex-col">
           <a
             href="#main-content"

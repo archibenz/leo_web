@@ -3,6 +3,8 @@ import type {Metadata} from 'next';
 import type {Locale} from '../../../i18n';
 import ShopClient from '../../../components/ShopClient';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8080';
+
 type Props = {params: Promise<{locale: Locale}>};
 
 export async function generateMetadata({params}: Props): Promise<Metadata> {
@@ -23,9 +25,16 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 export default async function ShopPage({params}: Props) {
   const {locale} = await params;
   void locale;
+
+  let products = [];
+  try {
+    const res = await fetch(`${API_BASE}/api/catalog/products`, {next: {revalidate: 60}});
+    if (res.ok) products = await res.json();
+  } catch { /* fallback to client-side fetch */ }
+
   return (
     <Suspense>
-      <ShopClient />
+      <ShopClient initialProducts={products} />
     </Suspense>
   );
 }
