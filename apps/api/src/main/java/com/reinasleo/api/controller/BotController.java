@@ -9,6 +9,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+
 @RestController
 @RequestMapping("/api/bot")
 public class BotController {
@@ -23,7 +26,9 @@ public class BotController {
     }
 
     private void validateSecret(String secret) {
-        if (secret == null || !secret.equals(botApiSecret)) {
+        if (secret == null || !MessageDigest.isEqual(
+                secret.getBytes(StandardCharsets.UTF_8),
+                botApiSecret.getBytes(StandardCharsets.UTF_8))) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid_bot_secret");
         }
     }
