@@ -63,6 +63,7 @@ The only coupling between frontend and backend is the HTTP API. Changes to API e
 - No unnecessary JSDoc on obvious functions
 - Comments only where logic is non-obvious
 - Code should look human-written — natural variable names, minimal documentation
+- When reverting a feature: delete ALL related files, components, types, and imports — leave no dead code
 
 ## Security Rules
 
