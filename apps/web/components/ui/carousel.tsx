@@ -231,7 +231,8 @@ export function Carousel({ slides }: CarouselProps) {
                 ? "w-6 bg-[#D4A574]"
                 : "w-1.5 bg-[#F2E6D8]/25 hover:bg-[#F2E6D8]/40"
             }`}
-            aria-label={`Slide ${i + 1}`}
+            aria-label={`Slide ${i + 1} of ${slides.length}`}
+            aria-current={i === current ? 'true' : undefined}
           />
         ))}
       </div>
