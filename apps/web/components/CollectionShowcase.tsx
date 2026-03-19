@@ -2,6 +2,7 @@
 
 import {useRef} from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import BlurReveal from './BlurReveal';
 import {Carousel} from './ui/carousel';
 
@@ -53,11 +54,15 @@ function HeroCard({title, subtitle, locale, season}: {title: string; subtitle: s
       />
 
       {/* Photo */}
-      <img
+      <Image
         src={HERO_IMAGE}
-        alt=""
+        alt="Collection hero"
         className="absolute inset-0 h-full w-full object-cover"
-        draggable="false"
+        width={1200}
+        height={800}
+        loading="lazy"
+        sizes="100vw"
+        draggable={false}
       />
 
       {/* Top blend: soft fade into card */}

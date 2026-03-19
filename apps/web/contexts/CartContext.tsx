@@ -1,6 +1,6 @@
 'use client';
 
-import {createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode} from 'react';
+import {createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode} from 'react';
 import {useAuth} from './AuthContext';
 import {apiFetch, getToken} from '../lib/api';
 
@@ -128,18 +128,14 @@ export function CartProvider({children}: {children: ReactNode}) {
   }, []);
 
   async function mergeGuestCart(guestItems: CartItem[]): Promise<void> {
-    for (const item of guestItems) {
+    await Promise.all(guestItems.map(item => {
       const productId = item.id.includes('__') ? item.id.split('__')[0] : item.id;
       const size = item.size ?? (item.id.includes('__') ? item.id.split('__')[1] : undefined);
-      try {
-        await apiFetch('/api/me/cart', {
-          method: 'POST',
-          body: JSON.stringify({productId, size: size ?? null, quantity: item.quantity}),
-        });
-      } catch {
-        // skip items that fail to merge (e.g., unknown product)
-      }
-    }
+      return apiFetch('/api/me/cart', {
+        method: 'POST',
+        body: JSON.stringify({productId, size: size ?? null, quantity: item.quantity}),
+      }).catch(() => {});
+    }));
   }
 
   const addItem = useCallback((item: Omit<CartItem, 'quantity'>) => {
@@ -240,20 +236,20 @@ export function CartProvider({children}: {children: ReactNode}) {
   const count = items.reduce((sum, item) => sum + item.quantity, 0);
   const total = items.reduce((sum, item) => sum + (item.price ?? 0) * item.quantity, 0);
 
+  const value = useMemo(() => ({
+    items,
+    count,
+    total,
+    isLoading,
+    addItem,
+    removeItem,
+    updateQuantity,
+    clearCart,
+    getItemQuantity,
+  }), [items, count, total, isLoading, addItem, removeItem, updateQuantity, clearCart, getItemQuantity]);
+
   return (
-    <CartContext.Provider
-      value={{
-        items,
-        count,
-        total,
-        isLoading,
-        addItem,
-        removeItem,
-        updateQuantity,
-        clearCart,
-        getItemQuantity,
-      }}
-    >
+    <CartContext.Provider value={value}>
       {children}
     </CartContext.Provider>
   );

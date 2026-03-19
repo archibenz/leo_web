@@ -35,9 +35,11 @@ public class RecommendationService {
             List<String> ids = manual.stream()
                     .map(ProductRecommendation::getRecommendedProductId)
                     .toList();
+            java.util.Map<String, Product> productMap = productRepository.findByIdInAndActiveTrue(ids).stream()
+                    .collect(java.util.stream.Collectors.toMap(Product::getId, p -> p));
             return ids.stream()
-                    .map(id -> productRepository.findById(id).orElse(null))
-                    .filter(p -> p != null && p.isActive())
+                    .map(productMap::get)
+                    .filter(java.util.Objects::nonNull)
                     .toList();
         }
 

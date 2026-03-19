@@ -2,6 +2,7 @@
 
 import {useRef, useState, useEffect, useCallback} from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import BlurReveal from './BlurReveal';
 
 /* ── Types ── */
@@ -183,11 +184,15 @@ function ShopHeroCard({title, subtitle, locale}: {title: string; subtitle: strin
       />
 
       {/* Photo */}
-      <img
+      <Image
         src={SHOP_HERO_IMAGE}
-        alt=""
+        alt="Shop collection"
         className="absolute inset-0 h-full w-full object-cover"
-        draggable="false"
+        width={1200}
+        height={800}
+        loading="lazy"
+        sizes="100vw"
+        draggable={false}
       />
 
       {/* Vignette */}
@@ -260,7 +265,7 @@ export default function HomeSections({
                     }`}
                   >
                     {CATEGORY_IMAGES[cat.key] && (
-                      <img src={CATEGORY_IMAGES[cat.key]} alt="" className="h-full w-full object-cover" draggable="false" />
+                      <Image src={CATEGORY_IMAGES[cat.key]} alt={cat.label} className="h-full w-full object-cover" width={600} height={900} loading="lazy" sizes="(max-width: 640px) 208px, (max-width: 1024px) 256px, 288px" draggable={false} />
                     )}
                   </div>
                   <div className="mt-3 space-y-1">
@@ -300,7 +305,7 @@ export default function HomeSections({
                     }`}
                   >
                     {POPULAR_IMAGES[i] && (
-                      <img src={POPULAR_IMAGES[i]} alt="" className="h-full w-full object-cover" draggable="false" />
+                      <Image src={POPULAR_IMAGES[i]} alt={item.label} className="h-full w-full object-cover" width={600} height={900} loading="lazy" sizes="(max-width: 640px) 208px, (max-width: 1024px) 256px, 288px" draggable={false} />
                     )}
                   </div>
                   <div className="mt-3 space-y-1">

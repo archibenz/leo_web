@@ -5,6 +5,7 @@ import com.reinasleo.api.dto.CollectionResponse;
 import com.reinasleo.api.model.Collection;
 import com.reinasleo.api.repository.CollectionRepository;
 import com.reinasleo.api.repository.ProductRepository;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +54,7 @@ public class CollectionService {
         return toResponse(c);
     }
 
+    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
     @Transactional
     public CollectionResponse create(CollectionRequest req) {
         Collection c = new Collection();
@@ -67,6 +69,7 @@ public class CollectionService {
         return toResponse(saved);
     }
 
+    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
     @Transactional
     public CollectionResponse update(UUID id, CollectionRequest req) {
         Collection c = collectionRepository.findById(id)
@@ -82,6 +85,7 @@ public class CollectionService {
         return toResponse(saved);
     }
 
+    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
     @Transactional
     public void deactivate(UUID id) {
         Collection c = collectionRepository.findById(id)
@@ -90,6 +94,7 @@ public class CollectionService {
         collectionRepository.save(c);
     }
 
+    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
     @Transactional
     public void hardDelete(UUID id) {
         Collection c = collectionRepository.findById(id)

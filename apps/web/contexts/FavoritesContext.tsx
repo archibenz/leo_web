@@ -1,6 +1,6 @@
 'use client';
 
-import {createContext, useContext, useState, useEffect, useCallback, type ReactNode} from 'react';
+import {createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode} from 'react';
 import {useAuth} from './AuthContext';
 import {apiFetch, getToken} from '../lib/api';
 
@@ -88,13 +88,9 @@ export function FavoritesProvider({children}: {children: ReactNode}) {
   }, []);
 
   async function mergeGuestFavorites(guestItems: FavoriteItem[]): Promise<void> {
-    for (const item of guestItems) {
-      try {
-        await apiFetch(`/api/me/favorites/${item.id}`, {method: 'POST'});
-      } catch {
-        // skip
-      }
-    }
+    await Promise.all(guestItems.map(item =>
+      apiFetch(`/api/me/favorites/${item.id}`, {method: 'POST'}).catch(() => {})
+    ));
   }
 
   const addItem = useCallback((item: FavoriteItem) => {
@@ -137,19 +133,19 @@ export function FavoritesProvider({children}: {children: ReactNode}) {
     setItems([]);
   }, []);
 
+  const value = useMemo(() => ({
+    items,
+    count: items.length,
+    isLoading,
+    addItem,
+    removeItem,
+    toggleItem,
+    isFavorite,
+    clearFavorites,
+  }), [items, isLoading, addItem, removeItem, toggleItem, isFavorite, clearFavorites]);
+
   return (
-    <FavoritesContext.Provider
-      value={{
-        items,
-        count: items.length,
-        isLoading,
-        addItem,
-        removeItem,
-        toggleItem,
-        isFavorite,
-        clearFavorites,
-      }}
-    >
+    <FavoritesContext.Provider value={value}>
       {children}
     </FavoritesContext.Provider>
   );
