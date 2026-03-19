@@ -39,23 +39,18 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("file:" + uploadDir + "/");
     }
 
-    @Override
-    public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new HandlerInterceptor() {
-            @Override
-            public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-                return true;
-            }
-
-            @Override
-            public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) {
-                String path = request.getRequestURI();
+    @org.springframework.context.annotation.Bean
+    public jakarta.servlet.Filter cacheControlFilter() {
+        return (request, response, chain) -> {
+            chain.doFilter(request, response);
+            if (response instanceof HttpServletResponse res && request instanceof HttpServletRequest req) {
+                String path = req.getRequestURI();
                 if (path.startsWith("/api/catalog/")) {
-                    response.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+                    res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
                 } else if (path.startsWith("/api/lookbook")) {
-                    response.setHeader("Cache-Control", "public, max-age=300");
+                    res.setHeader("Cache-Control", "public, max-age=300");
                 }
             }
-        });
+        };
     }
 }
