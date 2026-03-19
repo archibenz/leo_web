@@ -53,6 +53,7 @@ export default function ContactForm() {
           <input
             name="name"
             required
+            aria-required="true"
             className="rounded-lg border border-ink/20 bg-white/70 px-4 py-3 text-ink outline-none transition focus:border-accent"
             placeholder={t('namePlaceholder')}
           />
@@ -63,6 +64,7 @@ export default function ContactForm() {
             name="email"
             type="email"
             required
+            aria-required="true"
             className="rounded-lg border border-ink/20 bg-white/70 px-4 py-3 text-ink outline-none transition focus:border-accent"
             placeholder={t('emailPlaceholder')}
           />
@@ -73,6 +75,7 @@ export default function ContactForm() {
         <textarea
           name="message"
           required
+          aria-required="true"
           rows={5}
           className="rounded-lg border border-ink/20 bg-white/70 px-4 py-3 text-ink outline-none transition focus:border-accent"
           placeholder={t('messagePlaceholder')}
@@ -91,9 +94,9 @@ export default function ContactForm() {
           {status === 'submitting' ? t('sending') : t('submit')}
         </button>
       </div>
-      <div aria-live="polite" className="text-sm text-ink-soft">
+      <div aria-live="polite" role="status" className="text-sm text-ink-soft">
         {status === 'success' && <span>{t('success')}</span>}
-        {status === 'error' && <span>{error ?? t('error')}</span>}
+        {status === 'error' && <span role="alert">{error ?? t('error')}</span>}
       </div>
     </form>
   );

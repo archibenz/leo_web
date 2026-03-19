@@ -130,6 +130,9 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
           <input
             ref={inputRef}
             type="text"
+            role="combobox"
+            aria-autocomplete="list"
+            aria-expanded={isFocused && suggestions.length > 0}
             placeholder={placeholder}
             value={searchQuery}
             onChange={handleSearch}
@@ -161,10 +164,12 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
               minWidth: "200px",
             }}
           >
-            <div className="p-1.5">
+            <div className="p-1.5" role="listbox">
               {suggestions.map((suggestion, i) => (
                 <motion.div
                   key={suggestion}
+                  role="option"
+                  aria-selected={false}
                   initial={{ opacity: 0, y: -8, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.9 }}

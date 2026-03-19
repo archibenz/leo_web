@@ -27,10 +27,16 @@ export default async function LocaleLayout({
     <NextIntlClientProvider locale={locale} messages={messages}>
       <Providers>
         <div className="relative flex min-h-screen flex-col">
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded focus:bg-ink focus:px-4 focus:py-2 focus:text-paper focus:outline-none"
+          >
+            {locale === 'ru' ? 'Перейти к содержанию' : 'Skip to main content'}
+          </a>
           <SmartHeader>
             <Header locale={locale} />
           </SmartHeader>
-          <main className="relative z-10 flex-1">{children}</main>
+          <main id="main-content" className="relative z-10 flex-1">{children}</main>
           <Footer locale={locale} />
         </div>
       </Providers>
