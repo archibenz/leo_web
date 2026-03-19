@@ -58,6 +58,16 @@ The only coupling between frontend and backend is the HTTP API. Changes to API e
 - **Web env**: `NEXT_PUBLIC_API_BASE=http://localhost:8080`
 - **API env**: see `apps/api/CLAUDE.md` for full list
 
+## Security Rules
+
+- `.env` files are gitignored — NEVER commit them
+- `application.yml`: secrets via `${ENV_VAR}` only, NO default values (no `:fallback` syntax)
+- `auth.ts`: JWT_SECRET is required, NO fallback — app throws if missing
+- Secret comparison: use `MessageDigest.isEqual()`, NEVER `String.equals()`
+- `RateLimitFilter.java` — do NOT remove or disable rate limiting
+- `SecurityConfig.java` — do NOT remove security headers or change CORS to `*`
+- `middleware.ts` — do NOT remove security headers (X-Frame-Options, X-Content-Type-Options, etc.)
+
 ## Completed: Telegram Registration for All Users
 
 All tasks implemented and verified:
