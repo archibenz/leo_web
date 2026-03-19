@@ -1,8 +1,26 @@
+import type {Metadata} from 'next';
 import {getTranslations} from 'next-intl/server';
 import ContactForm from '../../../components/ContactForm';
 import type {Locale} from '../../../i18n';
 
-export default async function ContactPage({params}: {params: Promise<{locale: Locale}>}) {
+type Props = {params: Promise<{locale: Locale}>};
+
+export async function generateMetadata({params}: Props): Promise<Metadata> {
+  const {locale} = await params;
+  const isRu = locale === 'ru';
+  return {
+    title: isRu ? 'Контакты' : 'Contact',
+    description: isRu
+      ? 'Свяжитесь с REINASLEO: запись в ателье, вопросы по заказам, сотрудничество.'
+      : 'Get in touch with REINASLEO: atelier appointments, order inquiries, collaboration.',
+    alternates: {
+      canonical: `/${locale}/contact`,
+      languages: {en: '/en/contact', ru: '/ru/contact'},
+    },
+  };
+}
+
+export default async function ContactPage({params}: Props) {
   const {locale} = await params;
   const t = await getTranslations({locale, namespace: 'contact'});
 

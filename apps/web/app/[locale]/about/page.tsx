@@ -1,9 +1,27 @@
+import type {Metadata} from 'next';
 import {getTranslations} from 'next-intl/server';
 import Link from 'next/link';
 import type {Locale} from '../../../i18n';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 
-export default async function AboutPage({params}: {params: Promise<{locale: Locale}>}) {
+type Props = {params: Promise<{locale: Locale}>};
+
+export async function generateMetadata({params}: Props): Promise<Metadata> {
+  const {locale} = await params;
+  const isRu = locale === 'ru';
+  return {
+    title: isRu ? 'О бренде' : 'About',
+    description: isRu
+      ? 'REINASLEO — ателье премиальной женской одежды. Философия, мастерство, история бренда.'
+      : 'REINASLEO — premium womenswear atelier. Philosophy, craftsmanship, and brand story.',
+    alternates: {
+      canonical: `/${locale}/about`,
+      languages: {en: '/en/about', ru: '/ru/about'},
+    },
+  };
+}
+
+export default async function AboutPage({params}: Props) {
   const {locale} = await params;
   const t = await getTranslations({locale, namespace: 'about'});
 

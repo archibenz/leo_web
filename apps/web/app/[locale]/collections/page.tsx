@@ -1,6 +1,24 @@
+import type {Metadata} from 'next';
 import {getTranslations} from 'next-intl/server';
 import Link from 'next/link';
 import type {Locale} from '../../../i18n';
+
+type Props = {params: Promise<{locale: Locale}>};
+
+export async function generateMetadata({params}: Props): Promise<Metadata> {
+  const {locale} = await params;
+  const isRu = locale === 'ru';
+  return {
+    title: isRu ? 'Коллекции' : 'Collections',
+    description: isRu
+      ? 'Сезонные коллекции REINASLEO: зима, весна, лето, осень.'
+      : 'REINASLEO seasonal collections: winter, spring, summer, autumn.',
+    alternates: {
+      canonical: `/${locale}/collections`,
+      languages: {en: '/en/collections', ru: '/ru/collections'},
+    },
+  };
+}
 
 const seasons = ['winter', 'spring', 'summer', 'autumn'] as const;
 

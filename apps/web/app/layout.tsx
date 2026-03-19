@@ -37,12 +37,42 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://82.97.240.123';
+
 export const metadata: Metadata = {
-  title: 'REINASLEO — Regal confidence. Sculpted femininity.',
+  title: {
+    default: 'REINASLEO — Regal confidence. Sculpted femininity.',
+    template: '%s | REINASLEO',
+  },
   description:
     'Premium womenswear with sculpted silhouettes, precision craftsmanship, and editorial storytelling.',
   applicationName: 'REINASLEO',
   manifest: '/manifest.json',
+  metadataBase: new URL(siteUrl),
+  alternates: {
+    canonical: '/',
+    languages: {
+      'en': '/en',
+      'ru': '/ru',
+    },
+  },
+  openGraph: {
+    type: 'website',
+    siteName: 'REINASLEO',
+    title: 'REINASLEO — Regal confidence. Sculpted femininity.',
+    description: 'Premium womenswear with sculpted silhouettes, precision craftsmanship, and editorial storytelling.',
+    url: siteUrl,
+    images: [{url: '/logos/logo-white.svg', width: 480, height: 480, alt: 'REINASLEO'}],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'REINASLEO',
+    description: 'Premium womenswear with sculpted silhouettes and precision craftsmanship.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
