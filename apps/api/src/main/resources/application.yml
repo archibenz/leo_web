@@ -14,7 +14,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/reinasleo}
     username: ${DB_USER:reinasleo}
-    password: ${DB_PASSWORD:reinasleo}
+    password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
@@ -51,10 +51,10 @@ app:
     allowed-origins:
       - ${CORS_ORIGIN:http://localhost:3000}
   jwt:
-    secret: ${JWT_SECRET:reinasleo-dev-secret-key-change-in-production-min-32-chars!!}
+    secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
   bot:
-    api-secret: ${BOT_API_SECRET:dev-bot-secret}
+    api-secret: ${BOT_API_SECRET}
     username: ${BOT_USERNAME:reinasleo_bot}
   upload:
     dir: ${UPLOAD_DIR:uploads}

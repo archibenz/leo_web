@@ -36,6 +36,14 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
+                .headers(headers -> headers
+                    .frameOptions(frame -> frame.deny())
+                    .contentTypeOptions(content -> {})
+                    .referrerPolicy(referrer -> referrer.policy(
+                        org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                    .permissionsPolicy(permissions -> permissions.policy(
+                        "camera=(), microphone=(), geolocation=()"))
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
@@ -59,7 +67,9 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of(
+            "Authorization", "Content-Type", "X-Bot-Secret", "Accept", "Origin"
+        ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
