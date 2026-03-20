@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+  flyway:
+    enabled: false
+app:
+  jwt:
+    secret: test-jwt-secret-key-minimum-32-characters-long-for-hmac
+    expiration-ms: 86400000
+  bot:
+    api-secret: test-bot-secret
+    username: test_bot
+  resend:
+    api-key: ""
+    from: "test@test.com"
+  upload:
+    dir: /tmp/test-uploads

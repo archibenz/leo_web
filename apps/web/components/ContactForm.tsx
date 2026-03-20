@@ -12,10 +12,11 @@ export default function ContactForm() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const form = event.currentTarget;
     setStatus('submitting');
     setError(null);
 
-    const formData = new FormData(event.currentTarget);
+    const formData = new FormData(form);
     const payload = {
       name: formData.get('name') as string,
       email: formData.get('email') as string,
@@ -38,7 +39,7 @@ export default function ContactForm() {
       }
 
       setStatus('success');
-      event.currentTarget.reset();
+      form.reset();
     } catch (err) {
       setStatus('error');
       setError((err as Error).message);
