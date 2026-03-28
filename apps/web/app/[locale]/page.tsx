@@ -3,7 +3,6 @@ import {getTranslations} from 'next-intl/server';
 import HeroShaderBackgroundClient from '../../components/HeroShaderBackgroundClient';
 import BlurReveal from '../../components/BlurReveal';
 
-import ScrollHint from '../../components/ScrollHint';
 import CollectionShowcase from '../../components/CollectionShowcase';
 import HomeSections from '../../components/HomeSections';
 import type {Locale} from '../../i18n';
@@ -61,9 +60,6 @@ export default async function HomePage({params}: Props) {
             </BlurReveal>
 
           </div>
-
-          {/* Scroll hint — fixed at bottom, stops above banner, fades on scroll */}
-          <ScrollHint text={t('scrollHint')} heroVh={1.5} />
 
           {/* Transition fade: transparent → semi-transparent overlay */}
           <div
