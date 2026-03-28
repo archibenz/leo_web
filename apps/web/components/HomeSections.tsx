@@ -257,7 +257,7 @@ export default function HomeSections({
               <BlurReveal key={cat.key} mode="scroll" blur={10} translateY={16}>
                 <Link
                   href={`/${locale}/shop?category=${cat.key}`}
-                  className="group flex-shrink-0 w-52 sm:w-64 lg:w-72 hover:z-20 relative"
+                  className="group flex-shrink-0 w-36 sm:w-56 lg:w-72 hover:z-20 relative"
                 >
                   <div
                     className={`aspect-[3/4] w-full overflow-hidden rounded-lg bg-gradient-to-br transition-transform duration-300 group-hover:scale-[1.04] ${
@@ -265,7 +265,7 @@ export default function HomeSections({
                     }`}
                   >
                     {CATEGORY_IMAGES[cat.key] && (
-                      <Image src={CATEGORY_IMAGES[cat.key]} alt={cat.label} className="h-full w-full object-cover" width={600} height={900} loading="lazy" sizes="(max-width: 640px) 208px, (max-width: 1024px) 256px, 288px" draggable={false} />
+                      <Image src={CATEGORY_IMAGES[cat.key]} alt={cat.label} className="h-full w-full object-cover" width={600} height={900} loading="lazy" sizes="(max-width: 640px) 144px, (max-width: 1024px) 224px, 288px" draggable={false} />
                     )}
                   </div>
                   <div className="mt-3 space-y-1">
@@ -297,7 +297,7 @@ export default function HomeSections({
               <BlurReveal key={item.slug} mode="scroll" blur={10} translateY={16}>
                 <Link
                   href={`/${locale}/product/${item.slug}`}
-                  className="group flex-shrink-0 w-52 sm:w-64 lg:w-72 hover:z-20 relative"
+                  className="group flex-shrink-0 w-36 sm:w-56 lg:w-72 hover:z-20 relative"
                 >
                   <div
                     className={`aspect-[3/4] w-full overflow-hidden rounded-lg bg-gradient-to-br transition-transform duration-300 group-hover:scale-[1.04] ${
@@ -305,7 +305,7 @@ export default function HomeSections({
                     }`}
                   >
                     {POPULAR_IMAGES[i] && (
-                      <Image src={POPULAR_IMAGES[i]} alt={item.label} className="h-full w-full object-cover" width={600} height={900} loading="lazy" sizes="(max-width: 640px) 208px, (max-width: 1024px) 256px, 288px" draggable={false} />
+                      <Image src={POPULAR_IMAGES[i]} alt={item.label} className="h-full w-full object-cover" width={600} height={900} loading="lazy" sizes="(max-width: 640px) 144px, (max-width: 1024px) 224px, 288px" draggable={false} />
                     )}
                   </div>
                   <div className="mt-3 space-y-1">
