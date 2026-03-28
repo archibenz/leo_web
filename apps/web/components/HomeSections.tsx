@@ -254,10 +254,10 @@ export default function HomeSections({
           </BlurReveal>
           <ScrollRow>
             {categories.map((cat, i) => (
-              <BlurReveal key={cat.key} mode="scroll" blur={10} translateY={16}>
+              <BlurReveal key={cat.key} mode="scroll" blur={10} translateY={16} className="flex-shrink-0 w-36 sm:w-56 lg:w-72">
                 <Link
                   href={`/${locale}/shop?category=${cat.key}`}
-                  className="group flex-shrink-0 w-36 sm:w-56 lg:w-72 hover:z-20 relative"
+                  className="group block hover:z-20 relative"
                 >
                   <div
                     className={`aspect-[3/4] w-full overflow-hidden rounded-lg bg-gradient-to-br transition-transform duration-300 group-hover:scale-[1.04] ${
@@ -294,10 +294,10 @@ export default function HomeSections({
           </BlurReveal>
           <ScrollRow>
             {popularItems.slice(0, 4).map((item, i) => (
-              <BlurReveal key={item.slug} mode="scroll" blur={10} translateY={16}>
+              <BlurReveal key={item.slug} mode="scroll" blur={10} translateY={16} className="flex-shrink-0 w-36 sm:w-56 lg:w-72">
                 <Link
                   href={`/${locale}/product/${item.slug}`}
-                  className="group flex-shrink-0 w-36 sm:w-56 lg:w-72 hover:z-20 relative"
+                  className="group block hover:z-20 relative"
                 >
                   <div
                     className={`aspect-[3/4] w-full overflow-hidden rounded-lg bg-gradient-to-br transition-transform duration-300 group-hover:scale-[1.04] ${
