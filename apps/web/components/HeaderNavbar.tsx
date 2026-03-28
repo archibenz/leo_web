@@ -64,6 +64,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -120,7 +121,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
     };
     const handleClickOutside = (e: MouseEvent) => {
       if (isProfileOpen && profileDropdownRef.current && !profileDropdownRef.current.contains(e.target as Node)) setIsProfileOpen(false);
-      if (isSearchOpen && searchDropdownRef.current && !searchDropdownRef.current.contains(e.target as Node)) setIsSearchOpen(false);
+      if (isSearchOpen && searchDropdownRef.current && !searchDropdownRef.current.contains(e.target as Node) && !searchButtonRef.current?.contains(e.target as Node)) setIsSearchOpen(false);
     };
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousedown', handleClickOutside);
@@ -237,6 +238,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
 
             {/* Mobile: search icon */}
             <button
+              ref={searchButtonRef}
               type="button"
               onClick={() => setIsSearchOpen((p) => !p)}
               aria-label={t('search')}
