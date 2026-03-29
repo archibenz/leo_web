@@ -1118,6 +1118,13 @@ h2.font-display,
   display: none;
 }
 
+@keyframes scroll-bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.5; }
+  50% { transform: translateY(8px); opacity: 1; }
+}
+.animate-scroll-bounce {
+  animation: scroll-bounce 2.5s ease-in-out infinite;
+}
 
 @keyframes fade-in-up {
   from { opacity: 0; transform: translateY(12px); filter: blur(6px); }
