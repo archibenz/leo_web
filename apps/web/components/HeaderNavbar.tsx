@@ -135,6 +135,19 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
     }
   }, [isSearchOpen]);
 
+  // On mobile scroll: close dropdowns (except search panel stays, just blur input)
+  useEffect(() => {
+    const onScroll = () => {
+      if (isDesktop) return;
+      if (active) setActive(null);
+      if (isMenuOpen) setIsMenuOpen(false);
+      if (isProfileOpen) setIsProfileOpen(false);
+      if (isSearchOpen) searchInputRef.current?.blur();
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [isDesktop, active, isMenuOpen, isProfileOpen, isSearchOpen]);
+
   const handleMenuToggle = useCallback(() => { setHasAnimated(true); setIsMenuOpen((p) => !p); }, []);
   const getHamburgerClass = () => !hasAnimated ? '' : isMenuOpen ? 'hamburger-open' : 'hamburger-close';
   const desc = (map: Record<string, { en: string; ru: string }>, key: string) => locale === 'ru' ? map[key]?.ru : map[key]?.en;

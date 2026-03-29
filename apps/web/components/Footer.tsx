@@ -18,7 +18,7 @@ export default async function Footer({locale}: FooterProps) {
   ];
 
   return (
-    <footer className="relative z-50 border-t border-[#D4A574]/10 bg-[#1a0f0a]">
+    <footer className="relative z-30 border-t border-[#D4A574]/10 bg-[#1a0f0a]">
       {/* ── Desktop ── */}
       <div className="hidden sm:block">
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
