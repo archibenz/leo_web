@@ -50,7 +50,7 @@ public class BotAuthService {
     @Transactional
     public BotAuthResponse botLogin(Long telegramId, String authToken) {
         TelegramAuthToken entry = tokenRepository.findByTokenAndUsedFalse(authToken)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "auth_token_not_found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "auth_token_not_found"));
 
         if (entry.getExpiresAt().isBefore(Instant.now())) {
             throw new ResponseStatusException(HttpStatus.GONE, "auth_token_expired");
@@ -78,7 +78,7 @@ public class BotAuthService {
     @Transactional
     public BotAuthResponse botRegister(Long telegramId, String phone, String firstName, String surname, String authToken) {
         TelegramAuthToken entry = tokenRepository.findByTokenAndUsedFalse(authToken)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "auth_token_not_found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "auth_token_not_found"));
 
         if (entry.getExpiresAt().isBefore(Instant.now())) {
             throw new ResponseStatusException(HttpStatus.GONE, "auth_token_expired");
