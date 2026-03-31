@@ -1,6 +1,6 @@
 import type {MetadataRoute} from 'next';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://82.97.240.123';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://reinasleo.com';
 const apiBase = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8080';
 const locales = ['en', 'ru'] as const;
 

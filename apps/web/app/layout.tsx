@@ -37,7 +37,7 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://82.97.240.123';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://reinasleo.com';
 
 export const metadata: Metadata = {
   title: {
