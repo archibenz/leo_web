@@ -11,9 +11,11 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,7 +45,9 @@ public class BotAdminController {
     }
 
     private void validateSecret(String secret) {
-        if (secret == null || !secret.equals(botApiSecret)) {
+        if (secret == null || !MessageDigest.isEqual(
+                secret.getBytes(StandardCharsets.UTF_8),
+                botApiSecret.getBytes(StandardCharsets.UTF_8))) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid_bot_secret");
         }
     }
