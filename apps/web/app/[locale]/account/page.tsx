@@ -53,17 +53,18 @@ export default function AccountPage() {
     setTgLoading(false);
   }, []);
 
-  const tryPoll = useCallback(async (initToken: string): Promise<boolean> => {
+  const tryPoll = useCallback(async (initToken: string): Promise<'success' | 'pending' | 'expired'> => {
     try {
       const data = await apiFetch<{token: string}>(`/api/auth/telegram/poll?token=${encodeURIComponent(initToken)}`);
       if (data.token) {
         await loginWithToken(data.token);
-        return true;
+        return 'success';
       }
-    } catch {
-      // pending or expired
+    } catch (err: unknown) {
+      const status = (err as {status?: number}).status;
+      if (status === 404 || status === 410) return 'expired';
     }
-    return false;
+    return 'pending';
   }, [loginWithToken]);
 
   const startPolling = useCallback((initToken: string) => {
@@ -80,19 +81,21 @@ export default function AccountPage() {
         stopPolling();
         return;
       }
-      const success = await tryPoll(initToken);
-      if (success) stopPolling();
+      const result = await tryPoll(initToken);
+      if (result === 'success' || result === 'expired') stopPolling();
     }, 2000);
   }, [stopPolling, tryPoll]);
 
   useEffect(() => {
     const savedToken = localStorage.getItem('tg_init_token');
     if (savedToken && !isAuthenticated) {
-      tryPoll(savedToken).then(success => {
-        if (success) {
+      tryPoll(savedToken).then(result => {
+        if (result === 'success') {
           localStorage.removeItem('tg_init_token');
-        } else {
+        } else if (result === 'pending') {
           startPolling(savedToken);
+        } else {
+          localStorage.removeItem('tg_init_token');
         }
       });
     }
@@ -107,8 +110,8 @@ export default function AccountPage() {
       if (document.visibilityState !== 'visible') return;
       const savedToken = localStorage.getItem('tg_init_token');
       if (!savedToken) return;
-      const success = await tryPoll(savedToken);
-      if (success) stopPolling();
+      const result = await tryPoll(savedToken);
+      if (result === 'success' || result === 'expired') stopPolling();
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
