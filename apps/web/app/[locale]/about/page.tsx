@@ -12,8 +12,8 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
   return {
     title: isRu ? 'О бренде' : 'About',
     description: isRu
-      ? 'REINASLEO — ателье премиальной женской одежды. Философия, мастерство, история бренда.'
-      : 'REINASLEO — premium womenswear atelier. Philosophy, craftsmanship, and brand story.',
+      ? 'REINASLEO — премиальная женская одежда. Философия, мастерство, история бренда.'
+      : 'REINASLEO — premium womenswear. Philosophy, craftsmanship, and brand story.',
     alternates: {
       canonical: `/${locale}/about`,
       languages: {en: '/en/about', ru: '/ru/about'},

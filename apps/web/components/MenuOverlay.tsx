@@ -38,9 +38,9 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
 
   // Footer link keys
   const footerLinkKeys = [
-    {key: 'atelier', href: `/${locale}#atelier`},
     {key: 'shop', href: `/${locale}/shop`},
     {key: 'about', href: `/${locale}/about`},
+    {key: 'contact', href: `/${locale}/contact`},
   ];
 
   // Stable close handler

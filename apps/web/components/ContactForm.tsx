@@ -5,6 +5,8 @@ import {useTranslations} from 'next-intl';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
+const inputClass = 'rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3 text-[15px] text-ink/80 placeholder:text-ink/25 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60';
+
 export default function ContactForm() {
   const t = useTranslations('contact.form');
   const [status, setStatus] = useState<Status>('idle');
@@ -47,57 +49,63 @@ export default function ContactForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2">
-        <label className="flex flex-col gap-2 text-sm font-medium text-ink">
-          {t('name')}
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="grid gap-5 md:grid-cols-2">
+        <div className="space-y-1.5">
+          <label className="text-[12px] font-medium uppercase tracking-[0.15em] text-ink/40">
+            {t('name')}
+          </label>
           <input
             name="name"
             required
             aria-required="true"
-            className="rounded-lg border border-ink/20 bg-white/70 px-4 py-3 text-ink outline-none transition focus:border-accent"
+            className={inputClass}
             placeholder={t('namePlaceholder')}
           />
-        </label>
-        <label className="flex flex-col gap-2 text-sm font-medium text-ink">
-          {t('email')}
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-[12px] font-medium uppercase tracking-[0.15em] text-ink/40">
+            {t('email')}
+          </label>
           <input
             name="email"
             type="email"
             required
             aria-required="true"
-            className="rounded-lg border border-ink/20 bg-white/70 px-4 py-3 text-ink outline-none transition focus:border-accent"
+            className={inputClass}
             placeholder={t('emailPlaceholder')}
           />
-        </label>
+        </div>
       </div>
-      <label className="flex flex-col gap-2 text-sm font-medium text-ink">
-        {t('message')}
+      <div className="space-y-1.5">
+        <label className="text-[12px] font-medium uppercase tracking-[0.15em] text-ink/40">
+          {t('message')}
+        </label>
         <textarea
           name="message"
           required
           aria-required="true"
           rows={5}
-          className="rounded-lg border border-ink/20 bg-white/70 px-4 py-3 text-ink outline-none transition focus:border-accent"
+          className={`${inputClass} min-h-[140px] resize-none`}
           placeholder={t('messagePlaceholder')}
         />
-      </label>
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-xs text-ink-soft">
-          <input id="consent-contact" type="checkbox" required className="accent-accent" />
+      </div>
+      <div className="flex items-center justify-between gap-4 pt-2">
+        <div className="flex items-center gap-2 text-[12px] text-ink/30">
+          <input id="consent-contact" type="checkbox" required className="accent-[#D4A574]" />
           <label htmlFor="consent-contact">{t('consent')}</label>
         </div>
         <button
           type="submit"
           disabled={status === 'submitting'}
-          className="rounded-full border border-button/70 bg-button px-6 py-3 text-sm font-semibold uppercase tracking-[0.14em] text-ink shadow-subtle transition hover:-translate-y-0.5 hover:shadow-card disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-full bg-[#D4A574] px-8 py-3 text-[13px] font-medium uppercase tracking-[0.12em] text-[#1E120D] transition-all duration-300 hover:bg-[#D4A574]/90 hover:-translate-y-0.5 disabled:opacity-50"
         >
           {status === 'submitting' ? t('sending') : t('submit')}
         </button>
       </div>
-      <div aria-live="polite" role="status" className="text-sm text-ink-soft">
-        {status === 'success' && <span>{t('success')}</span>}
-        {status === 'error' && <span role="alert">{error ?? t('error')}</span>}
+      <div aria-live="polite" role="status" className="text-sm">
+        {status === 'success' && <span className="text-green-400/80">{t('success')}</span>}
+        {status === 'error' && <span role="alert" className="text-red-400/80">{error ?? t('error')}</span>}
       </div>
     </form>
   );

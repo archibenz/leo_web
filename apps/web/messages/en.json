@@ -361,8 +361,9 @@
   },
   "contact": {
     "tag": "Contact",
-    "title": "Request a fitting or collaboration.",
-    "subtitle": "Share your request below. The form posts to the Spring Boot API at /api/contact.",
+    "title": "Get in touch",
+    "subtitle": "Order inquiries, collaboration ideas, or feedback — we are happy to help.",
+    "formTitle": "Send a message",
     "form": {
       "name": "Name",
       "namePlaceholder": "Your full name",

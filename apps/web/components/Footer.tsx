@@ -44,9 +44,6 @@ export default async function Footer({locale}: FooterProps) {
               <p className="max-w-[260px] text-[15px] leading-relaxed text-[#F2E6D8]/40">
                 {t('tagline')}
               </p>
-              <p className="text-[14px] leading-relaxed text-[#F2E6D8]/25">
-                {t('studio')}
-              </p>
             </div>
 
             {/* Center: Navigation */}

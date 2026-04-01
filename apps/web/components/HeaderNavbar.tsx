@@ -84,7 +84,6 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
   };
   const aboutDescMap: Record<string, { en: string; ru: string }> = {
     about: { en: 'Our story', ru: 'Наша история' },
-    atelier: { en: 'Made-to-order', ru: 'Индивидуальный пошив' },
     contact: { en: 'Get in touch', ru: 'Связаться' },
   };
   const collections = [
@@ -237,7 +236,6 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
                   </div>
                   <div className="flex flex-col gap-0">
                     <CategoryCard href={`/${locale}/about`} label={navT('about')} description={desc(aboutDescMap, 'about')} />
-                    <CategoryCard href={`/${locale}#atelier`} label={navT('atelier')} description={desc(aboutDescMap, 'atelier')} />
                     <CategoryCard href={`/${locale}/contact`} label={navT('contact')} description={desc(aboutDescMap, 'contact')} />
                   </div>
                 </div>
