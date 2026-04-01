@@ -7,6 +7,7 @@ import com.reinasleo.api.service.CareGuideService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -38,7 +39,7 @@ public class AdminCareGuideController {
 
     @PostMapping
     public ResponseEntity<CareGuideResponse> create(@AuthenticationPrincipal User user,
-                                                     @RequestBody CareGuideRequest request) {
+                                                     @Valid @RequestBody CareGuideRequest request) {
         requireAdmin(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(careGuideService.create(request));
     }
@@ -46,7 +47,7 @@ public class AdminCareGuideController {
     @PutMapping("/{id}")
     public ResponseEntity<CareGuideResponse> update(@AuthenticationPrincipal User user,
                                                      @PathVariable UUID id,
-                                                     @RequestBody CareGuideRequest request) {
+                                                     @Valid @RequestBody CareGuideRequest request) {
         requireAdmin(user);
         return ResponseEntity.ok(careGuideService.update(id, request));
     }

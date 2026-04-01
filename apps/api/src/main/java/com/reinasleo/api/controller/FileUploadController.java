@@ -58,11 +58,17 @@ public class FileUploadController {
             String originalName = file.getOriginalFilename();
             String extension = "";
             if (originalName != null && originalName.contains(".")) {
-                extension = originalName.substring(originalName.lastIndexOf("."));
+                String ext = originalName.substring(originalName.lastIndexOf("."));
+                if (ext.matches("\\.[a-zA-Z0-9]{1,10}")) {
+                    extension = ext;
+                }
             }
             String filename = UUID.randomUUID() + extension;
 
-            Path filePath = uploadPath.resolve(filename);
+            Path filePath = uploadPath.resolve(filename).normalize();
+            if (!filePath.startsWith(uploadPath)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filename");
+            }
             file.transferTo(filePath.toFile());
 
             String url = "/uploads/products/" + filename;

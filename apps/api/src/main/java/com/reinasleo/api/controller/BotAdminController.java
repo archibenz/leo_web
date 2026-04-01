@@ -156,10 +156,17 @@ public class BotAdminController {
             String originalName = file.getOriginalFilename();
             String ext = "";
             if (originalName != null && originalName.contains(".")) {
-                ext = originalName.substring(originalName.lastIndexOf("."));
+                String rawExt = originalName.substring(originalName.lastIndexOf("."));
+                if (rawExt.matches("\\.[a-zA-Z0-9]{1,10}")) {
+                    ext = rawExt;
+                }
             }
             String filename = UUID.randomUUID() + ext;
-            file.transferTo(uploadPath.resolve(filename).toFile());
+            Path filePath = uploadPath.resolve(filename).normalize();
+            if (!filePath.startsWith(uploadPath)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filename");
+            }
+            file.transferTo(filePath.toFile());
             return ResponseEntity.ok(Map.of("url", "/uploads/products/" + filename));
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Upload failed");

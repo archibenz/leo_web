@@ -1,7 +1,7 @@
 'use client';
 
 import {createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode} from 'react';
-import {isValidEmail} from '../lib/database';
+import {isValidEmail} from '../lib/validation';
 import {apiFetch, setToken, clearToken, getToken} from '../lib/api';
 
 export type User = {

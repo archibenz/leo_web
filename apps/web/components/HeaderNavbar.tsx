@@ -71,12 +71,9 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
   const categoryKeys = ['new', 'outerwear', 'dresses', 'knitwear', 'trousers', 'skirts', 'blouses', 'care'];
   const categoryDescMap: Record<string, { en: string; ru: string }> = {
     new: { en: 'Latest arrivals', ru: 'Последние поступления' },
-    evening: { en: 'Gowns & cocktail', ru: 'Вечерние & коктейльные' },
-    everyday: { en: 'Day-to-day elegance', ru: 'На каждый день' },
     outerwear: { en: 'Coats & jackets', ru: 'Пальто & жакеты' },
     dresses: { en: 'Midi, maxi, mini', ru: 'Миди, макси, мини' },
     knitwear: { en: 'Cashmere & wool', ru: 'Кашемир & шерсть' },
-    accessories: { en: 'Finishing touches', ru: 'Завершающие штрихи' },
     trousers: { en: 'Tailored cuts', ru: 'Точный крой' },
     skirts: { en: 'Midi & maxi', ru: 'Миди и макси' },
     blouses: { en: 'Silk & linen', ru: 'Шёлк и лён' },

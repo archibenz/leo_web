@@ -55,9 +55,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/catalog/**").permitAll()
                         .requestMatchers("/api/admin/**").authenticated()
                         .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/**").authenticated()
                         .requestMatchers("/api/me/**").authenticated()
-                        .anyRequest().permitAll()
+                        .requestMatchers("/api/care-guides").permitAll()
+                        .anyRequest().denyAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

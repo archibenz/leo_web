@@ -8,4 +8,5 @@ import java.util.UUID;
 
 public interface CareGuideRepository extends JpaRepository<CareGuide, UUID> {
     List<CareGuide> findByActiveTrueOrderBySortOrderAsc();
+    List<CareGuide> findAllByOrderBySortOrderAsc();
 }

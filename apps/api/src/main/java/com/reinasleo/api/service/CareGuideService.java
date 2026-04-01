@@ -30,7 +30,7 @@ public class CareGuideService {
 
     @Transactional(readOnly = true)
     public List<CareGuideResponse> listAll() {
-        return careGuideRepository.findAll().stream()
+        return careGuideRepository.findAllByOrderBySortOrderAsc().stream()
                 .map(this::toResponse)
                 .toList();
     }

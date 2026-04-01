@@ -37,7 +37,7 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 
 export default async function ProductPage({params}: Props) {
   const {locale, id} = await params;
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://82.97.240.123';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
 
   let productJsonLd = null;
   try {

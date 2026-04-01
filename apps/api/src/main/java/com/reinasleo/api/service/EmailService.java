@@ -33,7 +33,7 @@ public class EmailService {
 
     public void sendVerificationCode(String toEmail, String code) {
         if (resendApiKey == null || resendApiKey.isBlank()) {
-            log.warn("Resend API key not configured — verification code for {}: {}", toEmail, code);
+            log.warn("Resend API key not configured — cannot send verification code to {}", toEmail);
             return;
         }
 
@@ -65,7 +65,7 @@ public class EmailService {
                 log.info("Verification code sent to {} via Resend", toEmail);
             } else {
                 log.error("Resend API error ({}): {}", response.statusCode(), response.body());
-                log.warn("Fallback — verification code for {}: {}", toEmail, code);
+                log.warn("Email delivery failed for {}", toEmail);
             }
         } catch (Exception e) {
             log.error("Failed to send verification email to {}: {}", toEmail, e.getMessage());

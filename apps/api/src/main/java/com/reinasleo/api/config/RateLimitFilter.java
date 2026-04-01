@@ -23,6 +23,7 @@ public class RateLimitFilter implements Filter {
 
     private final Map<String, Bucket> authBuckets = new ConcurrentHashMap<>();
     private final Map<String, Bucket> botBuckets = new ConcurrentHashMap<>();
+    private final Map<String, Bucket> contactBuckets = new ConcurrentHashMap<>();
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -33,24 +34,27 @@ public class RateLimitFilter implements Filter {
         String ip = getClientIp(req);
 
         if (path.startsWith("/api/auth/")) {
-            Bucket bucket = authBuckets.computeIfAbsent(ip, k -> createAuthBucket());
-            if (!bucket.tryConsume(1)) {
-                res.setStatus(429);
-                res.setContentType("application/json");
-                res.getWriter().write("{\"message\":\"Too many requests. Try again later.\"}");
-                return;
-            }
+            if (isRateLimited(authBuckets, ip, res, this::createAuthBucket)) return;
         } else if (path.startsWith("/api/bot/")) {
-            Bucket bucket = botBuckets.computeIfAbsent(ip, k -> createBotBucket());
-            if (!bucket.tryConsume(1)) {
-                res.setStatus(429);
-                res.setContentType("application/json");
-                res.getWriter().write("{\"message\":\"Too many requests. Try again later.\"}");
-                return;
-            }
+            if (isRateLimited(botBuckets, ip, res, this::createBotBucket)) return;
+        } else if (path.equals("/api/contact") && "POST".equalsIgnoreCase(req.getMethod())) {
+            if (isRateLimited(contactBuckets, ip, res, this::createContactBucket)) return;
         }
 
+        evictStaleEntries();
         chain.doFilter(request, response);
+    }
+
+    private boolean isRateLimited(Map<String, Bucket> buckets, String ip, HttpServletResponse res,
+                                   java.util.function.Supplier<Bucket> factory) throws IOException {
+        Bucket bucket = buckets.computeIfAbsent(ip, k -> factory.get());
+        if (!bucket.tryConsume(1)) {
+            res.setStatus(429);
+            res.setContentType("application/json");
+            res.getWriter().write("{\"message\":\"Too many requests. Try again later.\"}");
+            return true;
+        }
+        return false;
     }
 
     private Bucket createAuthBucket() {
@@ -65,10 +69,23 @@ public class RateLimitFilter implements Filter {
                 .build();
     }
 
+    private Bucket createContactBucket() {
+        return Bucket.builder()
+                .addLimit(Bandwidth.simple(3, Duration.ofMinutes(1)))
+                .build();
+    }
+
+    private void evictStaleEntries() {
+        int maxSize = 10_000;
+        if (authBuckets.size() > maxSize) authBuckets.clear();
+        if (botBuckets.size() > maxSize) botBuckets.clear();
+        if (contactBuckets.size() > maxSize) contactBuckets.clear();
+    }
+
     private String getClientIp(HttpServletRequest request) {
-        String xff = request.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isEmpty()) {
-            return xff.split(",")[0].trim();
+        String realIp = request.getHeader("X-Real-IP");
+        if (realIp != null && !realIp.isEmpty()) {
+            return realIp.trim();
         }
         return request.getRemoteAddr();
     }
