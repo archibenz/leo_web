@@ -110,13 +110,25 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
   /* ---- apply URL params on mount ---- */
   useEffect(() => {
     const cat = searchParams.get('category');
+    const occasion = searchParams.get('occasion');
     const season = searchParams.get('season');
+    const sort = searchParams.get('sort');
     if (cat) {
       setFilters(prev => ({...prev, category: [cat]}));
       setFiltersOpen(true);
+      setSortPanelOpen(true);
+    }
+    if (occasion) {
+      setFilters(prev => ({...prev, occasion: [occasion]}));
+      setFiltersOpen(true);
+      setSortPanelOpen(true);
     }
     if (season) {
       setSeasonFilter(season);
+    }
+    if (sort && (SORT_OPTIONS as readonly string[]).includes(sort)) {
+      setSortKey(sort);
+      setSortPanelOpen(true);
     }
   }, [searchParams]);
 

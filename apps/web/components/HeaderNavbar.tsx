@@ -68,7 +68,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const categoryKeys = ['new', 'evening', 'everyday', 'outerwear', 'dresses', 'knitwear', 'accessories', 'care'];
+  const categoryKeys = ['new', 'outerwear', 'dresses', 'knitwear', 'care'];
   const categoryDescMap: Record<string, { en: string; ru: string }> = {
     new: { en: 'Latest arrivals', ru: 'Последние поступления' },
     evening: { en: 'Gowns & cocktail', ru: 'Вечерние & коктейльные' },
