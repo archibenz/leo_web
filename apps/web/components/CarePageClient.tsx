@@ -43,7 +43,7 @@ export default function CarePageClient({initialGuides}: {initialGuides?: unknown
   };
 
   return (
-    <main className="min-h-screen bg-bg pt-28 pb-20">
+    <main className="min-h-screen pt-28 pb-20">
       {/* Hero */}
       <BlurReveal>
         <section className="max-w-4xl mx-auto px-6 text-center mb-16">

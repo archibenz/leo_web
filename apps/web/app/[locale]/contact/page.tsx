@@ -25,7 +25,7 @@ export default async function ContactPage({params}: Props) {
   const t = await getTranslations({locale, namespace: 'contact'});
 
   return (
-    <main className="min-h-screen bg-bg pt-28 pb-20">
+    <main className="min-h-screen pt-28 pb-20">
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-6 text-center mb-16">
         <p className="font-accent text-[13px] uppercase tracking-[0.25em] text-[#D4A574]/60 mb-4">
