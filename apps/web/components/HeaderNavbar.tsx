@@ -187,7 +187,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
                   </div>
                   <div className="grid grid-cols-4 gap-0">
                     {categoryKeys.map((key) => (
-                      <CategoryCard key={key} href={`/${locale}/shop?category=${key}`} label={menuT(`categories.${key}`)} description={desc(categoryDescMap, key)} />
+                      <CategoryCard key={key} href={key === 'care' ? `/${locale}/care` : `/${locale}/shop?category=${key}`} label={menuT(`categories.${key}`)} description={desc(categoryDescMap, key)} />
                     ))}
                   </div>
                   <div className="mx-4 mt-2 mb-3 h-px bg-gradient-to-r from-[#D4A574]/10 via-[#D4A574]/5 to-transparent" />
