@@ -30,7 +30,7 @@ export default async function AboutPage({params}: Props) {
       {/* ── Hero ── */}
       <section className="relative flex min-h-[70vh] items-center justify-center overflow-hidden">
         <HeroShaderBackgroundClient />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-[#1E120D] z-[5]" />
+        <div className="absolute inset-x-0 bottom-0 h-64 z-[5]" style={{background: 'linear-gradient(to bottom, transparent, #1E120D)'}} />
         <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
           <p className="capsule-tag mb-6">{t('tag')}</p>
           <h1 className="font-display mb-4 text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] tracking-tight text-ink">
@@ -43,7 +43,7 @@ export default async function AboutPage({params}: Props) {
       </section>
 
       {/* ── Philosophy ── */}
-      <section className="mx-auto max-w-4xl px-6 py-24 lg:px-8">
+      <section className="relative mx-auto max-w-4xl px-6 py-24 lg:px-8">
         <p className="capsule-tag mb-4">{t('philosophy.tag')}</p>
         <h2 className="font-display mb-6 text-[clamp(1.5rem,3.5vw,2.5rem)] leading-tight text-ink">
           {t('philosophy.title')}
