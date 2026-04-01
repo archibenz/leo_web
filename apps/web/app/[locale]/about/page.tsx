@@ -30,6 +30,7 @@ export default async function AboutPage({params}: Props) {
       {/* ── Hero ── */}
       <section className="relative flex min-h-[70vh] items-center justify-center overflow-hidden">
         <HeroShaderBackgroundClient />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-bg z-[5]" />
         <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
           <p className="capsule-tag mb-6">{t('tag')}</p>
           <h1 className="font-display mb-4 text-[clamp(2.5rem,6vw,4.5rem)] leading-[1.1] tracking-tight text-ink">
