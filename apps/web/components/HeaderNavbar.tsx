@@ -68,7 +68,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const categoryKeys = ['new', 'outerwear', 'dresses', 'knitwear', 'care'];
+  const categoryKeys = ['new', 'outerwear', 'dresses', 'knitwear', 'trousers', 'skirts', 'blouses', 'care'];
   const categoryDescMap: Record<string, { en: string; ru: string }> = {
     new: { en: 'Latest arrivals', ru: 'Последние поступления' },
     evening: { en: 'Gowns & cocktail', ru: 'Вечерние & коктейльные' },
@@ -77,6 +77,9 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
     dresses: { en: 'Midi, maxi, mini', ru: 'Миди, макси, мини' },
     knitwear: { en: 'Cashmere & wool', ru: 'Кашемир & шерсть' },
     accessories: { en: 'Finishing touches', ru: 'Завершающие штрихи' },
+    trousers: { en: 'Tailored cuts', ru: 'Точный крой' },
+    skirts: { en: 'Midi & maxi', ru: 'Миди и макси' },
+    blouses: { en: 'Silk & linen', ru: 'Шёлк и лён' },
     care: { en: 'Garment care', ru: 'Уход за одеждой' },
   };
   const aboutDescMap: Record<string, { en: string; ru: string }> = {
