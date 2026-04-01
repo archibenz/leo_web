@@ -5,8 +5,6 @@ import {useTranslations} from 'next-intl';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
-const inputClass = 'rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3 text-[15px] text-ink/80 placeholder:text-ink/25 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60';
-
 export default function ContactForm() {
   const t = useTranslations('contact.form');
   const [status, setStatus] = useState<Status>('idle');
@@ -49,22 +47,22 @@ export default function ContactForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="grid gap-5 md:grid-cols-2">
-        <div className="space-y-1.5">
-          <label className="text-[12px] font-medium uppercase tracking-[0.15em] text-ink/40">
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-2">
+          <label className="block text-[12px] font-medium uppercase tracking-[0.15em] text-ink/40">
             {t('name')}
           </label>
           <input
             name="name"
             required
             aria-required="true"
-            className={inputClass}
+            className="w-full rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3.5 text-[15px] text-ink/80 placeholder:text-ink/25 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60"
             placeholder={t('namePlaceholder')}
           />
         </div>
-        <div className="space-y-1.5">
-          <label className="text-[12px] font-medium uppercase tracking-[0.15em] text-ink/40">
+        <div className="space-y-2">
+          <label className="block text-[12px] font-medium uppercase tracking-[0.15em] text-ink/40">
             {t('email')}
           </label>
           <input
@@ -72,27 +70,27 @@ export default function ContactForm() {
             type="email"
             required
             aria-required="true"
-            className={inputClass}
+            className="w-full rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3.5 text-[15px] text-ink/80 placeholder:text-ink/25 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60"
             placeholder={t('emailPlaceholder')}
           />
         </div>
       </div>
-      <div className="space-y-1.5">
-        <label className="text-[12px] font-medium uppercase tracking-[0.15em] text-ink/40">
+      <div className="space-y-2">
+        <label className="block text-[12px] font-medium uppercase tracking-[0.15em] text-ink/40">
           {t('message')}
         </label>
         <textarea
           name="message"
           required
           aria-required="true"
-          rows={5}
-          className={`${inputClass} min-h-[140px] resize-none`}
+          rows={6}
+          className="w-full rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3.5 text-[15px] text-ink/80 placeholder:text-ink/25 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60 resize-none"
           placeholder={t('messagePlaceholder')}
         />
       </div>
       <div className="flex items-center justify-between gap-4 pt-2">
-        <div className="flex items-center gap-2 text-[12px] text-ink/30">
-          <input id="consent-contact" type="checkbox" required className="accent-[#D4A574]" />
+        <div className="flex items-center gap-2.5 text-[12px] text-ink/30">
+          <input id="consent-contact" type="checkbox" required className="accent-[#D4A574] h-4 w-4" />
           <label htmlFor="consent-contact">{t('consent')}</label>
         </div>
         <button
