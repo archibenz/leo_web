@@ -124,19 +124,17 @@ export default function CarePageClient({initialGuides}: {initialGuides?: unknown
       )}
 
       {/* CTA */}
-      <BlurReveal>
-        <section className="max-w-4xl mx-auto px-6 text-center mt-20">
-          <div className="h-px bg-gradient-to-r from-transparent via-[#D4A574]/15 to-transparent mb-12" />
-          <p className="text-ink/40 text-[15px] mb-6">{t('cta')}</p>
-          <Link
-            href={`/${locale}/shop`}
-            className="inline-flex items-center gap-2 font-display text-[15px] uppercase tracking-[0.12em] text-[#D4A574] transition-colors hover:text-[#D4A574]/80"
-          >
-            {t('shopLink')}
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
-          </Link>
-        </section>
-      </BlurReveal>
+      <section className="max-w-4xl mx-auto px-6 text-center mt-20">
+        <div className="h-px bg-gradient-to-r from-transparent via-[#D4A574]/15 to-transparent mb-12" />
+        <p className="text-ink/40 text-[15px] mb-6">{t('cta')}</p>
+        <Link
+          href={`/${locale}/shop`}
+          className="inline-flex items-center gap-2 font-display text-[15px] uppercase tracking-[0.12em] text-[#D4A574] transition-colors hover:text-[#D4A574]/80"
+        >
+          {t('shopLink')}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
+        </Link>
+      </section>
     </main>
   );
 }
