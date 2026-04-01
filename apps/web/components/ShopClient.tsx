@@ -63,7 +63,7 @@ const GRADIENTS: Record<string, string> = {
   ceremony: 'from-[#1a1a2e] to-[#4a3a5e]',
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8080';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */

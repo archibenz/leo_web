@@ -3,7 +3,7 @@ import type {Metadata} from 'next';
 import type {Locale} from '../../../i18n';
 import ShopClient from '../../../components/ShopClient';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8080';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? process.env.NEXT_PUBLIC_SITE_URL ?? '';
 
 type Props = {params: Promise<{locale: Locale}>};
 

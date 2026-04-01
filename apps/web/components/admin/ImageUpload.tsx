@@ -5,7 +5,7 @@ import {useTranslations} from 'next-intl';
 import {apiFetch, getToken} from '../../lib/api';
 import Spinner from '../ui/Spinner';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8080';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
 
 interface ImageUploadProps {
   images: {src: string; alt: string}[];

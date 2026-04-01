@@ -6,7 +6,7 @@ import {usePathname, useRouter} from 'next/navigation';
 import {apiFetch} from '../../lib/api';
 import ImageUpload from './ImageUpload';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8080';
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
 
 interface CollectionFormProps {
   collectionId?: string;

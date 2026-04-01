@@ -1,7 +1,7 @@
 const API_BASE =
   typeof window !== 'undefined'
     ? ''
-    : (process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8080');
+    : (process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_SITE_URL || '');
 
 const TOKEN_KEY = 'reinasleo_token';
 
