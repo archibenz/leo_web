@@ -26,7 +26,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
   const [hoveredCollection, setHoveredCollection] = useState<string | null>(null);
 
   // Main category keys
-  const categoryKeys = ['new', 'evening', 'everyday', 'outerwear', 'dresses', 'knitwear', 'accessories', 'care'];
+  const categoryKeys = ['new', 'outerwear', 'dresses', 'knitwear', 'trousers', 'skirts', 'blouses', 'care'];
 
   // Collections with sub-item keys
   const collections: CollectionItem[] = [
@@ -126,7 +126,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
                 <Link
                   key={key}
                   ref={index === 0 ? firstLinkRef : undefined}
-                  href={`/${locale}/shop?category=${key}`}
+                  href={key === 'care' ? `/${locale}/care` : `/${locale}/shop?category=${key}`}
                   onClick={onClose}
                   className="block py-1.5 text-sm font-medium uppercase tracking-[0.04em] sm:tracking-[0.08em] text-[#F2E6D8] transition-colors hover:text-accent focus:text-accent sm:py-2.5 sm:text-base truncate"
                   role="menuitem"

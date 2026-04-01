@@ -88,15 +88,15 @@ export default function ContactForm() {
           placeholder={t('messagePlaceholder')}
         />
       </div>
-      <div className="flex items-center justify-between gap-4 pt-2">
-        <div className="flex items-center gap-2.5 text-[12px] text-ink/30">
-          <input id="consent-contact" type="checkbox" required className="accent-[#D4A574] h-4 w-4" />
+      <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-2.5 text-[12px] text-ink/30">
+          <input id="consent-contact" type="checkbox" required className="accent-[#D4A574] h-4 w-4 mt-0.5 shrink-0" />
           <label htmlFor="consent-contact">{t('consent')}</label>
         </div>
         <button
           type="submit"
           disabled={status === 'submitting'}
-          className="rounded-full bg-[#D4A574] px-8 py-3 text-[13px] font-medium uppercase tracking-[0.12em] text-[#1E120D] transition-all duration-300 hover:bg-[#D4A574]/90 hover:-translate-y-0.5 disabled:opacity-50"
+          className="w-full sm:w-auto rounded-full bg-[#D4A574] px-8 py-3 text-[13px] font-medium uppercase tracking-[0.12em] text-[#1E120D] transition-all duration-300 hover:bg-[#D4A574]/90 hover:-translate-y-0.5 disabled:opacity-50"
         >
           {status === 'submitting' ? t('sending') : t('submit')}
         </button>
