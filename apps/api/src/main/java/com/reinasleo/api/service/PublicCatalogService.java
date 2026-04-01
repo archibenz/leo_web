@@ -210,7 +210,8 @@ public class PublicCatalogService {
                 p.getPrice(), p.getImage(), p.getCategory(), p.getSizes(),
                 p.isTest(), p.getOccasion(), p.getColor(), p.getMaterial(),
                 p.getSku(), p.getImages(), p.getCollectionId(), collectionName,
-                p.getStockQuantity() > 0 || p.isTest()
+                p.getStockQuantity() > 0 || p.isTest(),
+                p.getCareInstructions()
         );
     }
 }

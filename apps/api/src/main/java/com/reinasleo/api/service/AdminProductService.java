@@ -170,6 +170,7 @@ public class AdminProductService {
         if (req.images() != null) {
             p.setImages(req.images());
         }
+        p.setCareInstructions(req.careInstructions());
     }
 
     private AdminProductResponse toAdminResponse(Product p) {
@@ -186,6 +187,7 @@ public class AdminProductService {
                 p.isTest(), p.isActive(),
                 p.getOccasion(), p.getColor(), p.getMaterial(),
                 p.getSubtitle(), p.getSku(), p.getImages(),
+                p.getCareInstructions(),
                 p.getCreatedAt(), p.getUpdatedAt()
         );
     }

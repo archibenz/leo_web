@@ -24,6 +24,7 @@ public record AdminProductResponse(
         String subtitle,
         String sku,
         String images,
+        String careInstructions,
         Instant createdAt,
         Instant updatedAt
 ) {}

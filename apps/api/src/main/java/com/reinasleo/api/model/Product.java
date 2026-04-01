@@ -68,6 +68,10 @@ public class Product {
     @Column(columnDefinition = "jsonb")
     private String images = "[]";
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "care_instructions", columnDefinition = "jsonb")
+    private String careInstructions;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -107,6 +111,7 @@ public class Product {
     public String getSubtitle() { return subtitle; }
     public String getSku() { return sku; }
     public String getImages() { return images; }
+    public String getCareInstructions() { return careInstructions; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
@@ -129,4 +134,5 @@ public class Product {
     public void setSubtitle(String subtitle) { this.subtitle = subtitle; }
     public void setSku(String sku) { this.sku = sku; }
     public void setImages(String images) { this.images = images; }
+    public void setCareInstructions(String careInstructions) { this.careInstructions = careInstructions; }
 }

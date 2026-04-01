@@ -12,6 +12,7 @@ import Spinner from './ui/Spinner';
 import SizeSelector from './SizeSelector';
 import type {SizeOption} from './SizeSelector';
 import ProductAccordion from './ProductAccordion';
+import {CareSymbolsRow} from './CareSymbols';
 
 /* ── Types ── */
 
@@ -33,6 +34,7 @@ interface ApiProduct {
   collectionId: string | null;
   collectionName: string | null;
   inStock: boolean;
+  careInstructions: string | null;
 }
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
@@ -361,6 +363,29 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
               <p className="mt-0.5 text-sm font-medium text-[var(--ink)]">{product.collectionName}</p>
             </div>
           )}
+
+          {/* Care instructions */}
+          {product.careInstructions && (() => {
+            try {
+              const ci = JSON.parse(product.careInstructions);
+              const symbols = (ci.symbols as string[]) || [];
+              const text = (ci.text as string) || '';
+              if (!symbols.length && !text) return null;
+              return (
+                <div className="rounded-lg border border-[var(--ink)]/10 px-4 py-4 space-y-3">
+                  <p className="text-xs uppercase tracking-wider text-[var(--ink-soft)] font-medium">
+                    {locale === 'ru' ? 'Уход за изделием' : 'Garment care'}
+                  </p>
+                  {symbols.length > 0 && (
+                    <CareSymbolsRow symbols={symbols} locale={locale} size={26} showLabels />
+                  )}
+                  {text && (
+                    <p className="text-sm text-[var(--ink-soft)] leading-relaxed">{text}</p>
+                  )}
+                </div>
+              );
+            } catch { return null; }
+          })()}
 
           {/* Accordions */}
           <ProductAccordion items={accordionItems} />

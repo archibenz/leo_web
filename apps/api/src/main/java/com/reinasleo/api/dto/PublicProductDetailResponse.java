@@ -20,5 +20,6 @@ public record PublicProductDetailResponse(
         String images,
         UUID collectionId,
         String collectionName,
-        boolean inStock
+        boolean inStock,
+        String careInstructions
 ) {}

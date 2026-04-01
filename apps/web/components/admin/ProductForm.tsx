@@ -5,6 +5,7 @@ import {useTranslations} from 'next-intl';
 import {usePathname, useRouter} from 'next/navigation';
 import {apiFetch} from '../../lib/api';
 import ImageUpload from './ImageUpload';
+import {CARE_SYMBOL_KEYS, CareSymbol} from '../CareSymbols';
 
 type Collection = {
   id: string;
@@ -47,6 +48,8 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
     sku: '',
     active: true,
     images: [] as {src: string; alt: string}[],
+    careSymbols: [] as string[],
+    careText: '',
   });
 
   useEffect(() => {
@@ -75,6 +78,20 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
           sku: (data.sku as string) || '',
           active: data.active !== false,
           images: imgs,
+          careSymbols: (() => {
+            if (!data.careInstructions) return [];
+            try {
+              const ci = typeof data.careInstructions === 'string' ? JSON.parse(data.careInstructions as string) : data.careInstructions;
+              return (ci.symbols as string[]) || [];
+            } catch { return []; }
+          })(),
+          careText: (() => {
+            if (!data.careInstructions) return '';
+            try {
+              const ci = typeof data.careInstructions === 'string' ? JSON.parse(data.careInstructions as string) : data.careInstructions;
+              return (ci.text as string) || '';
+            } catch { return ''; }
+          })(),
         });
       }).catch(() => {});
     }
@@ -102,6 +119,9 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
       sku: form.sku || null,
       active: form.active,
       images: JSON.stringify(form.images),
+      careInstructions: (form.careSymbols.length > 0 || form.careText)
+        ? JSON.stringify({symbols: form.careSymbols, text: form.careText})
+        : null,
     };
 
     try {
@@ -241,6 +261,46 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
       <Field label={t('images')}>
         <ImageUpload images={form.images} onChange={images => setForm(prev => ({...prev, images}))} />
       </Field>
+
+      {/* Care instructions */}
+      <div className="space-y-3 pt-2 border-t border-[var(--ink)]/10">
+        <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">
+          {locale === 'ru' ? 'Уход за изделием' : 'Care Instructions'}
+        </p>
+        <div className="grid grid-cols-5 gap-2">
+          {CARE_SYMBOL_KEYS.map(key => {
+            const selected = form.careSymbols.includes(key);
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setForm(prev => ({
+                  ...prev,
+                  careSymbols: prev.careSymbols.includes(key)
+                    ? prev.careSymbols.filter(s => s !== key)
+                    : [...prev.careSymbols, key],
+                }))}
+                className={`flex flex-col items-center gap-1 rounded-lg p-1.5 border transition ${
+                  selected
+                    ? 'border-[var(--accent)] bg-[var(--accent)]/10'
+                    : 'border-[var(--ink)]/10 hover:border-[var(--ink)]/20'
+                }`}
+              >
+                <CareSymbol symbolKey={key} locale={locale} size={24} />
+                <span className="text-[8px] text-[var(--ink-soft)] text-center leading-tight">
+                  {key.replace(/_/g, ' ')}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <textarea
+          className="admin-input min-h-[60px]"
+          value={form.careText}
+          onChange={e => setForm(prev => ({...prev, careText: e.target.value}))}
+          placeholder={locale === 'ru' ? 'Текстовое описание ухода' : 'Care description text'}
+        />
+      </div>
 
       {/* Actions */}
       <div className="flex items-center gap-4">

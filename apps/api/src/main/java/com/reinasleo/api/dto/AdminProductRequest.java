@@ -19,5 +19,6 @@ public record AdminProductRequest(
         String subtitle,
         String sku,
         String images,
-        boolean active
+        boolean active,
+        String careInstructions
 ) {}

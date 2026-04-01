@@ -761,6 +761,7 @@
     },
     "accessDenied": "Access denied. Admin role required.",
     "backToSite": "Back to site",
+    "care": "Care",
     "homepage": "Homepage",
     "homepageDesc": "Featured products, collections, season",
     "homepageSettings": "Homepage Settings",
@@ -790,5 +791,15 @@
     "recommendationsError": "Error saving recommendations",
     "remove": "Remove",
     "ok": "OK"
+  },
+  "care": {
+    "subtitle": "REINASLEO",
+    "title": "Garment Care",
+    "intro": "Every REINASLEO piece deserves thoughtful care. Follow our guidelines to preserve the beauty and quality of your garments.",
+    "tips": "Tips",
+    "empty": "Care information coming soon",
+    "cta": "Explore our collection",
+    "shopLink": "Browse catalog",
+    "productCare": "Garment care"
   }
 }
