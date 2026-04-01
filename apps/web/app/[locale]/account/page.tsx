@@ -2,7 +2,7 @@
 
 import {useState, useEffect, useRef, useCallback} from 'react';
 import {useTranslations, useLocale} from 'next-intl';
-import {useRouter} from 'next/navigation';
+import {useRouter, useSearchParams} from 'next/navigation';
 import {createPortal} from 'react-dom';
 import {motion, AnimatePresence} from 'framer-motion';
 import {useAuth, useFavorites} from '../../../contexts';
@@ -490,7 +490,11 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
   locale: string; isAdmin: boolean; logout: () => void; memberSinceDate: string | null;
   t: (key: string, values?: Record<string, string | number>) => string;
 }) {
-  const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'settings'>('profile');
+  const searchParams = useSearchParams();
+  const initialTab = (['profile', 'favorites', 'settings'] as const).includes(searchParams.get('tab') as 'profile' | 'favorites' | 'settings')
+    ? (searchParams.get('tab') as 'profile' | 'favorites' | 'settings')
+    : 'profile';
+  const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'settings'>(initialTab);
   const {items: favoriteItems, removeItem: removeFavorite, isLoading: favLoading} = useFavorites();
   const {sendCode, linkEmail, updateNewsletterPreferences} = useAuth();
   const favT = useTranslations('favorites');
