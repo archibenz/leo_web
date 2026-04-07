@@ -16,9 +16,7 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
   const {locale} = await params;
   const isRu = locale === 'ru';
   return {
-    title: isRu
-      ? 'REINASLEO — Королевская уверенность. Скульптурная женственность.'
-      : 'REINASLEO — Regal confidence. Sculpted femininity.',
+    // Title intentionally omitted — falls through to layout default "REINASLEO · Atelier"
     description: isRu
       ? 'Премиальная женская одежда: скульптурные силуэты, ручная работа, эксклюзивные коллекции.'
       : 'Premium womenswear with sculpted silhouettes, precision craftsmanship, and editorial storytelling.',

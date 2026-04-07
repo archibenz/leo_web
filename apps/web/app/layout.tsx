@@ -41,8 +41,8 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
 
 export const metadata: Metadata = {
   title: {
-    default: 'REINASLEO — Regal confidence. Sculpted femininity.',
-    template: '%s | REINASLEO',
+    default: 'REINASLEO · Atelier',
+    template: '%s · REINASLEO',
   },
   description:
     'Premium womenswear with sculpted silhouettes, precision craftsmanship, and editorial storytelling.',
@@ -59,14 +59,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     siteName: 'REINASLEO',
-    title: 'REINASLEO — Regal confidence. Sculpted femininity.',
+    title: 'REINASLEO · Atelier',
     description: 'Premium womenswear with sculpted silhouettes, precision craftsmanship, and editorial storytelling.',
     url: siteUrl,
     images: [{url: '/logos/logo-white.svg', width: 480, height: 480, alt: 'REINASLEO'}],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'REINASLEO',
+    title: 'REINASLEO · Atelier',
     description: 'Premium womenswear with sculpted silhouettes and precision craftsmanship.',
   },
   robots: {
