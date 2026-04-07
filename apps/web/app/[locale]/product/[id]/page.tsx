@@ -11,7 +11,7 @@ type Props = {
 export async function generateMetadata({params}: Props): Promise<Metadata> {
   const {locale, id} = await params;
   try {
-    const res = await fetch(`${API_BASE}/api/catalog/products/${id}`, {next: {revalidate: 300}});
+    const res = await fetch(`${API_BASE}/api/catalog/products/${id}`, {cache: 'no-store'});
     if (!res.ok) return {title: 'Product'};
     const product = await res.json();
     const title = product.title ?? 'Product';
@@ -41,7 +41,7 @@ export default async function ProductPage({params}: Props) {
 
   let productJsonLd = null;
   try {
-    const res = await fetch(`${API_BASE}/api/catalog/products/${id}`, {next: {revalidate: 300}});
+    const res = await fetch(`${API_BASE}/api/catalog/products/${id}`, {cache: 'no-store'});
     if (res.ok) {
       const p = await res.json();
       productJsonLd = {
