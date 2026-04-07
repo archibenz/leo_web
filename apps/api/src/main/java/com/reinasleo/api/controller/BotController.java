@@ -1,6 +1,8 @@
 package com.reinasleo.api.controller;
 
 import com.reinasleo.api.dto.*;
+import com.reinasleo.api.model.BotVisit;
+import com.reinasleo.api.repository.BotVisitRepository;
 import com.reinasleo.api.service.BotAuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,12 +19,14 @@ import java.security.MessageDigest;
 public class BotController {
 
     private final BotAuthService botAuthService;
+    private final BotVisitRepository botVisitRepository;
 
     @Value("${app.bot.api-secret}")
     private String botApiSecret;
 
-    public BotController(BotAuthService botAuthService) {
+    public BotController(BotAuthService botAuthService, BotVisitRepository botVisitRepository) {
         this.botAuthService = botAuthService;
+        this.botVisitRepository = botVisitRepository;
     }
 
     private void validateSecret(String secret) {
@@ -66,6 +70,22 @@ public class BotController {
         validateSecret(secret);
         botAuthService.botOrganicRegister(
                 request.telegramId(), request.phone(), request.firstName(), request.surname());
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/visit")
+    public ResponseEntity<Void> logVisit(
+            @RequestHeader("X-Bot-Secret") String secret,
+            @Valid @RequestBody BotVisitRequest request) {
+        validateSecret(secret);
+        botVisitRepository.save(new BotVisit(
+                request.telegramId(),
+                request.username(),
+                request.firstName(),
+                request.lastName(),
+                request.languageCode(),
+                request.source()
+        ));
         return ResponseEntity.ok().build();
     }
 }
