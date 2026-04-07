@@ -81,7 +81,7 @@ export const metadata: Metadata = {
   other: {
     'mobile-web-app-capable': 'yes',
   },
-  icons: [{rel: 'icon', url: '/favicon.ico'}]
+  // Icons auto-detected from app/icon.svg + app/apple-icon.svg via Next.js File Convention
 };
 
 export default async function RootLayout({children}: {children: React.ReactNode}) {
