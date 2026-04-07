@@ -20,5 +20,8 @@ export default function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|_vercel|.*\\..*).*)']
+  // Exclude Next.js File Convention dynamic routes (icon, apple-icon, opengraph-image)
+  // — they have no extension so the .*\..* exclusion doesn't catch them, and we don't
+  // want next-intl to redirect them into /[locale]/... where they'd 404.
+  matcher: ['/((?!api|_next|_vercel|icon|apple-icon|opengraph-image|.*\\..*).*)']
 };
