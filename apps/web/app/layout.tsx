@@ -40,10 +40,9 @@ export const viewport: Viewport = {
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
 
 export const metadata: Metadata = {
-  title: {
-    default: 'REINASLEO · Atelier',
-    template: '%s · REINASLEO',
-  },
+  // Root-level title — fallback for non-locale routes (404, errors).
+  // The locale-aware title and template live in app/[locale]/layout.tsx.
+  title: 'REINASLEO',
   description:
     'Premium womenswear with sculpted silhouettes, precision craftsmanship, and editorial storytelling.',
   applicationName: 'REINASLEO',
