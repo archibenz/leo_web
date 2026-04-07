@@ -1,3 +1,4 @@
+import type {Metadata} from 'next';
 import type {ReactNode} from 'react';
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
@@ -10,6 +11,21 @@ import {locales, type Locale} from '../../i18n';
 
 export function generateStaticParams() {
   return locales.map((locale) => ({locale}));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{locale: string}>;
+}): Promise<Metadata> {
+  const {locale} = await params;
+  const isRu = locale === 'ru';
+  return {
+    title: {
+      default: isRu ? 'REINASLEO · Ателье' : 'REINASLEO · Atelier',
+      template: '%s · REINASLEO',
+    },
+  };
 }
 
 export default async function LocaleLayout({
