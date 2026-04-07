@@ -42,13 +42,16 @@ class BotControllerTest {
     }
 
     @Test
-    void checkUser_withoutSecret_rejectsRequest() throws Exception {
+    void checkUser_withoutSecret_rejectsAs400() throws Exception {
+        // RestExceptionHandler maps MissingRequestHeaderException to 400 with
+        // a clear error code; previously it bubbled up as a generic 500.
         mockMvc.perform(post("/api/bot/check-user")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"telegramId": 12345}
                                 """))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("missing_header"));
     }
 
     @Test

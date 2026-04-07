@@ -1,5 +1,6 @@
 server:
   port: 8080
+  shutdown: graceful
   compression:
     enabled: true
     mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
@@ -7,6 +8,8 @@ server:
 spring:
   application:
     name: reinasleo-api
+  lifecycle:
+    timeout-per-shutdown-phase: 25s
   jackson:
     serialization:
       write-dates-as-timestamps: false
