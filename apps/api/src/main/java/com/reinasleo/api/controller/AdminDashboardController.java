@@ -1,6 +1,7 @@
 package com.reinasleo.api.controller;
 
 import com.reinasleo.api.dto.DashboardResponse;
+import com.reinasleo.api.dto.RecentOrderResponse;
 import com.reinasleo.api.dto.StockAlertResponse;
 import com.reinasleo.api.model.User;
 import com.reinasleo.api.service.AdminProductService;
@@ -33,6 +34,12 @@ public class AdminDashboardController {
     public ResponseEntity<List<StockAlertResponse>> alerts(@AuthenticationPrincipal User user) {
         requireAdmin(user);
         return ResponseEntity.ok(adminProductService.getAlerts());
+    }
+
+    @GetMapping("/orders/recent")
+    public ResponseEntity<List<RecentOrderResponse>> recentOrders(@AuthenticationPrincipal User user) {
+        requireAdmin(user);
+        return ResponseEntity.ok(adminProductService.getRecentOrders());
     }
 
     @PostMapping("/alerts/{id}/acknowledge")

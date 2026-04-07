@@ -5,14 +5,19 @@ import com.reinasleo.api.model.Collection;
 import com.reinasleo.api.model.Product;
 import com.reinasleo.api.model.StockAlert;
 import com.reinasleo.api.repository.CollectionRepository;
+import com.reinasleo.api.repository.OrderRepository;
 import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.StockAlertRepository;
+import com.reinasleo.api.repository.UserRepository;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -21,13 +26,19 @@ public class AdminProductService {
     private final ProductRepository productRepository;
     private final CollectionRepository collectionRepository;
     private final StockAlertRepository stockAlertRepository;
+    private final UserRepository userRepository;
+    private final OrderRepository orderRepository;
 
     public AdminProductService(ProductRepository productRepository,
                                CollectionRepository collectionRepository,
-                               StockAlertRepository stockAlertRepository) {
+                               StockAlertRepository stockAlertRepository,
+                               UserRepository userRepository,
+                               OrderRepository orderRepository) {
         this.productRepository = productRepository;
         this.collectionRepository = collectionRepository;
         this.stockAlertRepository = stockAlertRepository;
+        this.userRepository = userRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Transactional(readOnly = true)
@@ -110,7 +121,46 @@ public class AdminProductService {
         long totalAlerts = stockAlertRepository.findByAcknowledgedFalseOrderByCreatedAtDesc().size();
         // Low stock: stock > 0 and stock <= 5 (default threshold), only real products
         long lowStock = productRepository.countByActiveTrueAndIsTestFalseAndStockQuantityGreaterThanAndStockQuantityLessThanEqual(0, 5);
-        return new DashboardResponse(totalProducts, totalCollections, lowStock, outOfStock, totalAlerts);
+
+        // KPI for director dashboard
+        Instant sevenDaysAgo = Instant.now().minus(7, ChronoUnit.DAYS);
+        long totalUsers = userRepository.count();
+        long totalOrders = orderRepository.count();
+        BigDecimal totalRevenue = orderRepository.sumTotalRevenue();
+        long newUsers7d = userRepository.countByCreatedAtAfter(sevenDaysAgo);
+        long newOrders7d = orderRepository.countByCreatedAtAfter(sevenDaysAgo);
+        BigDecimal revenue7d = orderRepository.sumRevenueAfter(sevenDaysAgo);
+
+        return new DashboardResponse(
+                totalProducts, totalCollections, lowStock, outOfStock, totalAlerts,
+                totalUsers, totalOrders, totalRevenue,
+                newUsers7d, newOrders7d, revenue7d
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<RecentOrderResponse> getRecentOrders() {
+        return orderRepository.findTop10ByOrderByCreatedAtDesc().stream()
+                .map(o -> new RecentOrderResponse(
+                        o.getId(),
+                        o.getUser() != null ? safeName(o.getUser().getName(), o.getUser().getSurname()) : "—",
+                        o.getUser() != null ? o.getUser().getEmail() : null,
+                        o.getStatus(),
+                        o.getTotal(),
+                        o.getItems() != null ? o.getItems().size() : 0,
+                        o.getCreatedAt()
+                ))
+                .toList();
+    }
+
+    private String safeName(String name, String surname) {
+        StringBuilder sb = new StringBuilder();
+        if (name != null && !name.isBlank()) sb.append(name);
+        if (surname != null && !surname.isBlank()) {
+            if (sb.length() > 0) sb.append(' ');
+            sb.append(surname);
+        }
+        return sb.length() > 0 ? sb.toString() : "—";
     }
 
     @Transactional(readOnly = true)
