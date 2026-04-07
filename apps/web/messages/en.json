@@ -147,11 +147,11 @@
         {"slug": "silk-evening-gown", "label": "Silk Evening Gown", "description": "Evening · Silk"},
         {"slug": "sculptured-wool-coat", "label": "Sculptured Wool Coat", "description": "Outerwear · Wool"},
         {"slug": "cashmere-cardigan", "label": "Cashmere Draped Cardigan", "description": "Knitwear · Cashmere"},
-        {"slug": "tailored-trousers", "label": "Tailored Wide-Leg Trousers", "description": "Tailoring · Wool"},
-        {"slug": "ivory-midi-skirt", "label": "Ivory Midi Skirt", "description": "Ceremony · Silk"},
-        {"slug": "linen-blouse", "label": "Linen Resort Blouse", "description": "Resort · Linen"},
-        {"slug": "structured-blazer", "label": "Structured Blazer", "description": "Office · Wool"},
-        {"slug": "draped-silk-camisole", "label": "Draped Silk Camisole", "description": "Evening · Silk"}
+        {"slug": "ae-tailored-trousers", "label": "Tailored Wide-Leg Trousers", "description": "Tailoring · Wool"},
+        {"slug": "ae-pleated-skirt", "label": "Pleated Wool Skirt", "description": "Tailoring · Wool"},
+        {"slug": "ae-linen-blouse", "label": "Linen Resort Blouse", "description": "Resort · Linen"},
+        {"slug": "wl-structured-blazer", "label": "Structured Blazer", "description": "Office · Wool"},
+        {"slug": "wl-silk-camisole", "label": "Draped Silk Camisole", "description": "Evening · Silk"}
       ]
     },
     "shopHero": {
@@ -177,11 +177,11 @@
         {"slug": "silk-evening-gown", "label": "Silk Evening Gown", "description": "Evening · Silk"},
         {"slug": "cashmere-cardigan", "label": "Cashmere Cardigan", "description": "Knitwear · Cashmere"},
         {"slug": "sculptured-wool-coat", "label": "Sculptured Wool Coat", "description": "Outerwear · Wool"},
-        {"slug": "structured-blazer", "label": "Structured Blazer", "description": "Office · Wool"},
-        {"slug": "ivory-midi-skirt", "label": "Ivory Midi Skirt", "description": "Ceremony · Silk"},
-        {"slug": "tailored-trousers", "label": "Tailored Trousers", "description": "Tailoring · Wool"},
-        {"slug": "linen-blouse", "label": "Linen Blouse", "description": "Resort · Linen"},
-        {"slug": "cashmere-turtleneck", "label": "Cashmere Turtleneck", "description": "Casual · Cashmere"}
+        {"slug": "wl-structured-blazer", "label": "Structured Blazer", "description": "Office · Wool"},
+        {"slug": "wl-evening-gown", "label": "Ceremony Column Dress", "description": "Ceremony · Silk"},
+        {"slug": "ae-tailored-trousers", "label": "Tailored Trousers", "description": "Tailoring · Wool"},
+        {"slug": "ae-linen-blouse", "label": "Linen Blouse", "description": "Resort · Linen"},
+        {"slug": "wl-cashmere-turtleneck", "label": "Cashmere Turtleneck", "description": "Casual · Cashmere"}
       ]
     },
     "manifesto": {

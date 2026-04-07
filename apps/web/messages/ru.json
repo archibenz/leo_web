@@ -147,11 +147,11 @@
         {"slug": "silk-evening-gown", "label": "Шёлковое вечернее платье", "description": "Вечер · Шёлк"},
         {"slug": "sculptured-wool-coat", "label": "Скульптурное шерстяное пальто", "description": "Верхняя одежда · Шерсть"},
         {"slug": "cashmere-cardigan", "label": "Кашемировый кардиган", "description": "Трикотаж · Кашемир"},
-        {"slug": "tailored-trousers", "label": "Широкие брюки", "description": "Пошив · Шерсть"},
-        {"slug": "ivory-midi-skirt", "label": "Миди-юбка цвета слоновой кости", "description": "Торжество · Шёлк"},
-        {"slug": "linen-blouse", "label": "Льняная блуза", "description": "Курорт · Лён"},
-        {"slug": "structured-blazer", "label": "Структурный блейзер", "description": "Офис · Шерсть"},
-        {"slug": "draped-silk-camisole", "label": "Шёлковый топ на бретелях", "description": "Вечер · Шёлк"}
+        {"slug": "ae-tailored-trousers", "label": "Широкие брюки", "description": "Пошив · Шерсть"},
+        {"slug": "ae-pleated-skirt", "label": "Плиссированная юбка", "description": "Пошив · Шерсть"},
+        {"slug": "ae-linen-blouse", "label": "Льняная блуза", "description": "Курорт · Лён"},
+        {"slug": "wl-structured-blazer", "label": "Структурный блейзер", "description": "Офис · Шерсть"},
+        {"slug": "wl-silk-camisole", "label": "Шёлковый топ на бретелях", "description": "Вечер · Шёлк"}
       ]
     },
     "shopHero": {
@@ -177,11 +177,11 @@
         {"slug": "silk-evening-gown", "label": "Шёлковое вечернее платье", "description": "Вечер · Шёлк"},
         {"slug": "cashmere-cardigan", "label": "Кашемировый кардиган", "description": "Трикотаж · Кашемир"},
         {"slug": "sculptured-wool-coat", "label": "Скульптурное шерстяное пальто", "description": "Верхняя одежда · Шерсть"},
-        {"slug": "structured-blazer", "label": "Структурный блейзер", "description": "Офис · Шерсть"},
-        {"slug": "ivory-midi-skirt", "label": "Миди-юбка цвета слоновой кости", "description": "Торжество · Шёлк"},
-        {"slug": "tailored-trousers", "label": "Классические брюки", "description": "Пошив · Шерсть"},
-        {"slug": "linen-blouse", "label": "Льняная блуза", "description": "Курорт · Лён"},
-        {"slug": "cashmere-turtleneck", "label": "Кашемировая водолазка", "description": "Повседневный · Кашемир"}
+        {"slug": "wl-structured-blazer", "label": "Структурный блейзер", "description": "Офис · Шерсть"},
+        {"slug": "wl-evening-gown", "label": "Платье-колонна", "description": "Торжество · Шёлк"},
+        {"slug": "ae-tailored-trousers", "label": "Классические брюки", "description": "Пошив · Шерсть"},
+        {"slug": "ae-linen-blouse", "label": "Льняная блуза", "description": "Курорт · Лён"},
+        {"slug": "wl-cashmere-turtleneck", "label": "Кашемировая водолазка", "description": "Повседневный · Кашемир"}
       ]
     },
     "manifesto": {
