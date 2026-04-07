@@ -27,8 +27,12 @@ const CartIcon = () => (
 const IconBtn = ({ onClick, ariaLabel, children, badge }: {
   onClick: () => void; ariaLabel: string; children: React.ReactNode; badge?: number;
 }) => (
-  <button type="button" onClick={onClick} aria-label={ariaLabel}
-    className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink/55 transition-all duration-200 hover:bg-ink/[0.07] hover:text-accent focus:outline-none"
+  <button
+    type="button"
+    onClick={onClick}
+    aria-label={ariaLabel}
+    style={{ WebkitTapHighlightColor: 'transparent' }}
+    className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink/55 transition-all duration-200 hover:bg-ink/[0.07] hover:text-accent active:scale-90 active:bg-ink/[0.1] focus:outline-none"
   >
     {children}
     {badge !== undefined && badge > 0 && (

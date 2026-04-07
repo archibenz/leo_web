@@ -125,22 +125,45 @@ function ScrollRow({children}: {children: React.ReactNode}) {
         {children}
       </div>
 
-      {/* Left arrow */}
+      {/* Left fade — only when there's content scrolled out left */}
+      <div
+        className={`pointer-events-none absolute inset-y-0 left-0 z-[5] w-12 transition-opacity duration-300 sm:w-16 ${
+          canScrollLeft ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{
+          background: 'linear-gradient(to right, rgba(43,23,17,0.85), rgba(43,23,17,0))',
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Right fade — primary mobile affordance for "more content" */}
+      <div
+        className={`pointer-events-none absolute inset-y-0 right-0 z-[5] w-12 transition-opacity duration-300 sm:w-16 ${
+          canScrollRight ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{
+          background: 'linear-gradient(to left, rgba(43,23,17,0.85), rgba(43,23,17,0))',
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Desktop arrows — hidden on touch, shown on hover */}
       {canScrollLeft && (
         <button
+          type="button"
           onClick={() => scroll(-1)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--paper-base)]/80 text-[var(--ink)] backdrop-blur-sm transition-opacity duration-200 opacity-0 group-hover/scroll:opacity-100 hover:bg-[var(--paper-base)]"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden h-10 w-10 items-center justify-center rounded-full bg-[var(--paper-base)]/80 text-[var(--ink)] opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-[var(--paper-base)] group-hover/scroll:opacity-100 md:flex"
           aria-label="Scroll left"
         >
           <ArrowIcon direction="left" />
         </button>
       )}
 
-      {/* Right arrow */}
       {canScrollRight && (
         <button
+          type="button"
           onClick={() => scroll(1)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-[var(--paper-base)]/80 text-[var(--ink)] backdrop-blur-sm transition-opacity duration-200 opacity-0 group-hover/scroll:opacity-100 hover:bg-[var(--paper-base)]"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 hidden h-10 w-10 items-center justify-center rounded-full bg-[var(--paper-base)]/80 text-[var(--ink)] opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-[var(--paper-base)] group-hover/scroll:opacity-100 md:flex"
           aria-label="Scroll right"
         >
           <ArrowIcon direction="right" />

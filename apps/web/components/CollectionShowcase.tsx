@@ -41,7 +41,7 @@ function HeroCard({title, subtitle, locale, season}: {title: string; subtitle: s
   return (
     <Link
       href={`/${locale}/shop?season=${season}`}
-      className="relative block w-full overflow-hidden aspect-[4/3] sm:aspect-[16/7] lg:aspect-[21/9]"
+      className="relative block w-full overflow-hidden aspect-[5/4] sm:aspect-[16/7] lg:aspect-[21/9]"
       onMouseEnter={() => { if (overlayRef.current) overlayRef.current.style.opacity = '1'; }}
       onMouseLeave={() => { if (overlayRef.current) overlayRef.current.style.opacity = '0'; }}
     >
