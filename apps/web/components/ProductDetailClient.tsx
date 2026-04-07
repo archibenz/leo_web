@@ -231,15 +231,6 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
         {t('back')}
       </button>
 
-      {/* ── Test product banner ── */}
-      {product.isTest && (
-        <div className="mb-6 rounded-xl border border-[var(--accent)]/30 bg-[var(--accent)]/10 p-4 text-center">
-          <p className="text-sm font-medium text-[var(--accent)]">
-            Demo — {locale === 'ru' ? 'Это демо-товар, его нельзя купить' : 'This is a demo product and cannot be purchased'}
-          </p>
-        </div>
-      )}
-
       {/* ── PDP top: gallery + info ── */}
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_420px] lg:gap-12 xl:gap-16">
         {/* Left: gallery */}
@@ -248,16 +239,28 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
         {/* Right: product info */}
         <div className="flex flex-col gap-6">
           {/* Title block */}
-          <div>
+          <div className="flex flex-col gap-2">
+            {product.isTest && (
+              <span
+                className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--accent)]/40 bg-[var(--accent)]/[0.08] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]"
+                aria-label="Demo product"
+              >
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75 motion-safe:animate-ping" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--accent)]" />
+                </span>
+                Demo
+              </span>
+            )}
             {product.subtitle && (
-              <p className="text-xs uppercase tracking-[0.16em] text-[var(--ink-soft)] mb-1.5">
+              <p className="text-xs uppercase tracking-[0.16em] text-[var(--ink-soft)]">
                 {product.subtitle}
               </p>
             )}
             <h1 className="text-2xl font-display text-[var(--ink)] sm:text-3xl">
               {product.title}
             </h1>
-            <p className="mt-2 text-xl font-accent text-[var(--ink)]">
+            <p className="mt-1 text-xl font-accent text-[var(--ink)]">
               &euro;{product.price.toLocaleString()}
             </p>
           </div>
