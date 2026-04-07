@@ -30,3 +30,6 @@ Thumbs.db
 # Misc
 *.log
 output/
+
+# oh-my-claudecode local state (not committed)
+.omc/

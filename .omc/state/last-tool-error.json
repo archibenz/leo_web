@@ -1,7 +1,0 @@
-{
-  "tool_name": "Read",
-  "tool_input_preview": "{\"file_path\":\"/Users/alexander/Documents/Work/REINAS/leo_web/apps/web/app/[locale]/account/page.tsx\"}",
-  "error": "File content (14502 tokens) exceeds maximum allowed tokens (10000). Use offset and limit parameters to read specific portions of the file, or search for specific content instead of reading the whole file.",
-  "timestamp": "2026-04-01T09:02:40.741Z",
-  "retry_count": 1
-}
