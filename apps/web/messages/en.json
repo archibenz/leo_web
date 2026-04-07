@@ -370,7 +370,7 @@
       "emailPlaceholder": "email@domain.com",
       "message": "Message",
       "messagePlaceholder": "Tell us about the occasion, sizing, or partnership idea.",
-      "consent": "I consent to storing my details for reply.",
+      "consent": "I consent to the processing of my personal data in accordance with the Personal Data Processing Policy.",
       "submit": "Send",
       "sending": "Sending...",
       "success": "Thank you. We will reply shortly.",
@@ -432,7 +432,9 @@
       "email": "Email",
       "emailPlaceholder": "email@example.com",
       "password": "Password",
-      "passwordPlaceholder": "••••••••"
+      "passwordPlaceholder": "••••••••",
+      "dataConsent": "I consent to the processing of my personal data in accordance with the",
+      "dataConsentLink": "Personal Data Processing Policy"
     },
     "register": {
       "emailHint": "We'll send a verification code to this email"
@@ -593,40 +595,44 @@
   },
   "privacy": {
     "tag": "Legal",
-    "title": "Privacy Policy",
-    "lastUpdated": "Last updated: February 2026",
+    "title": "Personal Data Processing Policy",
+    "lastUpdated": "Last updated: April 2026",
     "sections": [
       {
         "heading": "1. General Provisions",
-        "body": "This Privacy Policy describes how REINASLEO (\"we\", \"us\", or \"our\") collects, uses, and protects your personal data when you use our website and services. By accessing our website, you agree to the terms outlined in this policy."
+        "body": "This Policy is developed in accordance with Federal Law of the Russian Federation No. 152-FZ of 27.07.2006 'On Personal Data' and defines the procedure for processing personal data of users of reinasleo.com. Operator of personal data: Sole proprietor Romanova Kseniya Aleksandrovna, Tax ID (INN) 781300971051, Registration ID (OGRNIP) 321784700010380, registered address: 197198, Saint Petersburg, Petrovsky Municipal District, Gatchinskaya St., 12, apt. 20, email: reinasleo@gmail.com. By using the website, the user confirms acceptance of this Policy and consents to the processing of personal data on the terms described herein."
       },
       {
-        "heading": "2. Data We Collect",
-        "body": "We collect the following types of personal data: name, email address, phone number, delivery address, order history, browsing behavior on our website, and Telegram account information if you choose to link it. Data is collected when you create an account, place an order, subscribe to our newsletter, or contact us."
+        "heading": "2. Categories of Subjects and Data Collected",
+        "body": "Subjects of personal data are website visitors, registered users, and customers. Personal data processed: last name, first name, patronymic, email address, phone number, delivery address, date of birth (upon registration), Telegram account identifier and name (if linked), order history, website interaction data (cookies, IP address, device and browser information). Special categories of personal data and biometric data are not processed."
       },
       {
-        "heading": "3. Purpose of Data Processing",
-        "body": "Your personal data is used to process and fulfil orders, provide customer support, send newsletters and promotional offers (with your consent), improve our website and services, prevent fraud, and comply with legal obligations."
+        "heading": "3. Purposes of Processing",
+        "body": "The Operator processes personal data for the following purposes: user account registration and management; order placement, processing, and delivery; customer service and support communications; sending informational and marketing messages (only with separate consent); improving website performance and service quality; compliance with the legislation of the Russian Federation."
       },
       {
-        "heading": "4. Data Storage and Security",
-        "body": "Your data is stored on secure servers within the European Economic Area. We employ industry-standard encryption, access controls, and regular security audits to protect your information. Data is retained for as long as necessary to fulfil the purposes described in this policy, or as required by law."
+        "heading": "4. Legal Grounds for Processing",
+        "body": "Processing is carried out on the following legal grounds: consent of the data subject (Article 6 of 152-FZ); performance of a contract to which the subject is a party (public offer of the website); Federal Law No. 152-FZ; Russian Consumer Protection Law; Tax Code of the Russian Federation and the Federal Law 'On Accounting'."
       },
       {
-        "heading": "5. Third-Party Sharing",
-        "body": "We do not sell your personal data. We may share data with payment processors to complete transactions, delivery services to fulfil orders, analytics providers to improve our services, and law enforcement when required by law. All third parties are contractually bound to protect your data."
+        "heading": "5. Methods, Terms, and Location of Processing",
+        "body": "Personal data is processed with or without automation and includes collection, recording, systematization, accumulation, storage, clarification, extraction, use, transfer, anonymization, blocking, deletion, and destruction. Personal data of citizens of the Russian Federation is stored in databases located on the territory of the Russian Federation in accordance with Part 5 of Article 18 of 152-FZ. Processing duration: until the purposes of processing are achieved or consent is withdrawn; accounting and tax records are retained for the period established by the legislation of the Russian Federation (at least 5 years)."
       },
       {
-        "heading": "6. Your Rights",
-        "body": "You have the right to access, correct, or delete your personal data, restrict or object to data processing, request data portability, and withdraw consent at any time. To exercise these rights, contact us at hello@reinasleo.com."
+        "heading": "6. Transfer to Third Parties",
+        "body": "The Operator does not sell or transfer personal data to third parties without the subject's consent, except: transfer to payment service providers for order payment; transfer to delivery services for order fulfilment; transfer to state authorities in cases provided by the legislation of the Russian Federation. All engaged parties are obliged to maintain confidentiality and ensure the security of personal data."
       },
       {
-        "heading": "7. Cookies",
-        "body": "Our website uses essential cookies required for basic functionality, analytics cookies to understand how visitors use our site, and preference cookies to remember your settings. You can manage cookie preferences in your browser settings."
+        "heading": "7. Rights of the Data Subject",
+        "body": "The data subject has the right to: obtain information about the processing of their data; request clarification, blocking, or destruction of personal data; withdraw consent to processing at any time; appeal the Operator's actions to the Federal Service for Supervision of Communications, Information Technology and Mass Media (Roskomnadzor) or to court. Requests should be sent to reinasleo@gmail.com. A response is provided within 30 days of receiving the request."
       },
       {
-        "heading": "8. Policy Changes",
-        "body": "We may update this Privacy Policy from time to time. Any changes will be posted on this page with an updated revision date. We encourage you to review this policy periodically. Continued use of our services after changes constitutes acceptance of the updated policy."
+        "heading": "8. Security Measures and Cookies",
+        "body": "The Operator implements the necessary legal, organizational, and technical measures to protect personal data from unauthorized or accidental access, destruction, modification, blocking, copying, and distribution: encrypted data transmission channels (HTTPS), employee access restrictions, regular security audits. The website uses essential cookies for basic functionality, analytics cookies to assess usage, and preference cookies. Cookie management is available in browser settings."
+      },
+      {
+        "heading": "9. Policy Changes and Operator Details",
+        "body": "The Operator reserves the right to modify this Policy. The current version is published at reinasleo.com/privacy. Operator contact details for inquiries: Sole proprietor Romanova Kseniya Aleksandrovna, Tax ID (INN) 781300971051, Registration ID (OGRNIP) 321784700010380, registered address: 197198, Saint Petersburg, Petrovsky Municipal District, Gatchinskaya St., 12, apt. 20, email: reinasleo@gmail.com."
       }
     ]
   },
@@ -665,7 +671,7 @@
       },
       {
         "heading": "8. Contact Information",
-        "body": "If you have questions about these Terms of Service, please contact us at hello@reinasleo.com. For legal inquiries, you may also reach us by post at our registered office address."
+        "body": "If you have questions about these Terms of Service, please contact us at reinasleo@gmail.com. For legal inquiries, you may also reach us by post at our registered office address."
       }
     ]
   },
