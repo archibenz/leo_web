@@ -140,16 +140,18 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 type="button"
                 data-thumb-idx={i}
                 onClick={() => setActiveIndex(i)}
-                className={`relative flex-shrink-0 w-14 h-[72px] sm:w-16 sm:h-20 lg:w-full lg:h-20 rounded-md overflow-hidden transition-all duration-200 active:scale-95 ${
-                  i === activeIndex
-                    ? 'opacity-100 brightness-110 ring-2 ring-[#D4A574]/60 ring-offset-1 ring-offset-[var(--paper-base)]'
-                    : 'opacity-55 hover:opacity-85'
-                }`}
+                className="relative flex-shrink-0 w-14 h-[72px] sm:w-16 sm:h-20 lg:w-full lg:h-20 rounded-md overflow-hidden transition-all duration-200 active:scale-95"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label={img.alt}
                 aria-pressed={i === activeIndex}
               >
                 <GalleryImage image={img} sizes="80px" />
+                <div
+                  aria-hidden="true"
+                  className={`absolute inset-0 pointer-events-none transition-opacity duration-200 bg-black/45 ${
+                    i === activeIndex ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
               </button>
             ))}
           </div>
