@@ -113,9 +113,15 @@ export default function CollectionShowcase({locale, heroTitle, heroSubtitle, her
 
   return (
     <section className="relative">
-      {/* Single smooth overlay gradient — no seams */}
+      {/* Mobile: fully opaque background — blocks shader/PosterGradient bleed-through */}
       <div
-        className="absolute inset-0 z-[0] pointer-events-none"
+        className="absolute inset-0 z-[0] pointer-events-none sm:hidden"
+        style={{background: '#2B1711'}}
+        aria-hidden="true"
+      />
+      {/* Desktop: smooth gradient fade lets shader blend into section */}
+      <div
+        className="absolute inset-0 z-[0] pointer-events-none hidden sm:block"
         style={{
           background: 'linear-gradient(to bottom, rgba(43,23,17,0.85) 0%, rgba(43,23,17,0.6) 15%, rgba(43,23,17,0.55) 50%, rgba(43,23,17,0.5) 85%, rgba(43,23,17,0.45) 100%)'
         }}

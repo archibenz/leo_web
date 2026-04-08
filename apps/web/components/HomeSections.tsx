@@ -259,9 +259,15 @@ export default function HomeSections({
 }: HomeSectionsProps) {
   return (
     <div className="relative">
-      {/* Single smooth overlay gradient — no seams */}
+      {/* Mobile: fully opaque background — hides fixed shader bleed-through */}
       <div
-        className="absolute inset-0 z-[0] pointer-events-none"
+        className="absolute inset-0 z-[0] pointer-events-none sm:hidden"
+        style={{background: '#2B1711'}}
+        aria-hidden="true"
+      />
+      {/* Desktop: smooth gradient fade from transparent shader → solid ink */}
+      <div
+        className="absolute inset-0 z-[0] pointer-events-none hidden sm:block"
         style={{
           background: 'linear-gradient(to bottom, rgba(43,23,17,0.45) 0%, rgba(43,23,17,0.55) 10%, rgba(43,23,17,0.6) 50%, rgba(43,23,17,0.8) 85%, #2B1711 100%)'
         }}

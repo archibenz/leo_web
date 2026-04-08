@@ -63,9 +63,18 @@ export default async function HomePage({params}: Props) {
           {/* Scroll hint */}
           <ScrollHint text={t('scrollHint')} heroVh={1.5} />
 
-          {/* Transition fade: transparent → semi-transparent overlay */}
+          {/* Mobile: solid brown overlay — hides multi-color shader bleed that showed as a "разноцветная плашка" */}
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[35vh]"
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[40vh] sm:hidden"
+            style={{
+              background:
+                'linear-gradient(to bottom, transparent 0%, #2B1711 55%, #2B1711 100%)'
+            }}
+            aria-hidden="true"
+          />
+          {/* Desktop: subtle fade lets shader blend smoothly into content below */}
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[35vh] hidden sm:block"
             style={{
               background:
                 'linear-gradient(to bottom, transparent 0%, rgba(43,23,17,0.3) 40%, rgba(43,23,17,0.6) 70%, rgba(43,23,17,0.85) 100%)'

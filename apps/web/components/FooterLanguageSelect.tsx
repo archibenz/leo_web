@@ -80,13 +80,14 @@ export default function FooterLanguageSelect({currentLocale}: FooterLanguageSele
           <path d="M2 12h20" />
           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
         </svg>
-        <span>{currentLang.fullLabel}</span>
+        <span className="sm:hidden">{currentLang.label}</span>
+        <span className="hidden sm:inline">{currentLang.fullLabel}</span>
       </button>
 
       {isOpen && (
         <ul
           role="listbox"
-          className="absolute bottom-full left-0 z-[110] mb-2 min-w-[160px] rounded-xl border border-[#F2E6D8]/[0.08] bg-[#1a0f0a] py-1.5 shadow-xl"
+          className="absolute bottom-full right-0 z-[110] mb-2 min-w-[160px] rounded-xl border border-[#F2E6D8]/[0.08] bg-[#1a0f0a] py-1.5 shadow-xl"
           style={{
             boxShadow: '0 -10px 40px rgba(0,0,0,0.4)',
           }}
