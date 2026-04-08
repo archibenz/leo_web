@@ -26,7 +26,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.5.0",
-    "three": "^0.169.0"
+    "three": "^0.169.0",
+    "yet-another-react-lightbox": "^3.30.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",

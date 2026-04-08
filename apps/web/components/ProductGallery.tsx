@@ -1,6 +1,9 @@
 'use client';
 
 import {useState, useRef, useCallback, useEffect} from 'react';
+import Lightbox from 'yet-another-react-lightbox';
+import Zoom from 'yet-another-react-lightbox/plugins/zoom';
+import 'yet-another-react-lightbox/styles.css';
 
 export interface ProductImage {
   id: string;
@@ -52,6 +55,7 @@ interface ProductGalleryProps {
 
 export default function ProductGallery({images}: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -162,8 +166,11 @@ export default function ProductGallery({images}: ProductGalleryProps) {
       <div className="order-1 lg:order-2 relative flex-1">
         <div
           ref={mainRef}
-          className="relative aspect-[3/4] w-full overflow-hidden rounded-lg lg:rounded-xl select-none"
+          className="relative aspect-[3/4] w-full overflow-hidden rounded-lg lg:rounded-xl select-none cursor-zoom-in"
           style={{touchAction: 'pan-y'}}
+          onClick={() => {
+            if (active?.src) setLightboxOpen(true);
+          }}
         >
           {active && (
             <GalleryImage
@@ -185,7 +192,10 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             <>
               <button
                 type="button"
-                onClick={() => go(-1)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  go(-1);
+                }}
                 className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-10 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[var(--paper-base)]/75 text-[var(--ink)] backdrop-blur-md transition-all duration-200 hover:bg-[var(--paper-base)] active:scale-90"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label="Previous image"
@@ -196,7 +206,10 @@ export default function ProductGallery({images}: ProductGalleryProps) {
               </button>
               <button
                 type="button"
-                onClick={() => go(1)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  go(1);
+                }}
                 className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-10 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[var(--paper-base)]/75 text-[var(--ink)] backdrop-blur-md transition-all duration-200 hover:bg-[var(--paper-base)] active:scale-90"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label="Next image"
@@ -209,6 +222,19 @@ export default function ProductGallery({images}: ProductGalleryProps) {
           )}
         </div>
       </div>
+
+      {/* Fullscreen lightbox with pinch-zoom */}
+      <Lightbox
+        open={lightboxOpen}
+        close={() => setLightboxOpen(false)}
+        slides={images.map((img) => ({src: img.src, alt: img.alt}))}
+        index={activeIndex}
+        on={{view: ({index: i}) => setActiveIndex(i)}}
+        plugins={[Zoom]}
+        zoom={{maxZoomPixelRatio: 3, scrollToZoom: true}}
+        styles={{container: {backgroundColor: 'rgba(10, 10, 10, 0.94)'}}}
+        controller={{closeOnBackdropClick: true}}
+      />
     </div>
   );
 }
