@@ -40,7 +40,7 @@ export default function SizeChart({open, onClose, category}: SizeChartProps) {
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4 backdrop-blur-xl"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -108,14 +108,6 @@ export default function SizeChart({open, onClose, category}: SizeChartProps) {
         </div>
 
         <p className="mt-4 text-xs leading-relaxed text-[var(--ink-soft)]">{t('bodyNote')}</p>
-
-        <button
-          type="button"
-          onClick={onClose}
-          className="mt-6 w-full rounded-full border border-[var(--ink)]/20 py-3 text-sm font-medium text-[var(--ink)] transition hover:border-[var(--ink)]/40"
-        >
-          {t('close')}
-        </button>
       </div>
     </div>
   );
