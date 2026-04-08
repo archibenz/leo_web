@@ -56,6 +56,7 @@ interface ProductGalleryProps {
 export default function ProductGallery({images}: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [counterVisible, setCounterVisible] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
 
@@ -102,8 +103,8 @@ export default function ProductGallery({images}: ProductGalleryProps) {
       }
     };
     const onEnd = () => {
-      if (dx > 40) go(-1);
-      else if (dx < -40) go(1);
+      if (dx > 60) go(-1);
+      else if (dx < -60) go(1);
       dx = 0;
       dir = null;
     };
@@ -126,6 +127,13 @@ export default function ProductGallery({images}: ProductGalleryProps) {
     if (activeBtn) {
       activeBtn.scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'center'});
     }
+  }, [activeIndex]);
+
+  /* ── Auto-hide image counter after 2.5s of inactivity, reappear on slide change ── */
+  useEffect(() => {
+    setCounterVisible(true);
+    const t = setTimeout(() => setCounterVisible(false), 2500);
+    return () => clearTimeout(t);
   }, [activeIndex]);
 
   return (
@@ -180,14 +188,18 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             />
           )}
 
-          {/* Image counter — only when multiple */}
+          {/* Image counter — only when multiple, auto-fades after 2.5s */}
           {hasMultiple && (
-            <div className="absolute top-3 right-3 z-10 rounded-full bg-black/45 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md sm:top-4 sm:right-4 sm:text-xs">
+            <div
+              className={`pointer-events-none absolute top-3 right-3 z-10 rounded-full bg-black/45 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md transition-opacity duration-500 sm:top-4 sm:right-4 sm:text-xs ${
+                counterVisible ? 'opacity-100' : 'opacity-0'
+              }`}
+            >
               {activeIndex + 1} / {images.length}
             </div>
           )}
 
-          {/* Prev / Next — only when multiple, WCAG AA touch targets, hidden on touch but shown for click affordance */}
+          {/* Prev / Next — Telegram-style edge tap zones; wide invisible hit area, small chevron hint */}
           {hasMultiple && (
             <>
               <button
@@ -196,13 +208,15 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                   e.stopPropagation();
                   go(-1);
                 }}
-                className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-10 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[var(--paper-base)]/75 text-[var(--ink)] backdrop-blur-md transition-all duration-200 hover:bg-[var(--paper-base)] active:scale-90"
+                className="group absolute left-0 top-0 z-10 flex h-full w-[15%] items-center justify-start pl-2 sm:pl-3"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label="Previous image"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/25 text-white/80 backdrop-blur-sm transition-all duration-200 group-hover:bg-black/45 group-hover:text-white group-active:scale-90">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </span>
               </button>
               <button
                 type="button"
@@ -210,13 +224,15 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                   e.stopPropagation();
                   go(1);
                 }}
-                className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 z-10 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[var(--paper-base)]/75 text-[var(--ink)] backdrop-blur-md transition-all duration-200 hover:bg-[var(--paper-base)] active:scale-90"
+                className="group absolute right-0 top-0 z-10 flex h-full w-[15%] items-center justify-end pr-2 sm:pr-3"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label="Next image"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/25 text-white/80 backdrop-blur-sm transition-all duration-200 group-hover:bg-black/45 group-hover:text-white group-active:scale-90">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </span>
               </button>
             </>
           )}
