@@ -96,7 +96,7 @@ export default function FavoritesPage({params}: Props) {
                     <img
                       src={item.image}
                       alt={item.title}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      className="h-full w-full object-cover"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-paperMuted to-paper">
@@ -107,11 +107,18 @@ export default function FavoritesPage({params}: Props) {
                       </svg>
                     </div>
                   )}
-                  
+
+                  {/* Clickable overlay — navigates to product detail; buttons above use z-20 */}
+                  <Link
+                    href={`/${locale}/product/${item.id}`}
+                    aria-label={item.title}
+                    className="absolute inset-0 z-10"
+                  />
+
                   {/* Remove button - top right */}
                   <button
                     onClick={() => removeItem(item.id)}
-                    className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-paper/80 text-ink-soft backdrop-blur-sm transition-all hover:bg-paper hover:text-ink"
+                    className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-paper/80 text-ink-soft backdrop-blur-sm transition-all hover:bg-paper hover:text-ink"
                     aria-label={t('remove')}
                   >
                     <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
@@ -120,7 +127,7 @@ export default function FavoritesPage({params}: Props) {
                   </button>
 
                   {/* Hover overlay with action */}
-                  <div className="absolute inset-x-0 bottom-0 translate-y-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                  <div className="absolute inset-x-0 bottom-0 z-20 translate-y-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                     <div className="bg-gradient-to-t from-paper/95 via-paper/80 to-transparent px-4 pb-4 pt-10">
                       <button
                         onClick={() => addToCart({id: item.id, title: item.title, image: item.image})}
@@ -132,10 +139,15 @@ export default function FavoritesPage({params}: Props) {
                   </div>
                 </div>
 
-                {/* Product info */}
-                <div className="mt-4 space-y-1 px-1">
+                {/* Product info — clickable (duplicate link, hidden from a11y to avoid double tab stop) */}
+                <Link
+                  href={`/${locale}/product/${item.id}`}
+                  tabIndex={-1}
+                  aria-hidden="true"
+                  className="mt-4 block space-y-1 px-1"
+                >
                   <h3 className="font-medium text-ink truncate">{item.title}</h3>
-                </div>
+                </Link>
               </div>
             ))}
           </div>
