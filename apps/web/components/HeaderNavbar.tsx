@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, MenuItem, CategoryCard, CollectionCard } from './ui/navbar-menu';
 import { SearchBar } from './ui/search-bar';
@@ -63,13 +62,9 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
-  const searchDropdownRef = useRef<HTMLDivElement>(null);
-  const searchButtonRef = useRef<HTMLButtonElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const categoryKeys = ['new', 'outerwear', 'dresses', 'knitwear', 'trousers', 'skirts', 'blouses', 'care'];
@@ -116,40 +111,30 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (isSearchOpen) setIsSearchOpen(false);
-        else if (active) setActive(null);
+        if (active) setActive(null);
         else if (isProfileOpen) setIsProfileOpen(false);
         else if (isMenuOpen) setIsMenuOpen(false);
       }
     };
     const handleClickOutside = (e: MouseEvent) => {
       if (isProfileOpen && profileDropdownRef.current && !profileDropdownRef.current.contains(e.target as Node)) setIsProfileOpen(false);
-      if (isSearchOpen && searchDropdownRef.current && !searchDropdownRef.current.contains(e.target as Node) && !searchButtonRef.current?.contains(e.target as Node)) setIsSearchOpen(false);
     };
     document.addEventListener('keydown', handleKeyDown);
     document.addEventListener('mousedown', handleClickOutside);
     return () => { document.removeEventListener('keydown', handleKeyDown); document.removeEventListener('mousedown', handleClickOutside); };
-  }, [isMenuOpen, isProfileOpen, isSearchOpen, active]);
+  }, [isMenuOpen, isProfileOpen, active]);
 
-  // Auto-focus search input when opened
-  useEffect(() => {
-    if (isSearchOpen) {
-      setTimeout(() => searchInputRef.current?.focus(), 100);
-    }
-  }, [isSearchOpen]);
-
-  // On mobile scroll: close dropdowns (except search panel stays, just blur input)
+  // On mobile scroll: close dropdowns
   useEffect(() => {
     const onScroll = () => {
       if (isDesktop) return;
       if (active) setActive(null);
       if (isMenuOpen) setIsMenuOpen(false);
       if (isProfileOpen) setIsProfileOpen(false);
-      if (isSearchOpen) searchInputRef.current?.blur();
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [isDesktop, active, isMenuOpen, isProfileOpen, isSearchOpen]);
+  }, [isDesktop, active, isMenuOpen, isProfileOpen]);
 
   const handleMenuToggle = useCallback(() => { setHasAnimated(true); setIsMenuOpen((p) => !p); }, []);
   const getHamburgerClass = () => !hasAnimated ? '' : isMenuOpen ? 'hamburger-open' : 'hamburger-close';
@@ -251,17 +236,6 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               <SearchBar placeholder={t('search')} />
             </div>
 
-            {/* Mobile: search icon */}
-            <button
-              ref={searchButtonRef}
-              type="button"
-              onClick={() => setIsSearchOpen((p) => !p)}
-              aria-label={t('search')}
-              className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink/55 transition-all duration-200 hover:bg-ink/[0.07] hover:text-accent focus:outline-none md:hidden"
-            >
-              <Search size={17} strokeWidth={1.5} />
-            </button>
-
             <IconBtn onClick={() => go('/favorites')} ariaLabel={t('favorites')} badge={favoritesCount}><HeartIcon /></IconBtn>
             <IconBtn onClick={() => go('/cart')} ariaLabel={t('cart')} badge={cartCount}><CartIcon /></IconBtn>
 
@@ -345,48 +319,6 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
           </div>
         </div>
       </header>
-
-      {/* Mobile search dropdown */}
-      <div
-        className={`fixed top-[68px] left-3 right-3 z-[199] transition-all duration-200 ease-out md:hidden ${
-          isSearchOpen
-            ? 'opacity-100 translate-y-0 pointer-events-auto'
-            : 'opacity-0 -translate-y-2 pointer-events-none'
-        }`}
-      >
-        <div
-          ref={searchDropdownRef}
-          className="liquid-glass rounded-2xl px-4 py-3"
-          style={{
-            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.4), 0 0 40px rgba(212, 165, 116, 0.05)',
-          }}
-        >
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink/30" />
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder={t('search')}
-              className="focus-bare w-full rounded-full bg-ink/[0.06] border border-ink/10 py-2.5 pl-10 pr-4 text-[16px] text-ink/70 placeholder:text-ink/25 outline-none transition-colors focus:border-ink/20 focus:bg-ink/[0.08]"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                  setIsSearchOpen(false);
-                  router.push(`/${locale}/shop?q=${encodeURIComponent(e.currentTarget.value.trim())}`);
-                }
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Backdrop for mobile search */}
-      {isSearchOpen && (
-        <div
-          className="fixed inset-0 z-[198] bg-black/30 md:hidden"
-          onClick={() => setIsSearchOpen(false)}
-        />
-      )}
-
 
       <MenuOverlay isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} locale={locale} />
     </>
