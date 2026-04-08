@@ -63,13 +63,21 @@ export default async function HomePage({params}: Props) {
           {/* Scroll hint */}
           <ScrollHint text={t('scrollHint')} heroVh={1.5} />
 
-          {/* Mobile: hard-cut solid brown strip at the bottom of the hero.
-              Any gradient transition here showed a visible two-tone band because
-              the animated shader leaks through partial opacity with different
-              colors in different places. Hard cut = clean edge, no bleed. */}
+          {/* Mobile: frosted-glass strip at the bottom of the hero. Uses
+              backdrop-filter to blur the animated shader into a smooth tone
+              (killing the multi-color bleed), plus a mask-image soft edge on
+              top so the overlay fades in instead of cutting hard. The
+              combination gives a clean visual near iOS Safari's URL bar
+              without any visible two-tone band. */}
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[30vh] sm:hidden"
-            style={{background: '#2B1711'}}
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[40vh] sm:hidden"
+            style={{
+              background: 'rgba(43, 23, 17, 0.55)',
+              backdropFilter: 'blur(40px)',
+              WebkitBackdropFilter: 'blur(40px)',
+              maskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 30%, black 100%)',
+            }}
             aria-hidden="true"
           />
           {/* Desktop: subtle fade lets shader blend smoothly into content below */}
