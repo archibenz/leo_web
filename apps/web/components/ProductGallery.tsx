@@ -265,6 +265,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
           closeOnPullUp: true,
           closeOnPullDown: true,
         }}
+        toolbar={{buttons: ['close']}}
         styles={{
           container: {
             backgroundColor: 'rgba(30, 18, 13, 0.96)',
