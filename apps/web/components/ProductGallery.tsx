@@ -199,7 +199,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             </div>
           )}
 
-          {/* Prev / Next — Telegram-style edge tap zones; wide invisible hit area, small chevron hint */}
+          {/* Prev / Next — invisible Telegram-style edge tap zones, no visual indicators */}
           {hasMultiple && (
             <>
               <button
@@ -208,38 +208,26 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                   e.stopPropagation();
                   go(-1);
                 }}
-                className="group absolute left-0 top-0 z-10 flex h-full w-[15%] items-center justify-start pl-2 sm:pl-3"
+                className="absolute left-0 top-0 z-10 h-full w-[15%]"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label="Previous image"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/25 text-white/80 backdrop-blur-sm transition-all duration-200 group-hover:bg-black/45 group-hover:text-white group-active:scale-90">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="15 18 9 12 15 6" />
-                  </svg>
-                </span>
-              </button>
+              />
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   go(1);
                 }}
-                className="group absolute right-0 top-0 z-10 flex h-full w-[15%] items-center justify-end pr-2 sm:pr-3"
+                className="absolute right-0 top-0 z-10 h-full w-[15%]"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label="Next image"
-              >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/25 text-white/80 backdrop-blur-sm transition-all duration-200 group-hover:bg-black/45 group-hover:text-white group-active:scale-90">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </span>
-              </button>
+              />
             </>
           )}
         </div>
       </div>
 
-      {/* Fullscreen lightbox with pinch-zoom */}
+      {/* Fullscreen lightbox — brand-themed premium viewer with pinch-zoom */}
       <Lightbox
         open={lightboxOpen}
         close={() => setLightboxOpen(false)}
@@ -247,9 +235,91 @@ export default function ProductGallery({images}: ProductGalleryProps) {
         index={activeIndex}
         on={{view: ({index: i}) => setActiveIndex(i)}}
         plugins={[Zoom]}
-        zoom={{maxZoomPixelRatio: 3, scrollToZoom: true}}
-        styles={{container: {backgroundColor: 'rgba(10, 10, 10, 0.94)'}}}
-        controller={{closeOnBackdropClick: true}}
+        zoom={{
+          maxZoomPixelRatio: 3,
+          scrollToZoom: true,
+          doubleTapDelay: 300,
+          doubleClickDelay: 300,
+          zoomInMultiplier: 1.6,
+          wheelZoomDistanceFactor: 80,
+          pinchZoomDistanceFactor: 80,
+        }}
+        animation={{
+          fade: 500,
+          swipe: 450,
+          easing: {
+            fade: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            swipe: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            navigation: 'cubic-bezier(0.22, 1, 0.36, 1)',
+          },
+        }}
+        carousel={{
+          padding: '32px',
+          spacing: '32px',
+          imageFit: 'contain',
+          finite: images.length < 2,
+          preload: 2,
+        }}
+        controller={{
+          closeOnBackdropClick: true,
+          closeOnPullUp: true,
+          closeOnPullDown: true,
+        }}
+        styles={{
+          container: {
+            backgroundColor: 'rgba(30, 18, 13, 0.96)',
+            backdropFilter: 'blur(28px)',
+            WebkitBackdropFilter: 'blur(28px)',
+          },
+          button: {color: '#f3e9da', filter: 'none'},
+          icon: {color: '#f3e9da', filter: 'none'},
+          navigationPrev: {color: '#f3e9da', filter: 'none'},
+          navigationNext: {color: '#f3e9da', filter: 'none'},
+          slide: {padding: 0},
+        }}
+        render={{
+          iconClose: () => (
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          ),
+          iconPrev: () => (
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+          ),
+          iconNext: () => (
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          ),
+          slideHeader: () =>
+            hasMultiple ? (
+              <div className="pointer-events-none absolute left-0 right-0 top-0 flex gap-1.5 px-6 pt-6 sm:px-10 sm:pt-8">
+                {images.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-[2px] flex-1 rounded-full transition-all duration-500 ${
+                      i === activeIndex ? 'bg-[#D4A574]' : 'bg-[#f3e9da]/20'
+                    }`}
+                  />
+                ))}
+              </div>
+            ) : null,
+          slideFooter: () =>
+            hasMultiple ? (
+              <div className="pointer-events-none absolute bottom-8 left-0 right-0 flex items-center justify-center text-[11px] font-medium uppercase tracking-[0.32em] text-[#f3e9da]/75 sm:bottom-10 sm:text-xs">
+                <span className="tabular-nums">
+                  {String(activeIndex + 1).padStart(2, '0')}
+                </span>
+                <span className="mx-3 text-[#D4A574]">—</span>
+                <span className="tabular-nums">
+                  {String(images.length).padStart(2, '0')}
+                </span>
+              </div>
+            ) : null,
+        }}
       />
     </div>
   );
