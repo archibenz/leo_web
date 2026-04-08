@@ -12,18 +12,19 @@ const HeroShaderBackground = dynamic(
 export default function HeroShaderBackgroundClient() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(true);
-  // Gate: start as "not yet mounted on desktop". SSR and first client render show
-  // a solid background. Only after useEffect runs (post-mount) do we upgrade to
-  // the shader stack, and only if the viewport is desktop-sized.
-  // This avoids a first-paint flash where mobile users would briefly see the
-  // multi-color PosterGradient/shader before JS detects the mobile breakpoint.
-  const [desktopReady, setDesktopReady] = useState(false);
+  // WebGL shader only runs on desktop post-mount. On mobile we keep PosterGradient
+  // alone — it's a pure CSS gradient so no GPU/battery cost — and skip the heavy
+  // WebGL waterPlane shader entirely. PosterGradient is rendered in SSR and its
+  // final client state on mobile matches exactly, so there is no hydration flash.
+  // The "разноцветная плашка" bleed between home sections is handled by the mobile
+  // solid overlays in page.tsx, CollectionShowcase.tsx, and HomeSections.tsx.
+  const [webglEnabled, setWebglEnabled] = useState(false);
 
   useEffect(() => {
     const mobileQuery = window.matchMedia('(max-width: 640px)');
-    const updateDesktop = (matches: boolean) => setDesktopReady(!matches);
-    updateDesktop(mobileQuery.matches);
-    const handleMobileChange = (e: MediaQueryListEvent) => updateDesktop(e.matches);
+    const updateWebgl = (matches: boolean) => setWebglEnabled(!matches);
+    updateWebgl(mobileQuery.matches);
+    const handleMobileChange = (e: MediaQueryListEvent) => updateWebgl(e.matches);
     mobileQuery.addEventListener('change', handleMobileChange);
 
     const handleVisibilityChange = () => {
@@ -37,18 +38,10 @@ export default function HeroShaderBackgroundClient() {
     };
   }, []);
 
-  // Default (SSR + mobile): solid background only. No WebGL shader, no PosterGradient,
-  // no bleed-through. On mobile this stays as the final state (saves GPU and battery).
-  // On desktop this is a single-frame flash before the shader stack mounts — unnoticeable
-  // since it happens after hydration.
-  if (!desktopReady) {
-    return <div className="absolute inset-0 bg-[#2B1711]" />;
-  }
-
   return (
     <div ref={containerRef} className="absolute inset-0">
       <PosterGradient animated />
-      <HeroShaderBackground isActive={isVisible} />
+      {webglEnabled && <HeroShaderBackground isActive={isVisible} />}
     </div>
   );
 }
