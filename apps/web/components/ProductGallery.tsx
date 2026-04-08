@@ -174,7 +174,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
       <div className="order-1 lg:order-2 relative flex-1">
         <div
           ref={mainRef}
-          className="relative aspect-[3/4] w-full overflow-hidden rounded-lg lg:rounded-xl select-none cursor-zoom-in"
+          className="relative aspect-[3/4] w-full overflow-hidden rounded-lg lg:rounded-xl select-none cursor-pointer"
           style={{touchAction: 'pan-y'}}
           onClick={() => {
             if (active?.src) setLightboxOpen(true);
