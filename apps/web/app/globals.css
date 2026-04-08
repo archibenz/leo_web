@@ -86,6 +86,27 @@ body::after {
   }
 }
 
+/* ============================================
+   iOS Safari dynamic-viewport fix
+   ============================================
+   When iOS Safari's URL bar hides on scroll the visible viewport grows,
+   but elements sized in 100vh stay at the static layout-viewport height
+   and leave a gap of uncovered body background. 100dvh tracks the dynamic
+   viewport, so the shader keeps painting behind the URL bar as it slides.
+
+   @supports (-webkit-touch-callout: none) only matches on iOS Safari and
+   iOS WebViews — Chrome / Firefox / Edge (desktop or mobile) do NOT have
+   this property, so they keep the default 100vh path with zero extra cost.
+*/
+@supports (-webkit-touch-callout: none) {
+  body {
+    min-height: 100dvh;
+  }
+  .ios-safari-dvh {
+    height: 100dvh !important;
+  }
+}
+
 a {
   color: inherit;
 }

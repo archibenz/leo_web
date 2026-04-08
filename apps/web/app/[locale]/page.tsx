@@ -38,8 +38,12 @@ export default async function HomePage({params}: Props) {
 
   return (
     <div className="relative">
-      {/* FIXED FULL-VIEWPORT SHADER BACKGROUND */}
-      <div className="fixed inset-0 z-0">
+      {/* FIXED FULL-VIEWPORT SHADER BACKGROUND. The `ios-safari-dvh` class is
+          scoped inside `@supports (-webkit-touch-callout: none)` in globals.css
+          so it only applies on iOS Safari, where it swaps the container's
+          effective height to 100dvh to track the dynamic URL bar. Chrome and
+          other browsers ignore the class and keep the default inset-0 sizing. */}
+      <div className="fixed inset-0 z-0 ios-safari-dvh">
         <HeroShaderBackgroundClient />
       </div>
 
