@@ -209,7 +209,7 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
   };
 
   const handleToggleFav = () => {
-    toggleItem({id: product.id, title: product.title});
+    toggleItem({id: product.id, title: product.title, image: product.image ?? undefined});
   };
 
   const accordionItems = [
