@@ -11,6 +11,7 @@ import type {ProductImage} from './ProductGallery';
 import Spinner from './ui/Spinner';
 import SizeSelector from './SizeSelector';
 import type {SizeOption} from './SizeSelector';
+import SizeChart from './SizeChart';
 import ProductAccordion from './ProductAccordion';
 import {CareSymbolsRow} from './CareSymbols';
 
@@ -94,6 +95,7 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
   const [error, setError] = useState(false);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const [recommendations, setRecommendations] = useState<ApiProduct[]>([]);
 
   const {addItem: addToCart, getItemQuantity, updateQuantity, items: cartItems} = useCart();
@@ -275,6 +277,12 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
                 sizeGuideLabel={t('sizeGuide')}
                 selectSizeLabel={t('selectSize')}
                 unavailableLabel={t('sizeUnavailable')}
+                onSizeGuideClick={() => setSizeGuideOpen(true)}
+              />
+              <SizeChart
+                open={sizeGuideOpen}
+                onClose={() => setSizeGuideOpen(false)}
+                category={product.category}
               />
               {sizeError && (
                 <p className="mt-2 text-sm text-red-400">{t('selectSizeFirst')}</p>

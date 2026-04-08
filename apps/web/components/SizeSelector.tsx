@@ -12,6 +12,7 @@ interface SizeSelectorProps {
   sizeGuideLabel: string;
   selectSizeLabel: string;
   unavailableLabel: string;
+  onSizeGuideClick?: () => void;
 }
 
 export default function SizeSelector({
@@ -21,6 +22,7 @@ export default function SizeSelector({
   sizeGuideLabel,
   selectSizeLabel,
   unavailableLabel,
+  onSizeGuideClick,
 }: SizeSelectorProps) {
   return (
     <div>
@@ -29,7 +31,11 @@ export default function SizeSelector({
         <p className="text-sm font-medium text-[var(--ink)]">
           {selectSizeLabel}
         </p>
-        <button className="text-sm text-[var(--ink-soft)] underline underline-offset-2 transition hover:text-[var(--accent)]">
+        <button
+          type="button"
+          onClick={onSizeGuideClick}
+          className="text-sm text-[var(--ink-soft)] underline underline-offset-2 transition hover:text-[var(--accent)]"
+        >
           {sizeGuideLabel}
         </button>
       </div>

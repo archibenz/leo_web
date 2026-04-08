@@ -549,6 +549,22 @@
     "favouriteAdded": "Favourited",
     "selectSize": "Select Size",
     "sizeGuide": "Size Guide",
+    "sizeChart": {
+      "title": "Size Guide",
+      "unit": "All measurements in centimetres",
+      "bodyNote": "Measurements refer to the body, not the finished garment. Add 2–4 cm for a precise fit.",
+      "photoComingSoon": "Measurement diagram coming soon",
+      "close": "Close",
+      "sizeHeader": "Size",
+      "measurements": {
+        "bust": "Bust",
+        "waist": "Waist",
+        "hips": "Hips",
+        "length": "Length",
+        "shoulder": "Shoulder",
+        "sleeve": "Sleeve"
+      }
+    },
     "color": "Colour",
     "sku": "Style",
     "material": "Material",
