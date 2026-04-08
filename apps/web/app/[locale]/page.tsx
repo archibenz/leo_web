@@ -63,13 +63,13 @@ export default async function HomePage({params}: Props) {
           {/* Scroll hint */}
           <ScrollHint text={t('scrollHint')} heroVh={1.5} />
 
-          {/* Mobile: solid brown overlay — hides multi-color shader bleed that showed as a "разноцветная плашка" */}
+          {/* Mobile: hard-cut solid brown strip at the bottom of the hero.
+              Any gradient transition here showed a visible two-tone band because
+              the animated shader leaks through partial opacity with different
+              colors in different places. Hard cut = clean edge, no bleed. */}
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[40vh] sm:hidden"
-            style={{
-              background:
-                'linear-gradient(to bottom, transparent 0%, #2B1711 55%, #2B1711 100%)'
-            }}
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-[30vh] sm:hidden"
+            style={{background: '#2B1711'}}
             aria-hidden="true"
           />
           {/* Desktop: subtle fade lets shader blend smoothly into content below */}
