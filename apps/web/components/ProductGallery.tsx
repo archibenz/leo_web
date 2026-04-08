@@ -272,6 +272,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             backdropFilter: 'blur(28px)',
             WebkitBackdropFilter: 'blur(28px)',
           },
+          toolbar: {display: 'none'},
           button: {color: '#f3e9da', filter: 'none'},
           icon: {color: '#f3e9da', filter: 'none'},
           navigationPrev: {color: '#f3e9da', filter: 'none'},
