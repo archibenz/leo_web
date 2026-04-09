@@ -220,9 +220,10 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
   }
 
   function ProductCard({item}: {item: ShopItem}) {
-    const [hoverIndex, setHoverIndex] = useState(0);
+    const [activeIndex, setActiveIndex] = useState(0);
     const [isHovering, setIsHovering] = useState(false);
     const cardRef = useRef<HTMLDivElement>(null);
+    const touchStartX = useRef(0);
 
     // Parse all images from JSON
     const allImages: string[] = useMemo(() => {
@@ -243,42 +244,73 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
       return imgs;
     }, [item.images, item.image]);
 
-    const handleMouseMove = useCallback((e: React.MouseEvent) => {
-      if (allImages.length <= 1 || !cardRef.current) return;
-      const rect = cardRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const idx = Math.min(Math.floor((x / rect.width) * allImages.length), allImages.length - 1);
-      setHoverIndex(idx);
+    const dragStartX = useRef(0);
+    const isDragging = useRef(false);
+    const didSwipe = useRef(false);
+
+    // Unified swipe handler for both touch and mouse
+    const handleSwipeStart = useCallback((clientX: number) => {
+      if (allImages.length <= 1) return;
+      dragStartX.current = clientX;
+      isDragging.current = true;
+      didSwipe.current = false;
     }, [allImages.length]);
 
-    const activeImage = isHovering ? allImages[hoverIndex] : allImages[0];
+    const handleSwipeEnd = useCallback((clientX: number) => {
+      if (!isDragging.current || allImages.length <= 1) return;
+      isDragging.current = false;
+      const dx = clientX - dragStartX.current;
+      const threshold = 30;
+      if (dx < -threshold) {
+        setActiveIndex(prev => Math.min(prev + 1, allImages.length - 1));
+        didSwipe.current = true;
+      } else if (dx > threshold) {
+        setActiveIndex(prev => Math.max(prev - 1, 0));
+        didSwipe.current = true;
+      }
+    }, [allImages.length]);
+
+    // Prevent navigation after swipe
+    const handleClick = useCallback((e: React.MouseEvent) => {
+      if (didSwipe.current) {
+        e.preventDefault();
+        didSwipe.current = false;
+      }
+    }, []);
 
     return (
-      <Link href={`/${locale}/product/${item.id}`} className="group flex flex-col">
+      <Link
+        href={`/${locale}/product/${item.id}`}
+        className="group flex flex-col"
+        onClick={handleClick}
+      >
         <div
           ref={cardRef}
-          className="relative"
-          onMouseMove={handleMouseMove}
+          className="relative select-none"
+          onMouseDown={(e) => { e.preventDefault(); handleSwipeStart(e.clientX); }}
+          onMouseUp={(e) => handleSwipeEnd(e.clientX)}
+          onMouseLeave={(e) => { handleSwipeEnd(e.clientX); setIsHovering(false); }}
           onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => { setIsHovering(false); setHoverIndex(0); }}
+          onTouchStart={(e) => handleSwipeStart(e.touches[0].clientX)}
+          onTouchEnd={(e) => handleSwipeEnd(e.changedTouches[0].clientX)}
         >
           {allImages.length > 0 ? (
             <div className="aspect-[3/4] w-full rounded-[4px] overflow-hidden">
-              <img src={activeImage} alt={item.title} className="h-full w-full object-cover" />
+              <img src={allImages[activeIndex] ?? allImages[0]} alt={item.title} className="h-full w-full object-cover" />
             </div>
           ) : (
             <div
               className={`aspect-[3/4] w-full rounded-[4px] bg-gradient-to-br ${GRADIENTS[item.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]'}`}
             />
           )}
-          {/* Hover gallery indicators */}
-          {allImages.length > 1 && isHovering && (
+          {/* Gallery indicators — always visible when multiple images */}
+          {allImages.length > 1 && (
             <div className="absolute bottom-2 left-2 right-2 flex gap-1">
               {allImages.map((_, i) => (
                 <div
                   key={i}
                   className={`h-[2px] flex-1 rounded-full transition-colors duration-150 ${
-                    i === hoverIndex ? 'bg-white' : 'bg-white/30'
+                    i === activeIndex ? 'bg-white' : 'bg-white/30'
                   }`}
                 />
               ))}
