@@ -67,9 +67,8 @@ export default function ProductGallery({images}: ProductGalleryProps) {
 
   const displayIndex = previewIndex ?? activeIndex;
 
-  const peekIdx = hoverZone === 'left'
-    ? (displayIndex - 1 + images.length) % images.length
-    : (displayIndex + 1) % images.length;
+  const prevIdx = (displayIndex - 1 + images.length) % images.length;
+  const nextIdx = (displayIndex + 1) % images.length;
 
   const go = useCallback(
     (dir: -1 | 1) => {
@@ -202,11 +201,16 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             if (active?.src) setLightboxOpen(true);
           }}
         >
-          {/* Peek layer — always pre-rendered behind current image */}
+          {/* Peek layers — both always pre-rendered, opacity controls which is visible */}
           {hasMultiple && (
-            <div className="absolute inset-0 z-0">
-              <GalleryImage image={images[peekIdx]} loading="eager" sizes="(max-width: 1024px) 100vw, 60vw" />
-            </div>
+            <>
+              <div className={`absolute inset-0 z-0 ${hoverZone === 'right' ? 'opacity-0' : 'opacity-100'}`}>
+                <GalleryImage image={images[prevIdx]} loading="eager" sizes="(max-width: 1024px) 100vw, 60vw" />
+              </div>
+              <div className={`absolute inset-0 z-0 ${hoverZone === 'left' ? 'opacity-0' : 'opacity-100'}`}>
+                <GalleryImage image={images[nextIdx]} loading="eager" sizes="(max-width: 1024px) 100vw, 60vw" />
+              </div>
+            </>
           )}
 
           {/* Current image — shifts + tilts on hover, key change replays animation */}
