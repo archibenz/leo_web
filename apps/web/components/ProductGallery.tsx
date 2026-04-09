@@ -63,14 +63,13 @@ export default function ProductGallery({images}: ProductGalleryProps) {
   const mainRef = useRef<HTMLDivElement>(null);
   const [mainHover, setMainHover] = useState(false);
   const [hoverZone, setHoverZone] = useState<'left' | 'right' | null>(null);
+  const [navCount, setNavCount] = useState(0);
 
   const displayIndex = previewIndex ?? activeIndex;
 
-  const peekImage = hoverZone === 'left'
-    ? images[(displayIndex - 1 + images.length) % images.length]
-    : hoverZone === 'right'
-      ? images[(displayIndex + 1) % images.length]
-      : null;
+  const peekIdx = hoverZone === 'left'
+    ? (displayIndex - 1 + images.length) % images.length
+    : (displayIndex + 1) % images.length;
 
   const go = useCallback(
     (dir: -1 | 1) => {
@@ -203,15 +202,16 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             if (active?.src) setLightboxOpen(true);
           }}
         >
-          {/* Peek layer — next/prev image visible when current shifts */}
-          {hasMultiple && peekImage && hoverZone && (
+          {/* Peek layer — always pre-rendered behind current image */}
+          {hasMultiple && (
             <div className="absolute inset-0 z-0">
-              <GalleryImage image={peekImage} loading="eager" sizes="(max-width: 1024px) 100vw, 60vw" />
+              <GalleryImage image={images[peekIdx]} loading="eager" sizes="(max-width: 1024px) 100vw, 60vw" />
             </div>
           )}
 
-          {/* Current image — shifts + tilts on hover to reveal peek */}
+          {/* Current image — shifts + tilts on hover, key change replays animation */}
           <div
+            key={navCount}
             className="absolute inset-0 z-[1] transition-all duration-300 ease-out"
             style={{
               transform: hoverZone === 'left'
@@ -256,6 +256,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
+                  setNavCount((c) => c + 1);
                   go(-1);
                 }}
                 onMouseEnter={() => setHoverZone('left')}
@@ -268,6 +269,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
+                  setNavCount((c) => c + 1);
                   go(1);
                 }}
                 onMouseEnter={() => setHoverZone('right')}
