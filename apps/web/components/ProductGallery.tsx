@@ -1,6 +1,7 @@
 'use client';
 
 import {useState, useRef, useCallback, useEffect} from 'react';
+import {motion, AnimatePresence} from 'framer-motion';
 import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
@@ -55,6 +56,7 @@ interface ProductGalleryProps {
 
 export default function ProductGallery({images}: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [direction, setDirection] = useState<1 | -1>(1);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [counterVisible, setCounterVisible] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -62,6 +64,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
 
   const go = useCallback(
     (dir: -1 | 1) => {
+      setDirection(dir);
       setActiveIndex((prev) => {
         const next = prev + dir;
         if (next < 0) return images.length - 1;
@@ -70,6 +73,14 @@ export default function ProductGallery({images}: ProductGalleryProps) {
       });
     },
     [images.length],
+  );
+
+  const jumpTo = useCallback(
+    (i: number) => {
+      setDirection(i >= activeIndex ? 1 : -1);
+      setActiveIndex(i);
+    },
+    [activeIndex],
   );
 
   const active = images[activeIndex];
@@ -151,7 +162,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 key={img.id}
                 type="button"
                 data-thumb-idx={i}
-                onClick={() => setActiveIndex(i)}
+                onClick={() => jumpTo(i)}
                 className="relative flex-shrink-0 w-14 h-[72px] sm:w-16 sm:h-20 lg:w-full lg:h-20 rounded-md overflow-hidden transition-all duration-200 active:scale-95"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label={img.alt}
@@ -180,13 +191,30 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             if (active?.src) setLightboxOpen(true);
           }}
         >
-          {active && (
-            <GalleryImage
-              image={active}
-              loading="eager"
-              sizes="(max-width: 1024px) 100vw, 60vw"
-            />
-          )}
+          <AnimatePresence initial={false} mode="wait" custom={direction}>
+            {active && (
+              <motion.div
+                key={active.id}
+                custom={direction}
+                variants={{
+                  enter: (d: number) => ({opacity: 0, x: 40 * d}),
+                  center: {opacity: 1, x: 0},
+                  exit: (d: number) => ({opacity: 0, x: -40 * d}),
+                }}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{duration: 0.4, ease: [0.22, 1, 0.36, 1]}}
+                className="absolute inset-0"
+              >
+                <GalleryImage
+                  image={active}
+                  loading="eager"
+                  sizes="(max-width: 1024px) 100vw, 60vw"
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Image counter — only when multiple, auto-fades after 2.5s */}
           {hasMultiple && (
@@ -233,7 +261,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
         close={() => setLightboxOpen(false)}
         slides={images.map((img) => ({src: img.src, alt: img.alt}))}
         index={activeIndex}
-        on={{view: ({index: i}) => setActiveIndex(i)}}
+        on={{view: ({index: i}) => jumpTo(i)}}
         plugins={[Zoom]}
         zoom={{
           maxZoomPixelRatio: 3,
