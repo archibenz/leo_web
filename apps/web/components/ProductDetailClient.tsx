@@ -292,47 +292,17 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
 
           {/* CTAs */}
           <div className="flex flex-col gap-3">
-            {currentSizeQty > 0 ? (
-              <div className="flex h-14 w-full items-center rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/10">
-                <button
-                  onClick={() => updateQuantity(currentCartId, currentSizeQty - 1)}
-                  className="flex h-full w-14 items-center justify-center text-[var(--accent)] transition hover:bg-[var(--accent)]/10 rounded-l-full"
-                  aria-label={t('decreaseQty')}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                </button>
-                <div className="flex flex-1 items-center justify-center gap-2 text-base font-medium text-[var(--accent)]">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="flex-shrink-0">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  {t('inCart')} — {currentSizeQty}
-                </div>
-                <button
-                  onClick={handleAddToBag}
-                  className="flex h-full w-14 items-center justify-center text-[var(--accent)] transition hover:bg-[var(--accent)]/10 rounded-r-full"
-                  aria-label={t('increaseQty')}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={handleAddToBag}
-                className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] text-base font-medium text-[var(--paper-base)] transition hover:opacity-90 active:scale-[0.98]"
-              >
-                {product.isTest ? (locale === 'ru' ? 'Добавить (демо)' : 'Add to Bag (Demo)') : t('addToBag')}
-                {totalProductInCart > 0 && (
-                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--paper-base)]/20 px-1.5 text-xs font-semibold">
-                    {totalProductInCart}
-                  </span>
-                )}
-              </button>
-            )}
+            <a
+              href="https://www.wildberries.ru/seller/609562"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-14 w-full items-center justify-center gap-2.5 rounded-full border-2 border-[#CB11AB] text-base font-medium text-[#CB11AB] transition hover:bg-[#CB11AB]/[0.08] active:scale-[0.98]"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="2 7 6 17 12 7 18 17 22 7" />
+              </svg>
+              {locale === 'ru' ? 'Купить на Wildberries' : 'Buy on Wildberries'}
+            </a>
 
             <button
               onClick={handleToggleFav}
