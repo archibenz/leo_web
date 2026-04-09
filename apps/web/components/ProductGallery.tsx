@@ -1,7 +1,7 @@
 'use client';
 
 import {useState, useRef, useCallback, useEffect} from 'react';
-import {motion, AnimatePresence} from 'framer-motion';
+
 import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import 'yet-another-react-lightbox/styles.css';
@@ -57,7 +57,6 @@ interface ProductGalleryProps {
 export default function ProductGallery({images}: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
-  const [direction, setDirection] = useState<1 | -1>(1);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [counterVisible, setCounterVisible] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -75,7 +74,6 @@ export default function ProductGallery({images}: ProductGalleryProps) {
 
   const go = useCallback(
     (dir: -1 | 1) => {
-      setDirection(dir);
       setActiveIndex((prev) => {
         const next = prev + dir;
         if (next < 0) return images.length - 1;
@@ -88,10 +86,9 @@ export default function ProductGallery({images}: ProductGalleryProps) {
 
   const jumpTo = useCallback(
     (i: number) => {
-      setDirection(i >= activeIndex ? 1 : -1);
       setActiveIndex(i);
     },
-    [activeIndex],
+    [],
   );
 
   const active = images[displayIndex];
@@ -174,10 +171,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 type="button"
                 data-thumb-idx={i}
                 onClick={() => jumpTo(i)}
-                onMouseEnter={() => {
-                  setDirection(i >= activeIndex ? 1 : -1);
-                  setPreviewIndex(i);
-                }}
+                onMouseEnter={() => setPreviewIndex(i)}
                 onMouseLeave={() => setPreviewIndex(null)}
                 className="relative flex-shrink-0 w-14 h-[72px] sm:w-16 sm:h-20 lg:w-full lg:h-20 rounded-md overflow-hidden transition-all duration-200 active:scale-95"
                 style={{WebkitTapHighlightColor: 'transparent'}}
@@ -216,11 +210,16 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             </div>
           )}
 
-          {/* Current image — shifts on hover to reveal peek */}
+          {/* Current image — shifts + tilts on hover to reveal peek */}
           <div
             className="absolute inset-0 z-[1] transition-all duration-300 ease-out"
             style={{
-              transform: hoverZone === 'left' ? 'translateX(48px)' : hoverZone === 'right' ? 'translateX(-48px)' : 'translateX(0)',
+              transform: hoverZone === 'left'
+                ? 'translateX(48px) rotate(1.5deg)'
+                : hoverZone === 'right'
+                  ? 'translateX(-48px) rotate(-1.5deg)'
+                  : 'translateX(0) rotate(0deg)',
+              transformOrigin: hoverZone === 'left' ? 'bottom left' : 'bottom right',
               boxShadow: hoverZone === 'left'
                 ? '-10px 0 30px rgba(0,0,0,0.4)'
                 : hoverZone === 'right'
@@ -228,30 +227,15 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                   : 'none',
             }}
           >
-            <AnimatePresence initial={false} mode="wait" custom={direction}>
-              {active && (
-                <motion.div
-                  key={active.id}
-                  custom={direction}
-                  variants={{
-                    enter: (d: number) => ({opacity: 0, x: 40 * d}),
-                    center: {opacity: 1, x: 0},
-                    exit: (d: number) => ({opacity: 0, x: -40 * d}),
-                  }}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{duration: 0.4, ease: [0.22, 1, 0.36, 1]}}
-                  className="absolute inset-0"
-                >
-                  <GalleryImage
-                    image={active}
-                    loading="eager"
-                    sizes="(max-width: 1024px) 100vw, 60vw"
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {active && (
+              <div className="absolute inset-0">
+                <GalleryImage
+                  image={active}
+                  loading="eager"
+                  sizes="(max-width: 1024px) 100vw, 60vw"
+                />
+              </div>
+            )}
           </div>
 
           {/* Image counter */}
