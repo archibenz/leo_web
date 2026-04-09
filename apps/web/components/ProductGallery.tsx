@@ -67,6 +67,12 @@ export default function ProductGallery({images}: ProductGalleryProps) {
 
   const displayIndex = previewIndex ?? activeIndex;
 
+  const peekImage = hoverZone === 'left'
+    ? images[(displayIndex - 1 + images.length) % images.length]
+    : hoverZone === 'right'
+      ? images[(displayIndex + 1) % images.length]
+      : null;
+
   const go = useCallback(
     (dir: -1 | 1) => {
       setDirection(dir);
@@ -203,35 +209,55 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             if (active?.src) setLightboxOpen(true);
           }}
         >
-          <AnimatePresence initial={false} mode="wait" custom={direction}>
-            {active && (
-              <motion.div
-                key={active.id}
-                custom={direction}
-                variants={{
-                  enter: (d: number) => ({opacity: 0, x: 40 * d}),
-                  center: {opacity: 1, x: 0},
-                  exit: (d: number) => ({opacity: 0, x: -40 * d}),
-                }}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{duration: 0.4, ease: [0.22, 1, 0.36, 1]}}
-                className="absolute inset-0"
-              >
-                <GalleryImage
-                  image={active}
-                  loading="eager"
-                  sizes="(max-width: 1024px) 100vw, 60vw"
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Peek layer — next/prev image visible when current shifts */}
+          {hasMultiple && peekImage && hoverZone && (
+            <div className="absolute inset-0 z-0">
+              <GalleryImage image={peekImage} loading="eager" sizes="(max-width: 1024px) 100vw, 60vw" />
+            </div>
+          )}
 
-          {/* Image counter — only when multiple, auto-fades after 2.5s */}
+          {/* Current image — shifts on hover to reveal peek */}
+          <div
+            className="absolute inset-0 z-[1] transition-all duration-300 ease-out"
+            style={{
+              transform: hoverZone === 'left' ? 'translateX(48px)' : hoverZone === 'right' ? 'translateX(-48px)' : 'translateX(0)',
+              boxShadow: hoverZone === 'left'
+                ? '-10px 0 30px rgba(0,0,0,0.4)'
+                : hoverZone === 'right'
+                  ? '10px 0 30px rgba(0,0,0,0.4)'
+                  : 'none',
+            }}
+          >
+            <AnimatePresence initial={false} mode="wait" custom={direction}>
+              {active && (
+                <motion.div
+                  key={active.id}
+                  custom={direction}
+                  variants={{
+                    enter: (d: number) => ({opacity: 0, x: 40 * d}),
+                    center: {opacity: 1, x: 0},
+                    exit: (d: number) => ({opacity: 0, x: -40 * d}),
+                  }}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{duration: 0.4, ease: [0.22, 1, 0.36, 1]}}
+                  className="absolute inset-0"
+                >
+                  <GalleryImage
+                    image={active}
+                    loading="eager"
+                    sizes="(max-width: 1024px) 100vw, 60vw"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Image counter */}
           {hasMultiple && (
             <div
-              className={`pointer-events-none absolute top-3 right-3 z-10 rounded-full bg-black/45 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md transition-opacity duration-500 sm:top-4 sm:right-4 sm:text-xs ${
+              className={`pointer-events-none absolute top-3 right-3 z-20 rounded-full bg-black/45 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md transition-opacity duration-500 sm:top-4 sm:right-4 sm:text-xs ${
                 counterVisible || mainHover ? 'opacity-100' : 'opacity-0'
               }`}
             >
@@ -239,7 +265,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             </div>
           )}
 
-          {/* Prev / Next — tap zones with hover gradient + arrows (desktop) */}
+          {/* Prev / Next — invisible tap zones, peek shift handles visuals */}
           {hasMultiple && (
             <>
               <button
@@ -250,25 +276,10 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 }}
                 onMouseEnter={() => setHoverZone('left')}
                 onMouseLeave={() => setHoverZone(null)}
-                className="absolute left-0 top-0 z-10 flex h-full w-[20%] items-center justify-center"
+                className="absolute left-0 top-0 z-20 h-full w-[20%]"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label="Previous image"
-              >
-                <div
-                  className={`pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-black/25 to-transparent transition-opacity duration-200 lg:block ${
-                    hoverZone === 'left' ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-                <svg
-                  className={`pointer-events-none relative hidden h-5 w-5 text-white drop-shadow-lg transition-opacity duration-200 lg:block ${
-                    mainHover ? (hoverZone === 'left' ? 'opacity-100' : 'opacity-60') : 'opacity-0'
-                  }`}
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <polygon points="16 4 8 12 16 20" />
-                </svg>
-              </button>
+              />
               <button
                 type="button"
                 onClick={(e) => {
@@ -277,25 +288,10 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 }}
                 onMouseEnter={() => setHoverZone('right')}
                 onMouseLeave={() => setHoverZone(null)}
-                className="absolute right-0 top-0 z-10 flex h-full w-[20%] items-center justify-center"
+                className="absolute right-0 top-0 z-20 h-full w-[20%]"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label="Next image"
-              >
-                <div
-                  className={`pointer-events-none absolute inset-0 hidden bg-gradient-to-l from-black/25 to-transparent transition-opacity duration-200 lg:block ${
-                    hoverZone === 'right' ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-                <svg
-                  className={`pointer-events-none relative hidden h-5 w-5 text-white drop-shadow-lg transition-opacity duration-200 lg:block ${
-                    mainHover ? (hoverZone === 'right' ? 'opacity-100' : 'opacity-60') : 'opacity-0'
-                  }`}
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <polygon points="8 4 16 12 8 20" />
-                </svg>
-              </button>
+              />
             </>
           )}
         </div>
