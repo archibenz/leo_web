@@ -584,7 +584,8 @@
     "decreaseQty": "Уменьшить количество",
     "increaseQty": "Увеличить количество",
     "size": "Размер",
-    "notFound": "Товар не найден"
+    "notFound": "Товар не найден",
+    "buyOnWb": "Купить на Wildberries"
   },
   "collections": {
     "tag": "Коллекции",

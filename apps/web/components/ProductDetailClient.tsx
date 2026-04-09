@@ -347,6 +347,21 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
               </svg>
               {isFav ? t('favouriteAdded') : t('favourite')}
             </button>
+
+            {/* Wildberries */}
+            <a
+              href="https://www.wildberries.ru/seller/609562"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-14 w-full items-center justify-center gap-2.5 rounded-full border border-[#CB11AB]/25 bg-[#CB11AB]/[0.06] text-base font-medium text-[#CB11AB] transition hover:bg-[#CB11AB]/[0.12] hover:border-[#CB11AB]/40 active:scale-[0.98]"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              {t('buyOnWb')}
+            </a>
           </div>
 
           {/* Description */}

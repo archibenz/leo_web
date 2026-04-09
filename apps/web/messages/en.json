@@ -584,7 +584,8 @@
     "decreaseQty": "Decrease quantity",
     "increaseQty": "Increase quantity",
     "size": "Size",
-    "notFound": "Product not found"
+    "notFound": "Product not found",
+    "buyOnWb": "Buy on Wildberries"
   },
   "collections": {
     "tag": "Collections",
