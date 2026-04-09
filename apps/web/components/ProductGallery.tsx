@@ -62,6 +62,8 @@ export default function ProductGallery({images}: ProductGalleryProps) {
   const [counterVisible, setCounterVisible] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
+  const [mainHover, setMainHover] = useState(false);
+  const [hoverZone, setHoverZone] = useState<'left' | 'right' | null>(null);
 
   const displayIndex = previewIndex ?? activeIndex;
 
@@ -195,6 +197,8 @@ export default function ProductGallery({images}: ProductGalleryProps) {
           ref={mainRef}
           className="relative aspect-[3/4] w-full overflow-hidden rounded-lg lg:rounded-xl select-none cursor-pointer"
           style={{touchAction: 'pan-y'}}
+          onMouseEnter={() => setMainHover(true)}
+          onMouseLeave={() => { setMainHover(false); setHoverZone(null); }}
           onClick={() => {
             if (active?.src) setLightboxOpen(true);
           }}
@@ -228,14 +232,14 @@ export default function ProductGallery({images}: ProductGalleryProps) {
           {hasMultiple && (
             <div
               className={`pointer-events-none absolute top-3 right-3 z-10 rounded-full bg-black/45 px-3 py-1 text-[11px] font-medium text-white backdrop-blur-md transition-opacity duration-500 sm:top-4 sm:right-4 sm:text-xs ${
-                counterVisible ? 'opacity-100' : 'opacity-0'
+                counterVisible || mainHover ? 'opacity-100' : 'opacity-0'
               }`}
             >
               {displayIndex + 1} / {images.length}
             </div>
           )}
 
-          {/* Prev / Next — invisible Telegram-style edge tap zones, no visual indicators */}
+          {/* Prev / Next — tap zones with hover gradient + arrows (desktop) */}
           {hasMultiple && (
             <>
               <button
@@ -244,20 +248,62 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                   e.stopPropagation();
                   go(-1);
                 }}
-                className="absolute left-0 top-0 z-10 h-full w-[15%]"
+                onMouseEnter={() => setHoverZone('left')}
+                onMouseLeave={() => setHoverZone(null)}
+                className="absolute left-0 top-0 z-10 flex h-full w-[20%] items-center justify-center"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label="Previous image"
-              />
+              >
+                <div
+                  className={`pointer-events-none absolute inset-0 hidden bg-gradient-to-r from-black/25 to-transparent transition-opacity duration-200 lg:block ${
+                    hoverZone === 'left' ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+                <svg
+                  className={`pointer-events-none relative hidden h-7 w-7 text-white drop-shadow-lg transition-opacity duration-200 lg:block ${
+                    mainHover ? (hoverZone === 'left' ? 'opacity-100' : 'opacity-60') : 'opacity-0'
+                  }`}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   go(1);
                 }}
-                className="absolute right-0 top-0 z-10 h-full w-[15%]"
+                onMouseEnter={() => setHoverZone('right')}
+                onMouseLeave={() => setHoverZone(null)}
+                className="absolute right-0 top-0 z-10 flex h-full w-[20%] items-center justify-center"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label="Next image"
-              />
+              >
+                <div
+                  className={`pointer-events-none absolute inset-0 hidden bg-gradient-to-l from-black/25 to-transparent transition-opacity duration-200 lg:block ${
+                    hoverZone === 'right' ? 'opacity-100' : 'opacity-0'
+                  }`}
+                />
+                <svg
+                  className={`pointer-events-none relative hidden h-7 w-7 text-white drop-shadow-lg transition-opacity duration-200 lg:block ${
+                    mainHover ? (hoverZone === 'right' ? 'opacity-100' : 'opacity-60') : 'opacity-0'
+                  }`}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
             </>
           )}
         </div>
