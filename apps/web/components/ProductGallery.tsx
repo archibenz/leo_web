@@ -260,17 +260,13 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                   }`}
                 />
                 <svg
-                  className={`pointer-events-none relative hidden h-7 w-7 text-white drop-shadow-lg transition-opacity duration-200 lg:block ${
+                  className={`pointer-events-none relative hidden h-5 w-5 text-white drop-shadow-lg transition-opacity duration-200 lg:block ${
                     mainHover ? (hoverZone === 'left' ? 'opacity-100' : 'opacity-60') : 'opacity-0'
                   }`}
                   viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  fill="currentColor"
                 >
-                  <polyline points="15 18 9 12 15 6" />
+                  <polygon points="16 4 8 12 16 20" />
                 </svg>
               </button>
               <button
@@ -291,17 +287,13 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                   }`}
                 />
                 <svg
-                  className={`pointer-events-none relative hidden h-7 w-7 text-white drop-shadow-lg transition-opacity duration-200 lg:block ${
+                  className={`pointer-events-none relative hidden h-5 w-5 text-white drop-shadow-lg transition-opacity duration-200 lg:block ${
                     mainHover ? (hoverZone === 'right' ? 'opacity-100' : 'opacity-60') : 'opacity-0'
                   }`}
                   viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                  fill="currentColor"
                 >
-                  <polyline points="9 18 15 12 9 6" />
+                  <polygon points="8 4 16 12 8 20" />
                 </svg>
               </button>
             </>
