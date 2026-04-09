@@ -303,10 +303,10 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
 
             <button
               onClick={handleToggleFav}
-              className={`flex h-14 w-full items-center justify-center gap-2.5 rounded-full border text-base font-medium transition active:scale-[0.98] ${
+              className={`flex h-14 w-full items-center justify-center gap-2.5 rounded-full border-2 text-base font-medium transition-all duration-200 active:scale-[0.98] ${
                 isFav
                   ? 'border-[var(--accent)] text-[var(--accent)]'
-                  : 'border-[var(--ink)]/20 text-[var(--ink)] hover:border-[var(--ink)]/40'
+                  : 'border-[var(--ink)]/20 text-[var(--ink)] hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/[0.06]'
               }`}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
