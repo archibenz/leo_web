@@ -123,7 +123,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
           setExitState((prev) => prev ? {...prev, phase: 'end'} : null);
         });
       });
-      const t = setTimeout(() => setExitState(null), 500);
+      const t = setTimeout(() => setExitState(null), 600);
       return () => clearTimeout(t);
     }
   }, [exitState?.phase]);
@@ -191,8 +191,8 @@ export default function ProductGallery({images}: ProductGalleryProps) {
 
   const exitEndTransform = exitState
     ? exitState.dir === 1
-      ? 'translateX(-110%) rotate(-8deg)'
-      : 'translateX(110%) rotate(8deg)'
+      ? 'translateX(-30%) translateY(12%) rotate(-6deg) scale(0.88)'
+      : 'translateX(30%) translateY(12%) rotate(6deg) scale(0.88)'
     : '';
 
   return (
@@ -289,11 +289,11 @@ export default function ProductGallery({images}: ProductGalleryProps) {
               className="absolute inset-0 z-[3] pointer-events-none"
               style={{
                 transition: exitState.phase === 'end'
-                  ? 'transform 450ms cubic-bezier(0.22, 1, 0.36, 1), opacity 450ms ease-out'
+                  ? 'transform 500ms cubic-bezier(0.4, 0, 1, 1), opacity 500ms ease-in'
                   : 'none',
                 transform: exitState.phase === 'start' ? exitState.startTransform : exitEndTransform,
                 opacity: exitState.phase === 'start' ? 1 : 0,
-                transformOrigin: exitState.startOrigin,
+                transformOrigin: exitState.dir === 1 ? 'top right' : 'top left',
                 boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
               }}
             >
