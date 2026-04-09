@@ -220,101 +220,31 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
   }
 
   function ProductCard({item}: {item: ShopItem}) {
-    const [activeIndex, setActiveIndex] = useState(0);
-    const [isHovering, setIsHovering] = useState(false);
-    const cardRef = useRef<HTMLDivElement>(null);
-    const touchStartX = useRef(0);
-
-    // Parse all images from JSON
-    const allImages: string[] = useMemo(() => {
-      const imgs: string[] = [];
-      if (item.images) {
-        try {
-          const parsed = JSON.parse(item.images);
-          if (Array.isArray(parsed)) {
-            for (const img of parsed) {
-              if (img.src) imgs.push(img.src.startsWith('/') ? `${API_BASE}${img.src}` : img.src);
-            }
-          }
-        } catch { /* ignore */ }
-      }
-      if (imgs.length === 0 && item.image) {
-        imgs.push(item.image.startsWith('/') ? `${API_BASE}${item.image}` : item.image);
-      }
-      return imgs;
-    }, [item.images, item.image]);
-
-    const dragStartX = useRef(0);
-    const isDragging = useRef(false);
-    const didSwipe = useRef(false);
-
-    // Unified swipe handler for both touch and mouse
-    const handleSwipeStart = useCallback((clientX: number) => {
-      if (allImages.length <= 1) return;
-      dragStartX.current = clientX;
-      isDragging.current = true;
-      didSwipe.current = false;
-    }, [allImages.length]);
-
-    const handleSwipeEnd = useCallback((clientX: number) => {
-      if (!isDragging.current || allImages.length <= 1) return;
-      isDragging.current = false;
-      const dx = clientX - dragStartX.current;
-      const threshold = 30;
-      if (dx < -threshold) {
-        setActiveIndex(prev => Math.min(prev + 1, allImages.length - 1));
-        didSwipe.current = true;
-      } else if (dx > threshold) {
-        setActiveIndex(prev => Math.max(prev - 1, 0));
-        didSwipe.current = true;
-      }
-    }, [allImages.length]);
-
-    // Prevent navigation after swipe
-    const handleClick = useCallback((e: React.MouseEvent) => {
-      if (didSwipe.current) {
-        e.preventDefault();
-        didSwipe.current = false;
-      }
-    }, []);
+    // Parse first image from images JSON
+    let firstImage: string | null = null;
+    if (item.images) {
+      try {
+        const parsed = JSON.parse(item.images);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].src) {
+          firstImage = parsed[0].src;
+        }
+      } catch { /* ignore */ }
+    }
+    if (!firstImage && item.image) {
+      firstImage = item.image;
+    }
 
     return (
-      <Link
-        href={`/${locale}/product/${item.id}`}
-        className="group flex flex-col"
-        onClick={handleClick}
-      >
-        <div
-          ref={cardRef}
-          className="relative select-none"
-          onMouseDown={(e) => { e.preventDefault(); handleSwipeStart(e.clientX); }}
-          onMouseUp={(e) => handleSwipeEnd(e.clientX)}
-          onMouseLeave={(e) => { handleSwipeEnd(e.clientX); setIsHovering(false); }}
-          onMouseEnter={() => setIsHovering(true)}
-          onTouchStart={(e) => handleSwipeStart(e.touches[0].clientX)}
-          onTouchEnd={(e) => handleSwipeEnd(e.changedTouches[0].clientX)}
-        >
-          {allImages.length > 0 ? (
+      <Link href={`/${locale}/product/${item.id}`} className="group flex flex-col">
+        <div className="relative">
+          {firstImage ? (
             <div className="aspect-[3/4] w-full rounded-[4px] overflow-hidden">
-              <img src={allImages[activeIndex] ?? allImages[0]} alt={item.title} className="h-full w-full object-cover" />
+              <img src={firstImage.startsWith('/') ? `${API_BASE}${firstImage}` : firstImage} alt={item.title} className="h-full w-full object-cover transition-opacity group-hover:opacity-90" />
             </div>
           ) : (
             <div
-              className={`aspect-[3/4] w-full rounded-[4px] bg-gradient-to-br ${GRADIENTS[item.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]'}`}
+              className={`aspect-[3/4] w-full rounded-[4px] bg-gradient-to-br transition-opacity group-hover:opacity-90 ${GRADIENTS[item.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]'}`}
             />
-          )}
-          {/* Gallery indicators — always visible when multiple images */}
-          {allImages.length > 1 && (
-            <div className="absolute bottom-2 left-2 right-2 flex gap-1">
-              {allImages.map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-[2px] flex-1 rounded-full transition-colors duration-150 ${
-                    i === activeIndex ? 'bg-white' : 'bg-white/30'
-                  }`}
-                />
-              ))}
-            </div>
           )}
           {item.isTest && (
             <span className="absolute top-2 left-2 rounded-full bg-[var(--accent)]/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--paper-base)]">
