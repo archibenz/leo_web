@@ -56,11 +56,14 @@ interface ProductGalleryProps {
 
 export default function ProductGallery({images}: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [counterVisible, setCounterVisible] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
+
+  const displayIndex = previewIndex ?? activeIndex;
 
   const go = useCallback(
     (dir: -1 | 1) => {
@@ -83,7 +86,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
     [activeIndex],
   );
 
-  const active = images[activeIndex];
+  const active = images[displayIndex];
   const hasMultiple = images.length > 1;
 
   /* ── Touch swipe on main image ── */
@@ -163,16 +166,21 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 type="button"
                 data-thumb-idx={i}
                 onClick={() => jumpTo(i)}
+                onMouseEnter={() => {
+                  setDirection(i >= activeIndex ? 1 : -1);
+                  setPreviewIndex(i);
+                }}
+                onMouseLeave={() => setPreviewIndex(null)}
                 className="relative flex-shrink-0 w-14 h-[72px] sm:w-16 sm:h-20 lg:w-full lg:h-20 rounded-md overflow-hidden transition-all duration-200 active:scale-95"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label={img.alt}
-                aria-pressed={i === activeIndex}
+                aria-pressed={i === displayIndex}
               >
                 <GalleryImage image={img} sizes="80px" />
                 <div
                   aria-hidden="true"
                   className={`absolute inset-0 pointer-events-none transition-opacity duration-200 bg-black/45 ${
-                    i === activeIndex ? 'opacity-100' : 'opacity-0'
+                    i === displayIndex ? 'opacity-100' : 'opacity-0'
                   }`}
                 />
               </button>
@@ -223,7 +231,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 counterVisible ? 'opacity-100' : 'opacity-0'
               }`}
             >
-              {activeIndex + 1} / {images.length}
+              {displayIndex + 1} / {images.length}
             </div>
           )}
 
