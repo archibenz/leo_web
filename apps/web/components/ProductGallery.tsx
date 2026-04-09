@@ -63,7 +63,16 @@ export default function ProductGallery({images}: ProductGalleryProps) {
   const mainRef = useRef<HTMLDivElement>(null);
   const [mainHover, setMainHover] = useState(false);
   const [hoverZone, setHoverZone] = useState<'left' | 'right' | null>(null);
-  const [navCount, setNavCount] = useState(0);
+  const [exitState, setExitState] = useState<{
+    image: ProductImage;
+    dir: -1 | 1;
+    startTransform: string;
+    startOrigin: string;
+    phase: 'start' | 'end';
+  } | null>(null);
+  const lastZoneRef = useRef<'left' | 'right'>('right');
+
+  if (hoverZone) lastZoneRef.current = hoverZone;
 
   const displayIndex = previewIndex ?? activeIndex;
 
@@ -82,6 +91,20 @@ export default function ProductGallery({images}: ProductGalleryProps) {
     [images.length],
   );
 
+  const handleNav = useCallback(
+    (dir: -1 | 1) => {
+      const startTransform = hoverZone === 'left'
+        ? 'translateX(48px) rotate(1.5deg)'
+        : hoverZone === 'right'
+          ? 'translateX(-48px) rotate(-1.5deg)'
+          : 'translateX(0) rotate(0deg)';
+      const startOrigin = hoverZone === 'left' ? 'bottom left' : 'bottom right';
+      setExitState({image: images[displayIndex], dir, startTransform, startOrigin, phase: 'start'});
+      go(dir);
+    },
+    [displayIndex, go, hoverZone, images],
+  );
+
   const jumpTo = useCallback(
     (i: number) => {
       setActiveIndex(i);
@@ -91,6 +114,19 @@ export default function ProductGallery({images}: ProductGalleryProps) {
 
   const active = images[displayIndex];
   const hasMultiple = images.length > 1;
+
+  /* ── Exit fly-away: two-phase transition ── */
+  useEffect(() => {
+    if (exitState?.phase === 'start') {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setExitState((prev) => prev ? {...prev, phase: 'end'} : null);
+        });
+      });
+      const t = setTimeout(() => setExitState(null), 500);
+      return () => clearTimeout(t);
+    }
+  }, [exitState?.phase]);
 
   /* ── Touch swipe on main image ── */
   useEffect(() => {
@@ -153,6 +189,12 @@ export default function ProductGallery({images}: ProductGalleryProps) {
     return () => clearTimeout(t);
   }, [activeIndex]);
 
+  const exitEndTransform = exitState
+    ? exitState.dir === 1
+      ? 'translateX(-110%) rotate(-8deg)'
+      : 'translateX(110%) rotate(8deg)'
+    : '';
+
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:gap-4">
       {/* Thumbnails — horizontal on mobile, vertical on desktop */}
@@ -201,21 +243,20 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             if (active?.src) setLightboxOpen(true);
           }}
         >
-          {/* Peek layers — both always pre-rendered, opacity controls which is visible */}
+          {/* Peek layers — both pre-rendered, lastZoneRef controls which is visible */}
           {hasMultiple && (
             <>
-              <div className={`absolute inset-0 z-0 ${hoverZone === 'right' ? 'opacity-0' : 'opacity-100'}`}>
+              <div className={`absolute inset-0 z-0 ${lastZoneRef.current === 'right' ? 'opacity-0' : 'opacity-100'}`}>
                 <GalleryImage image={images[prevIdx]} loading="eager" sizes="(max-width: 1024px) 100vw, 60vw" />
               </div>
-              <div className={`absolute inset-0 z-0 ${hoverZone === 'left' ? 'opacity-0' : 'opacity-100'}`}>
+              <div className={`absolute inset-0 z-0 ${lastZoneRef.current === 'left' ? 'opacity-0' : 'opacity-100'}`}>
                 <GalleryImage image={images[nextIdx]} loading="eager" sizes="(max-width: 1024px) 100vw, 60vw" />
               </div>
             </>
           )}
 
-          {/* Current image — shifts + tilts on hover, key change replays animation */}
+          {/* Current image — shifts + tilts on hover */}
           <div
-            key={navCount}
             className="absolute inset-0 z-[1] transition-all duration-300 ease-out"
             style={{
               transform: hoverZone === 'left'
@@ -224,11 +265,11 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                   ? 'translateX(-48px) rotate(-1.5deg)'
                   : 'translateX(0) rotate(0deg)',
               transformOrigin: hoverZone === 'left' ? 'bottom left' : 'bottom right',
-              boxShadow: hoverZone === 'left'
-                ? '-10px 0 30px rgba(0,0,0,0.4)'
-                : hoverZone === 'right'
-                  ? '10px 0 30px rgba(0,0,0,0.4)'
-                  : 'none',
+              boxShadow: hoverZone
+                ? (hoverZone === 'left'
+                    ? '-8px 4px 32px rgba(0,0,0,0.45)'
+                    : '8px 4px 32px rgba(0,0,0,0.45)')
+                : '0 2px 12px rgba(0,0,0,0.2)',
             }}
           >
             {active && (
@@ -242,6 +283,24 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             )}
           </div>
 
+          {/* Exit fly-away layer */}
+          {exitState && (
+            <div
+              className="absolute inset-0 z-[3] pointer-events-none"
+              style={{
+                transition: exitState.phase === 'end'
+                  ? 'transform 450ms cubic-bezier(0.22, 1, 0.36, 1), opacity 450ms ease-out'
+                  : 'none',
+                transform: exitState.phase === 'start' ? exitState.startTransform : exitEndTransform,
+                opacity: exitState.phase === 'start' ? 1 : 0,
+                transformOrigin: exitState.startOrigin,
+                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+              }}
+            >
+              <GalleryImage image={exitState.image} loading="eager" sizes="(max-width: 1024px) 100vw, 60vw" />
+            </div>
+          )}
+
           {/* Image counter */}
           {hasMultiple && (
             <div
@@ -253,15 +312,14 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             </div>
           )}
 
-          {/* Prev / Next — invisible tap zones, peek shift handles visuals */}
+          {/* Prev / Next — invisible tap zones */}
           {hasMultiple && (
             <>
               <button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setNavCount((c) => c + 1);
-                  go(-1);
+                  handleNav(-1);
                 }}
                 onMouseEnter={() => setHoverZone('left')}
                 onMouseLeave={() => setHoverZone(null)}
@@ -273,8 +331,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setNavCount((c) => c + 1);
-                  go(1);
+                  handleNav(1);
                 }}
                 onMouseEnter={() => setHoverZone('right')}
                 onMouseLeave={() => setHoverZone(null)}
