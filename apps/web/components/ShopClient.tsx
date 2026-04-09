@@ -220,31 +220,69 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
   }
 
   function ProductCard({item}: {item: ShopItem}) {
-    // Parse first image from images JSON
-    let firstImage: string | null = null;
-    if (item.images) {
-      try {
-        const parsed = JSON.parse(item.images);
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].src) {
-          firstImage = parsed[0].src;
-        }
-      } catch { /* ignore */ }
-    }
-    if (!firstImage && item.image) {
-      firstImage = item.image;
-    }
+    const [hoverIndex, setHoverIndex] = useState(0);
+    const [isHovering, setIsHovering] = useState(false);
+    const cardRef = useRef<HTMLDivElement>(null);
+
+    // Parse all images from JSON
+    const allImages: string[] = useMemo(() => {
+      const imgs: string[] = [];
+      if (item.images) {
+        try {
+          const parsed = JSON.parse(item.images);
+          if (Array.isArray(parsed)) {
+            for (const img of parsed) {
+              if (img.src) imgs.push(img.src.startsWith('/') ? `${API_BASE}${img.src}` : img.src);
+            }
+          }
+        } catch { /* ignore */ }
+      }
+      if (imgs.length === 0 && item.image) {
+        imgs.push(item.image.startsWith('/') ? `${API_BASE}${item.image}` : item.image);
+      }
+      return imgs;
+    }, [item.images, item.image]);
+
+    const handleMouseMove = useCallback((e: React.MouseEvent) => {
+      if (allImages.length <= 1 || !cardRef.current) return;
+      const rect = cardRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const idx = Math.min(Math.floor((x / rect.width) * allImages.length), allImages.length - 1);
+      setHoverIndex(idx);
+    }, [allImages.length]);
+
+    const activeImage = isHovering ? allImages[hoverIndex] : allImages[0];
 
     return (
       <Link href={`/${locale}/product/${item.id}`} className="group flex flex-col">
-        <div className="relative">
-          {firstImage ? (
+        <div
+          ref={cardRef}
+          className="relative"
+          onMouseMove={handleMouseMove}
+          onMouseEnter={() => setIsHovering(true)}
+          onMouseLeave={() => { setIsHovering(false); setHoverIndex(0); }}
+        >
+          {allImages.length > 0 ? (
             <div className="aspect-[3/4] w-full rounded-[4px] overflow-hidden">
-              <img src={firstImage.startsWith('/') ? `${API_BASE}${firstImage}` : firstImage} alt={item.title} className="h-full w-full object-cover transition-opacity group-hover:opacity-90" />
+              <img src={activeImage} alt={item.title} className="h-full w-full object-cover" />
             </div>
           ) : (
             <div
-              className={`aspect-[3/4] w-full rounded-[4px] bg-gradient-to-br transition-opacity group-hover:opacity-90 ${GRADIENTS[item.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]'}`}
+              className={`aspect-[3/4] w-full rounded-[4px] bg-gradient-to-br ${GRADIENTS[item.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]'}`}
             />
+          )}
+          {/* Hover gallery indicators */}
+          {allImages.length > 1 && isHovering && (
+            <div className="absolute bottom-2 left-2 right-2 flex gap-1">
+              {allImages.map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-[2px] flex-1 rounded-full transition-colors duration-150 ${
+                    i === hoverIndex ? 'bg-white' : 'bg-white/30'
+                  }`}
+                />
+              ))}
+            </div>
           )}
           {item.isTest && (
             <span className="absolute top-2 left-2 rounded-full bg-[var(--accent)]/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--paper-base)]">
