@@ -52,7 +52,7 @@ export default function SizeSelector({
               aria-disabled={!size.available}
               aria-pressed={isSelected}
               aria-label={!size.available ? `${size.label} — ${unavailableLabel}` : size.label}
-              className={`relative pb-1 text-base tracking-wide transition-colors duration-200
+              className={`relative px-2 pb-1 text-base tracking-[0.15em] uppercase transition-colors duration-200
                 after:absolute after:bottom-0 after:left-0 after:h-[1.5px] after:w-full
                 after:origin-left after:scale-x-0 after:transition-transform after:duration-300 after:ease-out
                 ${
