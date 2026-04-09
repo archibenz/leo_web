@@ -40,8 +40,8 @@ export default function SizeSelector({
         </button>
       </div>
 
-      {/* Size grid */}
-      <div className="grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-4">
+      {/* Size list */}
+      <div className="flex flex-wrap gap-x-6 gap-y-2">
         {sizes.map((size) => {
           const isSelected = selected === size.label;
           return (
@@ -52,17 +52,19 @@ export default function SizeSelector({
               aria-disabled={!size.available}
               aria-pressed={isSelected}
               aria-label={!size.available ? `${size.label} — ${unavailableLabel}` : size.label}
-              className={`relative flex h-12 items-center justify-center rounded-lg border text-sm font-medium transition-all duration-150
+              className={`relative pb-1 text-base tracking-wide transition-colors duration-200
+                after:absolute after:bottom-0 after:left-0 after:h-[1.5px] after:w-full
+                after:origin-left after:scale-x-0 after:transition-transform after:duration-300 after:ease-out
                 ${
                   isSelected
-                    ? 'border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]'
+                    ? 'text-[var(--accent)] font-medium after:scale-x-100 after:bg-[var(--accent)]'
                     : size.available
-                      ? 'border-[var(--ink)]/15 text-[var(--ink)] hover:border-[var(--ink)]/40'
-                      : 'border-dashed border-[var(--ink)]/10 bg-[var(--ink)]/[0.02] text-[var(--ink)]/15 cursor-not-allowed'
+                      ? 'text-[var(--ink)] hover:text-[var(--accent)] after:bg-[var(--accent)] hover:after:scale-x-100'
+                      : 'text-[var(--ink)]/20 cursor-not-allowed line-through'
                 }
               `}
             >
-              <span className={!size.available ? 'opacity-30 line-through decoration-[var(--ink)]/30' : ''}>{size.label}</span>
+              {size.label}
             </button>
           );
         })}
