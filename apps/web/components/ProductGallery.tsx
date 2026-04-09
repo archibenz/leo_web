@@ -63,11 +63,10 @@ export default function ProductGallery({images}: ProductGalleryProps) {
   const mainRef = useRef<HTMLDivElement>(null);
   const [mainHover, setMainHover] = useState(false);
   const [hoverZone, setHoverZone] = useState<'left' | 'right' | null>(null);
+  const [isDesktop, setIsDesktop] = useState(false);
   const [exitState, setExitState] = useState<{
     image: ProductImage;
-    dir: -1 | 1;
     startTransform: string;
-    startOrigin: string;
     phase: 'start' | 'end';
   } | null>(null);
   const lastZoneRef = useRef<'left' | 'right'>('right');
@@ -75,9 +74,17 @@ export default function ProductGallery({images}: ProductGalleryProps) {
   if (hoverZone) lastZoneRef.current = hoverZone;
 
   const displayIndex = previewIndex ?? activeIndex;
-
   const prevIdx = (displayIndex - 1 + images.length) % images.length;
   const nextIdx = (displayIndex + 1) % images.length;
+
+  /* ── Detect desktop (mouse + fine pointer) ── */
+  useEffect(() => {
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+    setIsDesktop(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   const go = useCallback(
     (dir: -1 | 1) => {
@@ -93,16 +100,19 @@ export default function ProductGallery({images}: ProductGalleryProps) {
 
   const handleNav = useCallback(
     (dir: -1 | 1) => {
+      if (!isDesktop) {
+        go(dir);
+        return;
+      }
       const startTransform = hoverZone === 'left'
         ? 'translateX(48px) rotate(1.5deg)'
         : hoverZone === 'right'
           ? 'translateX(-48px) rotate(-1.5deg)'
           : 'translateX(0) rotate(0deg)';
-      const startOrigin = hoverZone === 'left' ? 'bottom left' : 'bottom right';
-      setExitState({image: images[displayIndex], dir, startTransform, startOrigin, phase: 'start'});
+      setExitState({image: images[displayIndex], startTransform, phase: 'start'});
       go(dir);
     },
-    [displayIndex, go, hoverZone, images],
+    [displayIndex, go, hoverZone, images, isDesktop],
   );
 
   const jumpTo = useCallback(
@@ -115,7 +125,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
   const active = images[displayIndex];
   const hasMultiple = images.length > 1;
 
-  /* ── Exit fly-away: two-phase transition ── */
+  /* ── Exit dissolve: two-phase transition ── */
   useEffect(() => {
     if (exitState?.phase === 'start') {
       requestAnimationFrame(() => {
@@ -123,7 +133,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
           setExitState((prev) => prev ? {...prev, phase: 'end'} : null);
         });
       });
-      const t = setTimeout(() => setExitState(null), 600);
+      const t = setTimeout(() => setExitState(null), 550);
       return () => clearTimeout(t);
     }
   }, [exitState?.phase]);
@@ -189,11 +199,13 @@ export default function ProductGallery({images}: ProductGalleryProps) {
     return () => clearTimeout(t);
   }, [activeIndex]);
 
-  const exitEndTransform = exitState
-    ? exitState.dir === 1
-      ? 'translateX(-30%) translateY(12%) rotate(-6deg) scale(0.88)'
-      : 'translateX(30%) translateY(12%) rotate(6deg) scale(0.88)'
-    : '';
+  const shiftTransform = isDesktop
+    ? hoverZone === 'left'
+      ? 'translateX(48px) rotate(1.5deg)'
+      : hoverZone === 'right'
+        ? 'translateX(-48px) rotate(-1.5deg)'
+        : 'translateX(0) rotate(0deg)'
+    : 'none';
 
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:gap-4">
@@ -211,8 +223,8 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 type="button"
                 data-thumb-idx={i}
                 onClick={() => jumpTo(i)}
-                onMouseEnter={() => setPreviewIndex(i)}
-                onMouseLeave={() => setPreviewIndex(null)}
+                onMouseEnter={() => isDesktop && setPreviewIndex(i)}
+                onMouseLeave={() => isDesktop && setPreviewIndex(null)}
                 className="relative flex-shrink-0 w-14 h-[72px] sm:w-16 sm:h-20 lg:w-full lg:h-20 rounded-md overflow-hidden transition-all duration-200 active:scale-95"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label={img.alt}
@@ -237,14 +249,14 @@ export default function ProductGallery({images}: ProductGalleryProps) {
           ref={mainRef}
           className="relative aspect-[3/4] w-full overflow-hidden rounded-lg lg:rounded-xl select-none cursor-pointer"
           style={{touchAction: 'pan-y'}}
-          onMouseEnter={() => setMainHover(true)}
+          onMouseEnter={() => isDesktop && setMainHover(true)}
           onMouseLeave={() => { setMainHover(false); setHoverZone(null); }}
           onClick={() => {
             if (active?.src) setLightboxOpen(true);
           }}
         >
-          {/* Peek layers — both pre-rendered, lastZoneRef controls which is visible */}
-          {hasMultiple && (
+          {/* Peek layers — desktop only, both pre-rendered */}
+          {isDesktop && hasMultiple && (
             <>
               <div className={`absolute inset-0 z-0 ${lastZoneRef.current === 'right' ? 'opacity-0' : 'opacity-100'}`}>
                 <GalleryImage image={images[prevIdx]} loading="eager" sizes="(max-width: 1024px) 100vw, 60vw" />
@@ -255,21 +267,19 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             </>
           )}
 
-          {/* Current image — shifts + tilts on hover */}
+          {/* Current image — shifts on desktop hover, static on mobile */}
           <div
             className="absolute inset-0 z-[1] transition-all duration-300 ease-out"
             style={{
-              transform: hoverZone === 'left'
-                ? 'translateX(48px) rotate(1.5deg)'
-                : hoverZone === 'right'
-                  ? 'translateX(-48px) rotate(-1.5deg)'
-                  : 'translateX(0) rotate(0deg)',
+              transform: shiftTransform,
               transformOrigin: hoverZone === 'left' ? 'bottom left' : 'bottom right',
-              boxShadow: hoverZone
+              boxShadow: isDesktop && hoverZone
                 ? (hoverZone === 'left'
                     ? '-8px 4px 32px rgba(0,0,0,0.45)'
                     : '8px 4px 32px rgba(0,0,0,0.45)')
-                : '0 2px 12px rgba(0,0,0,0.2)',
+                : isDesktop
+                  ? '0 2px 12px rgba(0,0,0,0.2)'
+                  : 'none',
             }}
           >
             {active && (
@@ -283,18 +293,20 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             )}
           </div>
 
-          {/* Exit fly-away layer */}
-          {exitState && (
+          {/* Exit dissolve layer — desktop only */}
+          {isDesktop && exitState && (
             <div
               className="absolute inset-0 z-[3] pointer-events-none"
               style={{
                 transition: exitState.phase === 'end'
-                  ? 'transform 500ms cubic-bezier(0.4, 0, 1, 1), opacity 500ms ease-in'
+                  ? 'transform 450ms ease-in, opacity 400ms ease-in, filter 450ms ease-in'
                   : 'none',
-                transform: exitState.phase === 'start' ? exitState.startTransform : exitEndTransform,
+                transform: exitState.phase === 'start'
+                  ? exitState.startTransform
+                  : `${exitState.startTransform} scale(1.04)`,
                 opacity: exitState.phase === 'start' ? 1 : 0,
-                transformOrigin: exitState.dir === 1 ? 'top right' : 'top left',
-                boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+                filter: exitState.phase === 'start' ? 'blur(0px)' : 'blur(6px)',
+                boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
               }}
             >
               <GalleryImage image={exitState.image} loading="eager" sizes="(max-width: 1024px) 100vw, 60vw" />
@@ -312,7 +324,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             </div>
           )}
 
-          {/* Prev / Next — invisible tap zones */}
+          {/* Prev / Next — tap zones */}
           {hasMultiple && (
             <>
               <button
@@ -321,7 +333,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                   e.stopPropagation();
                   handleNav(-1);
                 }}
-                onMouseEnter={() => setHoverZone('left')}
+                onMouseEnter={() => isDesktop && setHoverZone('left')}
                 onMouseLeave={() => setHoverZone(null)}
                 className="absolute left-0 top-0 z-20 h-full w-[20%]"
                 style={{WebkitTapHighlightColor: 'transparent'}}
@@ -333,7 +345,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                   e.stopPropagation();
                   handleNav(1);
                 }}
-                onMouseEnter={() => setHoverZone('right')}
+                onMouseEnter={() => isDesktop && setHoverZone('right')}
                 onMouseLeave={() => setHoverZone(null)}
                 className="absolute right-0 top-0 z-20 h-full w-[20%]"
                 style={{WebkitTapHighlightColor: 'transparent'}}
