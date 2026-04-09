@@ -296,11 +296,8 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
               href="https://www.wildberries.ru/seller/609562"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-14 w-full items-center justify-center gap-2.5 rounded-full border-2 border-[#CB11AB] text-base font-medium text-[#CB11AB] transition hover:bg-[#CB11AB]/[0.08] active:scale-[0.98]"
+              className="flex h-14 w-full items-center justify-center gap-2.5 rounded-full border-2 border-[#CB11AB] bg-[#CB11AB]/[0.08] text-base font-medium text-white transition hover:bg-[#CB11AB]/[0.15] active:scale-[0.98]"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="2 7 6 17 12 7 18 17 22 7" />
-              </svg>
               {locale === 'ru' ? 'Купить на Wildberries' : 'Buy on Wildberries'}
             </a>
 
