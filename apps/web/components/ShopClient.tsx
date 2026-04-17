@@ -5,6 +5,7 @@ import {useTranslations} from 'next-intl';
 import {usePathname, useSearchParams} from 'next/navigation';
 import Spinner from './ui/Spinner';
 import Link from 'next/link';
+import {useFavorites} from '../contexts/FavoritesContext';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -219,10 +220,12 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
     );
   }
 
-  function ProductCard({item}: {item: ShopItem}) {
+  function ProductCard({item, idx}: {item: ShopItem; idx: number}) {
     const [hoverIndex, setHoverIndex] = useState(0);
     const [hovering, setHovering] = useState(false);
     const imgRef = useRef<HTMLDivElement>(null);
+    const {isFavorite, toggleItem} = useFavorites();
+    const fav = isFavorite(item.id);
 
     const allImages: string[] = useMemo(() => {
       const imgs: string[] = [];
@@ -231,7 +234,9 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
           const parsed = JSON.parse(item.images);
           if (Array.isArray(parsed)) {
             for (const img of parsed) {
-              if (img.src) imgs.push(img.src.startsWith('/') ? `${API_BASE}${img.src}` : img.src);
+              if (img && typeof img === 'object' && typeof img.src === 'string') {
+                imgs.push(img.src.startsWith('/') ? `${API_BASE}${img.src}` : img.src);
+              }
             }
           }
         } catch { /* ignore */ }
@@ -246,54 +251,144 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
       if (allImages.length <= 1 || !imgRef.current) return;
       const rect = imgRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
-      const idx = Math.min(Math.floor((x / rect.width) * allImages.length), allImages.length - 1);
-      if (idx !== hoverIndex) setHoverIndex(idx);
+      const nextIdx = Math.min(Math.floor((x / rect.width) * allImages.length), allImages.length - 1);
+      if (nextIdx !== hoverIndex) setHoverIndex(nextIdx);
     }, [allImages.length, hoverIndex]);
 
     const shownImage = hovering ? (allImages[hoverIndex] ?? allImages[0]) : allImages[0];
+    const isEven = idx % 2 === 0;
+    const badgeSide = isEven
+      ? 'right-[-8px] sm:right-[-10px] -rotate-2'
+      : 'left-[-8px] sm:left-[-10px] rotate-2';
+
+    const onToggleFav = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleItem({
+        id: item.id,
+        title: item.title,
+        image: shownImage,
+      });
+    };
 
     return (
-      <Link href={`/${locale}/product/${item.id}`} className="group flex flex-col">
-        <div
-          ref={imgRef}
-          className="relative"
-          onMouseMove={handleMouseMove}
-          onMouseEnter={() => setHovering(true)}
-          onMouseLeave={() => { setHovering(false); setHoverIndex(0); }}
-        >
-          {allImages.length > 0 ? (
-            <div className="aspect-[3/4] w-full rounded-[4px] overflow-hidden">
-              <img src={shownImage} alt={item.title} className="h-full w-full object-cover" />
-            </div>
-          ) : (
-            <div
-              className={`aspect-[3/4] w-full rounded-[4px] bg-gradient-to-br ${GRADIENTS[item.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]'}`}
-            />
-          )}
-          {allImages.length > 1 && hovering && (
-            <div className="absolute bottom-2 left-2 right-2 flex gap-1">
-              {allImages.map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-[2px] flex-1 rounded-full transition-colors duration-150 ${
-                    i === hoverIndex ? 'bg-white' : 'bg-white/30'
-                  }`}
+      <Link
+        href={`/${locale}/product/${item.id}`}
+        className={`group flex flex-col ${
+          isEven ? 'self-start' : 'self-end'
+        } w-[85%] sm:w-full sm:self-auto`}
+      >
+        <div className="relative w-full">
+          {/* Scotch tape — декоративная бумажная лента сверху */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 -top-2 z-10 h-3.5 w-16 -translate-x-1/2 -rotate-[4deg] rounded-[2px] shadow-[0_2px_4px_rgba(0,0,0,0.3)]"
+            style={{
+              background:
+                'linear-gradient(120deg, rgba(212,165,116,0.35), rgba(168,122,72,0.25))',
+            }}
+          />
+
+          {/* Фото */}
+          <div
+            ref={imgRef}
+            className="relative overflow-hidden rounded-[4px] shadow-[0_18px_40px_rgba(0,0,0,0.4)]"
+            onMouseMove={handleMouseMove}
+            onMouseEnter={() => setHovering(true)}
+            onMouseLeave={() => {
+              setHovering(false);
+              setHoverIndex(0);
+            }}
+          >
+            {allImages.length > 0 ? (
+              <div className="aspect-[3/4] w-full">
+                <img
+                  src={shownImage}
+                  alt={item.title}
+                  className="h-full w-full object-cover"
                 />
-              ))}
+              </div>
+            ) : (
+              <div
+                className={`aspect-[3/4] w-full bg-gradient-to-br ${
+                  GRADIENTS[item.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]'
+                }`}
+              />
+            )}
+
+            {/* hover-gallery bar с индикатором кадра */}
+            {allImages.length > 1 && hovering && (
+              <div className="absolute bottom-2 left-2 right-2 flex gap-1">
+                {allImages.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`h-[2px] flex-1 rounded-full transition-colors duration-150 ${
+                      i === hoverIndex ? 'bg-white' : 'bg-white/30'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
+
+            {item.isTest && (
+              <span className="absolute left-2 top-2 rounded-full bg-[var(--accent)]/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--paper-base)]">
+                Demo
+              </span>
+            )}
+
+            {/* Heart: visible on touch, fades-in on hover for pointer devices */}
+            <button
+              type="button"
+              onClick={onToggleFav}
+              aria-label={fav ? 'Убрать из избранного' : 'Добавить в избранное'}
+              aria-pressed={fav}
+              className={[
+                'absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center rounded-full',
+                'border border-[rgba(243,233,218,0.1)] backdrop-blur',
+                'transition-[opacity,transform] duration-300',
+                'opacity-100',
+                '[@media(hover:hover)]:opacity-0',
+                '[@media(hover:hover)]:group-hover:opacity-100',
+                '[@media(hover:hover)]:group-focus-within:opacity-100',
+                'focus-visible:opacity-100 focus:outline-none',
+                fav
+                  ? 'bg-[rgba(212,165,116,0.18)] text-[var(--accent)]'
+                  : 'bg-[rgba(30,18,13,0.6)] text-[var(--ink)]',
+              ].join(' ')}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill={fav ? 'currentColor' : 'none'}
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Отваливающийся badge c номером / названием / ценой */}
+          <div
+            className={`absolute bottom-[-16px] z-10 rounded-[2px] border px-3.5 py-2 backdrop-blur-md transition-transform duration-300 group-hover:-translate-y-0.5 ${badgeSide}`}
+            style={{
+              background: 'rgba(30,18,13,0.92)',
+              borderColor: 'rgba(212,165,116,0.3)',
+            }}
+          >
+            <div className="mb-0.5 text-[9px] uppercase tracking-[0.2em] text-[var(--accent)]">
+              No.&nbsp;{String(idx + 1).padStart(2, '0')}
             </div>
-          )}
-          {item.isTest && (
-            <span className="absolute top-2 left-2 rounded-full bg-[var(--accent)]/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--paper-base)]">
-              Demo
-            </span>
-          )}
-        </div>
-        <div className="flex flex-col gap-px pt-2 pb-1">
-          <span className="text-[11px] uppercase tracking-widest text-[var(--ink-soft)] sm:text-[12px]">
-            {item.occasion ? t(`occasions.${item.occasion}`) : item.category ?? ''}
-          </span>
-          <h3 className="text-[15px] font-normal text-[var(--ink)] leading-snug sm:text-[16px]">{item.title}</h3>
-          <span className="text-[15px] font-accent text-[var(--ink-soft)] sm:text-[16px]">&euro;{item.price.toLocaleString()}</span>
+            <div className="font-display text-[15px] leading-none text-[var(--ink)]">
+              {item.title}
+            </div>
+            <div className="mt-0.5 font-accent text-[12px] italic text-[var(--ink-soft)]">
+              €{item.price.toLocaleString()}
+            </div>
+          </div>
         </div>
       </Link>
     );
@@ -427,21 +522,21 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
               <button onClick={resetFilters} className="lux-btn-secondary">{t('resetFilters')}</button>
             </div>
           ) : groupByTheme && grouped ? (
-            <div className="flex flex-col gap-10">
+            <div className="flex flex-col gap-14">
               {[...grouped.entries()].map(([occasion, groupItems]) => (
                 <div key={occasion}>
-                  <h2 className="mb-4 text-lg font-medium tracking-wide text-[var(--ink)]">
+                  <h2 className="mb-6 text-lg font-medium tracking-wide text-[var(--ink)]">
                     {t(`occasions.${occasion}`)}
                   </h2>
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:gap-x-4 sm:gap-y-6 lg:grid-cols-3">
-                    {groupItems.map(item => <ProductCard key={item.id} item={item} />)}
+                  <div className="flex flex-col gap-y-14 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-14 lg:grid-cols-3 lg:gap-x-6 lg:gap-y-16">
+                    {groupItems.map((item, idx) => <ProductCard key={item.id} item={item} idx={idx} />)}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:gap-x-4 sm:gap-y-6 lg:grid-cols-3">
-              {filteredAndSorted.map(item => <ProductCard key={item.id} item={item} />)}
+            <div className="flex flex-col gap-y-14 sm:grid sm:grid-cols-2 sm:gap-x-4 sm:gap-y-14 lg:grid-cols-3 lg:gap-x-6 lg:gap-y-16">
+              {filteredAndSorted.map((item, idx) => <ProductCard key={item.id} item={item} idx={idx} />)}
             </div>
           )}
         </div>
