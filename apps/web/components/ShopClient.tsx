@@ -261,6 +261,12 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
       ? 'right-[-8px] sm:right-[-10px] -rotate-2'
       : 'left-[-8px] sm:left-[-10px] rotate-2';
 
+    // Хаотичный наклон карточек — как фото приклеенные на стену.
+    // Псевдослучайный массив, повторяется по модулю — без JS-рандома
+    // (чтобы SSR и CSR рендерили одинаково, без hydration mismatch).
+    const CARD_TILTS = [-2.5, 1.8, -1.2, 2.6, -0.9, 1.4, -2.1, 0.8, -1.6, 2.2];
+    const tilt = CARD_TILTS[idx % CARD_TILTS.length];
+
     const onToggleFav = (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
@@ -276,7 +282,8 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
         href={`/${locale}/product/${item.id}`}
         className={`group flex flex-col ${
           isEven ? 'self-start' : 'self-end'
-        } w-[85%] sm:w-full sm:self-auto`}
+        } w-[85%] sm:w-full sm:self-auto transition-transform duration-500 ease-out hover:!rotate-0 hover:-translate-y-0.5`}
+        style={{transform: `rotate(${tilt}deg)`, transformOrigin: 'top center'}}
       >
         <div className="relative w-full">
           {/* Scotch tape — декоративная бумажная лента сверху */}
