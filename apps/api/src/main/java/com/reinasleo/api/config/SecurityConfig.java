@@ -1,6 +1,7 @@
 package com.reinasleo.api.config;
 
 import com.reinasleo.api.security.JwtAuthFilter;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,13 +23,23 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${app.cors.allowed-origins:http://localhost:3000}")
+    @Value("${app.cors.allowed-origins}")
     private String[] allowedOrigins;
 
     private final JwtAuthFilter jwtAuthFilter;
 
     public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
+    }
+
+    @PostConstruct
+    void validateCorsOrigins() {
+        if (allowedOrigins == null || allowedOrigins.length == 0
+                || Arrays.stream(allowedOrigins).allMatch(s -> s == null || s.isBlank())) {
+            throw new IllegalStateException(
+                    "CORS_ORIGIN env var is required — refusing to start. "
+                            + "Set it to a comma-separated list of allowed origins (no default).");
+        }
     }
 
     @Bean
@@ -69,7 +80,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/bot/**").permitAll()
                         // Authenticated APIs (JWT)
                         .requestMatchers("/api/me/**").authenticated()
-                        .requestMatchers("/api/admin/**").authenticated()
+                        .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                         // Catch-all
                         .anyRequest().denyAll()
                 )

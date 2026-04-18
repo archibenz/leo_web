@@ -1,11 +1,9 @@
 package com.reinasleo.api.controller;
 
 import com.reinasleo.api.model.Product;
-import com.reinasleo.api.model.User;
 import com.reinasleo.api.service.RecommendationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -23,17 +21,13 @@ public class AdminRecommendationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Product>> list(@AuthenticationPrincipal User user,
-                                               @PathVariable String id) {
-        requireAdmin(user);
+    public ResponseEntity<List<Product>> list(@PathVariable String id) {
         return ResponseEntity.ok(recommendationService.getRecommendations(id));
     }
 
     @PutMapping
-    public ResponseEntity<Void> setAll(@AuthenticationPrincipal User user,
-                                        @PathVariable String id,
+    public ResponseEntity<Void> setAll(@PathVariable String id,
                                         @RequestBody Map<String, List<String>> body) {
-        requireAdmin(user);
         List<String> productIds = body.get("productIds");
         if (productIds == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "productIds required");
@@ -43,10 +37,8 @@ public class AdminRecommendationController {
     }
 
     @PostMapping
-    public ResponseEntity<Void> add(@AuthenticationPrincipal User user,
-                                     @PathVariable String id,
+    public ResponseEntity<Void> add(@PathVariable String id,
                                      @RequestBody Map<String, String> body) {
-        requireAdmin(user);
         String recommendedProductId = body.get("recommendedProductId");
         if (recommendedProductId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "recommendedProductId required");
@@ -56,17 +48,10 @@ public class AdminRecommendationController {
     }
 
     @DeleteMapping("/{recommendedProductId}")
-    public ResponseEntity<Void> remove(@AuthenticationPrincipal User user,
-                                        @PathVariable String id,
+    public ResponseEntity<Void> remove(@PathVariable String id,
                                         @PathVariable String recommendedProductId) {
-        requireAdmin(user);
         recommendationService.removeRecommendation(id, recommendedProductId);
         return ResponseEntity.noContent().build();
     }
 
-    private void requireAdmin(User user) {
-        if (user == null || !"admin".equals(user.getRole())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin access required");
-        }
-    }
 }

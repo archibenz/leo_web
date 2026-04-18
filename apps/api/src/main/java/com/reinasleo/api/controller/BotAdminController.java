@@ -3,6 +3,7 @@ package com.reinasleo.api.controller;
 import com.reinasleo.api.dto.*;
 import com.reinasleo.api.service.AdminProductService;
 import com.reinasleo.api.service.CollectionService;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +43,15 @@ public class BotAdminController {
                               CollectionService collectionService) {
         this.adminProductService = adminProductService;
         this.collectionService = collectionService;
+    }
+
+    @PostConstruct
+    void validateBotSecretConfigured() {
+        if (botApiSecret == null || botApiSecret.isBlank()) {
+            throw new IllegalStateException(
+                    "BOT_API_SECRET env var is required — refusing to start. "
+                            + "An empty value would bypass bot auth and open all /api/bot/admin/** endpoints.");
+        }
     }
 
     private void validateSecret(String secret) {

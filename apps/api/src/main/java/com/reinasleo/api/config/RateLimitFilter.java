@@ -1,5 +1,7 @@
 package com.reinasleo.api.config;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.Filter;
@@ -14,16 +16,24 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Order(1)
 public class RateLimitFilter implements Filter {
 
-    private final Map<String, Bucket> authBuckets = new ConcurrentHashMap<>();
-    private final Map<String, Bucket> botBuckets = new ConcurrentHashMap<>();
-    private final Map<String, Bucket> contactBuckets = new ConcurrentHashMap<>();
+    private static final int MAX_BUCKETS = 10_000;
+    private static final Duration EVICTION_AFTER_ACCESS = Duration.ofMinutes(5);
+
+    private final Cache<String, Bucket> authBuckets = buildCache();
+    private final Cache<String, Bucket> botBuckets = buildCache();
+    private final Cache<String, Bucket> contactBuckets = buildCache();
+
+    private static Cache<String, Bucket> buildCache() {
+        return Caffeine.newBuilder()
+                .expireAfterAccess(EVICTION_AFTER_ACCESS)
+                .maximumSize(MAX_BUCKETS)
+                .build();
+    }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -41,14 +51,13 @@ public class RateLimitFilter implements Filter {
             if (isRateLimited(contactBuckets, ip, res, this::createContactBucket)) return;
         }
 
-        evictStaleEntries();
         chain.doFilter(request, response);
     }
 
-    private boolean isRateLimited(Map<String, Bucket> buckets, String ip, HttpServletResponse res,
+    private boolean isRateLimited(Cache<String, Bucket> buckets, String ip, HttpServletResponse res,
                                    java.util.function.Supplier<Bucket> factory) throws IOException {
-        Bucket bucket = buckets.computeIfAbsent(ip, k -> factory.get());
-        if (!bucket.tryConsume(1)) {
+        Bucket bucket = buckets.get(ip, k -> factory.get());
+        if (bucket == null || !bucket.tryConsume(1)) {
             res.setStatus(429);
             res.setContentType("application/json");
             res.getWriter().write("{\"message\":\"Too many requests. Try again later.\"}");
@@ -75,17 +84,16 @@ public class RateLimitFilter implements Filter {
                 .build();
     }
 
-    private void evictStaleEntries() {
-        int maxSize = 10_000;
-        if (authBuckets.size() > maxSize) authBuckets.clear();
-        if (botBuckets.size() > maxSize) botBuckets.clear();
-        if (contactBuckets.size() > maxSize) contactBuckets.clear();
-    }
-
     private String getClientIp(HttpServletRequest request) {
         String realIp = request.getHeader("X-Real-IP");
         if (realIp != null && !realIp.isEmpty()) {
             return realIp.trim();
+        }
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isEmpty()) {
+            int comma = forwardedFor.indexOf(',');
+            String first = comma >= 0 ? forwardedFor.substring(0, comma) : forwardedFor;
+            return first.trim();
         }
         return request.getRemoteAddr();
     }

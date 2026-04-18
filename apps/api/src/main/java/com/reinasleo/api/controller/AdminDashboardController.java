@@ -3,14 +3,10 @@ package com.reinasleo.api.controller;
 import com.reinasleo.api.dto.DashboardResponse;
 import com.reinasleo.api.dto.RecentOrderResponse;
 import com.reinasleo.api.dto.StockAlertResponse;
-import com.reinasleo.api.model.User;
 import com.reinasleo.api.service.AdminProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -25,34 +21,24 @@ public class AdminDashboardController {
     }
 
     @GetMapping("/dashboard")
-    public ResponseEntity<DashboardResponse> dashboard(@AuthenticationPrincipal User user) {
-        requireAdmin(user);
+    public ResponseEntity<DashboardResponse> dashboard() {
         return ResponseEntity.ok(adminProductService.getDashboard());
     }
 
     @GetMapping("/alerts")
-    public ResponseEntity<List<StockAlertResponse>> alerts(@AuthenticationPrincipal User user) {
-        requireAdmin(user);
+    public ResponseEntity<List<StockAlertResponse>> alerts() {
         return ResponseEntity.ok(adminProductService.getAlerts());
     }
 
     @GetMapping("/orders/recent")
-    public ResponseEntity<List<RecentOrderResponse>> recentOrders(@AuthenticationPrincipal User user) {
-        requireAdmin(user);
+    public ResponseEntity<List<RecentOrderResponse>> recentOrders() {
         return ResponseEntity.ok(adminProductService.getRecentOrders());
     }
 
     @PostMapping("/alerts/{id}/acknowledge")
-    public ResponseEntity<Void> acknowledgeAlert(@AuthenticationPrincipal User user,
-                                                  @PathVariable UUID id) {
-        requireAdmin(user);
+    public ResponseEntity<Void> acknowledgeAlert(@PathVariable UUID id) {
         adminProductService.acknowledgeAlert(id);
         return ResponseEntity.ok().build();
     }
 
-    private void requireAdmin(User user) {
-        if (user == null || !"admin".equals(user.getRole())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin access required");
-        }
-    }
 }

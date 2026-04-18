@@ -51,7 +51,7 @@ app:
     api-key: ${RESEND_API_KEY:}
     from: ${RESEND_FROM:REINASLEO <noreply@reinasleo.com>}
   cors:
-    allowed-origins: ${CORS_ORIGIN:http://localhost:3000}
+    allowed-origins: ${CORS_ORIGIN}
   jwt:
     secret: ${JWT_SECRET}
     expiration-ms: ${JWT_EXPIRATION_MS:86400000}
