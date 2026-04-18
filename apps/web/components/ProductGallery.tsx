@@ -59,8 +59,11 @@ export default function ProductGallery({images}: ProductGalleryProps) {
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [counterVisible, setCounterVisible] = useState(true);
+  // dragDelta — смещение трека во время живого свайпа (в px). null = не свайпим.
+  const [dragDelta, setDragDelta] = useState<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const mainRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   const displayIndex = previewIndex ?? activeIndex;
 
@@ -86,7 +89,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
   const active = images[displayIndex];
   const hasMultiple = images.length > 1;
 
-  /* ── Touch swipe on main image ── */
+  /* ── Touch swipe on main image + live drag track ── */
   useEffect(() => {
     const el = mainRef.current;
     if (!el || !hasMultiple) return;
@@ -111,24 +114,33 @@ export default function ProductGallery({images}: ProductGalleryProps) {
       if (dir === 'h') {
         e.preventDefault();
         dx = cdx;
+        // Лёгкое сопротивление у граничных слайдов (резиновый bounds).
+        const atStart = activeIndex === 0 && dx > 0;
+        const atEnd = activeIndex === images.length - 1 && dx < 0;
+        const resisted = atStart || atEnd ? dx * 0.35 : dx;
+        setDragDelta(resisted);
       }
     };
     const onEnd = () => {
-      if (dx > 60) go(-1);
-      else if (dx < -60) go(1);
+      const threshold = el.clientWidth * 0.18; // ~18% ширины — порог для смены кадра
+      if (dx > threshold) go(-1);
+      else if (dx < -threshold) go(1);
       dx = 0;
       dir = null;
+      setDragDelta(null);
     };
 
     el.addEventListener('touchstart', onStart, {passive: true});
     el.addEventListener('touchmove', onMove, {passive: false});
     el.addEventListener('touchend', onEnd);
+    el.addEventListener('touchcancel', onEnd);
     return () => {
       el.removeEventListener('touchstart', onStart);
       el.removeEventListener('touchmove', onMove);
       el.removeEventListener('touchend', onEnd);
+      el.removeEventListener('touchcancel', onEnd);
     };
-  }, [go, hasMultiple]);
+  }, [go, hasMultiple, activeIndex, images.length]);
 
   /* ── Auto-scroll thumbnails on mobile to keep active visible ── */
   useEffect(() => {
@@ -183,7 +195,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
         </div>
       )}
 
-      {/* Main image */}
+      {/* Main image — horizontal track slider для плавного "перелистывания" */}
       <div className="order-1 lg:order-2 relative flex-1">
         <div
           ref={mainRef}
@@ -193,16 +205,34 @@ export default function ProductGallery({images}: ProductGalleryProps) {
             if (active?.src) setLightboxOpen(true);
           }}
         >
-          {/* Current image */}
-          {active && (
-            <div className="absolute inset-0">
-              <GalleryImage
-                image={active}
-                loading="eager"
-                sizes="(max-width: 1024px) 100vw, 60vw"
-              />
-            </div>
-          )}
+          {/* Track: все фото в ряд, смещается на -displayIndex*100% + drag-delta */}
+          <div
+            ref={trackRef}
+            className="absolute inset-0 flex h-full w-full"
+            style={{
+              // Во время свайпа — моментальное следование за пальцем (без transition).
+              // После отпускания — плавный возврат/снап к ближайшему слайду.
+              transform: `translate3d(calc(${-displayIndex * 100}% + ${dragDelta ?? 0}px), 0, 0)`,
+              transition: dragDelta === null ? 'transform 500ms cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
+              willChange: 'transform',
+            }}
+          >
+            {images.map((img, i) => {
+              // Eager-load соседи (активный ± 1), остальные lazy.
+              const isNeighbor = Math.abs(i - activeIndex) <= 1 ||
+                (activeIndex === 0 && i === images.length - 1) ||
+                (activeIndex === images.length - 1 && i === 0);
+              return (
+                <div key={img.id} className="relative h-full w-full flex-shrink-0">
+                  <GalleryImage
+                    image={img}
+                    loading={isNeighbor ? 'eager' : 'lazy'}
+                    sizes="(max-width: 1024px) 100vw, 60vw"
+                  />
+                </div>
+              );
+            })}
+          </div>
 
           {/* Image counter */}
           {hasMultiple && (
