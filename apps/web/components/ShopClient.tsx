@@ -281,8 +281,8 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
       <Link
         href={`/${locale}/product/${item.id}`}
         className={`group flex flex-col ${
-          isEven ? 'self-start ml-2' : 'self-end mr-2'
-        } w-[70%] sm:w-full sm:ml-0 sm:mr-0 sm:self-auto transition-transform duration-500 ease-out hover:!rotate-0 hover:-translate-y-0.5`}
+          isEven ? 'self-start' : 'self-end'
+        } w-[85%] sm:w-full sm:self-auto transition-transform duration-500 ease-out hover:!rotate-0 hover:-translate-y-0.5`}
         style={{transform: `rotate(${tilt}deg)`, transformOrigin: 'top center'}}
       >
         <div className="relative w-full">
