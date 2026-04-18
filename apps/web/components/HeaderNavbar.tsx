@@ -231,12 +231,8 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
 
           {/* Right: Search + Icons */}
           <div className="flex items-center gap-0.5 ml-auto flex-shrink-0">
-            {/* Search bar — показываем только на широких экранах (от 1024px).
-                На iPad portrait (768-1023px) активен desktop nav с хардкод-шириной
-                дропдаунов 720/1000px, и search физически не помещается без
-                перекрытия пунктов "МАГАЗИН" / "О БРЕНДЕ". Поиск доступен через
-                /shop?search=... и через мобильное меню. См. Roadmap A5. */}
-            <div className="hidden lg:block mr-1">
+            {/* Desktop: animated search bar */}
+            <div className="hidden md:block mr-1">
               <SearchBar placeholder={t('search')} />
             </div>
 
