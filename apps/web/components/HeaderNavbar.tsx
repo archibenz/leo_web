@@ -149,7 +149,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
           <div className="flex items-center gap-2.5 min-w-0 flex-shrink-0 ml-2 lg:ml-4">
             <button ref={menuButtonRef} type="button" onClick={handleMenuToggle}
               aria-label={isMenuOpen ? t('closeMenu') : t('openMenu')} aria-expanded={isMenuOpen}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-all hover:bg-ink/[0.06] hover:text-accent focus:outline-none md:hidden">
+              className="flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-all hover:bg-ink/[0.06] hover:text-accent focus:outline-none lg:hidden">
               <svg viewBox="0 0 24 24" className={`h-[18px] w-[18px] ${getHamburgerClass()}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <line x1="4" y1="7" x2="20" y2="7" className="hamburger-line hamburger-top" />
                 <line x1="4" y1="12" x2="20" y2="12" className="hamburger-line hamburger-middle" />
@@ -163,10 +163,10 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
           </div>
 
           {/* Center: Desktop hover nav — absolute positioned */}
-          <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <Menu setActive={setActive}>
               <MenuItem setActive={setActive} active={active} item={t('catalog')} href={`/${locale}/shop`}>
-                <div className="p-2" style={{ width: '720px' }}>
+                <div className="p-2 w-[min(720px,calc(100vw-2rem))]">
                   <div className="mb-3 px-4 pt-3">
                     <p className="font-accent text-[14px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{t('catalog')}</p>
                   </div>
@@ -186,7 +186,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               </MenuItem>
 
               <MenuItem setActive={setActive} active={active} item={t('collections')} href={`/${locale}/collections`}>
-                <div className="p-2" style={{ width: '1000px' }}>
+                <div className="p-2 w-[min(1000px,calc(100vw-2rem))]">
                   <div className="mb-3 px-5 pt-3">
                     <p className="font-accent text-[14px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{t('collections')}</p>
                   </div>
@@ -232,7 +232,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
           {/* Right: Search + Icons */}
           <div className="flex items-center gap-0.5 ml-auto flex-shrink-0">
             {/* Desktop: animated search bar */}
-            <div className="hidden md:block mr-1">
+            <div className="hidden lg:block mr-1">
               <SearchBar placeholder={t('search')} />
             </div>
 

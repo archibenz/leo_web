@@ -136,6 +136,17 @@ select:focus-visible {
   box-shadow: 0 0 0 1px var(--accent), 0 0 8px rgba(212, 165, 116, 0.15);
 }
 
+/* iOS Safari auto-zooms on focus when input font-size < 16px.
+   Force minimum 16px on touch devices to prevent unwanted zoom.
+   Desktop (pointer: fine) keeps its original sizing. */
+@media (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: max(16px, 1em);
+  }
+}
+
 /* Naked inputs (e.g. search) — no focus glow */
 input.focus-bare:focus,
 input.focus-bare:focus-visible {
