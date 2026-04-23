@@ -3,8 +3,7 @@ import type {Metadata} from 'next';
 import type {Locale} from '../../../i18n';
 import CarePageClient from '../../../components/CarePageClient';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? process.env.NEXT_PUBLIC_SITE_URL ?? '';
-
+import { API_BASE } from '../../../lib/api';
 type Props = {params: Promise<{locale: Locale}>};
 
 export async function generateMetadata({params}: Props): Promise<Metadata> {

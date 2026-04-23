@@ -1,6 +1,7 @@
 package com.reinasleo.api.controller;
 
 import com.reinasleo.api.model.User;
+import com.reinasleo.api.util.ImageContentValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,6 +50,14 @@ public class FileUploadController {
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only JPG, PNG, and WebP images are allowed");
+        }
+
+        try {
+            if (!ImageContentValidator.isSupportedImage(file)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File content does not match an image format");
+            }
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to read uploaded file");
         }
 
         try {

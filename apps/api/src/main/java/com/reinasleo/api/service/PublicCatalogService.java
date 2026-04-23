@@ -12,6 +12,8 @@ import com.reinasleo.api.model.SiteConfig;
 import com.reinasleo.api.repository.CollectionRepository;
 import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.SiteConfigRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class PublicCatalogService {
+
+    private static final Logger log = LoggerFactory.getLogger(PublicCatalogService.class);
 
     private final ProductRepository productRepository;
     private final CollectionRepository collectionRepository;
@@ -131,6 +135,7 @@ public class PublicCatalogService {
                                 .map(p -> toPublicResponse(p, collectionNames))
                                 .toList();
                     } catch (Exception e) {
+                        log.error("Failed to parse homepage_featured config; returning empty featured list", e);
                         return List.<PublicProductResponse>of();
                     }
                 })
@@ -156,6 +161,7 @@ public class PublicCatalogService {
                                 ))
                                 .toList();
                     } catch (Exception e) {
+                        log.error("Failed to parse homepage_collections config; falling back to full collection list", e);
                         return buildCollectionResponses(countsByCollection);
                     }
                 })
@@ -167,6 +173,7 @@ public class PublicCatalogService {
                         return objectMapper.readValue(config.getValue(),
                                 new TypeReference<Map<String, Object>>() {});
                     } catch (Exception e) {
+                        log.error("Failed to parse current_season config; returning empty season", e);
                         return Map.<String, Object>of();
                     }
                 })

@@ -2,6 +2,7 @@
 
 import {FormEvent, useState} from 'react';
 import {useTranslations} from 'next-intl';
+import {API_BASE} from '../lib/api';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -25,7 +26,7 @@ export default function ContactForm() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE ?? ''}/api/contact`,
+        `${API_BASE}/api/contact`,
         {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},

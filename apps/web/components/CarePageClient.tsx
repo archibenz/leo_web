@@ -7,6 +7,7 @@ import Link from 'next/link';
 import BlurReveal from './BlurReveal';
 import {CareSymbolsRow} from './CareSymbols';
 
+import { API_BASE } from '../lib/api';
 interface CareGuide {
   id: string;
   title: string;
@@ -17,8 +18,6 @@ interface CareGuide {
   sortOrder: number;
   active: boolean;
 }
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
 
 export default function CarePageClient({initialGuides}: {initialGuides?: unknown[]}) {
   const t = useTranslations('care');

@@ -19,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AdminProductService {
@@ -165,9 +166,19 @@ public class AdminProductService {
 
     @Transactional(readOnly = true)
     public List<StockAlertResponse> getAlerts() {
-        return stockAlertRepository.findByAcknowledgedFalseOrderByCreatedAtDesc().stream()
+        List<StockAlert> alerts = stockAlertRepository.findByAcknowledgedFalseOrderByCreatedAtDesc();
+        if (alerts.isEmpty()) {
+            return List.of();
+        }
+        List<String> productIds = alerts.stream()
+                .map(StockAlert::getProductId)
+                .distinct()
+                .toList();
+        Map<String, Product> productsById = productRepository.findAllById(productIds).stream()
+                .collect(java.util.stream.Collectors.toMap(Product::getId, p -> p));
+        return alerts.stream()
                 .map(alert -> {
-                    Product p = productRepository.findById(alert.getProductId()).orElse(null);
+                    Product p = productsById.get(alert.getProductId());
                     return new StockAlertResponse(
                             alert.getId(),
                             alert.getProductId(),

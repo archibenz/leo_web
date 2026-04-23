@@ -15,6 +15,7 @@ import SizeChart from './SizeChart';
 import ProductAccordion from './ProductAccordion';
 import {CareSymbolsRow} from './CareSymbols';
 
+import { API_BASE } from '../lib/api';
 /* ── Types ── */
 
 interface ApiProduct {
@@ -37,8 +38,6 @@ interface ApiProduct {
   inStock: boolean;
   careInstructions: string | null;
 }
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
 
 /* ── Stars component ── */
 

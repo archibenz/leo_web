@@ -6,6 +6,7 @@ import {usePathname, useSearchParams} from 'next/navigation';
 import Spinner from './ui/Spinner';
 import Link from 'next/link';
 
+import { API_BASE } from '../lib/api';
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
@@ -64,8 +65,6 @@ const GRADIENTS: Record<string, string> = {
   resort:   'from-[#8a7a5a] to-[#d4c9a8]',
   ceremony: 'from-[#1a1a2e] to-[#4a3a5e]',
 };
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
 
 /* ------------------------------------------------------------------ */
 /*  Hooks                                                              */

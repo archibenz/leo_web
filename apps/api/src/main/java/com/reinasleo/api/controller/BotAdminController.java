@@ -3,6 +3,7 @@ package com.reinasleo.api.controller;
 import com.reinasleo.api.dto.*;
 import com.reinasleo.api.service.AdminProductService;
 import com.reinasleo.api.service.CollectionService;
+import com.reinasleo.api.util.ImageContentValidator;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
@@ -160,6 +161,13 @@ public class BotAdminController {
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only JPG, PNG, WebP");
+        }
+        try {
+            if (!ImageContentValidator.isSupportedImage(file)) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File content does not match an image format");
+            }
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to read uploaded file");
         }
         try {
             Path uploadPath = Paths.get(uploadDir, "products");

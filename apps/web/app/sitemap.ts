@@ -1,7 +1,7 @@
 import type {MetadataRoute} from 'next';
+import {API_BASE} from '../lib/api';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
-const apiBase = process.env.NEXT_PUBLIC_API_BASE ?? process.env.NEXT_PUBLIC_SITE_URL ?? '';
 const locales = ['en', 'ru'] as const;
 
 const staticRoutes = [
@@ -29,7 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   try {
-    const res = await fetch(`${apiBase}/api/catalog/products?page=0&size=1000`, {
+    const res = await fetch(`${API_BASE}/api/catalog/products?page=0&size=1000`, {
       next: {revalidate: 3600},
     });
     if (res.ok) {

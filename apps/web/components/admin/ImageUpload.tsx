@@ -5,8 +5,6 @@ import {useTranslations} from 'next-intl';
 import {apiFetch, getToken} from '../../lib/api';
 import Spinner from '../ui/Spinner';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
-
 interface ImageUploadProps {
   images: {src: string; alt: string}[];
   onChange: (images: {src: string; alt: string}[]) => void;
