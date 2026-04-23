@@ -24,6 +24,9 @@ public class VerificationCode {
     @Column(nullable = false)
     private boolean used;
 
+    @Column(name = "failed_attempts", nullable = false)
+    private int failedAttempts;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -46,7 +49,9 @@ public class VerificationCode {
     public String getCodeHash() { return codeHash; }
     public Instant getExpiresAt() { return expiresAt; }
     public boolean isUsed() { return used; }
+    public int getFailedAttempts() { return failedAttempts; }
     public Instant getCreatedAt() { return createdAt; }
 
     public void markUsed() { this.used = true; }
+    public void incrementFailedAttempts() { this.failedAttempts++; }
 }
