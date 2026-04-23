@@ -15,8 +15,8 @@ spring:
       write-dates-as-timestamps: false
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/reinasleo}
-    username: ${DB_USER:reinasleo}
+    url: ${DB_URL}
+    username: ${DB_USER}
     password: ${DB_PASSWORD}
     hikari:
       maximum-pool-size: 10
@@ -48,7 +48,7 @@ management:
         include: health,info
 app:
   resend:
-    api-key: ${RESEND_API_KEY:}
+    api-key: ${RESEND_API_KEY}
     from: ${RESEND_FROM:REINASLEO <noreply@reinasleo.com>}
   cors:
     allowed-origins: ${CORS_ORIGIN}
