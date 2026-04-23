@@ -414,7 +414,15 @@
     "recentlyViewedEmpty": "Items you have browsed will appear here",
     "toCollections": "View collections",
     "testProductWarning": "Your cart contains demo products. Demo products cannot be purchased — they are for preview only.",
-    "checkoutDisabled": "Remove demo products to proceed to checkout"
+    "checkoutDisabled": "Remove demo products to proceed to checkout",
+    "errors": {
+      "addFailed": "Could not add item to cart. Please try again.",
+      "removeFailed": "Could not remove item from cart.",
+      "updateFailed": "Could not update quantity. Please try again.",
+      "clearFailed": "Could not clear the cart.",
+      "loadFailed": "Could not load the cart. Check your connection.",
+      "mergeFailed": "Some items could not be synced with your cart."
+    }
   },
   "account": {
     "tag": "Account",
@@ -493,7 +501,8 @@
       "rateLimited": "Too many attempts. Please wait a minute and try again.",
       "networkError": "Connection problem. Check your internet and try again.",
       "nameLength": "Name must be between 2 and 40 characters",
-      "surnameLength": "Surname must be between 2 and 40 characters"
+      "surnameLength": "Surname must be between 2 and 40 characters",
+      "sessionExpired": "Your session has expired. Please sign in again to continue."
     },
     "profile": {
       "title": "Profile",

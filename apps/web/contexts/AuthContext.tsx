@@ -2,7 +2,8 @@
 
 import {createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode} from 'react';
 import {isValidEmail} from '../lib/validation';
-import {apiFetch, setToken, clearToken, getToken} from '../lib/api';
+import {apiFetch, setToken, clearToken, getToken, setUnauthorizedHandler} from '../lib/api';
+import {showToast} from '../lib/toast';
 
 export type User = {
   id: string;
@@ -96,13 +97,22 @@ export function AuthProvider({children}: {children: ReactNode}) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    setUnauthorizedHandler(() => {
+      clearToken();
+      setUser(null);
+      showToast({kind: 'error', messageKey: 'auth.errors.sessionExpired'});
+    });
+    return () => setUnauthorizedHandler(null);
+  }, []);
+
+  useEffect(() => {
     const token = getToken();
     if (!token) {
       setIsLoading(false);
       return;
     }
 
-    apiFetch<MeApiResponse>('/api/auth/me')
+    apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true})
       .then(data => setUser(meToUser(data)))
       .catch(() => clearToken())
       .finally(() => setIsLoading(false));
@@ -121,6 +131,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
       const data = await apiFetch<LoginApiResponse>('/api/auth/login', {
         method: 'POST',
         body: JSON.stringify({email: email.trim(), password}),
+        skipAuthHandler: true,
       });
 
       setToken(data.token);
@@ -144,6 +155,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
       await apiFetch<{message: string}>('/api/auth/send-code', {
         method: 'POST',
         body: JSON.stringify({email: email.trim()}),
+        skipAuthHandler: true,
       });
       return {success: true};
     } catch (err: unknown) {
@@ -193,6 +205,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
           newsletterProjects: data.newsletterProjects,
           privacyAccepted: data.privacyAccepted,
         }),
+        skipAuthHandler: true,
       });
 
       setToken(resp.token);
@@ -221,6 +234,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
       const data = await apiFetch<MeApiResponse>('/api/auth/link-email', {
         method: 'POST',
         body: JSON.stringify({email: email.trim(), code: code.trim()}),
+        skipAuthHandler: true,
       });
       setUser(meToUser(data));
       return {success: true};
@@ -253,6 +267,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
     try {
       const data = await apiFetch<TelegramInitApiResponse>('/api/auth/telegram/init', {
         method: 'POST',
+        skipAuthHandler: true,
       });
       return {success: true, deepLink: data.deepLink, initToken: data.token};
     } catch {
@@ -263,7 +278,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
   const loginWithToken = useCallback(async (jwt: string) => {
     setToken(jwt);
     try {
-      const data = await apiFetch<MeApiResponse>('/api/auth/me');
+      const data = await apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true});
       setUser(meToUser(data));
     } catch (err) {
       clearToken();

@@ -18,21 +18,33 @@ export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+type UnauthorizedHandler = () => void;
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
+  unauthorizedHandler = handler;
+}
+
+export type ApiFetchOptions = RequestInit & {
+  skipAuthHandler?: boolean;
+};
+
 export async function apiFetch<T>(
   path: string,
-  options: RequestInit = {},
+  options: ApiFetchOptions = {},
 ): Promise<T> {
+  const {skipAuthHandler, ...fetchOptions} = options;
   const token = getToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string> ?? {}),
+    ...(fetchOptions.headers as Record<string, string> ?? {}),
   };
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
   const res = await fetch(`${API_BASE}${path}`, {
-    ...options,
+    ...fetchOptions,
     headers,
   });
 
@@ -41,6 +53,9 @@ export async function apiFetch<T>(
   }
 
   if (!res.ok) {
+    if (res.status === 401 && !skipAuthHandler) {
+      unauthorizedHandler?.();
+    }
     const body = await res.json().catch(() => ({}));
     const err = new Error(body.message ?? `API error ${res.status}`) as Error & {
       status: number;
