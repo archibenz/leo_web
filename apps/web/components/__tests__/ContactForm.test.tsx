@@ -60,9 +60,13 @@ describe('ContactForm', () => {
     });
   });
 
-  it('shows error message on failed submit', async () => {
+  it('shows generic error message on failed submit without leaking backend details', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
     mockFetch.mockResolvedValue(
-      new Response(JSON.stringify({ message: 'Server error' }), { status: 500 })
+      new Response(
+        JSON.stringify({ message: 'Connection to database failed at 10.0.0.5:5432' }),
+        { status: 500 },
+      ),
     );
 
     const user = userEvent.setup();
@@ -71,7 +75,10 @@ describe('ContactForm', () => {
     await user.click(screen.getByRole('button', { name: 'submit' }));
 
     await waitFor(() => {
-      expect(screen.getByRole('alert')).toHaveTextContent('Server error');
+      expect(screen.getByRole('alert')).toHaveTextContent('error');
     });
+    expect(screen.queryByText(/Connection to database/)).not.toBeInTheDocument();
+    expect(consoleErrorSpy).toHaveBeenCalled();
+    consoleErrorSpy.mockRestore();
   });
 });

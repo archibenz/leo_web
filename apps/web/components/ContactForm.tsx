@@ -9,13 +9,11 @@ type Status = 'idle' | 'submitting' | 'success' | 'error';
 export default function ContactForm() {
   const t = useTranslations('contact.form');
   const [status, setStatus] = useState<Status>('idle');
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
     setStatus('submitting');
-    setError(null);
 
     const formData = new FormData(form);
     const payload = {
@@ -36,14 +34,14 @@ export default function ContactForm() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        throw new Error(body.message || 'Request failed');
+        throw new Error(body.message || `Request failed with status ${res.status}`);
       }
 
       setStatus('success');
       form.reset();
     } catch (err) {
+      console.error('ContactForm submit failed', err);
       setStatus('error');
-      setError((err as Error).message);
     }
   };
 
@@ -104,7 +102,7 @@ export default function ContactForm() {
       </div>
       <div aria-live="polite" role="status" className="text-sm">
         {status === 'success' && <span className="text-green-400/80">{t('success')}</span>}
-        {status === 'error' && <span role="alert" className="text-red-400/80">{error ?? t('error')}</span>}
+        {status === 'error' && <span role="alert" className="text-red-400/80">{t('error')}</span>}
       </div>
     </form>
   );
