@@ -1,5 +1,7 @@
 package com.reinasleo.api.dto;
 
+import jakarta.validation.constraints.Min;
+
 public record InventoryUpdateRequest(
-        int quantity
+        @Min(0) int quantity
 ) {}

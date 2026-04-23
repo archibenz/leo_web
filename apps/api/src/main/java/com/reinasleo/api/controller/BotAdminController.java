@@ -4,6 +4,7 @@ import com.reinasleo.api.dto.*;
 import com.reinasleo.api.service.AdminProductService;
 import com.reinasleo.api.service.CollectionService;
 import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -80,7 +81,7 @@ public class BotAdminController {
     public ResponseEntity<AdminProductResponse> updateStock(
             @RequestHeader("X-Bot-Secret") String secret,
             @PathVariable String id,
-            @RequestBody InventoryUpdateRequest request) {
+            @Valid @RequestBody InventoryUpdateRequest request) {
         validateSecret(secret);
         return ResponseEntity.ok(adminProductService.updateStock(id, request.quantity()));
     }
@@ -111,7 +112,7 @@ public class BotAdminController {
     @PostMapping("/products")
     public ResponseEntity<AdminProductResponse> createProduct(
             @RequestHeader("X-Bot-Secret") String secret,
-            @RequestBody AdminProductRequest request) {
+            @Valid @RequestBody AdminProductRequest request) {
         validateSecret(secret);
         return ResponseEntity.ok(adminProductService.create(request));
     }
@@ -120,7 +121,7 @@ public class BotAdminController {
     public ResponseEntity<AdminProductResponse> updateProduct(
             @RequestHeader("X-Bot-Secret") String secret,
             @PathVariable String id,
-            @RequestBody AdminProductRequest request) {
+            @Valid @RequestBody AdminProductRequest request) {
         validateSecret(secret);
         return ResponseEntity.ok(adminProductService.update(id, request));
     }
@@ -142,7 +143,7 @@ public class BotAdminController {
     @PostMapping("/collections")
     public ResponseEntity<CollectionResponse> createCollection(
             @RequestHeader("X-Bot-Secret") String secret,
-            @RequestBody CollectionRequest request) {
+            @Valid @RequestBody CollectionRequest request) {
         validateSecret(secret);
         return ResponseEntity.ok(collectionService.create(request));
     }

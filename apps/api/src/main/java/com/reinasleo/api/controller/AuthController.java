@@ -89,7 +89,7 @@ public class AuthController {
     @PutMapping("/newsletter-preferences")
     public ResponseEntity<UserResponse> updateNewsletterPreferences(
             @AuthenticationPrincipal User user,
-            @RequestBody NewsletterPreferencesRequest request) {
+            @Valid @RequestBody NewsletterPreferencesRequest request) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

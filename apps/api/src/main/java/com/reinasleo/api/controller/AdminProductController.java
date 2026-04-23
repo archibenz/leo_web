@@ -4,6 +4,7 @@ import com.reinasleo.api.dto.AdminProductRequest;
 import com.reinasleo.api.dto.AdminProductResponse;
 import com.reinasleo.api.dto.InventoryUpdateRequest;
 import com.reinasleo.api.service.AdminProductService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,13 +31,13 @@ public class AdminProductController {
     }
 
     @PostMapping
-    public ResponseEntity<AdminProductResponse> create(@RequestBody AdminProductRequest request) {
+    public ResponseEntity<AdminProductResponse> create(@Valid @RequestBody AdminProductRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(adminProductService.create(request));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<AdminProductResponse> update(@PathVariable String id,
-                                                        @RequestBody AdminProductRequest request) {
+                                                        @Valid @RequestBody AdminProductRequest request) {
         return ResponseEntity.ok(adminProductService.update(id, request));
     }
 
@@ -53,7 +54,7 @@ public class AdminProductController {
 
     @PatchMapping("/{id}/stock")
     public ResponseEntity<AdminProductResponse> updateStock(@PathVariable String id,
-                                                             @RequestBody InventoryUpdateRequest request) {
+                                                             @Valid @RequestBody InventoryUpdateRequest request) {
         return ResponseEntity.ok(adminProductService.updateStock(id, request.quantity()));
     }
 
