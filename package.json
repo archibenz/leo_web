@@ -10,7 +10,9 @@
     "web:build": "cd apps/web && npm run build",
     "web:start": "cd apps/web && npm start",
     "api:dev": "cd apps/api && gradle bootRun",
-    "api:build": "cd apps/api && gradle build"
+    "api:build": "cd apps/api && gradle build",
+    "check:env": "scripts/check-env.sh",
+    "check:env:strict": "scripts/check-env.sh --strict"
   },
   "engines": {
     "node": ">=20.0.0",
