@@ -38,6 +38,8 @@ interface Filters {
   material: string[];
 }
 
+type Translator = ReturnType<typeof useTranslations>;
+
 /* ------------------------------------------------------------------ */
 /*  Filter option definitions                                          */
 /* ------------------------------------------------------------------ */
@@ -64,6 +66,240 @@ const GRADIENTS: Record<string, string> = {
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || '';
+
+/* ------------------------------------------------------------------ */
+/*  Hooks                                                              */
+/* ------------------------------------------------------------------ */
+
+function useProductImages(item: ShopItem): string[] {
+  return useMemo(() => {
+    const imgs: string[] = [];
+    if (item.images) {
+      try {
+        const parsed = JSON.parse(item.images);
+        if (Array.isArray(parsed)) {
+          for (const img of parsed) {
+            if (img && typeof img === 'object' && typeof img.src === 'string') {
+              imgs.push(img.src.startsWith('/') ? `${API_BASE}${img.src}` : img.src);
+            }
+          }
+        }
+      } catch { /* ignore */ }
+    }
+    if (imgs.length === 0 && item.image) {
+      imgs.push(item.image.startsWith('/') ? `${API_BASE}${item.image}` : item.image);
+    }
+    return imgs;
+  }, [item.images, item.image]);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Sub-components                                                     */
+/* ------------------------------------------------------------------ */
+
+interface FilterSectionProps {
+  label: string;
+  group: FilterKey;
+  options: readonly string[];
+  translationPrefix: string;
+  filters: Filters;
+  toggleFilter: (group: FilterKey, value: string) => void;
+  t: Translator;
+}
+
+function FilterSection({
+  label, group, options, translationPrefix, filters, toggleFilter, t,
+}: FilterSectionProps) {
+  return (
+    <div className="border-b border-[rgba(243,233,218,0.12)] pb-2.5">
+      <p className="py-1.5 text-xs font-medium uppercase tracking-wide text-[var(--ink)]">
+        {label}
+      </p>
+      <div className="grid grid-cols-2 gap-x-2 gap-y-1 pt-0.5">
+        {options.map(opt => {
+          const checked = filters[group].includes(opt);
+          return (
+            <label key={opt} className="flex items-center gap-1.5 text-[13px] text-[var(--ink-soft)] hover:text-[var(--ink)] cursor-pointer leading-tight">
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={() => toggleFilter(group, opt)}
+                className="accent-[var(--accent)] h-3 w-3 rounded shrink-0"
+              />
+              {t(`${translationPrefix}.${opt}`)}
+            </label>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+interface HeroCardProps {
+  item: ShopItem;
+  idx: number;
+  locale: string;
+  t: Translator;
+}
+
+function HeroCard({item, idx, locale, t}: HeroCardProps) {
+  const images = useProductImages(item);
+  const img = images[0];
+
+  return (
+    <Link
+      href={`/${locale}/product/${item.id}`}
+      className="group relative mb-14 block w-full overflow-hidden rounded-[4px] sm:mb-20"
+    >
+      <div className="relative aspect-[3/4] w-full sm:aspect-[16/10] lg:aspect-[21/10]">
+        {img ? (
+          <img
+            src={img}
+            alt={item.title}
+            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+          />
+        ) : (
+          <div
+            className={`h-full w-full bg-gradient-to-br ${
+              GRADIENTS[item.occasion ?? ''] ?? 'from-[#3a2018] to-[#8a5a3a]'
+            }`}
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(13,7,5,0.85)] via-[rgba(13,7,5,0.35)] to-transparent" />
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 px-5 pb-7 sm:px-10 sm:pb-10 lg:px-14 lg:pb-14">
+        <div className="font-accent text-[10px] uppercase tracking-[0.25em] text-[var(--accent)] sm:text-[11px]">
+          {locale === 'ru' ? 'LOOK №' : 'LOOK No.'} {String(idx + 1).padStart(2, '0')}
+          <span className="mx-2 opacity-50">·</span>
+          {item.occasion ? t(`occasions.${item.occasion}`) : (locale === 'ru' ? 'АВТОР' : 'EDITOR')}
+        </div>
+        <h2 className="font-display text-[32px] font-light leading-[1.05] tracking-tight text-[var(--ink)] sm:text-[44px] lg:text-[56px]">
+          {item.title}
+        </h2>
+        <div className="flex items-end justify-between gap-4">
+          <span className="font-accent text-[16px] italic text-[var(--ink-soft)] sm:text-[18px]">
+            €{item.price.toLocaleString()}
+          </span>
+          <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-[var(--ink-soft)] transition-colors duration-200 group-hover:text-[var(--accent)] sm:text-[11px]">
+            {locale === 'ru' ? 'ОТКРЫТЬ LOOK' : 'OPEN LOOK'}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:translate-x-1">
+              <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      {item.isTest && (
+        <span className="absolute left-4 top-4 rounded-full bg-[var(--accent)]/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--paper-base)] sm:left-8 sm:top-8">
+          Demo
+        </span>
+      )}
+    </Link>
+  );
+}
+
+interface ListCardProps {
+  item: ShopItem;
+  idx: number;
+  locale: string;
+  t: Translator;
+}
+
+function ListCard({item, idx, locale, t}: ListCardProps) {
+  const [hoverIndex, setHoverIndex] = useState(0);
+  const [hovering, setHovering] = useState(false);
+  const imgRef = useRef<HTMLDivElement>(null);
+  const images = useProductImages(item);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (images.length <= 1 || !imgRef.current) return;
+    const rect = imgRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const next = Math.min(Math.floor((x / rect.width) * images.length), images.length - 1);
+    if (next !== hoverIndex) setHoverIndex(next);
+  }, [images.length, hoverIndex]);
+
+  const shown = hovering ? (images[hoverIndex] ?? images[0]) : images[0];
+
+  return (
+    <Link href={`/${locale}/product/${item.id}`} className="group flex flex-col">
+      <div className="mb-3 flex items-baseline gap-3">
+        <span className="font-accent text-[15px] italic text-[var(--accent)] sm:text-[17px]">
+          № {String(idx + 1).padStart(2, '0')}
+        </span>
+        <span className="h-px flex-1 bg-[rgba(212,165,116,0.22)]" />
+        <span className="text-[9px] uppercase tracking-[0.22em] text-[var(--ink-soft)]/60 sm:text-[10px]">
+          {item.occasion ? t(`occasions.${item.occasion}`) : item.category ?? ''}
+        </span>
+      </div>
+
+      <div
+        ref={imgRef}
+        className="relative overflow-hidden rounded-[4px]"
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setHovering(true)}
+        onMouseLeave={() => { setHovering(false); setHoverIndex(0); }}
+      >
+        {images.length > 0 ? (
+          <div className="aspect-[3/4] w-full">
+            <img
+              src={shown}
+              alt={item.title}
+              className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+            />
+          </div>
+        ) : (
+          <div
+            className={`aspect-[3/4] w-full bg-gradient-to-br ${
+              GRADIENTS[item.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]'
+            }`}
+          />
+        )}
+
+        {images.length > 1 && hovering && (
+          <div className="absolute bottom-2 left-2 right-2 flex gap-1">
+            {images.map((_, i) => (
+              <div
+                key={i}
+                className={`h-[2px] flex-1 rounded-full transition-colors duration-150 ${
+                  i === hoverIndex ? 'bg-white' : 'bg-white/30'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+
+        {item.isTest && (
+          <span className="absolute left-2 top-2 rounded-full bg-[var(--accent)]/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--paper-base)]">
+            Demo
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 flex items-start justify-between gap-4">
+        <h3 className="font-display text-[18px] font-normal leading-tight text-[var(--ink)] sm:text-[20px]">
+          {item.title}
+        </h3>
+        <span className="whitespace-nowrap font-accent text-[16px] italic text-[var(--ink-soft)] sm:text-[18px]">
+          €{item.price.toLocaleString()}
+        </span>
+      </div>
+    </Link>
+  );
+}
+
+interface ProductCardProps {
+  item: ShopItem;
+  idx: number;
+  locale: string;
+  t: Translator;
+}
+
+function ProductCard({item, idx, locale, t}: ProductCardProps) {
+  if (idx === 0) return <HeroCard item={item} idx={idx} locale={locale} t={t} />;
+  return <ListCard item={item} idx={idx} locale={locale} t={t} />;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
@@ -187,217 +423,6 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
     setSortPanelOpen(false);
   };
 
-  /* ---- sub-components ---- */
-
-  function FilterSection({
-    label, group, options, translationPrefix,
-  }: {
-    label: string; group: FilterKey; options: readonly string[]; translationPrefix: string;
-  }) {
-    return (
-      <div className="border-b border-[rgba(243,233,218,0.12)] pb-2.5">
-        <p className="py-1.5 text-xs font-medium uppercase tracking-wide text-[var(--ink)]">
-          {label}
-        </p>
-        <div className="grid grid-cols-2 gap-x-2 gap-y-1 pt-0.5">
-          {options.map(opt => {
-            const checked = filters[group].includes(opt);
-            return (
-              <label key={opt} className="flex items-center gap-1.5 text-[13px] text-[var(--ink-soft)] hover:text-[var(--ink)] cursor-pointer leading-tight">
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => toggleFilter(group, opt)}
-                  className="accent-[var(--accent)] h-3 w-3 rounded shrink-0"
-                />
-                {t(`${translationPrefix}.${opt}`)}
-              </label>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-
-  function useProductImages(item: ShopItem): string[] {
-    return useMemo(() => {
-      const imgs: string[] = [];
-      if (item.images) {
-        try {
-          const parsed = JSON.parse(item.images);
-          if (Array.isArray(parsed)) {
-            for (const img of parsed) {
-              if (img && typeof img === 'object' && typeof img.src === 'string') {
-                imgs.push(img.src.startsWith('/') ? `${API_BASE}${img.src}` : img.src);
-              }
-            }
-          }
-        } catch { /* ignore */ }
-      }
-      if (imgs.length === 0 && item.image) {
-        imgs.push(item.image.startsWith('/') ? `${API_BASE}${item.image}` : item.image);
-      }
-      return imgs;
-    }, [item.images, item.image]);
-  }
-
-  /**
-   * Couture Display — полноэкранный hero с выделенным look-ом.
-   * Используется для первого товара каталога, даёт коллекции "лицо".
-   */
-  function HeroCard({item, idx}: {item: ShopItem; idx: number}) {
-    const images = useProductImages(item);
-    const img = images[0];
-
-    return (
-      <Link
-        href={`/${locale}/product/${item.id}`}
-        className="group relative mb-14 block w-full overflow-hidden rounded-[4px] sm:mb-20"
-      >
-        <div className="relative aspect-[3/4] w-full sm:aspect-[16/10] lg:aspect-[21/10]">
-          {img ? (
-            <img
-              src={img}
-              alt={item.title}
-              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
-            />
-          ) : (
-            <div
-              className={`h-full w-full bg-gradient-to-br ${
-                GRADIENTS[item.occasion ?? ''] ?? 'from-[#3a2018] to-[#8a5a3a]'
-              }`}
-            />
-          )}
-          {/* мягкое затемнение снизу для читаемости текста */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(13,7,5,0.85)] via-[rgba(13,7,5,0.35)] to-transparent" />
-        </div>
-
-        <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 px-5 pb-7 sm:px-10 sm:pb-10 lg:px-14 lg:pb-14">
-          <div className="font-accent text-[10px] uppercase tracking-[0.25em] text-[var(--accent)] sm:text-[11px]">
-            {locale === 'ru' ? 'LOOK №' : 'LOOK No.'} {String(idx + 1).padStart(2, '0')}
-            <span className="mx-2 opacity-50">·</span>
-            {item.occasion ? t(`occasions.${item.occasion}`) : (locale === 'ru' ? 'АВТОР' : 'EDITOR')}
-          </div>
-          <h2 className="font-display text-[32px] font-light leading-[1.05] tracking-tight text-[var(--ink)] sm:text-[44px] lg:text-[56px]">
-            {item.title}
-          </h2>
-          <div className="flex items-end justify-between gap-4">
-            <span className="font-accent text-[16px] italic text-[var(--ink-soft)] sm:text-[18px]">
-              €{item.price.toLocaleString()}
-            </span>
-            <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-[var(--ink-soft)] transition-colors duration-200 group-hover:text-[var(--accent)] sm:text-[11px]">
-              {locale === 'ru' ? 'ОТКРЫТЬ LOOK' : 'OPEN LOOK'}
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:translate-x-1">
-                <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
-              </svg>
-            </span>
-          </div>
-        </div>
-
-        {item.isTest && (
-          <span className="absolute left-4 top-4 rounded-full bg-[var(--accent)]/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--paper-base)] sm:left-8 sm:top-8">
-            Demo
-          </span>
-        )}
-      </Link>
-    );
-  }
-
-  /**
-   * Обычная карточка в классической сетке с порядковым номером.
-   */
-  function ListCard({item, idx}: {item: ShopItem; idx: number}) {
-    const [hoverIndex, setHoverIndex] = useState(0);
-    const [hovering, setHovering] = useState(false);
-    const imgRef = useRef<HTMLDivElement>(null);
-    const images = useProductImages(item);
-
-    const handleMouseMove = useCallback((e: React.MouseEvent) => {
-      if (images.length <= 1 || !imgRef.current) return;
-      const rect = imgRef.current.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const next = Math.min(Math.floor((x / rect.width) * images.length), images.length - 1);
-      if (next !== hoverIndex) setHoverIndex(next);
-    }, [images.length, hoverIndex]);
-
-    const shown = hovering ? (images[hoverIndex] ?? images[0]) : images[0];
-
-    return (
-      <Link href={`/${locale}/product/${item.id}`} className="group flex flex-col">
-        {/* Номер + тонкая линия — editorial-подпись */}
-        <div className="mb-3 flex items-baseline gap-3">
-          <span className="font-accent text-[15px] italic text-[var(--accent)] sm:text-[17px]">
-            № {String(idx + 1).padStart(2, '0')}
-          </span>
-          <span className="h-px flex-1 bg-[rgba(212,165,116,0.22)]" />
-          <span className="text-[9px] uppercase tracking-[0.22em] text-[var(--ink-soft)]/60 sm:text-[10px]">
-            {item.occasion ? t(`occasions.${item.occasion}`) : item.category ?? ''}
-          </span>
-        </div>
-
-        <div
-          ref={imgRef}
-          className="relative overflow-hidden rounded-[4px]"
-          onMouseMove={handleMouseMove}
-          onMouseEnter={() => setHovering(true)}
-          onMouseLeave={() => { setHovering(false); setHoverIndex(0); }}
-        >
-          {images.length > 0 ? (
-            <div className="aspect-[3/4] w-full">
-              <img
-                src={shown}
-                alt={item.title}
-                className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
-              />
-            </div>
-          ) : (
-            <div
-              className={`aspect-[3/4] w-full bg-gradient-to-br ${
-                GRADIENTS[item.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]'
-              }`}
-            />
-          )}
-
-          {images.length > 1 && hovering && (
-            <div className="absolute bottom-2 left-2 right-2 flex gap-1">
-              {images.map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-[2px] flex-1 rounded-full transition-colors duration-150 ${
-                    i === hoverIndex ? 'bg-white' : 'bg-white/30'
-                  }`}
-                />
-              ))}
-            </div>
-          )}
-
-          {item.isTest && (
-            <span className="absolute left-2 top-2 rounded-full bg-[var(--accent)]/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--paper-base)]">
-              Demo
-            </span>
-          )}
-        </div>
-
-        <div className="mt-4 flex items-start justify-between gap-4">
-          <h3 className="font-display text-[18px] font-normal leading-tight text-[var(--ink)] sm:text-[20px]">
-            {item.title}
-          </h3>
-          <span className="whitespace-nowrap font-accent text-[16px] italic text-[var(--ink-soft)] sm:text-[18px]">
-            €{item.price.toLocaleString()}
-          </span>
-        </div>
-      </Link>
-    );
-  }
-
-  /**
-   * ProductCard диспетчер: первая карточка — hero, остальные — list.
-   */
-  function ProductCard({item, idx}: {item: ShopItem; idx: number}) {
-    if (idx === 0) return <HeroCard item={item} idx={idx} />;
-    return <ListCard item={item} idx={idx} />;
-  }
-
   /* ---------------------------------------------------------------- */
   /*  Render                                                           */
   /* ---------------------------------------------------------------- */
@@ -508,12 +533,12 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
                 )}
               </div>
 
-              <FilterSection label={t('filters.occasion')}  group="occasion"  options={OCCASION_OPTIONS}  translationPrefix="occasions" />
-              <FilterSection label={t('filters.category')}  group="category"  options={CATEGORY_OPTIONS}  translationPrefix="categories" />
-              <FilterSection label={t('filters.color')}     group="color"     options={COLOR_OPTIONS}     translationPrefix="colors" />
-              <FilterSection label={t('filters.size')}      group="size"      options={SIZE_OPTIONS}      translationPrefix="sizes" />
-              <FilterSection label={t('filters.season')}    group="season"    options={SEASON_OPTIONS}    translationPrefix="seasons" />
-              <FilterSection label={t('filters.material')}  group="material"  options={MATERIAL_OPTIONS}  translationPrefix="materials" />
+              <FilterSection label={t('filters.occasion')}  group="occasion"  options={OCCASION_OPTIONS}  translationPrefix="occasions"  filters={filters} toggleFilter={toggleFilter} t={t} />
+              <FilterSection label={t('filters.category')}  group="category"  options={CATEGORY_OPTIONS}  translationPrefix="categories" filters={filters} toggleFilter={toggleFilter} t={t} />
+              <FilterSection label={t('filters.color')}     group="color"     options={COLOR_OPTIONS}     translationPrefix="colors"     filters={filters} toggleFilter={toggleFilter} t={t} />
+              <FilterSection label={t('filters.size')}      group="size"      options={SIZE_OPTIONS}      translationPrefix="sizes"      filters={filters} toggleFilter={toggleFilter} t={t} />
+              <FilterSection label={t('filters.season')}    group="season"    options={SEASON_OPTIONS}    translationPrefix="seasons"    filters={filters} toggleFilter={toggleFilter} t={t} />
+              <FilterSection label={t('filters.material')}  group="material"  options={MATERIAL_OPTIONS}  translationPrefix="materials"  filters={filters} toggleFilter={toggleFilter} t={t} />
             </div>
           </aside>
         )}
@@ -534,7 +559,7 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
                   </h2>
                   <div className="flex flex-col gap-y-14 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-16 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-20">
                     {groupItems.map((item, i) => (
-                      <ListCard key={item.id} item={item} idx={i} />
+                      <ListCard key={item.id} item={item} idx={i} locale={locale} t={t} />
                     ))}
                   </div>
                 </div>
@@ -543,11 +568,11 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
           ) : filteredAndSorted.length > 0 ? (
             <>
               {/* 05 Couture Display — hero "лицо коллекции" + классическая сетка с порядковыми номерами */}
-              <HeroCard item={filteredAndSorted[0]} idx={0} />
+              <HeroCard item={filteredAndSorted[0]} idx={0} locale={locale} t={t} />
               {filteredAndSorted.length > 1 && (
                 <div className="flex flex-col gap-y-14 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-16 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-20">
                   {filteredAndSorted.slice(1).map((item, i) => (
-                    <ListCard key={item.id} item={item} idx={i + 1} />
+                    <ListCard key={item.id} item={item} idx={i + 1} locale={locale} t={t} />
                   ))}
                 </div>
               )}
