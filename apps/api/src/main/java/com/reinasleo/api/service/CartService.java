@@ -4,6 +4,7 @@ import com.reinasleo.api.dto.CartItemRequest;
 import com.reinasleo.api.dto.CartItemResponse;
 import com.reinasleo.api.dto.CartResponse;
 import com.reinasleo.api.dto.UpdateCartItemRequest;
+import com.reinasleo.api.exception.OutOfStockException;
 import com.reinasleo.api.model.*;
 import com.reinasleo.api.repository.CartItemRepository;
 import com.reinasleo.api.repository.CartRepository;
@@ -53,9 +54,14 @@ public class CartService {
         var existing = cartItemRepository.findByCartIdAndProductIdAndSize(
                 cart.getId(), request.productId(), request.size());
 
+        int existingQty = existing.map(CartItem::getQuantity).orElse(0);
+        int newQty = existingQty + request.quantity();
+        if (newQty > product.getStockQuantity()) {
+            throw new OutOfStockException(product.getId(), newQty, product.getStockQuantity());
+        }
+
         if (existing.isPresent()) {
-            CartItem item = existing.get();
-            item.setQuantity(item.getQuantity() + request.quantity());
+            existing.get().setQuantity(newQty);
         } else {
             CartItem item = new CartItem(cart, product, request.size(), request.quantity());
             cart.getItems().add(item);
@@ -75,6 +81,11 @@ public class CartService {
                 .filter(i -> i.getId().equals(itemId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+
+        Product product = item.getProduct();
+        if (request.quantity() > product.getStockQuantity()) {
+            throw new OutOfStockException(product.getId(), request.quantity(), product.getStockQuantity());
+        }
 
         item.setQuantity(request.quantity());
         cartRepository.save(cart);

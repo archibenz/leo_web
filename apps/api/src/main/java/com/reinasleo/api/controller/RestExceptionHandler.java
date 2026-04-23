@@ -3,6 +3,7 @@ package com.reinasleo.api.controller;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.exception.InvalidVerificationCodeException;
+import com.reinasleo.api.exception.OutOfStockException;
 import com.reinasleo.api.exception.TokenAlreadyConsumedException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -83,6 +84,18 @@ public class RestExceptionHandler {
         Map<String, Object> body = Map.of(
                 "message", ex.getMessage(),
                 "error", "email_exists"
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    @ExceptionHandler(OutOfStockException.class)
+    public ResponseEntity<Map<String, Object>> handleOutOfStock(OutOfStockException ex) {
+        Map<String, Object> body = Map.of(
+                "message", ex.getMessage(),
+                "code", "out_of_stock",
+                "productId", ex.getProductId(),
+                "requested", ex.getRequestedQuantity(),
+                "available", ex.getAvailableStock()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
