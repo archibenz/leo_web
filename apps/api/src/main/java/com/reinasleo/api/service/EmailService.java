@@ -1,5 +1,6 @@
 package com.reinasleo.api.service;
 
+import com.reinasleo.api.exception.EmailDeliveryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,44 +34,47 @@ public class EmailService {
 
     public void sendVerificationCode(String toEmail, String code) {
         if (resendApiKey == null || resendApiKey.isBlank()) {
-            log.warn("Resend API key not configured — cannot send verification code to {}", toEmail);
+            throw new IllegalStateException(
+                    "RESEND_API_KEY not configured; refusing to send verification code");
+        }
+
+        String jsonBody = """
+                {
+                  "from": "%s",
+                  "to": ["%s"],
+                  "subject": "REINASLEO — Код подтверждения / Verification code",
+                  "html": %s
+                }
+                """.formatted(
+                escapeJson(fromAddress),
+                escapeJson(toEmail),
+                toJsonString(buildHtml(code))
+        );
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(RESEND_API_URL))
+                .timeout(Duration.ofSeconds(15))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + resendApiKey)
+                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                .build();
+
+        HttpResponse<String> response;
+        try {
+            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) {
+            log.error("Resend HTTP call failed for {}: {}", toEmail, e.getMessage());
+            throw new EmailDeliveryException("Failed to contact Resend API", e);
+        }
+
+        if (response.statusCode() >= 200 && response.statusCode() < 300) {
+            log.info("Verification code sent to {} via Resend", toEmail);
             return;
         }
 
-        try {
-            String jsonBody = """
-                    {
-                      "from": "%s",
-                      "to": ["%s"],
-                      "subject": "REINASLEO — Код подтверждения / Verification code",
-                      "html": %s
-                    }
-                    """.formatted(
-                    escapeJson(fromAddress),
-                    escapeJson(toEmail),
-                    toJsonString(buildHtml(code))
-            );
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(RESEND_API_URL))
-                    .timeout(Duration.ofSeconds(15))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + resendApiKey)
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                    .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if (response.statusCode() >= 200 && response.statusCode() < 300) {
-                log.info("Verification code sent to {} via Resend", toEmail);
-            } else {
-                log.error("Resend API error ({}): {}", response.statusCode(), response.body());
-                log.warn("Email delivery failed for {}", toEmail);
-            }
-        } catch (Exception e) {
-            log.error("Failed to send verification email to {}: {}", toEmail, e.getMessage());
-            log.warn("Fallback — verification code for {}: {}", toEmail, code);
-        }
+        log.error("Resend API error ({}) for {}: {}", response.statusCode(), toEmail, response.body());
+        throw new EmailDeliveryException(
+                "Resend API returned " + response.statusCode() + " for " + toEmail);
     }
 
     private String buildHtml(String code) {
