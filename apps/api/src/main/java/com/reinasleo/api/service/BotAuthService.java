@@ -1,6 +1,7 @@
 package com.reinasleo.api.service;
 
 import com.reinasleo.api.dto.*;
+import com.reinasleo.api.exception.TokenAlreadyConsumedException;
 import com.reinasleo.api.model.TelegramAuthToken;
 import com.reinasleo.api.model.User;
 import com.reinasleo.api.repository.TelegramAuthTokenRepository;
@@ -119,19 +120,21 @@ public class BotAuthService {
             throw new ResponseStatusException(HttpStatus.GONE, "token_expired");
         }
 
-        if (entry.getUserId() == null) {
+        if (!entry.isUsed() || entry.getUserId() == null) {
             throw new ResponseStatusException(HttpStatus.ACCEPTED, "pending");
         }
 
-        if (entry.isUsed() && entry.getUserId() != null) {
-            User user = userRepository.findById(entry.getUserId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user_not_found"));
-
-            String jwt = jwtService.generateToken(user.getId(), user.getEmail());
-            return new LoginResponse(jwt, user.getId(), user.getEmail(), user.getName(), user.getSurname(), user.getRole());
+        UUID userId = entry.getUserId();
+        int claimed = tokenRepository.deleteIfClaimed(initToken);
+        if (claimed == 0) {
+            throw new TokenAlreadyConsumedException();
         }
 
-        throw new ResponseStatusException(HttpStatus.ACCEPTED, "pending");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user_not_found"));
+
+        String jwt = jwtService.generateToken(user.getId(), user.getEmail());
+        return new LoginResponse(jwt, user.getId(), user.getEmail(), user.getName(), user.getSurname(), user.getRole());
     }
 
     @Transactional(readOnly = true)
@@ -157,21 +160,20 @@ public class BotAuthService {
 
     @Transactional
     public LoginResponse exchangeToken(String loginToken) {
-        TelegramAuthToken entry = tokenRepository.findByTokenAndUsedFalse(loginToken)
+        int claimed = tokenRepository.markUsedIfAvailable(loginToken);
+        if (claimed == 0) {
+            throw new TokenAlreadyConsumedException();
+        }
+
+        TelegramAuthToken entry = tokenRepository.findById(loginToken)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "login_token_not_found"));
 
-        if (entry.getExpiresAt().isBefore(Instant.now())) {
-            throw new ResponseStatusException(HttpStatus.GONE, "login_token_expired");
-        }
         if (entry.getUserId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "token_has_no_user");
         }
 
         User user = userRepository.findById(entry.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user_not_found"));
-
-        entry.markUsed();
-        tokenRepository.save(entry);
 
         String jwt = jwtService.generateToken(user.getId(), user.getEmail());
         return new LoginResponse(jwt, user.getId(), user.getEmail(), user.getName(), user.getSurname(), user.getRole());

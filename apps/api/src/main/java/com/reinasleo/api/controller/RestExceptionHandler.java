@@ -3,6 +3,7 @@ package com.reinasleo.api.controller;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.exception.InvalidVerificationCodeException;
+import com.reinasleo.api.exception.TokenAlreadyConsumedException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +67,15 @@ public class RestExceptionHandler {
                 "error", "invalid_code"
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(TokenAlreadyConsumedException.class)
+    public ResponseEntity<Map<String, Object>> handleTokenConsumed(TokenAlreadyConsumedException ex) {
+        Map<String, Object> body = Map.of(
+                "message", ex.getMessage(),
+                "error", "token_already_consumed"
+        );
+        return ResponseEntity.status(HttpStatus.GONE).body(body);
     }
 
     @ExceptionHandler(EmailAlreadyExistsException.class)
