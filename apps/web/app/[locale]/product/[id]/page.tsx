@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import type {Locale} from '../../../../i18n';
 import ProductDetailClient from '../../../../components/ProductDetailClient';
+import {safeJsonLd} from '../../../../lib/jsonLd';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? process.env.NEXT_PUBLIC_SITE_URL ?? '';
 
@@ -66,7 +67,7 @@ export default async function ProductPage({params}: Props) {
       {productJsonLd && (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{__html: JSON.stringify(productJsonLd)}}
+          dangerouslySetInnerHTML={{__html: safeJsonLd(productJsonLd)}}
         />
       )}
       <ProductDetailClient productId={id} />

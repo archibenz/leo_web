@@ -6,6 +6,7 @@ import Header from '../../components/Header';
 import SmartHeader from '../../components/SmartHeader';
 import Footer from '../../components/Footer';
 import Providers from '../../components/Providers';
+import {safeJsonLd} from '../../lib/jsonLd';
 
 import {locales, type Locale} from '../../i18n';
 
@@ -54,7 +55,7 @@ export default async function LocaleLayout({
       <Providers>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{__html: JSON.stringify(orgJsonLd)}}
+          dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}}
         />
         <div className="relative flex min-h-screen flex-col">
           <a
