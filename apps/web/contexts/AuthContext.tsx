@@ -253,8 +253,14 @@ export function AuthProvider({children}: {children: ReactNode}) {
 
   const loginWithToken = useCallback(async (jwt: string) => {
     setToken(jwt);
-    const data = await apiFetch<MeApiResponse>('/api/auth/me');
-    setUser(meToUser(data));
+    try {
+      const data = await apiFetch<MeApiResponse>('/api/auth/me');
+      setUser(meToUser(data));
+    } catch (err) {
+      clearToken();
+      setUser(null);
+      throw err;
+    }
   }, []);
 
   const isAdmin = user?.role === 'admin';
