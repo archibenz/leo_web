@@ -15,8 +15,8 @@ public class VerificationCode {
     @Column(nullable = false, length = 255)
     private String email;
 
-    @Column(nullable = false, length = 6)
-    private String code;
+    @Column(name = "code_hash", nullable = false, length = 64)
+    private String codeHash;
 
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
@@ -29,9 +29,9 @@ public class VerificationCode {
 
     protected VerificationCode() {}
 
-    public VerificationCode(String email, String code, Instant expiresAt) {
+    public VerificationCode(String email, String codeHash, Instant expiresAt) {
         this.email = email;
-        this.code = code;
+        this.codeHash = codeHash;
         this.expiresAt = expiresAt;
         this.used = false;
     }
@@ -43,7 +43,7 @@ public class VerificationCode {
 
     public UUID getId() { return id; }
     public String getEmail() { return email; }
-    public String getCode() { return code; }
+    public String getCodeHash() { return codeHash; }
     public Instant getExpiresAt() { return expiresAt; }
     public boolean isUsed() { return used; }
     public Instant getCreatedAt() { return createdAt; }

@@ -7,5 +7,5 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface VerificationCodeRepository extends JpaRepository<VerificationCode, UUID> {
-    Optional<VerificationCode> findTopByEmailAndCodeAndUsedFalseOrderByCreatedAtDesc(String email, String code);
+    Optional<VerificationCode> findTopByEmailAndCodeHashAndUsedFalseOrderByCreatedAtDesc(String email, String codeHash);
 }
