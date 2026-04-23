@@ -490,6 +490,8 @@
       "invalidCode": "Invalid or expired verification code",
       "privacyRequired": "You must accept the privacy policy",
       "sendCodeFailed": "Failed to send verification code. Please try again.",
+      "rateLimited": "Too many attempts. Please wait a minute and try again.",
+      "networkError": "Connection problem. Check your internet and try again.",
       "nameLength": "Name must be between 2 and 40 characters",
       "surnameLength": "Surname must be between 2 and 40 characters"
     },

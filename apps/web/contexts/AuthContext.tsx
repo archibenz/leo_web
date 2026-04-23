@@ -146,7 +146,11 @@ export function AuthProvider({children}: {children: ReactNode}) {
         body: JSON.stringify({email: email.trim()}),
       });
       return {success: true};
-    } catch {
+    } catch (err: unknown) {
+      console.error('sendCode failed', err);
+      const apiErr = err as {status?: number};
+      if (apiErr.status === 429) return {success: false, error: 'rate_limited'};
+      if (apiErr.status === undefined) return {success: false, error: 'network_error'};
       return {success: false, error: 'send_code_failed'};
     }
   }, []);
@@ -195,9 +199,14 @@ export function AuthProvider({children}: {children: ReactNode}) {
       setUser({id: resp.id, email: resp.email, name: resp.name, surname: resp.surname, role: resp.role});
       return {success: true};
     } catch (err: unknown) {
-      const apiErr = err as {status?: number; body?: {error?: string}};
-      if (apiErr.status === 409) {
-        return {success: false, error: 'email_exists'};
+      console.error('register failed', err);
+      const apiErr = err as {status?: number; body?: {error?: string; message?: string}};
+      if (apiErr.status === 409) return {success: false, error: 'email_exists'};
+      if (apiErr.status === 429) return {success: false, error: 'rate_limited'};
+      if (apiErr.status === undefined) return {success: false, error: 'network_error'};
+      const bodyErr = apiErr.body?.error ?? apiErr.body?.message;
+      if (apiErr.status === 400 && typeof bodyErr === 'string' && bodyErr.toLowerCase().includes('code')) {
+        return {success: false, error: 'invalid_code'};
       }
       return {success: false, error: 'registration_failed'};
     }

@@ -151,6 +151,8 @@ export default function AccountPage() {
       'invalid_credentials': t('errors.invalidCredentials'),
       'login_failed': t('errors.loginFailed'),
       'send_code_failed': t('errors.sendCodeFailed'),
+      'rate_limited': t('errors.rateLimited'),
+      'network_error': t('errors.networkError'),
       'invalid_code': t('errors.invalidCode'),
       'name_required': t('errors.nameRequired'),
       'name_length': t('errors.nameLength'),
@@ -327,14 +329,14 @@ export default function AccountPage() {
                 <form onSubmit={handleLoginSubmit} className="space-y-5">
                   <div className="space-y-2">
                     <label htmlFor="email" className="block text-sm uppercase tracking-widest text-ink-soft">{t('form.email')}</label>
-                    <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                    <input id="email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={email} onChange={(e) => setEmail(e.target.value)}
                       onFocus={() => setEmailFocused(true)} onBlur={() => setEmailFocused(false)}
                       className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-base text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper placeholder:transition-opacity placeholder:duration-200"
                       placeholder={emailFocused ? '' : t('form.emailPlaceholder')} required />
                   </div>
                   <div className="space-y-2">
                     <label htmlFor="password" className="block text-sm uppercase tracking-widest text-ink-soft">{t('form.password')}</label>
-                    <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                    <input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)}
                       onFocus={() => setPasswordFocused(true)} onBlur={() => setPasswordFocused(false)}
                       className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-base text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper placeholder:transition-opacity placeholder:duration-200"
                       placeholder={passwordFocused ? '' : t('form.passwordPlaceholder')} minLength={6} />
@@ -358,7 +360,7 @@ export default function AccountPage() {
                     <div className="space-y-5">
                       <div className="space-y-2">
                         <label className="block text-sm uppercase tracking-widest text-ink-soft">{t('form.email')}</label>
-                        <input type="email" value={regEmail} onChange={(e) => setRegEmail(e.target.value)}
+                        <input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={regEmail} onChange={(e) => setRegEmail(e.target.value)}
                           className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-base text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper"
                           placeholder={t('form.emailPlaceholder')} required
                           onKeyDown={(e) => e.key === 'Enter' && handleRegSendCode()} />
@@ -376,20 +378,19 @@ export default function AccountPage() {
 
                   {/* Step 2: Code */}
                   {regStep === 'code' && (
-                    <div className="space-y-5">
+                    <form onSubmit={(e) => { e.preventDefault(); handleRegVerifyCode(); }} className="space-y-5">
                       <div className="space-y-2">
                         <label className="block text-sm uppercase tracking-widest text-ink-soft">{t('confirm.codeLabel')}</label>
                         <p className="text-[12px] text-ink/40">{t('confirm.subtitle', {email: regEmail})}</p>
-                        <input type="text" inputMode="numeric" maxLength={6}
+                        <input type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} autoFocus
                           value={regCode} onChange={(e) => setRegCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                           className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-center text-xl tracking-[0.3em] text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper"
-                          placeholder={t('settings.linkEmail.codePlaceholder')}
-                          onKeyDown={(e) => e.key === 'Enter' && handleRegVerifyCode()} />
+                          placeholder={t('settings.linkEmail.codePlaceholder')} />
                       </div>
 
                       {error && <p className="rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-400">{error}</p>}
 
-                      <button type="button" onClick={handleRegVerifyCode} disabled={regCode.length !== 6}
+                      <button type="submit" disabled={regCode.length !== 6}
                         className="relative w-full overflow-hidden rounded-full bg-button px-8 py-4 text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85 disabled:opacity-50">
                         {t('buttons.continue')}
                       </button>
@@ -399,12 +400,12 @@ export default function AccountPage() {
                         {cooldown > 0 ? (
                           <span className="text-ink/30">{t('confirm.resendIn', {seconds: cooldown})}</span>
                         ) : (
-                          <button onClick={handleRegResend} disabled={submitting} className="text-accent hover:text-accent/80 transition-colors">
+                          <button type="button" onClick={handleRegResend} disabled={submitting} className="text-accent hover:text-accent/80 transition-colors">
                             {t('confirm.resend')}
                           </button>
                         )}
                       </div>
-                    </div>
+                    </form>
                   )}
 
                   {/* Step 3: Name, password, newsletter prefs */}
@@ -412,13 +413,13 @@ export default function AccountPage() {
                     <form onSubmit={handleRegisterSubmit} className="space-y-5">
                       <div className="space-y-2">
                         <label className="block text-sm uppercase tracking-widest text-ink-soft">{t('form.name')}</label>
-                        <input type="text" value={regName} onChange={(e) => setRegName(e.target.value)}
+                        <input type="text" autoComplete="given-name" autoCapitalize="words" value={regName} onChange={(e) => setRegName(e.target.value)}
                           className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-base text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper"
                           placeholder={t('form.namePlaceholder')} minLength={2} maxLength={40} required />
                       </div>
                       <div className="space-y-2">
                         <label className="block text-sm uppercase tracking-widest text-ink-soft">{t('form.password')}</label>
-                        <input type="password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)}
+                        <input type="password" autoComplete="new-password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)}
                           className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-base text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper"
                           placeholder={t('form.passwordPlaceholder')} minLength={6} required />
                       </div>
