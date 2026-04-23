@@ -329,15 +329,25 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
 
   /* ---- fetch products from API ---- */
   useEffect(() => {
-    fetch(`${API_BASE}/api/catalog/products`)
+    const controller = new AbortController();
+    fetch(`${API_BASE}/api/catalog/products`, {signal: controller.signal})
       .then(res => res.json())
       .then((data: ShopItem[]) => {
+        if (!Array.isArray(data)) {
+          console.error('Catalog response is not an array', data);
+          setItems([]);
+          setLoading(false);
+          return;
+        }
         setItems(data);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        console.error('Failed to load catalog', err);
         setLoading(false);
       });
+    return () => controller.abort();
   }, []);
 
   /* ---- season from URL ---- */

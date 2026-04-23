@@ -29,13 +29,24 @@ export default function CarePageClient({initialGuides}: {initialGuides?: unknown
   const [loading, setLoading] = useState(!initialGuides?.length);
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/care-guides`)
+    const controller = new AbortController();
+    fetch(`${API_BASE}/api/care-guides`, {signal: controller.signal})
       .then(res => res.json())
       .then((data: CareGuide[]) => {
+        if (!Array.isArray(data)) {
+          console.error('Care guides response is not an array', data);
+          setLoading(false);
+          return;
+        }
         setGuides(data);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        console.error('Failed to load care guides', err);
+        setLoading(false);
+      });
+    return () => controller.abort();
   }, []);
 
   const parseSymbols = (raw: string): string[] => {

@@ -102,7 +102,8 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
   const {toggleItem, isFavorite} = useFavorites();
 
   useEffect(() => {
-    fetch(`${API_BASE}/api/catalog/products/${productId}`)
+    const controller = new AbortController();
+    fetch(`${API_BASE}/api/catalog/products/${productId}`, {signal: controller.signal})
       .then(res => {
         if (!res.ok) throw new Error('Not found');
         return res.json();
@@ -111,18 +112,25 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
         setProduct(data);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
         setError(true);
         setLoading(false);
       });
+    return () => controller.abort();
   }, [productId]);
 
   useEffect(() => {
     if (!product) return;
-    fetch(`${API_BASE}/api/catalog/products/${product.id}/recommendations`)
+    const controller = new AbortController();
+    fetch(`${API_BASE}/api/catalog/products/${product.id}/recommendations`, {signal: controller.signal})
       .then(r => r.ok ? r.json() : [])
       .then(data => setRecommendations(data))
-      .catch(() => {});
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        console.error('Failed to load recommendations', err);
+      });
+    return () => controller.abort();
   }, [product]);
 
   if (loading) {
