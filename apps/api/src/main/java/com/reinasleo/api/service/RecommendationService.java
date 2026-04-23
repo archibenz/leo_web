@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.stream.IntStream;
 
 @Service
 public class RecommendationService {
@@ -43,7 +42,6 @@ public class RecommendationService {
                     .toList();
         }
 
-        // Fallback: products from the same collection
         if (product.getCollectionId() != null) {
             return productRepository
                     .findByCollectionIdAndActiveTrueOrderByCreatedAtDesc(product.getCollectionId())
@@ -54,50 +52,5 @@ public class RecommendationService {
         }
 
         return List.of();
-    }
-
-    @Transactional
-    public void setRecommendations(String productId, List<String> recommendedProductIds) {
-        productRepository.findById(productId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
-
-        recommendationRepository.deleteAllByProductId(productId);
-
-        List<ProductRecommendation> recs = IntStream.range(0, recommendedProductIds.size())
-                .mapToObj(i -> {
-                    var rec = new ProductRecommendation();
-                    rec.setProductId(productId);
-                    rec.setRecommendedProductId(recommendedProductIds.get(i));
-                    rec.setSortOrder(i);
-                    return rec;
-                })
-                .toList();
-
-        recommendationRepository.saveAll(recs);
-    }
-
-    @Transactional
-    public void addRecommendation(String productId, String recommendedProductId) {
-        productRepository.findById(productId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
-        productRepository.findById(recommendedProductId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Recommended product not found"));
-
-        List<ProductRecommendation> existing = recommendationRepository.findByProductIdOrderBySortOrderAsc(productId);
-        int nextOrder = existing.stream()
-                .mapToInt(ProductRecommendation::getSortOrder)
-                .max()
-                .orElse(-1) + 1;
-
-        var rec = new ProductRecommendation();
-        rec.setProductId(productId);
-        rec.setRecommendedProductId(recommendedProductId);
-        rec.setSortOrder(nextOrder);
-        recommendationRepository.save(rec);
-    }
-
-    @Transactional
-    public void removeRecommendation(String productId, String recommendedProductId) {
-        recommendationRepository.deleteByProductIdAndRecommendedProductId(productId, recommendedProductId);
     }
 }

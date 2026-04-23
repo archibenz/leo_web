@@ -8,6 +8,4 @@ import java.util.UUID;
 
 public interface ProductRecommendationRepository extends JpaRepository<ProductRecommendation, UUID> {
     List<ProductRecommendation> findByProductIdOrderBySortOrderAsc(String productId);
-    void deleteAllByProductId(String productId);
-    void deleteByProductIdAndRecommendedProductId(String productId, String recommendedProductId);
 }
