@@ -1,6 +1,7 @@
 package com.reinasleo.api.controller;
 
 import com.reinasleo.api.dto.LoginResponse;
+import com.reinasleo.api.dto.PollAuthResponse;
 import com.reinasleo.api.dto.TelegramInitResponse;
 import com.reinasleo.api.service.BotAuthService;
 import org.springframework.http.ResponseEntity;
@@ -27,7 +28,7 @@ public class TelegramAuthController {
     }
 
     @GetMapping("/poll")
-    public ResponseEntity<LoginResponse> poll(@RequestParam String token) {
+    public ResponseEntity<PollAuthResponse> poll(@RequestParam String token) {
         return ResponseEntity.ok(botAuthService.pollAuth(token));
     }
 }

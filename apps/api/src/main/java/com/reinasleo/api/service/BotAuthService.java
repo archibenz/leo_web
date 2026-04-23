@@ -112,7 +112,7 @@ public class BotAuthService {
     }
 
     @Transactional
-    public LoginResponse pollAuth(String initToken) {
+    public PollAuthResponse pollAuth(String initToken) {
         TelegramAuthToken entry = tokenRepository.findById(initToken)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "token_not_found"));
 
@@ -121,7 +121,7 @@ public class BotAuthService {
         }
 
         if (!entry.isUsed() || entry.getUserId() == null) {
-            throw new ResponseStatusException(HttpStatus.ACCEPTED, "pending");
+            return PollAuthResponse.pending();
         }
 
         UUID userId = entry.getUserId();
@@ -134,7 +134,7 @@ public class BotAuthService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user_not_found"));
 
         String jwt = jwtService.generateToken(user.getId(), user.getEmail());
-        return new LoginResponse(jwt, user.getId(), user.getEmail(), user.getName(), user.getSurname(), user.getRole());
+        return PollAuthResponse.ready(jwt);
     }
 
     @Transactional(readOnly = true)

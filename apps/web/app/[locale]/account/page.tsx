@@ -55,16 +55,19 @@ export default function AccountPage() {
 
   const tryPoll = useCallback(async (initToken: string): Promise<'success' | 'pending' | 'expired'> => {
     try {
-      const data = await apiFetch<{token: string}>(`/api/auth/telegram/poll?token=${encodeURIComponent(initToken)}`);
-      if (data.token) {
+      const data = await apiFetch<{status: 'pending' | 'ready'; token?: string}>(
+        `/api/auth/telegram/poll?token=${encodeURIComponent(initToken)}`,
+      );
+      if (data.status === 'ready' && data.token) {
         await loginWithToken(data.token);
         return 'success';
       }
+      return 'pending';
     } catch (err: unknown) {
       const status = (err as {status?: number}).status;
       if (status === 404 || status === 410) return 'expired';
+      return 'pending';
     }
-    return 'pending';
   }, [loginWithToken]);
 
   const startPolling = useCallback((initToken: string) => {
