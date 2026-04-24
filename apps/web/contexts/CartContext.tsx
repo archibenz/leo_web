@@ -1,9 +1,10 @@
 'use client';
 
-import {createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode} from 'react';
+import {createContext, useContext, useCallback, useMemo, useRef, type ReactNode} from 'react';
 import {useAuth} from './AuthContext';
 import {apiFetch, getToken} from '../lib/api';
 import {showToast} from '../lib/toast';
+import {useSyncedList, defaultSerializeArray} from '../lib/useSyncedList';
 
 export type CartItem = {
   id: string;
@@ -47,6 +48,8 @@ type ApiCartResponse = {
   totalPrice: number;
 };
 
+type ServerIdMap = Record<string, string>;
+
 function compositeId(productId: string, size?: string | null): string {
   return size ? `${productId}__${size}` : productId;
 }
@@ -62,21 +65,6 @@ function apiItemToLocal(item: ApiCartItem): CartItem {
   };
 }
 
-function applyServerCart(
-  data: ApiCartResponse,
-  setItems: (items: CartItem[]) => void,
-  serverIdsRef: {current: ServerIdMap},
-): void {
-  const map: ServerIdMap = {};
-  const mapped = data.items.map(item => {
-    const cid = compositeId(item.productId, item.size);
-    map[cid] = item.id;
-    return apiItemToLocal(item);
-  });
-  serverIdsRef.current = map;
-  setItems(mapped);
-}
-
 function errorStatus(err: unknown): number | undefined {
   return (err as {status?: number} | null)?.status;
 }
@@ -86,57 +74,35 @@ function reportCartError(err: unknown, messageKey: string): void {
   showToast({kind: 'error', messageKey});
 }
 
-type ServerIdMap = Record<string, string>;
+function parseCartLocal(raw: string): CartItem[] {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item): item is CartItem =>
+      item != null && typeof item === 'object' && typeof item.id === 'string' && typeof item.quantity === 'number',
+    );
+  } catch {
+    return [];
+  }
+}
 
 export function CartProvider({children}: {children: ReactNode}) {
   const {isAuthenticated, isLoading: authLoading} = useAuth();
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const serverIds = useRef<ServerIdMap>({});
-  const prevAuth = useRef<boolean>(false);
 
-  const fetchServerCart = useCallback(async () => {
-    try {
-      const data = await apiFetch<ApiCartResponse>('/api/me/cart');
-      applyServerCart(data, setItems, serverIds);
-    } catch (err) {
-      reportCartError(err, 'cart.errors.loadFailed');
-    }
+  const fetchServer = useCallback(async (): Promise<CartItem[]> => {
+    const data = await apiFetch<ApiCartResponse>('/api/me/cart');
+    const map: ServerIdMap = {};
+    const mapped = data.items.map(item => {
+      const cid = compositeId(item.productId, item.size);
+      map[cid] = item.id;
+      return apiItemToLocal(item);
+    });
+    serverIds.current = map;
+    return mapped;
   }, []);
 
-  useEffect(() => {
-    if (authLoading) return;
-
-    if (isAuthenticated && getToken()) {
-      const guestItems = loadLocalCart();
-      const mergePromise = guestItems.length > 0
-        ? mergeGuestCart(guestItems)
-        : Promise.resolve();
-
-      mergePromise.then(() => fetchServerCart()).finally(() => {
-        if (guestItems.length > 0) {
-          localStorage.removeItem(CART_STORAGE_KEY);
-        }
-        setIsLoading(false);
-      });
-
-      prevAuth.current = true;
-    } else {
-      const stored = loadLocalCart();
-      setItems(stored);
-      serverIds.current = {};
-      setIsLoading(false);
-      prevAuth.current = false;
-    }
-  }, [isAuthenticated, authLoading, fetchServerCart]);
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
-    }
-  }, [items, isLoading, isAuthenticated]);
-
-  async function mergeGuestCart(guestItems: CartItem[]): Promise<void> {
+  const mergeGuest = useCallback(async (guestItems: CartItem[]): Promise<void> => {
     const results = await Promise.allSettled(
       guestItems.map(item => {
         const productId = item.id.includes('__') ? item.id.split('__')[0] : item.id;
@@ -153,16 +119,40 @@ export function CartProvider({children}: {children: ReactNode}) {
     if (failed.length > 0) {
       showToast({kind: 'error', messageKey: 'cart.errors.mergeFailed'});
     }
-  }
+  }, []);
+
+  const {items, setItems, isLoading} = useSyncedList<CartItem>({
+    localStorageKey: CART_STORAGE_KEY,
+    fetchServer,
+    mergeGuest,
+    parseLocal: parseCartLocal,
+    serializeLocal: defaultSerializeArray,
+    isAuthenticated,
+    authLoading,
+    onServerLoadError: err => reportCartError(err, 'cart.errors.loadFailed'),
+  });
+
+  const applyApiResponse = useCallback((data: ApiCartResponse) => {
+    const map: ServerIdMap = {};
+    const mapped = data.items.map(item => {
+      const cid = compositeId(item.productId, item.size);
+      map[cid] = item.id;
+      return apiItemToLocal(item);
+    });
+    serverIds.current = map;
+    setItems(mapped);
+  }, [setItems]);
 
   const addItem = useCallback((item: Omit<CartItem, 'quantity'>) => {
     if (isAuthenticated && getToken()) {
       const productId = item.id.includes('__') ? item.id.split('__')[0] : item.id;
       const size = item.size ?? (item.id.includes('__') ? item.id.split('__')[1] : undefined);
 
-      const prevItems = items;
       const prevServerIds = {...serverIds.current};
+      let rollback: CartItem[] | null = null;
+
       setItems(current => {
+        rollback = current;
         const existing = current.find(i => i.id === item.id);
         if (existing) {
           return current.map(i =>
@@ -176,9 +166,9 @@ export function CartProvider({children}: {children: ReactNode}) {
         method: 'POST',
         body: JSON.stringify({productId, size: size ?? null, quantity: 1}),
       })
-        .then(data => applyServerCart(data, setItems, serverIds))
+        .then(data => applyApiResponse(data))
         .catch(err => {
-          setItems(prevItems);
+          if (rollback) setItems(rollback);
           serverIds.current = prevServerIds;
           reportCartError(err, 'cart.errors.addFailed');
         });
@@ -193,31 +183,35 @@ export function CartProvider({children}: {children: ReactNode}) {
         return [...prev, {...item, quantity: 1}];
       });
     }
-  }, [isAuthenticated, items]);
+  }, [isAuthenticated, setItems, applyApiResponse]);
 
   const removeItem = useCallback((id: string) => {
     if (isAuthenticated && getToken()) {
       const serverId = serverIds.current[id];
       if (!serverId) return;
 
-      const prevItems = items;
       const prevServerIds = {...serverIds.current};
-      setItems(current => current.filter(i => i.id !== id));
+      let rollback: CartItem[] | null = null;
+
+      setItems(current => {
+        rollback = current;
+        return current.filter(i => i.id !== id);
+      });
       const nextServerIds = {...serverIds.current};
       delete nextServerIds[id];
       serverIds.current = nextServerIds;
 
       apiFetch<ApiCartResponse>(`/api/me/cart/${serverId}`, {method: 'DELETE'})
-        .then(data => applyServerCart(data, setItems, serverIds))
+        .then(data => applyApiResponse(data))
         .catch(err => {
-          setItems(prevItems);
+          if (rollback) setItems(rollback);
           serverIds.current = prevServerIds;
           reportCartError(err, 'cart.errors.removeFailed');
         });
     } else {
       setItems(prev => prev.filter(item => item.id !== id));
     }
-  }, [isAuthenticated, items]);
+  }, [isAuthenticated, setItems, applyApiResponse]);
 
   const updateQuantity = useCallback((id: string, quantity: number) => {
     if (quantity <= 0) {
@@ -229,17 +223,21 @@ export function CartProvider({children}: {children: ReactNode}) {
       const serverId = serverIds.current[id];
       if (!serverId) return;
 
-      const prevItems = items;
       const prevServerIds = {...serverIds.current};
-      setItems(current => current.map(i => i.id === id ? {...i, quantity} : i));
+      let rollback: CartItem[] | null = null;
+
+      setItems(current => {
+        rollback = current;
+        return current.map(i => i.id === id ? {...i, quantity} : i);
+      });
 
       apiFetch<ApiCartResponse>(`/api/me/cart/${serverId}`, {
         method: 'PATCH',
         body: JSON.stringify({quantity}),
       })
-        .then(data => applyServerCart(data, setItems, serverIds))
+        .then(data => applyApiResponse(data))
         .catch(err => {
-          setItems(prevItems);
+          if (rollback) setItems(rollback);
           serverIds.current = prevServerIds;
           reportCartError(err, 'cart.errors.updateFailed');
         });
@@ -248,25 +246,29 @@ export function CartProvider({children}: {children: ReactNode}) {
         prev.map(item => item.id === id ? {...item, quantity} : item),
       );
     }
-  }, [isAuthenticated, items, removeItem]);
+  }, [isAuthenticated, setItems, applyApiResponse, removeItem]);
 
   const clearCart = useCallback(() => {
     if (isAuthenticated && getToken()) {
-      const prevItems = items;
       const prevServerIds = {...serverIds.current};
-      setItems([]);
+      let rollback: CartItem[] | null = null;
+
+      setItems(current => {
+        rollback = current;
+        return [];
+      });
       serverIds.current = {};
 
       apiFetch('/api/me/cart', {method: 'DELETE'})
         .catch(err => {
-          setItems(prevItems);
+          if (rollback) setItems(rollback);
           serverIds.current = prevServerIds;
           reportCartError(err, 'cart.errors.clearFailed');
         });
     } else {
       setItems([]);
     }
-  }, [isAuthenticated, items]);
+  }, [isAuthenticated, setItems]);
 
   const getItemQuantity = useCallback((id: string) => {
     const item = items.find(i => i.id === id);
@@ -293,18 +295,6 @@ export function CartProvider({children}: {children: ReactNode}) {
       {children}
     </CartContext.Provider>
   );
-}
-
-function loadLocalCart(): CartItem[] {
-  try {
-    const stored = localStorage.getItem(CART_STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored) as CartItem[];
-    }
-  } catch {
-    // ignore
-  }
-  return [];
 }
 
 const defaultCartContext: CartContextType = {

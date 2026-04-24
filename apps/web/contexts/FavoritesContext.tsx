@@ -1,8 +1,9 @@
 'use client';
 
-import {createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode} from 'react';
+import {createContext, useContext, useCallback, useMemo, type ReactNode} from 'react';
 import {useAuth} from './AuthContext';
 import {apiFetch, getToken} from '../lib/api';
+import {useSyncedList, defaultSerializeArray} from '../lib/useSyncedList';
 
 export type FavoriteItem = {
   id: string;
@@ -41,62 +42,48 @@ function apiFavToLocal(f: ApiFavorite): FavoriteItem {
   };
 }
 
+function parseFavoritesLocal(raw: string): FavoriteItem[] {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item): item is FavoriteItem =>
+      item != null && typeof item === 'object' && typeof item.id === 'string' && typeof item.title === 'string',
+    );
+  } catch {
+    return [];
+  }
+}
+
 export function FavoritesProvider({children}: {children: ReactNode}) {
   const {isAuthenticated, isLoading: authLoading} = useAuth();
-  const [items, setItems] = useState<FavoriteItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Load favorites: from API if authenticated, from localStorage otherwise
-  useEffect(() => {
-    if (authLoading) return;
-
-    if (isAuthenticated && getToken()) {
-      // Merge guest favorites to server
-      const guestItems = loadLocalFavorites();
-      const mergePromise = guestItems.length > 0
-        ? mergeGuestFavorites(guestItems)
-        : Promise.resolve();
-
-      mergePromise.then(() => fetchServerFavorites()).finally(() => {
-        if (guestItems.length > 0) {
-          localStorage.removeItem(FAVORITES_STORAGE_KEY);
-        }
-        setIsLoading(false);
-      });
-    } else {
-      const stored = loadLocalFavorites();
-      setItems(stored);
-      setIsLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, authLoading]);
-
-  // Save to localStorage when guest
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(items));
-    }
-  }, [items, isLoading, isAuthenticated]);
-
-  const fetchServerFavorites = useCallback(async () => {
-    try {
-      const data = await apiFetch<ApiFavorite[]>('/api/me/favorites');
-      setItems(data.map(apiFavToLocal));
-    } catch {
-      // keep current items
-    }
+  const fetchServer = useCallback(async (): Promise<FavoriteItem[]> => {
+    const data = await apiFetch<ApiFavorite[]>('/api/me/favorites');
+    return data.map(apiFavToLocal);
   }, []);
 
-  async function mergeGuestFavorites(guestItems: FavoriteItem[]): Promise<void> {
-    await Promise.all(guestItems.map(item =>
-      apiFetch(`/api/me/favorites/${item.id}`, {method: 'POST'}).catch(() => {})
-    ));
-  }
+  const mergeGuest = useCallback(async (guestItems: FavoriteItem[]): Promise<void> => {
+    await Promise.all(
+      guestItems.map(item =>
+        apiFetch(`/api/me/favorites/${item.id}`, {method: 'POST'}).catch(() => {}),
+      ),
+    );
+  }, []);
+
+  const {items, setItems, isLoading, refresh} = useSyncedList<FavoriteItem>({
+    localStorageKey: FAVORITES_STORAGE_KEY,
+    fetchServer,
+    mergeGuest,
+    parseLocal: parseFavoritesLocal,
+    serializeLocal: defaultSerializeArray,
+    isAuthenticated,
+    authLoading,
+  });
 
   const addItem = useCallback((item: FavoriteItem) => {
     if (isAuthenticated && getToken()) {
       apiFetch<ApiFavorite>(`/api/me/favorites/${item.id}`, {method: 'POST'})
-        .then(() => fetchServerFavorites())
+        .then(() => refresh())
         .catch(() => {});
     } else {
       setItems(prev => {
@@ -104,17 +91,17 @@ export function FavoritesProvider({children}: {children: ReactNode}) {
         return [...prev, item];
       });
     }
-  }, [isAuthenticated, fetchServerFavorites]);
+  }, [isAuthenticated, setItems, refresh]);
 
   const removeItem = useCallback((id: string) => {
     if (isAuthenticated && getToken()) {
       apiFetch(`/api/me/favorites/${id}`, {method: 'DELETE'})
-        .then(() => fetchServerFavorites())
+        .then(() => refresh())
         .catch(() => {});
     } else {
       setItems(prev => prev.filter(item => item.id !== id));
     }
-  }, [isAuthenticated, fetchServerFavorites]);
+  }, [isAuthenticated, setItems, refresh]);
 
   const toggleItem = useCallback((item: FavoriteItem) => {
     const exists = items.some(i => i.id === item.id);
@@ -131,7 +118,7 @@ export function FavoritesProvider({children}: {children: ReactNode}) {
 
   const clearFavorites = useCallback(() => {
     setItems([]);
-  }, []);
+  }, [setItems]);
 
   const value = useMemo(() => ({
     items,
@@ -149,18 +136,6 @@ export function FavoritesProvider({children}: {children: ReactNode}) {
       {children}
     </FavoritesContext.Provider>
   );
-}
-
-function loadLocalFavorites(): FavoriteItem[] {
-  try {
-    const stored = localStorage.getItem(FAVORITES_STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored) as FavoriteItem[];
-    }
-  } catch {
-    // ignore
-  }
-  return [];
 }
 
 const defaultFavoritesContext: FavoritesContextType = {
