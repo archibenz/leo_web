@@ -1,7 +1,13 @@
+// Browser: relative URL (current origin routes /api/* through nginx → Spring Boot).
+// Server (Node.js SSR/RSC): relative URLs fail, so fall back to internal API URL.
+// API_BASE_INTERNAL is set only on the prod server; dev defaults to localhost:8080.
 export const API_BASE =
   typeof window !== 'undefined'
     ? ''
-    : (process.env.NEXT_PUBLIC_API_BASE || process.env.NEXT_PUBLIC_SITE_URL || '');
+    : (process.env.API_BASE_INTERNAL
+        || process.env.NEXT_PUBLIC_API_BASE
+        || process.env.NEXT_PUBLIC_SITE_URL
+        || 'http://127.0.0.1:8080');
 
 const TOKEN_KEY = 'reinasleo_token';
 

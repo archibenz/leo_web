@@ -358,8 +358,9 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
     material: [],
   });
 
-  /* ---- fetch products from API ---- */
+  /* ---- fetch products from API (skip if SSR already provided them) ---- */
   useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) return;
     const controller = new AbortController();
     fetch(`${API_BASE}/api/catalog/products`, {signal: controller.signal})
       .then(res => res.json())
@@ -379,7 +380,7 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
         setLoading(false);
       });
     return () => controller.abort();
-  }, []);
+  }, [initialProducts]);
 
   /* ---- season from URL ---- */
   const [seasonFilter, setSeasonFilter] = useState<string | null>(null);
