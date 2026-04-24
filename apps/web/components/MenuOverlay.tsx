@@ -121,7 +121,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
           >
           <div className="max-h-[calc(100vh-110px)] overflow-y-auto px-3 py-3 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
             {/* Main categories grid */}
-            <nav className="grid grid-cols-2 gap-x-3 gap-y-0 sm:gap-x-8 sm:gap-y-1 md:grid-cols-4 lg:grid-cols-4">
+            <nav className="grid grid-cols-2 gap-x-3 gap-y-0 sm:gap-x-8 sm:gap-y-1 lg:grid-cols-4">
               {categoryKeys.map((key, index) => (
                 <Link
                   key={key}
@@ -144,7 +144,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
               <p className="mb-2 font-accent text-[14px] uppercase tracking-[0.1em] sm:tracking-[0.18em] text-[#F2E6D8]/40 sm:mb-4">
                 {t('collections')}
               </p>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-1 sm:gap-x-10 sm:gap-y-2 md:grid-cols-4">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-1 sm:gap-x-10 sm:gap-y-2 lg:grid-cols-4">
                 {collections.map((collection) => (
                   <div
                     key={collection.id}
