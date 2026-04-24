@@ -1,5 +1,6 @@
 package com.reinasleo.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -22,6 +23,7 @@ public class User {
     @Column(length = 255)
     private String surname;
 
+    @JsonIgnore
     @Column(name = "password_hash", length = 255)
     private String passwordHash;
 
@@ -94,6 +96,7 @@ public class User {
     public String getEmail() { return email; }
     public String getName() { return name; }
     public String getSurname() { return surname; }
+    @JsonIgnore
     public String getPasswordHash() { return passwordHash; }
     public LocalDate getDateOfBirth() { return dateOfBirth; }
     public boolean isNewsletter() { return newsletter; }

@@ -96,7 +96,9 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of(
             "Authorization", "Content-Type", "X-Bot-Secret", "Accept", "Origin"
         ));
-        configuration.setAllowCredentials(true);
+        // JWT lives in Authorization header, cookies are not used. Keeping this false
+        // means any future cookie-based auth must first re-enable CSRF protection.
+        configuration.setAllowCredentials(false);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
