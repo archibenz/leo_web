@@ -2,6 +2,7 @@ package com.reinasleo.api.controller;
 
 import com.reinasleo.api.dto.DashboardResponse;
 import com.reinasleo.api.dto.RecentOrderResponse;
+import com.reinasleo.api.dto.RegistrationStatPoint;
 import com.reinasleo.api.dto.StockAlertResponse;
 import com.reinasleo.api.service.AdminProductService;
 import org.springframework.http.HttpStatus;
@@ -33,6 +34,12 @@ public class AdminDashboardController {
     @GetMapping("/orders/recent")
     public ResponseEntity<List<RecentOrderResponse>> recentOrders() {
         return ResponseEntity.ok(adminProductService.getRecentOrders());
+    }
+
+    @GetMapping("/stats/registrations")
+    public ResponseEntity<List<RegistrationStatPoint>> registrationStats(
+            @RequestParam(defaultValue = "30") int days) {
+        return ResponseEntity.ok(adminProductService.getRegistrationStats(days));
     }
 
     @PostMapping("/alerts/{id}/acknowledge")

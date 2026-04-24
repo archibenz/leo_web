@@ -41,6 +41,11 @@ type RecentOrder = {
   createdAt: string;
 };
 
+type RegistrationPoint = {
+  date: string;
+  count: number;
+};
+
 function formatMoney(value: number): string {
   return new Intl.NumberFormat('ru-RU', {
     style: 'currency',
@@ -74,6 +79,7 @@ export default function AdminDashboardPage() {
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [registrations, setRegistrations] = useState<RegistrationPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -81,11 +87,13 @@ export default function AdminDashboardPage() {
       apiFetch<Dashboard>('/api/admin/dashboard'),
       apiFetch<Alert[]>('/api/admin/alerts'),
       apiFetch<RecentOrder[]>('/api/admin/orders/recent'),
+      apiFetch<RegistrationPoint[]>('/api/admin/stats/registrations?days=30'),
     ])
-      .then(([dash, al, orders]) => {
+      .then(([dash, al, orders, regs]) => {
         setDashboard(dash);
         setAlerts(al);
         setRecentOrders(orders);
+        setRegistrations(regs);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -137,6 +145,18 @@ export default function AdminDashboardPage() {
                 </div>
               </section>
             )}
+
+            {/* График регистраций за 30 дней */}
+            <section className="space-y-3">
+              <h2 className="text-lg font-medium text-[var(--ink)]">Регистрации за 30 дней</h2>
+              <div className="paper-card p-4">
+                {registrations.length === 0 ? (
+                  <p className="text-sm text-[var(--ink-soft)]">Нет регистраций за выбранный период.</p>
+                ) : (
+                  <RegistrationChart data={registrations} />
+                )}
+              </div>
+            </section>
 
             {/* Каталог — операционные метрики */}
             {dashboard && (
@@ -272,6 +292,95 @@ function StatCard({label, value, warn}: {label: string; value: number; warn?: bo
     <div className="paper-card p-4 text-center">
       <p className={`text-3xl font-display ${warn ? 'text-red-400' : 'text-[var(--ink)]'}`}>{value}</p>
       <p className="mt-1 text-xs text-[var(--ink-soft)] uppercase tracking-wider">{label}</p>
+    </div>
+  );
+}
+
+function RegistrationChart({data}: {data: RegistrationPoint[]}) {
+  const W = 640;
+  const H = 220;
+  const PL = 36;
+  const PR = 16;
+  const PT = 16;
+  const PB = 28;
+  const innerW = W - PL - PR;
+  const innerH = H - PT - PB;
+
+  const counts = data.map(d => d.count);
+  const max = Math.max(...counts, 1);
+  const total = counts.reduce((a, b) => a + b, 0);
+
+  const stepX = innerW / Math.max(data.length - 1, 1);
+  const points = data.map((d, i) => ({
+    x: PL + i * stepX,
+    y: PT + innerH - (d.count / max) * innerH,
+    ...d,
+  }));
+
+  const path = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x + ',' + p.y).join(' ');
+  const areaPath =
+    points.length > 0
+      ? `${path} L${points[points.length - 1].x},${PT + innerH} L${points[0].x},${PT + innerH} Z`
+      : '';
+
+  const yTicks = [0, Math.ceil(max / 2), max];
+  const firstDate = data[0]?.date;
+  const lastDate = data[data.length - 1]?.date;
+  const fmtAxis = (iso: string | undefined) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleDateString('ru-RU', {day: '2-digit', month: 'short'});
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-baseline justify-between">
+        <p className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">
+          Всего за период: <span className="font-medium text-[var(--ink)]">{total}</span>
+        </p>
+        <p className="text-xs text-[var(--ink-soft)]">
+          {fmtAxis(firstDate)} — {fmtAxis(lastDate)}
+        </p>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="График регистраций за 30 дней">
+        {yTicks.map((tick, i) => {
+          const y = PT + innerH - (tick / max) * innerH;
+          return (
+            <g key={i}>
+              <line
+                x1={PL}
+                y1={y}
+                x2={W - PR}
+                y2={y}
+                stroke="currentColor"
+                strokeOpacity={0.08}
+                strokeDasharray="2 3"
+              />
+              <text x={PL - 6} y={y + 3} textAnchor="end" className="text-[10px] fill-current opacity-60">
+                {tick}
+              </text>
+            </g>
+          );
+        })}
+        {areaPath && <path d={areaPath} fill="var(--accent)" fillOpacity={0.12} />}
+        <path d={path} stroke="var(--accent)" strokeWidth={2} fill="none" />
+        {points.map((p, i) => (
+          <g key={i}>
+            <circle cx={p.x} cy={p.y} r={3} fill="var(--accent)" />
+            <title>{`${fmtAxis(p.date)}: ${p.count}`}</title>
+          </g>
+        ))}
+        {firstDate && (
+          <text x={PL} y={H - 8} textAnchor="start" className="text-[10px] fill-current opacity-60">
+            {fmtAxis(firstDate)}
+          </text>
+        )}
+        {lastDate && (
+          <text x={W - PR} y={H - 8} textAnchor="end" className="text-[10px] fill-current opacity-60">
+            {fmtAxis(lastDate)}
+          </text>
+        )}
+      </svg>
     </div>
   );
 }

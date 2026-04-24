@@ -140,6 +140,18 @@ public class AdminProductService {
     }
 
     @Transactional(readOnly = true)
+    public List<RegistrationStatPoint> getRegistrationStats(int days) {
+        int safeDays = Math.max(1, Math.min(days, 365));
+        Instant since = Instant.now().minus(safeDays, ChronoUnit.DAYS);
+        return userRepository.findRegistrationsByDayAfter(since).stream()
+                .map(row -> new RegistrationStatPoint(
+                        ((java.sql.Date) row[0]).toLocalDate(),
+                        ((Number) row[1]).longValue()
+                ))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<RecentOrderResponse> getRecentOrders() {
         return orderRepository.findTop10ByOrderByCreatedAtDesc().stream()
                 .map(o -> new RecentOrderResponse(
