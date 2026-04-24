@@ -85,12 +85,11 @@ All tasks implemented and verified:
 
 ---
 
-## TODO
+## Email delivery
 
-### Email Verification (high priority)
-- [ ] Configure real SMTP for verification code delivery
-  - Gmail SMTP (`smtp.gmail.com:587`) — works on production server (no VPN), blocked locally by WireGuard VPN
-  - Need: Google App Password for `reinasleo@gmail.com`
-  - Alternative: mail.ru SMTP (`noreply_reinasleo@mail.ru`)
-  - Set env vars on server: `MAIL_USERNAME`, `MAIL_PASSWORD`
-- [ ] Currently codes are logged to console (`EmailService` fallback) when mail is not configured — works for dev
+Uses **Resend HTTP API** (not SMTP). See `EmailService.java`.
+
+- `RESEND_API_KEY` (required), `RESEND_FROM` (optional, defaults to `REINASLEO <noreply@reinasleo.com>`).
+- Retries 3× with 1/2/4s exponential backoff on 5xx/IO, fails fast on 4xx, masks email in logs.
+- `reinasleo.com` domain must be verified in Resend dashboard (SPF + DKIM records) or Resend returns 403.
+- Local dev without `RESEND_API_KEY` → `EmailService` throws `IllegalStateException` at send time (no console fallback). For local flow, set a test key or short-circuit the call in the caller.
