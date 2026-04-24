@@ -12,7 +12,7 @@ import Spinner from './ui/Spinner';
 import SizeSelector from './SizeSelector';
 import type {SizeOption} from './SizeSelector';
 import SizeChart from './SizeChart';
-import ProductAccordion from './ProductAccordion';
+import Accordion from './ui/Accordion';
 import {CareSymbolsRow} from './CareSymbols';
 
 import { API_BASE } from '../lib/api';
@@ -221,6 +221,7 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
 
   const accordionItems = [
     {
+      key: 'delivery',
       title: t('deliveryTitle'),
       content: <p>{t('deliveryBody')}</p>,
     },
@@ -373,7 +374,7 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
           })()}
 
           {/* Accordions */}
-          <ProductAccordion items={accordionItems} />
+          <Accordion items={accordionItems} />
         </div>
       </div>
 

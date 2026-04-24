@@ -1,11 +1,13 @@
 'use client';
 
+import {useState} from 'react';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {useFavorites, useCart} from '../../../contexts';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import Spinner from '../../../components/ui/Spinner';
+import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 
 type Props = {
   params: Promise<{locale: string}>;
@@ -15,6 +17,7 @@ export default function FavoritesPage({params}: Props) {
   const t = useTranslations('favorites');
   const {items, isLoading, removeItem, clearFavorites} = useFavorites();
   const {addItem: addToCart} = useCart();
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
 
   /* ── Extract locale from pathname ── */
   const pathname = usePathname() || '/';
@@ -53,7 +56,7 @@ export default function FavoritesPage({params}: Props) {
           </div>
           {items.length > 0 && (
             <button
-              onClick={clearFavorites}
+              onClick={() => setConfirmClearOpen(true)}
               className="text-sm uppercase tracking-wider text-ink-soft transition hover:text-ink"
             >
               {t('clearAll')}
@@ -153,6 +156,16 @@ export default function FavoritesPage({params}: Props) {
           </div>
         )}
       </div>
+      <ConfirmDialog
+        open={confirmClearOpen}
+        title={t('clearConfirmTitle')}
+        message={t('clearConfirmMessage')}
+        onConfirm={() => {
+          setConfirmClearOpen(false);
+          clearFavorites();
+        }}
+        onCancel={() => setConfirmClearOpen(false)}
+      />
     </div>
   );
 }

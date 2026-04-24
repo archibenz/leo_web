@@ -8,6 +8,7 @@ import {useCart} from '../../../contexts/CartContext';
 import {useAuth} from '../../../contexts/AuthContext';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import Spinner from '../../../components/ui/Spinner';
+import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 import {useRecentlyViewed} from '../../../hooks/useRecentlyViewed';
 
 export default function CartPage() {
@@ -15,6 +16,7 @@ export default function CartPage() {
   const {items, count, total, isLoading, removeItem, updateQuantity, clearCart} = useCart();
   const {user} = useAuth();
   const {items: recentItems} = useRecentlyViewed();
+  const [confirmClearOpen, setConfirmClearOpen] = useState(false);
 
   /* ── Extract locale from pathname ── */
   const pathname = usePathname() || '/';
@@ -61,7 +63,7 @@ export default function CartPage() {
           </div>
           {!cartEmpty && (
             <button
-              onClick={clearCart}
+              onClick={() => setConfirmClearOpen(true)}
               className="text-sm uppercase tracking-wider text-ink-soft transition hover:text-ink"
               aria-label={t('clearAll')}
             >
@@ -275,6 +277,16 @@ export default function CartPage() {
         )}
 
       </div>
+      <ConfirmDialog
+        open={confirmClearOpen}
+        title={t('clearConfirmTitle')}
+        message={t('clearConfirmMessage')}
+        onConfirm={() => {
+          setConfirmClearOpen(false);
+          clearCart();
+        }}
+        onCancel={() => setConfirmClearOpen(false)}
+      />
     </div>
   );
 }

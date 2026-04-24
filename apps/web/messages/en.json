@@ -1,7 +1,9 @@
 {
   "common": {
     "loading": "Loading...",
-    "switchTo": "Switch to {locale}"
+    "switchTo": "Switch to {locale}",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   },
   "languageSelect": {
     "label": "Language",
@@ -388,7 +390,9 @@
     },
     "clearAll": "Clear all",
     "addToBag": "Add to bag",
-    "remove": "Remove from favorites"
+    "remove": "Remove from favorites",
+    "clearConfirmTitle": "Clear favorites?",
+    "clearConfirmMessage": "All saved items will be removed from your wishlist. This cannot be undone."
   },
   "cart": {
     "tag": "Cart",
@@ -422,7 +426,9 @@
       "clearFailed": "Could not clear the cart.",
       "loadFailed": "Could not load the cart. Check your connection.",
       "mergeFailed": "Some items could not be synced with your cart."
-    }
+    },
+    "clearConfirmTitle": "Clear cart?",
+    "clearConfirmMessage": "All items will be removed from your cart. This cannot be undone."
   },
   "account": {
     "tag": "Account",
