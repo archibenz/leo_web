@@ -1,9 +1,11 @@
 package com.reinasleo.api.controller;
 
+import com.reinasleo.api.dto.BotVisitStatPoint;
 import com.reinasleo.api.dto.DashboardResponse;
 import com.reinasleo.api.dto.RecentOrderResponse;
 import com.reinasleo.api.dto.RegistrationStatPoint;
 import com.reinasleo.api.dto.StockAlertResponse;
+import com.reinasleo.api.dto.TopProductPoint;
 import com.reinasleo.api.service.AdminProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +42,20 @@ public class AdminDashboardController {
     public ResponseEntity<List<RegistrationStatPoint>> registrationStats(
             @RequestParam(defaultValue = "30") int days) {
         return ResponseEntity.ok(adminProductService.getRegistrationStats(days));
+    }
+
+    @GetMapping("/stats/bot-visits")
+    public ResponseEntity<List<BotVisitStatPoint>> botVisitStats(
+            @RequestParam(defaultValue = "30") int days) {
+        return ResponseEntity.ok(adminProductService.getBotVisitStats(days));
+    }
+
+    @GetMapping("/stats/top-products")
+    public ResponseEntity<List<TopProductPoint>> topProducts(
+            @RequestParam(defaultValue = "add_to_favorite") String eventType,
+            @RequestParam(defaultValue = "30") int days,
+            @RequestParam(defaultValue = "5") int limit) {
+        return ResponseEntity.ok(adminProductService.getTopProducts(eventType, days, limit));
     }
 
     @PostMapping("/alerts/{id}/acknowledge")

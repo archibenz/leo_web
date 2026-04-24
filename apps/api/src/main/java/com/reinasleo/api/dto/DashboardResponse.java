@@ -13,5 +13,8 @@ public record DashboardResponse(
         BigDecimal totalRevenue,
         long newUsers7d,
         long newOrders7d,
-        BigDecimal revenue7d
+        BigDecimal revenue7d,
+        long totalBotVisits,
+        long botVisits7d,
+        long uniqueBotUsers7d
 ) {}

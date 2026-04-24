@@ -4,12 +4,15 @@ import com.reinasleo.api.dto.*;
 import com.reinasleo.api.model.Collection;
 import com.reinasleo.api.model.Product;
 import com.reinasleo.api.model.StockAlert;
+import com.reinasleo.api.repository.BotVisitRepository;
 import com.reinasleo.api.repository.CollectionRepository;
 import com.reinasleo.api.repository.OrderRepository;
+import com.reinasleo.api.repository.ProductInterestEventRepository;
 import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.StockAlertRepository;
 import com.reinasleo.api.repository.UserRepository;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,17 +32,23 @@ public class AdminProductService {
     private final StockAlertRepository stockAlertRepository;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
+    private final BotVisitRepository botVisitRepository;
+    private final ProductInterestEventRepository productInterestEventRepository;
 
     public AdminProductService(ProductRepository productRepository,
                                CollectionRepository collectionRepository,
                                StockAlertRepository stockAlertRepository,
                                UserRepository userRepository,
-                               OrderRepository orderRepository) {
+                               OrderRepository orderRepository,
+                               BotVisitRepository botVisitRepository,
+                               ProductInterestEventRepository productInterestEventRepository) {
         this.productRepository = productRepository;
         this.collectionRepository = collectionRepository;
         this.stockAlertRepository = stockAlertRepository;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
+        this.botVisitRepository = botVisitRepository;
+        this.productInterestEventRepository = productInterestEventRepository;
     }
 
     @Transactional(readOnly = true)
@@ -132,11 +141,47 @@ public class AdminProductService {
         long newOrders7d = orderRepository.countByCreatedAtAfter(sevenDaysAgo);
         BigDecimal revenue7d = orderRepository.sumRevenueAfter(sevenDaysAgo);
 
+        // Phase D — Telegram bot metrics
+        long totalBotVisits = botVisitRepository.count();
+        long botVisits7d = botVisitRepository.countByVisitedAtAfter(sevenDaysAgo);
+        long uniqueBotUsers7d = botVisitRepository.countDistinctTelegramIdByVisitedAtAfter(sevenDaysAgo);
+
         return new DashboardResponse(
                 totalProducts, totalCollections, lowStock, outOfStock, totalAlerts,
                 totalUsers, totalOrders, totalRevenue,
-                newUsers7d, newOrders7d, revenue7d
+                newUsers7d, newOrders7d, revenue7d,
+                totalBotVisits, botVisits7d, uniqueBotUsers7d
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<BotVisitStatPoint> getBotVisitStats(int days) {
+        int safeDays = Math.max(1, Math.min(days, 365));
+        Instant since = Instant.now().minus(safeDays, ChronoUnit.DAYS);
+        return botVisitRepository.findVisitsByDayAfter(since).stream()
+                .map(row -> new BotVisitStatPoint(
+                        ((java.sql.Date) row[0]).toLocalDate(),
+                        ((Number) row[1]).longValue(),
+                        ((Number) row[2]).longValue()
+                ))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<TopProductPoint> getTopProducts(String eventType, int days, int limit) {
+        int safeDays = Math.max(1, Math.min(days, 365));
+        int safeLimit = Math.max(1, Math.min(limit, 50));
+        String safeEventType = (eventType == null || eventType.isBlank()) ? "add_to_favorite" : eventType;
+        Instant since = Instant.now().minus(safeDays, ChronoUnit.DAYS);
+        return productInterestEventRepository
+                .findTopProducts(safeEventType, since, PageRequest.of(0, safeLimit))
+                .stream()
+                .map(row -> new TopProductPoint(
+                        (String) row[0],
+                        (String) row[1],
+                        ((Number) row[2]).longValue()
+                ))
+                .toList();
     }
 
     @Transactional(readOnly = true)

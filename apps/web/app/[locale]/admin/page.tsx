@@ -20,6 +20,9 @@ type Dashboard = {
   newUsers7d: number;
   newOrders7d: number;
   revenue7d: number;
+  totalBotVisits: number;
+  botVisits7d: number;
+  uniqueBotUsers7d: number;
 };
 
 type Alert = {
@@ -43,6 +46,18 @@ type RecentOrder = {
 
 type RegistrationPoint = {
   date: string;
+  count: number;
+};
+
+type BotVisitPoint = {
+  date: string;
+  count: number;
+  uniqueUsers: number;
+};
+
+type TopProduct = {
+  productId: string;
+  title: string;
   count: number;
 };
 
@@ -80,6 +95,9 @@ export default function AdminDashboardPage() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [registrations, setRegistrations] = useState<RegistrationPoint[]>([]);
+  const [botVisits, setBotVisits] = useState<BotVisitPoint[]>([]);
+  const [topFavorites, setTopFavorites] = useState<TopProduct[]>([]);
+  const [topCarts, setTopCarts] = useState<TopProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -88,12 +106,18 @@ export default function AdminDashboardPage() {
       apiFetch<Alert[]>('/api/admin/alerts'),
       apiFetch<RecentOrder[]>('/api/admin/orders/recent'),
       apiFetch<RegistrationPoint[]>('/api/admin/stats/registrations?days=30'),
+      apiFetch<BotVisitPoint[]>('/api/admin/stats/bot-visits?days=30'),
+      apiFetch<TopProduct[]>('/api/admin/stats/top-products?eventType=add_to_favorite&days=30&limit=5'),
+      apiFetch<TopProduct[]>('/api/admin/stats/top-products?eventType=add_to_cart&days=30&limit=5'),
     ])
-      .then(([dash, al, orders, regs]) => {
+      .then(([dash, al, orders, regs, visits, favs, carts]) => {
         setDashboard(dash);
         setAlerts(al);
         setRecentOrders(orders);
         setRegistrations(regs);
+        setBotVisits(visits);
+        setTopFavorites(favs);
+        setTopCarts(carts);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -153,8 +177,67 @@ export default function AdminDashboardPage() {
                 {registrations.length === 0 ? (
                   <p className="text-sm text-[var(--ink-soft)]">Нет регистраций за выбранный период.</p>
                 ) : (
-                  <RegistrationChart data={registrations} />
+                  <RegistrationChart data={registrations} ariaLabel="График регистраций за 30 дней" />
                 )}
+              </div>
+            </section>
+
+            {/* Phase D — Telegram бот KPI */}
+            {dashboard && (
+              <section className="space-y-3">
+                <h2 className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">
+                  Telegram бот
+                </h2>
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                  <BigStatCard
+                    label="Всего визитов"
+                    value={dashboard.totalBotVisits.toString()}
+                    delta={dashboard.botVisits7d > 0 ? `+${dashboard.botVisits7d} за неделю` : undefined}
+                  />
+                  <BigStatCard
+                    label="Уникальных пользователей"
+                    value={dashboard.uniqueBotUsers7d.toString()}
+                    delta="за последние 7 дней"
+                  />
+                  <BigStatCard
+                    label="Визитов за неделю"
+                    value={dashboard.botVisits7d.toString()}
+                  />
+                </div>
+              </section>
+            )}
+
+            {/* Phase E — График визитов бота */}
+            <section className="space-y-3">
+              <h2 className="text-lg font-medium text-[var(--ink)]">Визиты бота за 30 дней</h2>
+              <div className="paper-card p-4">
+                {botVisits.length === 0 ? (
+                  <p className="text-sm text-[var(--ink-soft)]">Нет визитов за выбранный период.</p>
+                ) : (
+                  <>
+                    <RegistrationChart
+                      data={botVisits.map(v => ({date: v.date, count: v.count}))}
+                      color="#8b5cf6"
+                      ariaLabel="График визитов бота за 30 дней"
+                    />
+                    <p className="mt-2 text-xs text-[var(--ink-soft)]">
+                      Пик за день:{' '}
+                      <span className="font-medium text-[var(--ink)]">
+                        {Math.max(...botVisits.map(v => v.count), 0)}
+                      </span>
+                      {' '}визитов ({Math.max(...botVisits.map(v => v.uniqueUsers), 0)} уникальных)
+                    </p>
+                  </>
+                )}
+              </div>
+            </section>
+
+            {/* Phase F — Топ товаров */}
+            <section className="space-y-3">
+              <h2 className="text-lg font-medium text-[var(--ink)]">Топ товаров (30 дней)</h2>
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <TopProductsCard title="По добавлениям в избранное" items={topFavorites} />
+                <TopProductsCard title="По добавлениям в корзину" items={topCarts} />
               </div>
             </section>
 
@@ -296,7 +379,17 @@ function StatCard({label, value, warn}: {label: string; value: number; warn?: bo
   );
 }
 
-function RegistrationChart({data}: {data: RegistrationPoint[]}) {
+type LinePoint = {date: string; count: number};
+
+function RegistrationChart({
+  data,
+  color = 'var(--accent)',
+  ariaLabel = 'График',
+}: {
+  data: LinePoint[];
+  color?: string;
+  ariaLabel?: string;
+}) {
   const W = 640;
   const H = 220;
   const PL = 36;
@@ -342,7 +435,7 @@ function RegistrationChart({data}: {data: RegistrationPoint[]}) {
           {fmtAxis(firstDate)} — {fmtAxis(lastDate)}
         </p>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label="График регистраций за 30 дней">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={ariaLabel}>
         {yTicks.map((tick, i) => {
           const y = PT + innerH - (tick / max) * innerH;
           return (
@@ -362,11 +455,11 @@ function RegistrationChart({data}: {data: RegistrationPoint[]}) {
             </g>
           );
         })}
-        {areaPath && <path d={areaPath} fill="var(--accent)" fillOpacity={0.12} />}
-        <path d={path} stroke="var(--accent)" strokeWidth={2} fill="none" />
+        {areaPath && <path d={areaPath} fill={color} fillOpacity={0.12} />}
+        <path d={path} stroke={color} strokeWidth={2} fill="none" />
         {points.map((p, i) => (
           <g key={i}>
-            <circle cx={p.x} cy={p.y} r={3} fill="var(--accent)" />
+            <circle cx={p.x} cy={p.y} r={3} fill={color} />
             <title>{`${fmtAxis(p.date)}: ${p.count}`}</title>
           </g>
         ))}
@@ -381,6 +474,41 @@ function RegistrationChart({data}: {data: RegistrationPoint[]}) {
           </text>
         )}
       </svg>
+    </div>
+  );
+}
+
+function TopProductsCard({title, items}: {title: string; items: TopProduct[]}) {
+  return (
+    <div className="paper-card p-4">
+      <h3 className="mb-3 text-sm font-medium text-[var(--ink)]">{title}</h3>
+      {items.length === 0 ? (
+        <p className="text-sm text-[var(--ink-soft)]">Нет данных за период.</p>
+      ) : (
+        <ol className="space-y-2">
+          {items.map((p, i) => {
+            const max = Math.max(...items.map(x => x.count), 1);
+            const pct = Math.max(2, Math.round((p.count / max) * 100));
+            return (
+              <li key={p.productId} className="space-y-1">
+                <div className="flex items-baseline justify-between gap-3 text-sm">
+                  <span className="truncate text-[var(--ink)]">
+                    <span className="mr-2 text-[var(--ink-soft)]">{i + 1}.</span>
+                    {p.title}
+                  </span>
+                  <span className="shrink-0 text-xs text-[var(--ink-soft)]">{p.count}</span>
+                </div>
+                <div className="h-1 w-full overflow-hidden rounded-full bg-[var(--ink)]/5">
+                  <div
+                    className="h-full bg-[var(--accent)]"
+                    style={{width: `${pct}%`}}
+                  />
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      )}
     </div>
   );
 }
