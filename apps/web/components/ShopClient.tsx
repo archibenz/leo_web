@@ -71,6 +71,15 @@ const GRADIENTS: Record<string, string> = {
 /*  Hooks                                                              */
 /* ------------------------------------------------------------------ */
 
+// Paths served by the Spring Boot API (uploads) get API_BASE prepended on SSR.
+// Paths served by Next.js static (public/images) stay relative so both SSR and
+// browser hit the same origin on port 3000.
+function resolveAssetUrl(src: string): string {
+  if (!src.startsWith('/')) return src;
+  if (src.startsWith('/uploads/') || src.startsWith('/api/')) return `${API_BASE}${src}`;
+  return src;
+}
+
 function useProductImages(item: ShopItem): string[] {
   return useMemo(() => {
     const imgs: string[] = [];
@@ -80,14 +89,14 @@ function useProductImages(item: ShopItem): string[] {
         if (Array.isArray(parsed)) {
           for (const img of parsed) {
             if (img && typeof img === 'object' && typeof img.src === 'string') {
-              imgs.push(img.src.startsWith('/') ? `${API_BASE}${img.src}` : img.src);
+              imgs.push(resolveAssetUrl(img.src));
             }
           }
         }
       } catch { /* ignore */ }
     }
     if (imgs.length === 0 && item.image) {
-      imgs.push(item.image.startsWith('/') ? `${API_BASE}${item.image}` : item.image);
+      imgs.push(resolveAssetUrl(item.image));
     }
     return imgs;
   }, [item.images, item.image]);
@@ -146,6 +155,7 @@ interface HeroCardProps {
 function HeroCard({item, idx, locale, t, tLook}: HeroCardProps) {
   const images = useProductImages(item);
   const img = images[0];
+  const [heroError, setHeroError] = useState(false);
 
   return (
     <Link
@@ -153,21 +163,22 @@ function HeroCard({item, idx, locale, t, tLook}: HeroCardProps) {
       className="group relative mb-14 block w-full overflow-hidden rounded-[4px] sm:mb-20"
     >
       <div className="relative aspect-[3/4] w-full sm:aspect-[16/10] lg:aspect-[21/10]">
-        {img ? (
+        {img && !heroError ? (
           <Image
             src={img}
             alt={item.title}
             fill
             sizes="100vw"
             priority
+            onError={() => setHeroError(true)}
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
           />
         ) : (
-          <div
-            className={`h-full w-full bg-gradient-to-br ${
-              GRADIENTS[item.occasion ?? ''] ?? 'from-[#3a2018] to-[#8a5a3a]'
-            }`}
-          />
+          <div className={`h-full w-full bg-gradient-to-br ${
+            GRADIENTS[item.occasion ?? ''] ?? 'from-[#3a2018] to-[#8a5a3a]'
+          } relative`}>
+            <BrandWatermark />
+          </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[rgba(13,7,5,0.85)] via-[rgba(13,7,5,0.35)] to-transparent" />
       </div>
@@ -213,6 +224,7 @@ interface ListCardProps {
 function ListCard({item, idx, locale, t}: ListCardProps) {
   const [hoverIndex, setHoverIndex] = useState(0);
   const [hovering, setHovering] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
   const images = useProductImages(item);
   const multi = images.length > 1;
@@ -251,7 +263,7 @@ function ListCard({item, idx, locale, t}: ListCardProps) {
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => { setHovering(false); setHoverIndex(0); }}
       >
-        {images.length > 0 ? (
+        {images.length > 0 && !imgError ? (
           <div className="relative aspect-[3/4] w-full bg-[var(--ink)]/5">
             <Image
               src={shown}
@@ -260,6 +272,7 @@ function ListCard({item, idx, locale, t}: ListCardProps) {
               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
               priority={eager}
               loading={eager ? 'eager' : 'lazy'}
+              onError={() => setImgError(true)}
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
             />
             {multi && images.slice(1, 4).map((src, i) => (
@@ -279,11 +292,7 @@ function ListCard({item, idx, locale, t}: ListCardProps) {
             ))}
           </div>
         ) : (
-          <div
-            className={`aspect-[3/4] w-full bg-gradient-to-br ${
-              GRADIENTS[item.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]'
-            }`}
-          />
+          <BrandFallback title={item.title} occasion={item.occasion} />
         )}
 
         {images.length > 1 && hovering && (
@@ -315,6 +324,40 @@ function ListCard({item, idx, locale, t}: ListCardProps) {
         </span>
       </div>
     </Link>
+  );
+}
+
+function BrandWatermark() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <span className="font-accent text-[32px] italic tracking-wider text-[var(--accent)]/40 sm:text-[48px]">
+        REINASLEO
+      </span>
+    </div>
+  );
+}
+
+function BrandFallback({title, occasion}: {title: string; occasion: string | null}) {
+  const grad = GRADIENTS[occasion ?? ''] ?? 'from-[#3a2018] to-[#8a5a3a]';
+  return (
+    <div className={`relative aspect-[3/4] w-full bg-gradient-to-br ${grad}`}>
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 25% 30%, rgba(255,255,255,0.3) 0, transparent 40%), radial-gradient(circle at 70% 60%, rgba(255,255,255,0.15) 0, transparent 35%)',
+        }}
+      />
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
+        <span className="font-accent text-[20px] italic tracking-[0.2em] text-[var(--accent)]/70 sm:text-[24px]">
+          REINASLEO
+        </span>
+        <span className="text-[10px] uppercase tracking-[0.25em] text-white/40 sm:text-[11px]">
+          {title}
+        </span>
+      </div>
+    </div>
   );
 }
 
