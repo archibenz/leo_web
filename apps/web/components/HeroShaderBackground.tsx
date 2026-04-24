@@ -15,9 +15,6 @@ export default function HeroShaderBackground({className = '', isActive = true}: 
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    if (webglChecked.current) return;
-    webglChecked.current = true;
-
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     setPrefersReducedMotion(motionQuery.matches);
     const handleMotionChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
@@ -28,12 +25,15 @@ export default function HeroShaderBackground({className = '', isActive = true}: 
     const handleMobileChange = (e: MediaQueryListEvent) => setIsMobile(e.matches);
     mobileQuery.addEventListener('change', handleMobileChange);
 
-    try {
-      const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-      if (!gl) setWebglSupported(false);
-    } catch {
-      setWebglSupported(false);
+    if (!webglChecked.current) {
+      webglChecked.current = true;
+      try {
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (!gl) setWebglSupported(false);
+      } catch {
+        setWebglSupported(false);
+      }
     }
 
     return () => {

@@ -100,7 +100,9 @@
     "email": "reinasleo@gmail.com",
     "rights": "© 2026 REINASLEO. All rights reserved.",
     "privacy": "Privacy Policy",
-    "terms": "Terms of Service"
+    "terms": "Terms of Service",
+    "navigate": "Navigate",
+    "connect": "Connect"
   },
   "home": {
     "hero": {
@@ -601,7 +603,16 @@
     "decreaseQty": "Decrease quantity",
     "increaseQty": "Increase quantity",
     "size": "Size",
-    "notFound": "Product not found"
+    "notFound": "Product not found",
+    "buyWildberries": "Buy on Wildberries",
+    "collection": "Collection",
+    "careInstructions": "Garment care",
+    "completeLook": "Complete the look"
+  },
+  "look": {
+    "openLook": "OPEN LOOK",
+    "author": "EDITOR",
+    "lookNumber": "LOOK No."
   },
   "collections": {
     "tag": "Collections",

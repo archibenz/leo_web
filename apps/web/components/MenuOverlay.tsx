@@ -3,6 +3,7 @@
 import {useEffect, useRef, useState, useCallback} from 'react';
 import {useTranslations} from 'next-intl';
 import Link from 'next/link';
+import {useFocusTrap} from '../lib/useFocusTrap';
 
 type MenuOverlayProps = {
   isOpen: boolean;
@@ -24,6 +25,8 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   const [hoveredCollection, setHoveredCollection] = useState<string | null>(null);
+
+  useFocusTrap(menuRef, isOpen);
 
   // Main category keys
   const categoryKeys = ['new', 'outerwear', 'dresses', 'knitwear', 'trousers', 'skirts', 'blouses', 'care'];

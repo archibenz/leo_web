@@ -4,11 +4,11 @@ import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname, useRouter} from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import {useCart} from '../contexts/CartContext';
 import {useFavorites} from '../contexts/FavoritesContext';
 import ProductGallery from './ProductGallery';
 import type {ProductImage} from './ProductGallery';
-import Spinner from './ui/Spinner';
 import SizeSelector from './SizeSelector';
 import type {SizeOption} from './SizeSelector';
 import SizeChart from './SizeChart';
@@ -81,43 +81,23 @@ const GRADIENTS: Record<string, string> = {
 
 interface ProductDetailClientProps {
   productId: string;
+  initialProduct?: ApiProduct | null;
 }
 
-export default function ProductDetailClient({productId}: ProductDetailClientProps) {
+export default function ProductDetailClient({initialProduct}: ProductDetailClientProps) {
   const t = useTranslations('product');
   const router = useRouter();
   const pathname = usePathname() || '/';
   const locale = pathname.split('/')[1] || 'ru';
 
-  const [product, setProduct] = useState<ApiProduct | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const product = initialProduct ?? null;
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
   const [recommendations, setRecommendations] = useState<ApiProduct[]>([]);
 
-  const {addItem: addToCart, getItemQuantity, updateQuantity, items: cartItems} = useCart();
+  const {addItem: addToCart} = useCart();
   const {toggleItem, isFavorite} = useFavorites();
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch(`${API_BASE}/api/catalog/products/${productId}`, {signal: controller.signal})
-      .then(res => {
-        if (!res.ok) throw new Error('Not found');
-        return res.json();
-      })
-      .then((data: ApiProduct) => {
-        setProduct(data);
-        setLoading(false);
-      })
-      .catch((err: unknown) => {
-        if (err instanceof DOMException && err.name === 'AbortError') return;
-        setError(true);
-        setLoading(false);
-      });
-    return () => controller.abort();
-  }, [productId]);
 
   useEffect(() => {
     if (!product) return;
@@ -132,17 +112,7 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
     return () => controller.abort();
   }, [product]);
 
-  if (loading) {
-    return (
-      <div className="mx-auto max-w-7xl px-4 pt-28 pb-16 sm:px-6 lg:px-8">
-        <div className="flex min-h-[40vh] items-center justify-center">
-          <Spinner size="lg" />
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !product) {
+  if (!product) {
     return (
       <div className="mx-auto max-w-7xl px-4 pt-28 pb-16 sm:px-6 lg:px-8">
         <div className="flex min-h-[40vh] flex-col items-center justify-center gap-4">
@@ -186,13 +156,6 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
   }));
 
   const isFav = isFavorite(product.id);
-
-  const totalProductInCart = cartItems
-    .filter((i) => i.id === product.id || i.id.startsWith(`${product.id}__`))
-    .reduce((sum, i) => sum + i.quantity, 0);
-
-  const currentCartId = cartItemId(product.id, selectedSize);
-  const currentSizeQty = getItemQuantity(currentCartId);
 
   const handleAddToBag = () => {
     if (!selectedSize) {
@@ -306,7 +269,7 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
               rel="noopener noreferrer"
               className="flex h-14 w-full items-center justify-center gap-2.5 rounded-full border-2 border-[#CB11AB] bg-[#CB11AB]/[0.08] text-base font-medium text-white transition hover:bg-[#CB11AB]/[0.15] active:scale-[0.98]"
             >
-              {locale === 'ru' ? 'Купить на Wildberries' : 'Buy on Wildberries'}
+              {t('buyWildberries')}
             </a>
 
             <button
@@ -344,7 +307,7 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
           {product.collectionName && (
             <div className="rounded-lg border border-[var(--ink)]/10 px-4 py-3">
               <p className="text-xs uppercase tracking-wider text-[var(--ink-soft)]">
-                {locale === 'ru' ? 'Коллекция' : 'Collection'}
+                {t('collection')}
               </p>
               <p className="mt-0.5 text-sm font-medium text-[var(--ink)]">{product.collectionName}</p>
             </div>
@@ -360,7 +323,7 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
               return (
                 <div className="rounded-lg border border-[var(--ink)]/10 px-4 py-4 space-y-3">
                   <p className="text-xs uppercase tracking-wider text-[var(--ink-soft)] font-medium">
-                    {locale === 'ru' ? 'Уход за изделием' : 'Garment care'}
+                    {t('careInstructions')}
                   </p>
                   {symbols.length > 0 && (
                     <CareSymbolsRow symbols={symbols} locale={locale} size={26} showLabels />
@@ -382,14 +345,20 @@ export default function ProductDetailClient({productId}: ProductDetailClientProp
       {recommendations.length > 0 && (
         <div className="mt-12 pt-8 border-t border-[var(--ink)]/8">
           <h2 className="font-display text-xl text-[var(--ink)] mb-6">
-            {locale === 'ru' ? 'Дополните образ' : 'Complete the look'}
+            {t('completeLook')}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {recommendations.map(rec => (
               <Link key={rec.id} href={`/${locale}/product/${rec.id}`} className="group block">
                 <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[var(--paper-muted)]">
                   {rec.image ? (
-                    <img src={rec.image} alt={rec.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                    <Image
+                      src={rec.image}
+                      alt={rec.title}
+                      fill
+                      sizes="(min-width: 640px) 25vw, 50vw"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
                       <span className="text-[var(--ink)]/20 text-sm">No image</span>

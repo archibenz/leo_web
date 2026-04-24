@@ -10,18 +10,42 @@ interface ImageUploadProps {
   onChange: (images: {src: string; alt: string}[]) => void;
 }
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
 export default function ImageUpload({images, onChange}: ImageUploadProps) {
   const t = useTranslations('admin.upload');
   const [uploading, setUploading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    setUploading(true);
+    setErrorMessage(null);
 
-    const newImages = [...images];
+    const validFiles: File[] = [];
+    const rejections: string[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
+      if (!file.type.startsWith('image/')) {
+        rejections.push(`${file.name}: not an image`);
+        continue;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        rejections.push(`${file.name}: exceeds 10MB`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (rejections.length > 0) {
+      setErrorMessage(rejections.join('; '));
+    }
+
+    if (validFiles.length === 0) return;
+
+    setUploading(true);
+    const newImages = [...images];
+    for (const file of validFiles) {
       const formData = new FormData();
       formData.append('file', file);
 
@@ -88,6 +112,13 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Validation error */}
+      {errorMessage && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400" role="alert">
+          {errorMessage}
         </div>
       )}
 

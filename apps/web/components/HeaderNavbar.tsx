@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, MenuItem, CategoryCard, CollectionCard } from './ui/navbar-menu';
 import { SearchBar } from './ui/search-bar';
@@ -157,8 +158,8 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               </svg>
             </button>
             <button type="button" onClick={() => go('')} className="flex items-center gap-2" aria-label={t('goHome')}>
-              <img src="/logos/icon-white.svg" alt="" aria-hidden="true" className="brand-asset h-7 w-7 flex-shrink-0" draggable="false" />
-              <img src="/logos/name-white.svg" alt="REINASLEO" className="brand-asset h-3 min-w-0" draggable="false" />
+              <Image src="/logos/icon-white.svg" alt="" aria-hidden="true" width={28} height={28} className="brand-asset h-7 w-7 flex-shrink-0" draggable={false} />
+              <Image src="/logos/name-white.svg" alt="REINASLEO" width={120} height={12} className="brand-asset h-3 min-w-0 w-auto" draggable={false} />
             </button>
           </div>
 

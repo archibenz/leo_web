@@ -3,6 +3,7 @@
 import {useEffect, useRef} from 'react';
 import {useTranslations} from 'next-intl';
 import {getSizeChart} from '../lib/sizeChartData';
+import {useFocusTrap} from '../lib/useFocusTrap';
 
 interface SizeChartProps {
   open: boolean;
@@ -12,15 +13,15 @@ interface SizeChartProps {
 
 export default function SizeChart({open, onClose, category}: SizeChartProps) {
   const t = useTranslations('product.sizeChart');
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(dialogRef, open);
 
   useEffect(() => {
     if (!open) return;
 
-    const previousFocus = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    closeButtonRef.current?.focus();
 
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -30,7 +31,6 @@ export default function SizeChart({open, onClose, category}: SizeChartProps) {
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', handleKey);
-      previousFocus?.focus();
     };
   }, [open, onClose]);
 
@@ -47,11 +47,11 @@ export default function SizeChart({open, onClose, category}: SizeChartProps) {
       aria-labelledby="size-chart-title"
     >
       <div
+        ref={dialogRef}
         className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-[var(--paper)] p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          ref={closeButtonRef}
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full text-[var(--ink)] transition hover:bg-[var(--ink)]/5"

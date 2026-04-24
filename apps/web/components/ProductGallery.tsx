@@ -1,6 +1,7 @@
 'use client';
 
 import {useState, useRef, useCallback, useEffect} from 'react';
+import Image from 'next/image';
 
 import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
@@ -36,14 +37,15 @@ function GalleryImage({
         }`}
       />
       {hasSrc && (
-        <img
+        <Image
           src={image.src}
           alt={image.alt}
+          fill
           loading={loading}
           sizes={sizes}
           draggable={false}
           onError={() => setErrored(true)}
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${className ?? ''}`}
+          className={`object-cover transition-opacity duration-300 ${className ?? ''}`}
         />
       )}
     </>

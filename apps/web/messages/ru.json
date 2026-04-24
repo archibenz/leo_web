@@ -100,7 +100,9 @@
     "email": "reinasleo@gmail.com",
     "rights": "© 2026 REINASLEO. Все права защищены.",
     "privacy": "Политика конфиденциальности",
-    "terms": "Условия использования"
+    "terms": "Условия использования",
+    "navigate": "Навигация",
+    "connect": "Связь"
   },
   "home": {
     "hero": {
@@ -601,7 +603,16 @@
     "decreaseQty": "Уменьшить количество",
     "increaseQty": "Увеличить количество",
     "size": "Размер",
-    "notFound": "Товар не найден"
+    "notFound": "Товар не найден",
+    "buyWildberries": "Купить на Wildberries",
+    "collection": "Коллекция",
+    "careInstructions": "Уход за изделием",
+    "completeLook": "Дополните образ"
+  },
+  "look": {
+    "openLook": "ОТКРЫТЬ LOOK",
+    "author": "АВТОР",
+    "lookNumber": "LOOK №"
   },
   "collections": {
     "tag": "Коллекции",

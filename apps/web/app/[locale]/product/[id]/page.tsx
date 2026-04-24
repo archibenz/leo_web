@@ -40,10 +40,12 @@ export default async function ProductPage({params}: Props) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
 
   let productJsonLd = null;
+  let initialProduct = null;
   try {
     const res = await fetch(`${API_BASE}/api/catalog/products/${id}`, {cache: 'no-store'});
     if (res.ok) {
       const p = await res.json();
+      initialProduct = p;
       productJsonLd = {
         '@context': 'https://schema.org',
         '@type': 'Product',
@@ -69,7 +71,7 @@ export default async function ProductPage({params}: Props) {
           dangerouslySetInnerHTML={{__html: safeJsonLd(productJsonLd)}}
         />
       )}
-      <ProductDetailClient productId={id} />
+      <ProductDetailClient productId={id} initialProduct={initialProduct} />
     </>
   );
 }

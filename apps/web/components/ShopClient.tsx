@@ -5,6 +5,7 @@ import {useTranslations} from 'next-intl';
 import {usePathname, useSearchParams} from 'next/navigation';
 import Spinner from './ui/Spinner';
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { API_BASE } from '../lib/api';
 /* ------------------------------------------------------------------ */
@@ -139,9 +140,10 @@ interface HeroCardProps {
   idx: number;
   locale: string;
   t: Translator;
+  tLook: Translator;
 }
 
-function HeroCard({item, idx, locale, t}: HeroCardProps) {
+function HeroCard({item, idx, locale, t, tLook}: HeroCardProps) {
   const images = useProductImages(item);
   const img = images[0];
 
@@ -152,10 +154,13 @@ function HeroCard({item, idx, locale, t}: HeroCardProps) {
     >
       <div className="relative aspect-[3/4] w-full sm:aspect-[16/10] lg:aspect-[21/10]">
         {img ? (
-          <img
+          <Image
             src={img}
             alt={item.title}
-            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+            fill
+            sizes="100vw"
+            priority
+            className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
           />
         ) : (
           <div
@@ -169,9 +174,9 @@ function HeroCard({item, idx, locale, t}: HeroCardProps) {
 
       <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 px-5 pb-7 sm:px-10 sm:pb-10 lg:px-14 lg:pb-14">
         <div className="font-accent text-[10px] uppercase tracking-[0.25em] text-[var(--accent)] sm:text-[11px]">
-          {locale === 'ru' ? 'LOOK №' : 'LOOK No.'} {String(idx + 1).padStart(2, '0')}
+          {tLook('lookNumber')} {String(idx + 1).padStart(2, '0')}
           <span className="mx-2 opacity-50">·</span>
-          {item.occasion ? t(`occasions.${item.occasion}`) : (locale === 'ru' ? 'АВТОР' : 'EDITOR')}
+          {item.occasion ? t(`occasions.${item.occasion}`) : tLook('author')}
         </div>
         <h2 className="font-display text-[32px] font-light leading-[1.05] tracking-tight text-[var(--ink)] sm:text-[44px] lg:text-[56px]">
           {item.title}
@@ -181,7 +186,7 @@ function HeroCard({item, idx, locale, t}: HeroCardProps) {
             €{item.price.toLocaleString()}
           </span>
           <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-[var(--ink-soft)] transition-colors duration-200 group-hover:text-[var(--accent)] sm:text-[11px]">
-            {locale === 'ru' ? 'ОТКРЫТЬ LOOK' : 'OPEN LOOK'}
+            {tLook('openLook')}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:translate-x-1">
               <path d="M5 12h14" /><path d="M12 5l7 7-7 7" />
             </svg>
@@ -241,11 +246,13 @@ function ListCard({item, idx, locale, t}: ListCardProps) {
         onMouseLeave={() => { setHovering(false); setHoverIndex(0); }}
       >
         {images.length > 0 ? (
-          <div className="aspect-[3/4] w-full">
-            <img
+          <div className="relative aspect-[3/4] w-full">
+            <Image
               src={shown}
               alt={item.title}
-              className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+              fill
+              sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
             />
           </div>
         ) : (
@@ -293,10 +300,11 @@ interface ProductCardProps {
   idx: number;
   locale: string;
   t: Translator;
+  tLook: Translator;
 }
 
-function ProductCard({item, idx, locale, t}: ProductCardProps) {
-  if (idx === 0) return <HeroCard item={item} idx={idx} locale={locale} t={t} />;
+function ProductCard({item, idx, locale, t, tLook}: ProductCardProps) {
+  if (idx === 0) return <HeroCard item={item} idx={idx} locale={locale} t={t} tLook={tLook} />;
   return <ListCard item={item} idx={idx} locale={locale} t={t} />;
 }
 
@@ -306,6 +314,7 @@ function ProductCard({item, idx, locale, t}: ProductCardProps) {
 
 export default function ShopClient({initialProducts}: {initialProducts?: ShopItem[]}) {
   const t = useTranslations('shop');
+  const tLook = useTranslations('look');
   const pathname = usePathname() || '/';
   const locale = pathname.split('/')[1] || 'ru';
   const searchParams = useSearchParams();
@@ -577,7 +586,7 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
           ) : filteredAndSorted.length > 0 ? (
             <>
               {/* 05 Couture Display — hero "лицо коллекции" + классическая сетка с порядковыми номерами */}
-              <HeroCard item={filteredAndSorted[0]} idx={0} locale={locale} t={t} />
+              <HeroCard item={filteredAndSorted[0]} idx={0} locale={locale} t={t} tLook={tLook} />
               {filteredAndSorted.length > 1 && (
                 <div className="flex flex-col gap-y-14 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-16 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-20">
                   {filteredAndSorted.slice(1).map((item, i) => (
