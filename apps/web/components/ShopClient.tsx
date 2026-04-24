@@ -215,16 +215,22 @@ function ListCard({item, idx, locale, t}: ListCardProps) {
   const [hovering, setHovering] = useState(false);
   const imgRef = useRef<HTMLDivElement>(null);
   const images = useProductImages(item);
+  const multi = images.length > 1;
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (images.length <= 1 || !imgRef.current) return;
+    if (!multi || !imgRef.current) return;
     const rect = imgRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const next = Math.min(Math.floor((x / rect.width) * images.length), images.length - 1);
     if (next !== hoverIndex) setHoverIndex(next);
-  }, [images.length, hoverIndex]);
+  }, [multi, images.length, hoverIndex]);
 
-  const shown = hovering ? (images[hoverIndex] ?? images[0]) : images[0];
+  // For single-image products keep src stable (no hover swap → no re-render).
+  // For multi-image: only swap when actually hovering AND index differs from 0.
+  const shown = multi && hovering ? (images[hoverIndex] ?? images[0]) : images[0];
+
+  // Above-the-fold eager-load (hero=idx 0 already priority; first row after it = 1,2,3).
+  const eager = idx <= 3;
 
   return (
     <Link href={`/${locale}/product/${item.id}`} className="group flex flex-col">
@@ -246,14 +252,31 @@ function ListCard({item, idx, locale, t}: ListCardProps) {
         onMouseLeave={() => { setHovering(false); setHoverIndex(0); }}
       >
         {images.length > 0 ? (
-          <div className="relative aspect-[3/4] w-full">
+          <div className="relative aspect-[3/4] w-full bg-[var(--ink)]/5">
             <Image
               src={shown}
               alt={item.title}
               fill
               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+              priority={eager}
+              loading={eager ? 'eager' : 'lazy'}
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
             />
+            {multi && images.slice(1, 4).map((src, i) => (
+              // Preload next few hover-images invisibly so the first hover swap is instant.
+              // Using <link rel="preload"> would be cleaner but needs next/head inside client component.
+              // Plain <img width=0 height=0> triggers the same browser fetch + cache.
+              <img
+                key={src}
+                src={src}
+                alt=""
+                aria-hidden
+                width={0}
+                height={0}
+                style={{position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none'}}
+                loading="lazy"
+              />
+            ))}
           </div>
         ) : (
           <div
