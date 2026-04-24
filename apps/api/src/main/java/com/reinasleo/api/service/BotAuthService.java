@@ -66,10 +66,10 @@ public class BotAuthService {
                 telegramId,
                 Instant.now().plusSeconds(600)
         );
-        loginEntry.setUserId(user.getId());
+        loginEntry.setUser(user);
         tokenRepository.save(loginEntry);
 
-        entry.setUserId(user.getId());
+        entry.setUser(user);
         entry.markUsed();
         tokenRepository.save(entry);
 
@@ -101,10 +101,10 @@ public class BotAuthService {
                 telegramId,
                 Instant.now().plusSeconds(600)
         );
-        loginEntry.setUserId(user.getId());
+        loginEntry.setUser(user);
         tokenRepository.save(loginEntry);
 
-        entry.setUserId(user.getId());
+        entry.setUser(user);
         entry.markUsed();
         tokenRepository.save(entry);
 

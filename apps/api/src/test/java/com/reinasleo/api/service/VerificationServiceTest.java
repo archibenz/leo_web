@@ -38,6 +38,7 @@ class VerificationServiceTest {
     @Test
     void sendCode_invalidatesOldPendingCodesBeforeIssuingNew() {
         when(codeRepository.save(any(VerificationCode.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(emailService.sendVerificationCode(any(), any())).thenReturn(true);
 
         verificationService.sendCode("User@Example.COM");
 

@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -17,6 +18,9 @@ public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
     private static final String RESEND_API_URL = "https://api.resend.com/emails";
+
+    private static final int MAX_ATTEMPTS = 3;
+    private static final long[] BACKOFF_MILLIS = {1000L, 2000L, 4000L};
 
     private final HttpClient httpClient;
 
@@ -32,7 +36,17 @@ public class EmailService {
                 .build();
     }
 
-    public void sendVerificationCode(String toEmail, String code) {
+    /**
+     * Attempts to deliver a verification code email. Retries up to 3 times on
+     * 5xx / timeout / IO errors with exponential backoff (1s, 2s, 4s). Fails
+     * fast (no retry) on 4xx client errors (e.g. invalid recipient).
+     *
+     * @return true if Resend accepted the email (2xx), false only when
+     *         misconfigured (missing API key) — currently throws instead.
+     * @throws EmailDeliveryException when all retry attempts are exhausted or
+     *         Resend returns a 4xx client error.
+     */
+    public boolean sendVerificationCode(String toEmail, String code) {
         if (resendApiKey == null || resendApiKey.isBlank()) {
             throw new IllegalStateException(
                     "RESEND_API_KEY not configured; refusing to send verification code");
@@ -51,30 +65,112 @@ public class EmailService {
                 toJsonString(buildHtml(code))
         );
 
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(RESEND_API_URL))
-                .timeout(Duration.ofSeconds(15))
-                .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + resendApiKey)
-                .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
-                .build();
+        return sendWithRetry(toEmail, jsonBody, "verification code");
+    }
 
-        HttpResponse<String> response;
-        try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (Exception e) {
-            log.error("Resend HTTP call failed for {}: {}", toEmail, e.getMessage());
-            throw new EmailDeliveryException("Failed to contact Resend API", e);
+    private boolean sendWithRetry(String toEmail, String jsonBody, String purpose) {
+        String maskedEmail = maskEmail(toEmail);
+        Exception lastTransportError = null;
+        int lastStatus = -1;
+        String lastBodySnippet = null;
+
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(RESEND_API_URL))
+                    .timeout(Duration.ofSeconds(15))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + resendApiKey)
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            try {
+                HttpResponse<String> response = httpClient.send(
+                        request, HttpResponse.BodyHandlers.ofString());
+                int status = response.statusCode();
+
+                if (status >= 200 && status < 300) {
+                    if (attempt > 1) {
+                        log.info("Resend delivered {} to {} on attempt {}/{}",
+                                purpose, maskedEmail, attempt, MAX_ATTEMPTS);
+                    } else {
+                        log.info("Resend delivered {} to {}", purpose, maskedEmail);
+                    }
+                    return true;
+                }
+
+                lastStatus = status;
+                lastBodySnippet = truncate(response.body(), 300);
+
+                // 4xx — client error, do not retry (e.g. invalid email address,
+                // unauthorized key, rejected domain). Fail fast.
+                if (status >= 400 && status < 500) {
+                    log.error("Resend rejected {} for {} with 4xx status={} body={}",
+                            purpose, maskedEmail, status, lastBodySnippet);
+                    throw new EmailDeliveryException(
+                            "Resend API rejected request with status " + status);
+                }
+
+                // 5xx — transient, retry with backoff
+                if (attempt < MAX_ATTEMPTS) {
+                    log.warn("Resend 5xx ({}) for {} on attempt {}/{}, retrying in {}ms",
+                            status, maskedEmail, attempt, MAX_ATTEMPTS, BACKOFF_MILLIS[attempt - 1]);
+                    if (!sleepBackoff(attempt)) {
+                        break;
+                    }
+                }
+            } catch (IOException e) {
+                lastTransportError = e;
+                if (attempt < MAX_ATTEMPTS) {
+                    log.warn("Resend IO error for {} on attempt {}/{}: {}, retrying in {}ms",
+                            maskedEmail, attempt, MAX_ATTEMPTS, e.getMessage(),
+                            BACKOFF_MILLIS[attempt - 1]);
+                    if (!sleepBackoff(attempt)) {
+                        break;
+                    }
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("Resend call interrupted for {}", maskedEmail);
+                throw new EmailDeliveryException("Email delivery interrupted", e);
+            }
         }
 
-        if (response.statusCode() >= 200 && response.statusCode() < 300) {
-            log.info("Verification code sent to {} via Resend", toEmail);
-            return;
+        if (lastStatus >= 500) {
+            log.error("Resend 5xx exhausted for {} after {} attempts, last status={} body={}",
+                    maskedEmail, MAX_ATTEMPTS, lastStatus, lastBodySnippet);
+            throw new EmailDeliveryException(
+                    "Resend API unavailable (last status " + lastStatus + ")");
         }
 
-        log.error("Resend API error ({}) for {}: {}", response.statusCode(), toEmail, response.body());
+        log.error("Resend transport failure exhausted for {} after {} attempts: {}",
+                maskedEmail, MAX_ATTEMPTS,
+                lastTransportError != null ? lastTransportError.getMessage() : "unknown");
         throw new EmailDeliveryException(
-                "Resend API returned " + response.statusCode() + " for " + toEmail);
+                "Failed to contact Resend API after " + MAX_ATTEMPTS + " attempts",
+                lastTransportError);
+    }
+
+    private boolean sleepBackoff(int attempt) {
+        try {
+            Thread.sleep(BACKOFF_MILLIS[attempt - 1]);
+            return true;
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            return false;
+        }
+    }
+
+    private static String maskEmail(String email) {
+        if (email == null) return "***";
+        int at = email.indexOf('@');
+        if (at <= 0) return "***";
+        char first = email.charAt(0);
+        return first + "***" + email.substring(at);
+    }
+
+    private static String truncate(String s, int max) {
+        if (s == null) return null;
+        return s.length() <= max ? s : s.substring(0, max) + "...";
     }
 
     private String buildHtml(String code) {

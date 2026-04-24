@@ -6,11 +6,16 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.Optional;
 
 public interface TelegramAuthTokenRepository extends JpaRepository<TelegramAuthToken, String> {
 
     Optional<TelegramAuthToken> findByTokenAndUsedFalse(String token);
+
+    @Modifying
+    @Query("DELETE FROM TelegramAuthToken t WHERE t.expiresAt < :cutoff")
+    int deleteExpiredBefore(@Param("cutoff") Instant cutoff);
 
     @Modifying
     @Query("""
@@ -27,7 +32,7 @@ public interface TelegramAuthTokenRepository extends JpaRepository<TelegramAuthT
             DELETE FROM TelegramAuthToken t
             WHERE t.token = :token
               AND t.used = true
-              AND t.userId IS NOT NULL
+              AND t.user IS NOT NULL
               AND t.expiresAt > CURRENT_TIMESTAMP
             """)
     int deleteIfClaimed(@Param("token") String token);

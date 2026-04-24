@@ -1,5 +1,6 @@
 package com.reinasleo.api.service;
 
+import com.reinasleo.api.exception.EmailDeliveryException;
 import com.reinasleo.api.exception.InvalidVerificationCodeException;
 import com.reinasleo.api.model.VerificationCode;
 import com.reinasleo.api.repository.VerificationCodeRepository;
@@ -40,7 +41,20 @@ public class VerificationService {
         String code = generateCode();
         Instant expiresAt = Instant.now().plus(EXPIRATION_MINUTES, ChronoUnit.MINUTES);
         codeRepository.save(new VerificationCode(normalizedEmail, sha256Hex(code), expiresAt));
-        emailService.sendVerificationCode(normalizedEmail, code);
+
+        // Delivery failure must bubble up so the caller (AuthController) can
+        // return 503 instead of silently telling the user "check your email".
+        try {
+            boolean delivered = emailService.sendVerificationCode(normalizedEmail, code);
+            if (!delivered) {
+                log.error("Email service reported non-delivery for {}", maskEmail(normalizedEmail));
+                throw new EmailDeliveryException("Verification email was not delivered");
+            }
+        } catch (EmailDeliveryException e) {
+            log.error("Verification code delivery failed for {}: {}",
+                    maskEmail(normalizedEmail), e.getMessage());
+            throw e;
+        }
     }
 
     @Transactional

@@ -54,7 +54,7 @@ public class FileUploadController {
 
         try {
             if (!ImageContentValidator.isSupportedImage(file)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File content does not match an image format");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "uploaded file is not a valid image");
             }
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to read uploaded file");

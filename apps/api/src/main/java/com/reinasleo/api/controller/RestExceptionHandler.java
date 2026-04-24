@@ -1,6 +1,7 @@
 package com.reinasleo.api.controller;
 
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
+import com.reinasleo.api.exception.EmailDeliveryException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.exception.InvalidVerificationCodeException;
 import com.reinasleo.api.exception.OutOfStockException;
@@ -86,6 +87,16 @@ public class RestExceptionHandler {
                 "error", "email_exists"
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    @ExceptionHandler(EmailDeliveryException.class)
+    public ResponseEntity<Map<String, Object>> handleEmailDelivery(EmailDeliveryException ex) {
+        log.error("Email delivery failed: {}", ex.getMessage());
+        Map<String, Object> body = Map.of(
+                "message", "Unable to send verification email, please try again shortly",
+                "error", "email_delivery_failed"
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(body);
     }
 
     @ExceptionHandler(OutOfStockException.class)

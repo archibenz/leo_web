@@ -23,6 +23,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @Query("SELECT COALESCE(SUM(o.total), 0) FROM Order o WHERE o.status <> 'cancelled' AND o.createdAt > :since")
     BigDecimal sumRevenueAfter(@Param("since") Instant since);
 
-    @EntityGraph(attributePaths = {"user"})
+    @Query("SELECT o FROM Order o JOIN FETCH o.user ORDER BY o.createdAt DESC LIMIT 10")
     List<Order> findTop10ByOrderByCreatedAtDesc();
 }

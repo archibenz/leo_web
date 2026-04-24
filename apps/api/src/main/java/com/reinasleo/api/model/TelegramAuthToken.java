@@ -15,8 +15,9 @@ public class TelegramAuthToken {
     @Column(name = "telegram_id", nullable = false)
     private Long telegramId;
 
-    @Column(name = "user_id")
-    private UUID userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
@@ -43,11 +44,12 @@ public class TelegramAuthToken {
 
     public String getToken() { return token; }
     public Long getTelegramId() { return telegramId; }
-    public UUID getUserId() { return userId; }
+    public User getUser() { return user; }
+    public UUID getUserId() { return user != null ? user.getId() : null; }
     public Instant getExpiresAt() { return expiresAt; }
     public boolean isUsed() { return used; }
     public Instant getCreatedAt() { return createdAt; }
 
-    public void setUserId(UUID userId) { this.userId = userId; }
+    public void setUser(User user) { this.user = user; }
     public void setTelegramId(Long telegramId) { this.telegramId = telegramId; }
 }

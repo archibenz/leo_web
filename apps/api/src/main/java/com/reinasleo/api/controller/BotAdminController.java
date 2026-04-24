@@ -34,6 +34,7 @@ public class BotAdminController {
     private static final Set<String> ALLOWED_TYPES = Set.of(
             "image/jpeg", "image/png", "image/webp", "image/jpg"
     );
+    private static final long MAX_UPLOAD_SIZE = 10L * 1024 * 1024; // 10MB
 
     @Value("${app.bot.api-secret}")
     private String botApiSecret;
@@ -158,13 +159,16 @@ public class BotAdminController {
         if (file.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
         }
+        if (file.getSize() > MAX_UPLOAD_SIZE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File too large (max 10MB)");
+        }
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only JPG, PNG, WebP");
         }
         try {
             if (!ImageContentValidator.isSupportedImage(file)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File content does not match an image format");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "uploaded file is not a valid image");
             }
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to read uploaded file");
