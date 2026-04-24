@@ -33,3 +33,8 @@ output/
 
 # oh-my-claudecode local state (not committed)
 .omc/
+
+# Playwright E2E
+apps/web/playwright-report/
+apps/web/test-results/
+apps/web/e2e/.auth/
