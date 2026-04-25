@@ -429,6 +429,8 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
   const [seasonFilter, setSeasonFilter] = useState<string | null>(null);
 
   /* ---- apply URL params on mount ---- */
+  // Фильтры применяются, но панель остаётся свёрнутой и на мобилке, и на ПК —
+  // чтобы карточки были сразу видны. Активные фильтры показываются бейджем на кнопке.
   useEffect(() => {
     const cat = searchParams.get('category');
     const occasion = searchParams.get('occasion');
@@ -436,20 +438,15 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
     const sort = searchParams.get('sort');
     if (cat) {
       setFilters(prev => ({...prev, category: [cat]}));
-      setFiltersOpen(true);
-      setSortPanelOpen(true);
     }
     if (occasion) {
       setFilters(prev => ({...prev, occasion: [occasion]}));
-      setFiltersOpen(true);
-      setSortPanelOpen(true);
     }
     if (season) {
       setSeasonFilter(season);
     }
     if (sort && (SORT_OPTIONS as readonly string[]).includes(sort)) {
       setSortKey(sort);
-      setSortPanelOpen(true);
     }
   }, [searchParams]);
 
