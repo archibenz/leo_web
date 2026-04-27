@@ -1,28 +1,6 @@
 'use client';
 
-import {useCallback, useRef, useState, type ReactNode} from 'react';
-
-type Dir = 'top' | 'right' | 'bottom' | 'left';
-
-const OFFSET: Record<Dir, string> = {
-  top: 'translate3d(0, -101%, 0)',
-  right: 'translate3d(101%, 0, 0)',
-  bottom: 'translate3d(0, 101%, 0)',
-  left: 'translate3d(-101%, 0, 0)',
-};
-
-function getDirection(
-  e: {clientX: number; clientY: number},
-  el: HTMLElement
-): Dir {
-  const r = el.getBoundingClientRect();
-  const w = r.width;
-  const h = r.height;
-  const x = (e.clientX - r.left - w / 2) * (w > h ? h / w : 1);
-  const y = (e.clientY - r.top - h / 2) * (h > w ? w / h : 1);
-  const d = (Math.round(Math.atan2(y, x) / (Math.PI / 2) + 4) % 4) as 0 | 1 | 2 | 3;
-  return (['right', 'bottom', 'left', 'top'] as const)[d];
-}
+import {useState, type ReactNode} from 'react';
 
 interface WildberriesButtonProps {
   href: string;
@@ -35,34 +13,15 @@ export default function WildberriesButton({
   children,
   className,
 }: WildberriesButtonProps) {
-  const [dir, setDir] = useState<Dir>('left');
   const [hovering, setHovering] = useState(false);
-  const ref = useRef<HTMLAnchorElement | null>(null);
-
-  const onEnter = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!ref.current) return;
-    const next = getDirection(e, ref.current);
-    setDir(next);
-    requestAnimationFrame(() => setHovering(true));
-  }, []);
-
-  const onLeave = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!ref.current) return;
-    setDir(getDirection(e, ref.current));
-    setHovering(false);
-  }, []);
-
-  const isHorizontal = dir === 'left' || dir === 'right';
-  const fillTransform = hovering ? 'translate3d(0,0,0)' : OFFSET[dir];
 
   return (
     <a
-      ref={ref}
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onMouseEnter={onEnter}
-      onMouseLeave={onLeave}
+      onMouseEnter={() => setHovering(true)}
+      onMouseLeave={() => setHovering(false)}
       className={
         className ??
         'relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border-2 border-[#CB11AB] bg-[#CB11AB]/[0.08] text-base font-medium text-white active:scale-[0.98]'
@@ -70,42 +29,55 @@ export default function WildberriesButton({
     >
       <span
         aria-hidden
-        className="pointer-events-none absolute inset-0 will-change-transform"
-        style={{
-          transform: fillTransform,
-          transition: 'transform 650ms cubic-bezier(0.65, 0.05, 0.35, 1)',
-        }}
+        className="pointer-events-none absolute inset-0 flex items-center justify-center"
       >
-        <span className="absolute inset-0 bg-[#CB11AB]" />
-        {isHorizontal ? (
+        <span
+          className="block aspect-square will-change-transform"
+          style={{
+            width: '220%',
+            position: 'relative',
+            background: '#CB11AB',
+            transform: `rotate(-45deg) translateY(${hovering ? '0%' : '101%'})`,
+            transition: 'transform 800ms cubic-bezier(0.65, 0.05, 0.35, 1)',
+          }}
+        >
+          {/* Front wave — leading edge of fill (top in local frame) */}
           <svg
-            aria-hidden
-            className={`absolute top-0 h-full w-3 ${
-              dir === 'left' ? 'left-full' : 'right-full -scale-x-100'
-            }`}
-            viewBox="0 0 12 60"
+            className="pointer-events-none absolute"
+            style={{
+              left: '-50%',
+              top: '-9px',
+              width: '200%',
+              height: '12px',
+              animation: 'wb-ripple 2.6s linear infinite',
+            }}
+            viewBox="0 0 120 12"
             preserveAspectRatio="none"
           >
             <path
-              d="M0,0 Q14,4 6,8 Q-2,12 6,16 Q14,20 6,24 Q-2,28 6,32 Q14,36 6,40 Q-2,44 6,48 Q14,52 6,56 Q-2,60 6,60 L0,60 Z"
+              d="M0,12 L0,6 Q5,-3 10,6 Q15,15 20,6 Q25,-3 30,6 Q35,15 40,6 Q45,-3 50,6 Q55,15 60,6 Q65,-3 70,6 Q75,15 80,6 Q85,-3 90,6 Q95,15 100,6 Q105,-3 110,6 Q115,15 120,6 L120,12 Z"
               fill="#CB11AB"
             />
           </svg>
-        ) : (
+          {/* Soft echo wave (slightly offset, subtler) — adds depth */}
           <svg
-            aria-hidden
-            className={`absolute left-0 h-3 w-full ${
-              dir === 'top' ? 'top-full' : 'bottom-full -scale-y-100'
-            }`}
-            viewBox="0 0 60 12"
+            className="pointer-events-none absolute opacity-70"
+            style={{
+              left: '-50%',
+              top: '-5px',
+              width: '200%',
+              height: '8px',
+              animation: 'wb-ripple-back 3.4s linear infinite',
+            }}
+            viewBox="0 0 120 8"
             preserveAspectRatio="none"
           >
             <path
-              d="M0,0 Q4,14 8,6 Q12,-2 16,6 Q20,14 24,6 Q28,-2 32,6 Q36,14 40,6 Q44,-2 48,6 Q52,14 56,6 Q60,-2 60,6 L60,0 Z"
+              d="M0,8 L0,4 Q4,-2 8,4 Q12,10 16,4 Q20,-2 24,4 Q28,10 32,4 Q36,-2 40,4 Q44,10 48,4 Q52,-2 56,4 Q60,10 64,4 Q68,-2 72,4 Q76,10 80,4 Q84,-2 88,4 Q92,10 96,4 Q100,-2 104,4 Q108,10 112,4 Q116,-2 120,4 L120,8 Z"
               fill="#CB11AB"
             />
           </svg>
-        )}
+        </span>
       </span>
       <span className="relative z-10">{children}</span>
     </a>

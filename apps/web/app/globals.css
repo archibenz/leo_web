@@ -1425,3 +1425,12 @@ h2.font-display,
   .error-tag-wrap { padding: 40px 20px; }
   .error-tag { transform: rotate(-1deg); }
 }
+
+@keyframes wb-ripple {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@keyframes wb-ripple-back {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-25%); }
+}
