@@ -14,6 +14,7 @@ import type {SizeOption} from './SizeSelector';
 import SizeChart from './SizeChart';
 import Accordion from './ui/Accordion';
 import {CareSymbolsRow} from './CareSymbols';
+import WildberriesButton from './WildberriesButton';
 
 import { API_BASE } from '../lib/api';
 /* ── Types ── */
@@ -263,14 +264,9 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
 
           {/* CTAs */}
           <div className="flex flex-col gap-3">
-            <a
-              href="https://www.wildberries.ru/seller/609562"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-14 w-full items-center justify-center gap-2.5 rounded-full border-2 border-[#CB11AB] bg-[#CB11AB]/[0.08] text-base font-medium text-white transition hover:bg-[#CB11AB]/[0.15] active:scale-[0.98]"
-            >
+            <WildberriesButton href="https://www.wildberries.ru/seller/609562">
               {t('buyWildberries')}
-            </a>
+            </WildberriesButton>
 
             <button
               onClick={handleToggleFav}
