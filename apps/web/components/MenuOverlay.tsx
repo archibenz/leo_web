@@ -76,8 +76,8 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
     } else {
       document.body.style.overflow = '';
       setHoveredCollection(null);
-      // Delay unmounting to allow close animation (match CSS transition)
-      const timer = setTimeout(() => setIsAnimating(false), 400);
+      // Delay unmounting to match menuSwingOut animation (220ms + safety)
+      const timer = setTimeout(() => setIsAnimating(false), 260);
       return () => clearTimeout(timer);
     }
   }, [isOpen, handleClose]);
@@ -108,8 +108,8 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
         }}
         role="presentation"
       >
-        {/* Menu panel - tavern sign animation from behind header */}
-        <div className="flex items-start justify-center pt-[80px] px-3 sm:px-4 lg:px-6" style={{ perspective: '1000px' }}>
+        {/* Menu panel - tempered fade-down */}
+        <div className="flex items-start justify-center pt-[80px] px-3 sm:px-4 lg:px-6">
           <div
             ref={menuRef}
             onClick={(e) => e.stopPropagation()}
