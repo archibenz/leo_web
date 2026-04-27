@@ -159,8 +159,8 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               aria-label={isMenuOpen ? t('closeMenu') : t('openMenu')} aria-expanded={isMenuOpen}
               style={{ WebkitTapHighlightColor: 'transparent' }}
               className="group relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 focus:outline-none lg:hidden">
-              <span className={`flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-200 ${
-                isMenuOpen ? '' : 'group-hover:bg-ink/[0.06] group-hover:text-accent group-active:bg-ink/[0.12]'
+              <span className={`flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-150 ${
+                isMenuOpen ? '' : 'group-active:bg-ink/[0.12]'
               }`}>
                 <svg viewBox="0 0 24 24" className={`h-5 w-5 ${getHamburgerClass()}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <line x1="4" y1="7" x2="20" y2="7" className="hamburger-line hamburger-top" />
