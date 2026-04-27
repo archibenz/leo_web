@@ -29,11 +29,13 @@ export const MenuItem = ({
     active === item ? "text-accent" : "text-ink/70 hover:text-ink"
   }`;
 
+  const isActive = active === item;
+
   return (
     <div
       onMouseEnter={() => setActive(item)}
       onMouseLeave={() => setActive(null)}
-      className="relative z-[100]"
+      className="group relative z-[100]"
     >
       {href ? (
         <Link href={href} onClick={() => setActive(null)} className={labelClass}>
@@ -44,6 +46,15 @@ export const MenuItem = ({
           {item}
         </motion.p>
       )}
+      {/* Directional underline: enters left→right on hover, exits right on leave */}
+      <span
+        aria-hidden
+        className={`pointer-events-none absolute -bottom-1.5 left-0 right-0 block h-px bg-[#D4A574] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+          isActive
+            ? "origin-left scale-x-100"
+            : "origin-right scale-x-0 group-hover:origin-left group-hover:scale-x-100"
+        }`}
+      />
       <AnimatePresence>
         {active === item && children && (
           <motion.div
