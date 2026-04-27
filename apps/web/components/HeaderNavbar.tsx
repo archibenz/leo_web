@@ -32,7 +32,7 @@ const IconBtn = ({ onClick, ariaLabel, children, badge }: {
     onClick={onClick}
     aria-label={ariaLabel}
     style={{ WebkitTapHighlightColor: 'transparent' }}
-    className="relative flex h-10 w-10 items-center justify-center rounded-full text-ink/55 transition-all duration-200 hover:bg-ink/[0.07] hover:text-accent active:scale-90 active:bg-ink/[0.1] focus:outline-none"
+    className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink/55 transition-all duration-200 hover:bg-ink/[0.07] hover:text-accent active:scale-90 active:bg-ink/[0.1] focus:outline-none"
   >
     {children}
     {badge !== undefined && badge > 0 && (
@@ -150,8 +150,9 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
           <div className="flex items-center gap-2.5 min-w-0 flex-shrink-0 ml-2 lg:ml-4">
             <button ref={menuButtonRef} type="button" onClick={handleMenuToggle}
               aria-label={isMenuOpen ? t('closeMenu') : t('openMenu')} aria-expanded={isMenuOpen}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-all hover:bg-ink/[0.06] hover:text-accent focus:outline-none lg:hidden">
-              <svg viewBox="0 0 24 24" className={`h-[18px] w-[18px] ${getHamburgerClass()}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              style={{ WebkitTapHighlightColor: 'transparent' }}
+              className="flex h-11 w-11 items-center justify-center rounded-full text-ink/60 transition-all duration-200 hover:bg-ink/[0.06] hover:text-accent active:scale-90 active:bg-ink/[0.1] focus:outline-none lg:hidden">
+              <svg viewBox="0 0 24 24" className={`h-5 w-5 ${getHamburgerClass()}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <line x1="4" y1="7" x2="20" y2="7" className="hamburger-line hamburger-top" />
                 <line x1="4" y1="12" x2="20" y2="12" className="hamburger-line hamburger-middle" />
                 <line x1="4" y1="17" x2="20" y2="17" className="hamburger-line hamburger-bottom" />
@@ -243,7 +244,8 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
             <div ref={profileDropdownRef} className="relative" onMouseEnter={handleProfileMouseEnter} onMouseLeave={handleProfileMouseLeave}>
               {isAuthenticated && user ? (
                 <button type="button" onClick={() => go('/account')} aria-label={t('profile')}
-                  className="relative flex h-9 items-center gap-1 rounded-full px-2.5 text-ink/55 transition-all duration-200 hover:bg-ink/[0.06] hover:text-accent focus:outline-none">
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                  className="relative flex h-11 items-center gap-1 rounded-full px-2.5 text-ink/55 transition-all duration-200 hover:bg-ink/[0.06] hover:text-accent active:scale-95 focus:outline-none">
                   <span className="truncate max-w-[120px] sm:max-w-[160px] text-[13px] font-medium">
                     <span className="hidden sm:inline">{t('greeting', { name: user.name })}</span>
                     <span className="sm:hidden">{user.name}</span>
