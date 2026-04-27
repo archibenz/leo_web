@@ -10,28 +10,37 @@ type Props = {
 
 export async function generateMetadata({params}: Props): Promise<Metadata> {
   const {locale, id} = await params;
+  const isRu = locale === 'ru';
+  const fallbackTitle = isRu ? 'Товар' : 'Product';
+  const fallbackDescription = isRu
+    ? 'Премиальная женская одежда REINASLEO — скульптурные силуэты и ручная работа.'
+    : 'REINASLEO premium womenswear — sculpted silhouettes and precision craftsmanship.';
+  const baseAlternates = {
+    canonical: `/${locale}/product/${id}`,
+    languages: {en: `/en/product/${id}`, ru: `/ru/product/${id}`},
+  };
+
   try {
     const res = await fetch(`${API_BASE}/api/catalog/products/${id}`, {cache: 'no-store'});
-    if (!res.ok) return {title: 'Product'};
+    if (!res.ok) {
+      return {title: fallbackTitle, description: fallbackDescription, alternates: baseAlternates};
+    }
     const product = await res.json();
-    const title = product.title ?? 'Product';
-    const description = product.description ?? product.subtitle ?? '';
+    const title = product.title ?? fallbackTitle;
+    const description = (product.description ?? product.subtitle ?? fallbackDescription).slice(0, 160);
     const image = product.images?.[0];
     return {
       title,
-      description: description.slice(0, 160),
-      alternates: {
-        canonical: `/${locale}/product/${id}`,
-        languages: {en: `/en/product/${id}`, ru: `/ru/product/${id}`},
-      },
+      description,
+      alternates: baseAlternates,
       openGraph: {
-        title: `${title} | REINASLEO`,
-        description: description.slice(0, 160),
+        title: `REINASLEO · ${title}`,
+        description,
         ...(image && {images: [{url: image, alt: title}]}),
       },
     };
   } catch {
-    return {title: 'Product'};
+    return {title: fallbackTitle, description: fallbackDescription, alternates: baseAlternates};
   }
 }
 

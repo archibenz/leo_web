@@ -79,7 +79,13 @@ export const metadata: Metadata = {
   other: {
     'mobile-web-app-capable': 'yes',
   },
-  // Icons auto-detected from app/icon.svg + app/apple-icon.svg via Next.js File Convention
+  // Explicit icons - Google search uses the rasterised PNG endpoint
+  // (Next.js generates /icon and /apple-icon from app/icon.tsx + app/apple-icon.tsx).
+  icons: {
+    icon: [{ url: '/icon', type: 'image/png', sizes: '32x32' }],
+    apple: { url: '/apple-icon', type: 'image/png', sizes: '180x180' },
+    shortcut: { url: '/icon', type: 'image/png' },
+  },
 };
 
 export default async function RootLayout({children}: {children: React.ReactNode}) {

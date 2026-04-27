@@ -24,8 +24,11 @@ export async function generateMetadata({
   return {
     title: {
       default: isRu ? 'REINASLEO · Ателье' : 'REINASLEO · Atelier',
-      template: '%s · REINASLEO',
+      template: 'REINASLEO · %s',
     },
+    description: isRu
+      ? 'REINASLEO — премиальная женская одежда. Скульптурные силуэты, ручная работа, редакционная подача.'
+      : 'REINASLEO — premium womenswear with sculpted silhouettes, precision craftsmanship, and editorial storytelling.',
   };
 }
 
