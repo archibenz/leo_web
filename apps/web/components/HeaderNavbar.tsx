@@ -32,11 +32,13 @@ const IconBtn = ({ onClick, ariaLabel, children, badge }: {
     onClick={onClick}
     aria-label={ariaLabel}
     style={{ WebkitTapHighlightColor: 'transparent' }}
-    className="relative flex h-11 w-11 items-center justify-center rounded-full text-ink/55 transition-all duration-200 hover:bg-ink/[0.07] hover:text-accent active:scale-90 active:bg-ink/[0.1] focus:outline-none"
+    className="group relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 focus:outline-none"
   >
-    {children}
+    <span className="flex h-9 w-9 items-center justify-center rounded-full text-ink/55 transition-colors duration-200 group-hover:bg-ink/[0.07] group-hover:text-accent group-active:bg-ink/[0.12]">
+      {children}
+    </span>
     {badge !== undefined && badge > 0 && (
-      <span className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-paper">
+      <span className="pointer-events-none absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-paper">
         {badge > 9 ? '9+' : badge}
       </span>
     )}
@@ -137,7 +139,12 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
     return () => window.removeEventListener('scroll', onScroll);
   }, [isDesktop, active, isMenuOpen, isProfileOpen]);
 
-  const handleMenuToggle = useCallback(() => { setHasAnimated(true); setIsMenuOpen((p) => !p); }, []);
+  const handleMenuToggle = useCallback(() => {
+    setHasAnimated(true);
+    setIsMenuOpen((p) => !p);
+    // Sheds focus so iOS Safari doesn't keep the visual highlight after tap
+    menuButtonRef.current?.blur();
+  }, []);
   const getHamburgerClass = () => !hasAnimated ? '' : isMenuOpen ? 'hamburger-open' : 'hamburger-close';
   const desc = (map: Record<string, { en: string; ru: string }>, key: string) => locale === 'ru' ? map[key]?.ru : map[key]?.en;
 
@@ -151,12 +158,16 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
             <button ref={menuButtonRef} type="button" onClick={handleMenuToggle}
               aria-label={isMenuOpen ? t('closeMenu') : t('openMenu')} aria-expanded={isMenuOpen}
               style={{ WebkitTapHighlightColor: 'transparent' }}
-              className="flex h-11 w-11 items-center justify-center rounded-full text-ink/60 transition-all duration-200 hover:bg-ink/[0.06] hover:text-accent active:scale-90 active:bg-ink/[0.1] focus:outline-none lg:hidden">
-              <svg viewBox="0 0 24 24" className={`h-5 w-5 ${getHamburgerClass()}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <line x1="4" y1="7" x2="20" y2="7" className="hamburger-line hamburger-top" />
-                <line x1="4" y1="12" x2="20" y2="12" className="hamburger-line hamburger-middle" />
-                <line x1="4" y1="17" x2="20" y2="17" className="hamburger-line hamburger-bottom" />
-              </svg>
+              className="group relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 focus:outline-none lg:hidden">
+              <span className={`flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-200 ${
+                isMenuOpen ? '' : 'group-hover:bg-ink/[0.06] group-hover:text-accent group-active:bg-ink/[0.12]'
+              }`}>
+                <svg viewBox="0 0 24 24" className={`h-5 w-5 ${getHamburgerClass()}`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <line x1="4" y1="7" x2="20" y2="7" className="hamburger-line hamburger-top" />
+                  <line x1="4" y1="12" x2="20" y2="12" className="hamburger-line hamburger-middle" />
+                  <line x1="4" y1="17" x2="20" y2="17" className="hamburger-line hamburger-bottom" />
+                </svg>
+              </span>
             </button>
             <button type="button" onClick={() => go('')} className="flex items-center gap-2" aria-label={t('goHome')}>
               <Image src="/logos/icon-white.svg" alt="" aria-hidden="true" width={28} height={28} className="brand-asset h-7 w-7 flex-shrink-0" draggable={false} />
@@ -245,12 +256,14 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               {isAuthenticated && user ? (
                 <button type="button" onClick={() => go('/account')} aria-label={t('profile')}
                   style={{ WebkitTapHighlightColor: 'transparent' }}
-                  className="relative flex h-11 items-center gap-1 rounded-full px-2.5 text-ink/55 transition-all duration-200 hover:bg-ink/[0.06] hover:text-accent active:scale-95 focus:outline-none">
-                  <span className="truncate max-w-[120px] sm:max-w-[160px] text-[13px] font-medium">
-                    <span className="hidden sm:inline">{t('greeting', { name: user.name })}</span>
-                    <span className="sm:hidden">{user.name}</span>
+                  className="group relative flex h-11 items-center rounded-full transition-transform duration-150 active:scale-95 focus:outline-none">
+                  <span className="flex h-9 items-center gap-1 rounded-full px-2.5 text-ink/55 transition-colors duration-200 group-hover:bg-ink/[0.06] group-hover:text-accent">
+                    <span className="truncate max-w-[120px] sm:max-w-[160px] text-[13px] font-medium">
+                      <span className="hidden sm:inline">{t('greeting', { name: user.name })}</span>
+                      <span className="sm:hidden">{user.name}</span>
+                    </span>
+                    <ProfileIcon />
                   </span>
-                  <ProfileIcon />
                 </button>
               ) : (
                 <IconBtn onClick={() => go('/account')} ariaLabel={t('profile')}><ProfileIcon /></IconBtn>
