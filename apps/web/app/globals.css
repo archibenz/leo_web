@@ -33,8 +33,13 @@ html {
   scroll-behavior: smooth;
   min-height: 100%;
   overflow-x: hidden;
-  overscroll-behavior-y: auto;
+  /* Lock down rubber-band bounce so the body gradient stops peeking
+     past the footer / above the header on iOS Safari and Chrome. */
+  overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
+  /* Fallback colour for any sliver of html that becomes visible
+     during scroll-anchor jumps - matches footer dark surface. */
+  background: var(--lux-bg-deep);
 }
 
 * {
@@ -45,7 +50,7 @@ html {
 body {
   min-height: 100vh;
   overflow-x: hidden;
-  overscroll-behavior-y: auto;
+  overscroll-behavior: none;
   background:
     radial-gradient(ellipse 120% 60% at 50% 0%, var(--lux-bg-warm) 0%, transparent 50%),
     radial-gradient(ellipse 80% 50% at 80% 80%, rgba(30, 18, 13, 0.5) 0%, transparent 50%),
