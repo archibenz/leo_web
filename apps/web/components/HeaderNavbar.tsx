@@ -221,14 +221,14 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
                 </div>
               </MenuItem>
 
-              <div className="group relative" onMouseEnter={() => setActive(null)}>
+              <div className="group/menuitem relative" onMouseEnter={() => setActive(null)}>
                 <Link href={`/${locale}/shop`}
                   className="cursor-pointer text-[15px] leading-none font-display font-medium uppercase tracking-[0.12em] text-ink/70 transition-colors duration-200 hover:text-ink">
                   {navT('shop')}
                 </Link>
                 <span
                   aria-hidden
-                  className="pointer-events-none absolute -bottom-1.5 left-0 right-0 block h-px bg-[#D4A574] origin-right scale-x-0 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:origin-left group-hover:scale-x-100"
+                  className="pointer-events-none absolute -bottom-1.5 left-0 right-0 block h-px bg-[#D4A574] origin-right scale-x-0 transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover/menuitem:origin-left group-hover/menuitem:scale-x-100"
                 />
               </div>
 

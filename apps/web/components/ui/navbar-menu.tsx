@@ -35,7 +35,7 @@ export const MenuItem = ({
     <div
       onMouseEnter={() => setActive(item)}
       onMouseLeave={() => setActive(null)}
-      className="group relative z-[100]"
+      className="group/menuitem relative z-[100]"
     >
       {href ? (
         <Link href={href} onClick={() => setActive(null)} className={labelClass}>
@@ -46,13 +46,15 @@ export const MenuItem = ({
           {item}
         </motion.p>
       )}
-      {/* Directional underline: enters left→right on hover, exits right on leave */}
+      {/* Directional underline: enters left→right on hover, exits right on leave.
+          Uses scoped `group/menuitem` so it doesn't collide with the inner
+          `group` classes on CategoryCard / CollectionCard inside the dropdown. */}
       <span
         aria-hidden
         className={`pointer-events-none absolute -bottom-1.5 left-0 right-0 block h-px bg-[#D4A574] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
           isActive
             ? "origin-left scale-x-100"
-            : "origin-right scale-x-0 group-hover:origin-left group-hover:scale-x-100"
+            : "origin-right scale-x-0 group-hover/menuitem:origin-left group-hover/menuitem:scale-x-100"
         }`}
       />
       <AnimatePresence>
