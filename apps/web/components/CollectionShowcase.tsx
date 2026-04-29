@@ -1,6 +1,6 @@
 'use client';
 
-import {useRef} from 'react';
+import {useRef, type ReactNode} from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import BlurReveal from './BlurReveal';
@@ -18,6 +18,16 @@ interface CollectionShowcaseProps {
   heroSubtitle: string;
   heroSeason: string;
   items: ShowcaseItem[];
+  /**
+   * 'opaque'      — production default: solid #2B1711 fill that hides the fixed shader behind.
+   * 'transparent' — no overlay, fixed shader/body gradient bleeds through. Variant pages use this
+   *                 and add their own pre/post fades around the banner.
+   */
+  bgMode?: 'opaque' | 'transparent';
+  /** Vertical padding around the carousel. Variants override to space items more generously. */
+  carouselClassName?: string;
+  /** Optional wrapper around the hero banner — variant pages add pre/post fades or frames. */
+  bannerWrapper?: (banner: ReactNode) => ReactNode;
 }
 
 const HERO_IMAGE = 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=1600&h=700&fit=crop&crop=top&q=80';
@@ -103,7 +113,16 @@ function HeroCard({title, subtitle, locale, season}: {title: string; subtitle: s
 
 /* ── Main showcase ── */
 
-export default function CollectionShowcase({locale, heroTitle, heroSubtitle, heroSeason, items}: CollectionShowcaseProps) {
+export default function CollectionShowcase({
+  locale,
+  heroTitle,
+  heroSubtitle,
+  heroSeason,
+  items,
+  bgMode = 'opaque',
+  carouselClassName,
+  bannerWrapper,
+}: CollectionShowcaseProps) {
   const slides = items.map((item, i) => ({
     title: item.label,
     button: item.description,
@@ -111,33 +130,41 @@ export default function CollectionShowcase({locale, heroTitle, heroSubtitle, her
     href: `/${locale}/product/${item.slug}`,
   }));
 
+  const banner = (
+    <BlurReveal duration={1000} blur={14}>
+      <HeroCard title={heroTitle} subtitle={heroSubtitle} locale={locale} season={heroSeason} />
+    </BlurReveal>
+  );
+
   return (
     <section className="relative">
-      {/* Mobile: fully opaque background — blocks shader/PosterGradient bleed-through */}
-      <div
-        className="absolute inset-0 z-[0] pointer-events-none sm:hidden"
-        style={{background: '#2B1711'}}
-        aria-hidden="true"
-      />
-      {/* Desktop: smooth gradient fade lets shader blend into section */}
-      <div
-        className="absolute inset-0 z-[0] pointer-events-none hidden sm:block"
-        style={{
-          background: 'linear-gradient(to bottom, rgba(43,23,17,0.85) 0%, rgba(43,23,17,0.6) 15%, rgba(43,23,17,0.55) 50%, rgba(43,23,17,0.5) 85%, rgba(43,23,17,0.45) 100%)'
-        }}
-        aria-hidden="true"
-      />
+      {bgMode === 'opaque' && (
+        <>
+          {/* Mobile: fully opaque background — blocks shader/PosterGradient bleed-through */}
+          <div
+            className="absolute inset-0 z-[0] pointer-events-none sm:hidden"
+            style={{background: '#2B1711'}}
+            aria-hidden="true"
+          />
+          {/* Desktop: smooth gradient fade lets shader blend into section */}
+          <div
+            className="absolute inset-0 z-[0] pointer-events-none hidden sm:block"
+            style={{
+              background: 'linear-gradient(to bottom, rgba(43,23,17,0.85) 0%, rgba(43,23,17,0.6) 15%, rgba(43,23,17,0.55) 50%, rgba(43,23,17,0.5) 85%, rgba(43,23,17,0.45) 100%)'
+            }}
+            aria-hidden="true"
+          />
+        </>
+      )}
 
       {/* Content */}
       <div className="relative z-[2]">
         {/* Hero — full bleed */}
-        <BlurReveal duration={1000} blur={14}>
-          <HeroCard title={heroTitle} subtitle={heroSubtitle} locale={locale} season={heroSeason} />
-        </BlurReveal>
+        {bannerWrapper ? bannerWrapper(banner) : banner}
 
         {/* 3D Carousel — product items */}
         <BlurReveal duration={1000} blur={12} translateY={30}>
-          <div className="relative w-full py-10 sm:py-14 lg:py-16">
+          <div className={carouselClassName ?? 'relative w-full py-10 sm:py-14 lg:py-16'}>
             <Carousel slides={slides} />
           </div>
         </BlurReveal>

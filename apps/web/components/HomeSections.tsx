@@ -1,6 +1,6 @@
 'use client';
 
-import {useRef, useState, useEffect, useCallback} from 'react';
+import {useRef, useState, useEffect, useCallback, type ReactNode} from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import BlurReveal from './BlurReveal';
@@ -27,6 +27,17 @@ interface HomeSectionsProps {
   categories: CategoryItem[];
   popularTitle: string;
   popularItems: PopularItem[];
+  /**
+   * 'opaque'      — production default: solid #2B1711 background.
+   * 'transparent' — no overlay, the fixed shader / body gradient bleeds through.
+   */
+  bgMode?: 'opaque' | 'transparent';
+  /** Tailwind classes applied to the wrapping <section> around Categories. */
+  categoriesSectionClassName?: string;
+  /** Tailwind classes applied to the wrapping <section> around Popular. */
+  popularSectionClassName?: string;
+  /** Optional wrapper around the shop banner — variant pages use this for pre/post fades. */
+  shopBannerWrapper?: (banner: ReactNode) => ReactNode;
 }
 
 /* ── Gradient palettes ── */
@@ -256,28 +267,42 @@ export default function HomeSections({
   categories,
   popularTitle,
   popularItems,
+  bgMode = 'opaque',
+  categoriesSectionClassName,
+  popularSectionClassName,
+  shopBannerWrapper,
 }: HomeSectionsProps) {
+  const banner = (
+    <BlurReveal duration={1000} blur={14}>
+      <ShopHeroCard title={shopHeroTitle} subtitle={shopHeroSubtitle} locale={locale} />
+    </BlurReveal>
+  );
+
   return (
     <div className="relative">
-      {/* Mobile: fully opaque background — hides fixed shader bleed-through */}
-      <div
-        className="absolute inset-0 z-[0] pointer-events-none sm:hidden"
-        style={{background: '#2B1711'}}
-        aria-hidden="true"
-      />
-      {/* Desktop: smooth gradient fade from transparent shader → solid ink */}
-      <div
-        className="absolute inset-0 z-[0] pointer-events-none hidden sm:block"
-        style={{
-          background: 'linear-gradient(to bottom, rgba(43,23,17,0.45) 0%, rgba(43,23,17,0.55) 10%, rgba(43,23,17,0.6) 50%, rgba(43,23,17,0.8) 85%, #2B1711 100%)'
-        }}
-        aria-hidden="true"
-      />
+      {bgMode === 'opaque' && (
+        <>
+          {/* Mobile: fully opaque background — hides fixed shader bleed-through */}
+          <div
+            className="absolute inset-0 z-[0] pointer-events-none sm:hidden"
+            style={{background: '#2B1711'}}
+            aria-hidden="true"
+          />
+          {/* Desktop: smooth gradient fade from transparent shader → solid ink */}
+          <div
+            className="absolute inset-0 z-[0] pointer-events-none hidden sm:block"
+            style={{
+              background: 'linear-gradient(to bottom, rgba(43,23,17,0.45) 0%, rgba(43,23,17,0.55) 10%, rgba(43,23,17,0.6) 50%, rgba(43,23,17,0.8) 85%, #2B1711 100%)'
+            }}
+            aria-hidden="true"
+          />
+        </>
+      )}
 
       {/* Content */}
       <div className="relative z-[2]">
         {/* ── Categories ── */}
-        <section className="px-6 pt-12 pb-8 sm:px-10 sm:pt-16 sm:pb-10 lg:px-16">
+        <section className={categoriesSectionClassName ?? 'px-6 pt-12 pb-8 sm:px-10 sm:pt-16 sm:pb-10 lg:px-16'}>
           <BlurReveal>
             <SectionHeading title={categoriesTitle} />
           </BlurReveal>
@@ -312,12 +337,10 @@ export default function HomeSections({
         </section>
 
         {/* ── Shop hero divider ── */}
-        <BlurReveal duration={1000} blur={14}>
-          <ShopHeroCard title={shopHeroTitle} subtitle={shopHeroSubtitle} locale={locale} />
-        </BlurReveal>
+        {shopBannerWrapper ? shopBannerWrapper(banner) : banner}
 
         {/* ── Popular ── */}
-        <section className="px-6 pt-12 pb-14 sm:px-10 sm:pt-16 sm:pb-20 lg:px-16">
+        <section className={popularSectionClassName ?? 'px-6 pt-12 pb-14 sm:px-10 sm:pt-16 sm:pb-20 lg:px-16'}>
           <BlurReveal>
             <SectionHeading title={popularTitle} />
           </BlurReveal>
