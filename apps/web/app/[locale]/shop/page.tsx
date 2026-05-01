@@ -2,8 +2,11 @@ import {Suspense} from 'react';
 import type {Metadata} from 'next';
 import type {Locale} from '../../../i18n';
 import ShopClient from '../../../components/ShopClient';
+import {API_BASE} from '../../../lib/api';
+import MobileShopReveal from '../v1/shop/MobileShopReveal';
+import {mixCatalog} from '../v1/shop/mixCatalog';
+import type {ShopItem} from '../v1/shop/types';
 
-import { API_BASE } from '../../../lib/api';
 type Props = {params: Promise<{locale: Locale}>};
 
 export async function generateMetadata({params}: Props): Promise<Metadata> {
@@ -23,17 +26,23 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 
 export default async function ShopPage({params}: Props) {
   const {locale} = await params;
-  void locale;
 
-  let products = [];
+  let products: ShopItem[] = [];
   try {
     const res = await fetch(`${API_BASE}/api/catalog/products`, {next: {revalidate: 60}});
-    if (res.ok) products = await res.json();
+    if (res.ok) products = (await res.json()) as ShopItem[];
   } catch { /* fallback to client-side fetch */ }
+
+  const mixed = mixCatalog(products);
 
   return (
     <Suspense>
-      <ShopClient initialProducts={products} />
+      <div className="hidden lg:block">
+        <ShopClient initialProducts={products} />
+      </div>
+      <div className="lg:hidden">
+        <MobileShopReveal products={mixed} locale={locale} />
+      </div>
     </Suspense>
   );
 }
