@@ -217,18 +217,6 @@ export default async function Footer({locale}: FooterProps) {
         </div>
       </div>
 
-      {/*
-        Rubber-band absorber (mobile only). iOS Safari and Chrome mobile let users
-        overscroll past the document end into bounce — without this, the body's
-        radial gradient bleeds into view. Empty div, same colour as <footer>,
-        roughly the height of the footer itself, hidden on sm+ where there's no
-        rubber-band by default.
-      */}
-      <div
-        aria-hidden="true"
-        className="sm:hidden"
-        style={{height: '60vh'}}
-      />
     </footer>
   );
 }
