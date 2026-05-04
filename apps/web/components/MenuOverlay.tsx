@@ -108,12 +108,12 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
         }}
         role="presentation"
       >
-        {/* Menu panel — bottom sheet on mobile, top dropdown on sm+ */}
-        <div className="flex h-full items-end justify-center px-3 pb-3 sm:items-start sm:pt-[80px] sm:pb-0 sm:px-4 lg:px-6">
+        {/* Menu panel — bottom sheet on mobile (absolute bottom-0), top dropdown on sm+ */}
+        <div className="absolute inset-x-0 bottom-0 px-3 pb-3 sm:static sm:flex sm:items-start sm:justify-center sm:px-4 sm:pt-[80px] sm:pb-0 lg:px-6">
           <div
             ref={menuRef}
             onClick={(e) => e.stopPropagation()}
-            className={`menu-panel liquid-glass-strong relative w-full max-w-[calc(100%-24px)] sm:max-w-[calc(100%-32px)] lg:max-w-[calc(100%-48px)] rounded-t-3xl rounded-b-none sm:rounded-2xl cursor-default ${
+            className={`menu-panel liquid-glass-strong relative mx-auto w-full max-w-[calc(100%-24px)] rounded-t-3xl rounded-b-none cursor-default sm:max-w-[calc(100%-32px)] sm:rounded-2xl lg:max-w-[calc(100%-48px)] ${
               isOpen ? 'menu-panel-open' : 'menu-panel-close'
             }`}
             style={{
