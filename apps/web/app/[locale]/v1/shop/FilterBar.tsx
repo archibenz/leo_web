@@ -91,7 +91,7 @@ export default function FilterBar({locale, filters, setFilters, resultCount}: Fi
   const content = (
     <>
       <div
-        className="pointer-events-none fixed inset-x-0 z-[150] flex items-center justify-between gap-3 px-4"
+        className="pointer-events-none fixed inset-x-0 z-[40] flex items-center justify-between gap-3 px-4"
         style={{
           top: 'calc(env(safe-area-inset-top, 0px) + var(--shop-chrome-filter, 84px))',
           transition: 'top 0.3s ease-out',
