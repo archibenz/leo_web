@@ -2,7 +2,6 @@
 
 import {useEffect} from 'react';
 import FilterBar from './FilterBar';
-import InfoSection from './InfoSection';
 import SlideLayer from './SlideLayer';
 import type {MobileShopItem} from './types';
 
@@ -48,12 +47,6 @@ export default function MobileShopReveal({products, locale}: MobileShopRevealPro
           locale={locale}
         />
       ))}
-
-      <InfoSection
-        total={productCount}
-        locale={locale}
-        zIndex={1 + productCount}
-      />
     </div>
   );
 }
