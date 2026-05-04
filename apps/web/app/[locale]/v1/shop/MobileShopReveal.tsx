@@ -22,7 +22,10 @@ export default function MobileShopReveal({products, locale}: MobileShopRevealPro
   useEffect(() => {
     const wrap = wrapperRef.current;
     if (!wrap) return;
-    const update = () => {
+    let rafId = 0;
+    let pending = false;
+    const compute = () => {
+      pending = false;
       const rect = wrap.getBoundingClientRect();
       const vh = window.innerHeight;
       const max = rect.height - vh;
@@ -30,14 +33,33 @@ export default function MobileShopReveal({products, locale}: MobileShopRevealPro
       const p = max > 0 ? Math.max(0, Math.min(1, offset / max)) : 0;
       scrollProgress.set(p);
     };
-    update();
-    window.addEventListener('scroll', update, {passive: true});
-    window.addEventListener('resize', update);
+    const schedule = () => {
+      if (pending) return;
+      pending = true;
+      rafId = requestAnimationFrame(compute);
+    };
+    schedule();
+    window.addEventListener('scroll', schedule, {passive: true});
+    window.addEventListener('resize', schedule);
     return () => {
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
     };
   }, [scrollProgress]);
+
+  useEffect(() => {
+    const apply = () => {
+      if (window.innerWidth < 1024) document.body.classList.add('mobile-shop-locked');
+      else document.body.classList.remove('mobile-shop-locked');
+    };
+    apply();
+    window.addEventListener('resize', apply);
+    return () => {
+      document.body.classList.remove('mobile-shop-locked');
+      window.removeEventListener('resize', apply);
+    };
+  }, []);
 
   if (!products.length) {
     return (

@@ -42,6 +42,10 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
+body.mobile-shop-locked {
+  overscroll-behavior-y: none;
+}
+
 body {
   min-height: 100vh;
   overflow-x: clip;
