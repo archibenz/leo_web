@@ -4,25 +4,25 @@ import {useEffect, useState} from 'react';
 import {createPortal} from 'react-dom';
 
 export interface FilterValues {
-  occasion: string[];
   category: string[];
   color: string[];
   size: string[];
+  material: string[];
   badge: string[];
 }
 
 export const EMPTY_FILTERS: FilterValues = {
-  occasion: [],
   category: [],
   color: [],
   size: [],
+  material: [],
   badge: [],
 };
 
-const OCCASION_OPTIONS = ['evening', 'office', 'casual', 'resort', 'ceremony'] as const;
 const CATEGORY_OPTIONS = ['dresses', 'outerwear', 'tailoring', 'knitwear', 'blouses', 'skirts', 'trousers'] as const;
 const COLOR_OPTIONS = ['neutrals', 'black', 'ivory', 'chocolate', 'burgundy'] as const;
 const SIZE_OPTIONS = ['XS', 'S', 'M', 'L'] as const;
+const MATERIAL_OPTIONS = ['silk', 'wool', 'cottonBlend', 'cashmere', 'linen'] as const;
 const BADGE_OPTIONS = ['new', 'popular'] as const;
 
 interface FilterBarProps {
@@ -54,10 +54,10 @@ export default function FilterBar({locale, filters, setFilters, resultCount}: Fi
   }, [open]);
 
   const totalActive =
-    filters.occasion.length +
     filters.category.length +
     filters.color.length +
     filters.size.length +
+    filters.material.length +
     filters.badge.length;
 
   const toggle = (group: keyof FilterValues, value: string) => {
@@ -70,10 +70,6 @@ export default function FilterBar({locale, filters, setFilters, resultCount}: Fi
 
   const reset = () => setFilters(EMPTY_FILTERS);
 
-  const occasionLabels: Record<string, string> = isRu
-    ? {evening: 'Вечер', office: 'Офис', casual: 'Повседневный', resort: 'Курорт', ceremony: 'Торжество'}
-    : {evening: 'Evening', office: 'Office', casual: 'Casual', resort: 'Resort', ceremony: 'Ceremony'};
-
   const categoryLabels: Record<string, string> = isRu
     ? {dresses: 'Платья', outerwear: 'Верхняя одежда', tailoring: 'Костюмы', knitwear: 'Трикотаж', blouses: 'Блузы', skirts: 'Юбки', trousers: 'Брюки'}
     : {dresses: 'Dresses', outerwear: 'Outerwear', tailoring: 'Tailoring', knitwear: 'Knitwear', blouses: 'Blouses', skirts: 'Skirts', trousers: 'Trousers'};
@@ -83,6 +79,10 @@ export default function FilterBar({locale, filters, setFilters, resultCount}: Fi
     : {neutrals: 'Neutrals', black: 'Black', ivory: 'Ivory', chocolate: 'Chocolate', burgundy: 'Burgundy'};
 
   const sizeLabels: Record<string, string> = {XS: 'XS', S: 'S', M: 'M', L: 'L'};
+
+  const materialLabels: Record<string, string> = isRu
+    ? {silk: 'Шёлк', wool: 'Шерсть', cottonBlend: 'Хлопок', cashmere: 'Кашемир', linen: 'Лён'}
+    : {silk: 'Silk', wool: 'Wool', cottonBlend: 'Cotton blend', cashmere: 'Cashmere', linen: 'Linen'};
 
   const badgeLabels: Record<string, string> = isRu
     ? {new: 'Новое', popular: 'Популярное'}
@@ -121,15 +121,18 @@ export default function FilterBar({locale, filters, setFilters, resultCount}: Fi
       </div>
 
       {open ? (
-        <div className="fixed inset-0 z-[300] flex flex-col" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-[300]" role="dialog" aria-modal="true">
+          {/* Full-viewport blurred backdrop covering everything (header, footer, slides). */}
+          <div className="absolute inset-0 bg-black/55 backdrop-blur-md" aria-hidden="true" />
+          {/* Click-outside catcher above the backdrop, behind the sheet. */}
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="flex-1 bg-black/65 backdrop-blur-sm"
+            className="absolute inset-0"
             aria-label={isRu ? 'Закрыть' : 'Close'}
           />
           <div
-            className="rounded-t-3xl border-t border-[var(--accent)]/30 bg-paper px-6 pt-4"
+            className="absolute inset-x-0 bottom-0 rounded-t-3xl border-t border-[var(--accent)]/30 bg-paper px-6 pt-4"
             style={{paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))'}}
           >
             <div className="mx-auto mb-4 h-1 w-12 rounded-full bg-[var(--ink-soft)]/40" />
@@ -167,13 +170,6 @@ export default function FilterBar({locale, filters, setFilters, resultCount}: Fi
                 onToggle={(v) => toggle('badge', v)}
               />
               <FilterGroup
-                title={isRu ? 'Случай' : 'Occasion'}
-                options={OCCASION_OPTIONS as unknown as string[]}
-                values={filters.occasion}
-                labels={occasionLabels}
-                onToggle={(v) => toggle('occasion', v)}
-              />
-              <FilterGroup
                 title={isRu ? 'Категория' : 'Category'}
                 options={CATEGORY_OPTIONS as unknown as string[]}
                 values={filters.category}
@@ -193,6 +189,13 @@ export default function FilterBar({locale, filters, setFilters, resultCount}: Fi
                 values={filters.size}
                 labels={sizeLabels}
                 onToggle={(v) => toggle('size', v)}
+              />
+              <FilterGroup
+                title={isRu ? 'Материал' : 'Material'}
+                options={MATERIAL_OPTIONS as unknown as string[]}
+                values={filters.material}
+                labels={materialLabels}
+                onToggle={(v) => toggle('material', v)}
               />
             </div>
 

@@ -15,10 +15,10 @@ export default function MobileShopReveal({products, locale}: MobileShopRevealPro
 
   const filtered = useMemo(() => {
     return products.filter((p) => {
-      if (filters.occasion.length && !filters.occasion.includes(p.occasion ?? '')) return false;
       if (filters.category.length && !filters.category.includes(p.category ?? '')) return false;
       if (filters.color.length && !filters.color.includes(p.color ?? '')) return false;
       if (filters.size.length && !p.sizes?.some((s) => filters.size.includes(s))) return false;
+      if (filters.material.length && !filters.material.includes(p.material ?? '')) return false;
       if (filters.badge.length && !filters.badge.includes(p.badge ?? '')) return false;
       return true;
     });
