@@ -831,6 +831,41 @@ h2.font-display,
   }
 }
 
+/* Mobile: menu slides up from bottom (bottom-sheet style). */
+@keyframes menuSlideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes menuSlideDown {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 639px) {
+  .menu-panel {
+    transform-origin: bottom center;
+  }
+  .menu-panel-open {
+    animation: menuSlideUp 340ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  .menu-panel-close {
+    animation: menuSlideDown 220ms cubic-bezier(0.4, 0, 0.6, 1) forwards;
+  }
+}
+
 .menu-panel {
   transform-origin: top center;
 }
