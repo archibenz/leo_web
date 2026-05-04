@@ -1,8 +1,6 @@
 'use client';
 
-import {useEffect, useRef} from 'react';
-import {useMotionValue} from 'framer-motion';
-import DotsIndicator from './DotsIndicator';
+import {useEffect} from 'react';
 import FilterBar from './FilterBar';
 import InfoSection from './InfoSection';
 import SlideLayer from './SlideLayer';
@@ -14,39 +12,7 @@ interface MobileShopRevealProps {
 }
 
 export default function MobileShopReveal({products, locale}: MobileShopRevealProps) {
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const scrollProgress = useMotionValue(0);
   const productCount = products.length;
-  const segments = productCount;
-
-  useEffect(() => {
-    const wrap = wrapperRef.current;
-    if (!wrap) return;
-    let rafId = 0;
-    let pending = false;
-    const compute = () => {
-      pending = false;
-      const rect = wrap.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const max = rect.height - vh;
-      const offset = -rect.top;
-      const p = max > 0 ? Math.max(0, Math.min(1, offset / max)) : 0;
-      scrollProgress.set(p);
-    };
-    const schedule = () => {
-      if (pending) return;
-      pending = true;
-      rafId = requestAnimationFrame(compute);
-    };
-    schedule();
-    window.addEventListener('scroll', schedule, {passive: true});
-    window.addEventListener('resize', schedule);
-    return () => {
-      cancelAnimationFrame(rafId);
-      window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
-    };
-  }, [scrollProgress]);
 
   useEffect(() => {
     const apply = () => {
@@ -70,7 +36,7 @@ export default function MobileShopReveal({products, locale}: MobileShopRevealPro
   }
 
   return (
-    <div ref={wrapperRef} className="relative bg-paper">
+    <div className="relative bg-paper">
       <FilterBar locale={locale} />
 
       {products.map((product, i) => (
@@ -87,12 +53,6 @@ export default function MobileShopReveal({products, locale}: MobileShopRevealPro
         total={productCount}
         locale={locale}
         zIndex={1 + productCount}
-      />
-
-      <DotsIndicator
-        total={productCount}
-        segments={segments}
-        scrollProgress={scrollProgress}
       />
     </div>
   );

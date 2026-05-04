@@ -50,12 +50,16 @@ export default function SlideLayer({product, index, total, locale}: SlideLayerPr
   const primaryImage = useMemo(() => pickPrimaryImage(product), [product]);
   const [imgError, setImgError] = useState(false);
 
-  // Sticky stacking: each slide pins at top:108px (leaving a paper band for the filter row),
-  // height fills the rest of the viewport. Higher z-index = later slide covers earlier from below.
+  // Sticky stacking with safe-area aware chrome zone (header + filter band).
+  // Higher z-index = later slide covers earlier from below.
   return (
     <div
-      className="sticky top-[108px] h-[calc(100dvh-108px)] w-full overflow-hidden bg-paper"
-      style={{zIndex: 1 + index}}
+      className="sticky w-full overflow-hidden bg-paper"
+      style={{
+        top: 'calc(env(safe-area-inset-top, 0px) + 132px)',
+        height: 'calc(100dvh - env(safe-area-inset-top, 0px) - 132px)',
+        zIndex: 1 + index,
+      }}
     >
       <Link
         href={`/${locale}/product/${product.id}`}

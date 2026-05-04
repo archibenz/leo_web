@@ -28,7 +28,7 @@ export default function FilterBar({locale}: FilterBarProps) {
     <>
       <div
         className="pointer-events-none fixed inset-x-0 z-[60] flex items-center justify-between gap-3 px-4"
-        style={{top: 'calc(env(safe-area-inset-top, 0px) + 64px)'}}
+        style={{top: 'calc(env(safe-area-inset-top, 0px) + 84px)'}}
       >
         <span className="rounded-full border border-[var(--accent)]/30 bg-paper/70 px-3 py-1 font-sans text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--ink-soft)] backdrop-blur-md">
           {isRu ? 'Новый сезон' : 'New season'}

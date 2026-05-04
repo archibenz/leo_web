@@ -46,6 +46,11 @@ body.mobile-shop-locked {
   overscroll-behavior-y: none;
 }
 
+body.mobile-shop-locked > div > footer,
+body.mobile-shop-locked footer {
+  display: none !important;
+}
+
 body {
   min-height: 100vh;
   overflow-x: clip;
