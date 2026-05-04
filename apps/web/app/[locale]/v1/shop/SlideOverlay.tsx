@@ -2,7 +2,6 @@
 
 import BlurReveal from '../../../../components/BlurReveal';
 import CollectionBadge from './CollectionBadge';
-import DiamondMark from './DiamondMark';
 import type {MobileShopItem} from './types';
 
 interface SlideOverlayProps {
@@ -13,7 +12,8 @@ interface SlideOverlayProps {
   primaryImage?: string;
 }
 
-export default function SlideOverlay({product, index, total, locale, primaryImage}: SlideOverlayProps) {
+export default function SlideOverlay({product, index, total, locale}: SlideOverlayProps) {
+  void locale;
   const counter = `${String(index + 1).padStart(2, '0')} / ${String(total).padStart(2, '0')}`;
 
   return (
@@ -22,23 +22,15 @@ export default function SlideOverlay({product, index, total, locale, primaryImag
       style={{paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))'}}
     >
       <div className="flex items-end justify-between gap-3 px-5">
-        <BlurReveal mode="appear" delay={120} duration={650} blur={6} translateY={10} className="flex max-w-[70%] flex-col gap-1.5">
+        <BlurReveal mode="appear" delay={120} duration={650} blur={6} translateY={10} className="flex max-w-[78%] flex-col gap-1.5">
           {product.badge ? <CollectionBadge variant={product.badge} locale={locale} /> : null}
           <h2 className="font-sans text-[16px] font-normal leading-tight tracking-[0.01em] text-[var(--ink)]">
             {product.title}
           </h2>
         </BlurReveal>
-        <div className="pointer-events-auto flex flex-col items-end gap-2">
-          <DiamondMark
-            productId={product.id}
-            productTitle={product.title}
-            productImage={primaryImage}
-            locale={locale}
-          />
-          <span className="font-sans text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--ink-soft)]">
-            {counter}
-          </span>
-        </div>
+        <span className="font-sans text-[10px] font-medium uppercase tracking-[0.22em] text-[var(--ink-soft)]">
+          {counter}
+        </span>
       </div>
     </div>
   );

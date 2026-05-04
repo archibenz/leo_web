@@ -50,12 +50,11 @@ export default function SlideLayer({product, index, total, locale}: SlideLayerPr
   const primaryImage = useMemo(() => pickPrimaryImage(product), [product]);
   const [imgError, setImgError] = useState(false);
 
-  // All slides share one scroll parent. Each slide is sticky top:0 with rising z-index.
-  // Once a slide reaches the top it stays pinned; later slides flow up from below and
-  // cover it because their z-index is higher.
+  // Sticky stacking: each slide pins at top:108px (leaving a paper band for the filter row),
+  // height fills the rest of the viewport. Higher z-index = later slide covers earlier from below.
   return (
     <div
-      className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-paper"
+      className="sticky top-[108px] h-[calc(100dvh-108px)] w-full overflow-hidden bg-paper"
       style={{zIndex: 1 + index}}
     >
       <Link
