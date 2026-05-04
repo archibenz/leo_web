@@ -57,12 +57,13 @@ export default function SlideLayer({product, index, total, locale}: SlideLayerPr
     <div
       className="sticky w-full overflow-hidden bg-paper"
       style={{
-        top: 'calc(env(safe-area-inset-top, 0px) + 132px)',
-        height: 'calc(100dvh - env(safe-area-inset-top, 0px) - 132px)',
+        top: 'calc(env(safe-area-inset-top, 0px) + var(--shop-chrome-slide, 132px))',
+        height: 'calc(100dvh - env(safe-area-inset-top, 0px) - var(--shop-chrome-slide, 132px))',
         zIndex: 1 + index,
         contain: 'paint',
         willChange: 'transform',
         transform: 'translateZ(0)',
+        transition: 'top 0.3s ease-out, height 0.3s ease-out',
       }}
     >
       <Link
