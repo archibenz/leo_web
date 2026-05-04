@@ -52,6 +52,7 @@ export default function SlideLayer({product, index, total, locale}: SlideLayerPr
 
   // Sticky stacking with safe-area aware chrome zone (header + filter band).
   // Higher z-index = later slide covers earlier from below.
+  // will-change + transform:translateZ(0) hints GPU compositing → smoother scroll.
   return (
     <div
       className="sticky w-full overflow-hidden bg-paper"
@@ -59,6 +60,9 @@ export default function SlideLayer({product, index, total, locale}: SlideLayerPr
         top: 'calc(env(safe-area-inset-top, 0px) + 132px)',
         height: 'calc(100dvh - env(safe-area-inset-top, 0px) - 132px)',
         zIndex: 1 + index,
+        contain: 'paint',
+        willChange: 'transform',
+        transform: 'translateZ(0)',
       }}
     >
       <Link

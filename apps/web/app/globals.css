@@ -61,6 +61,12 @@ body.mobile-shop-locked footer .sm\:hidden .pt-4 {
   padding-top: 0.5rem !important;
 }
 
+/* Mobile shop: kill the 60vh rubber-band absorber div below the footer
+   (we already disable overscroll-bounce via overscroll-behavior:none). */
+body.mobile-shop-locked footer > div[aria-hidden="true"] {
+  display: none !important;
+}
+
 body {
   min-height: 100vh;
   overflow-x: clip;
