@@ -1,7 +1,7 @@
 'use client';
 
-import {useEffect} from 'react';
-import FilterBar from './FilterBar';
+import {useEffect, useMemo, useState} from 'react';
+import FilterBar, {EMPTY_FILTERS, type FilterValues} from './FilterBar';
 import SlideLayer from './SlideLayer';
 import type {MobileShopItem} from './types';
 
@@ -11,24 +11,43 @@ interface MobileShopRevealProps {
 }
 
 export default function MobileShopReveal({products, locale}: MobileShopRevealProps) {
-  const productCount = products.length;
+  const [filters, setFilters] = useState<FilterValues>(EMPTY_FILTERS);
+
+  const filtered = useMemo(() => {
+    return products.filter((p) => {
+      if (filters.occasion.length && !filters.occasion.includes(p.occasion ?? '')) return false;
+      if (filters.category.length && !filters.category.includes(p.category ?? '')) return false;
+      if (filters.color.length && !filters.color.includes(p.color ?? '')) return false;
+      if (filters.size.length && !p.sizes?.some((s) => filters.size.includes(s))) return false;
+      if (filters.badge.length && !filters.badge.includes(p.badge ?? '')) return false;
+      return true;
+    });
+  }, [products, filters]);
+
+  const productCount = filtered.length;
 
   useEffect(() => {
     const apply = () => {
-      if (window.innerWidth < 1024) document.body.classList.add('mobile-shop-locked');
-      else document.body.classList.remove('mobile-shop-locked');
+      const small = window.innerWidth < 1024;
+      const html = document.documentElement;
+      const body = document.body;
+      if (small) {
+        html.classList.add('mobile-shop-locked');
+        body.classList.add('mobile-shop-locked');
+      } else {
+        html.classList.remove('mobile-shop-locked');
+        body.classList.remove('mobile-shop-locked');
+      }
     };
     apply();
     window.addEventListener('resize', apply);
     return () => {
+      document.documentElement.classList.remove('mobile-shop-locked');
       document.body.classList.remove('mobile-shop-locked');
       window.removeEventListener('resize', apply);
     };
   }, []);
 
-  // Mirror SmartHeader's scroll-direction logic so when the global header
-  // hides on scroll down, the chrome zone shrinks (filter + slide rise)
-  // and we don't leave a paper gap at the top of viewport.
   useEffect(() => {
     let lastY = window.scrollY;
     let ticking = false;
@@ -68,17 +87,30 @@ export default function MobileShopReveal({products, locale}: MobileShopRevealPro
 
   return (
     <div className="relative bg-paper">
-      <FilterBar locale={locale} />
+      <FilterBar
+        locale={locale}
+        filters={filters}
+        setFilters={setFilters}
+        resultCount={productCount}
+      />
 
-      {products.map((product, i) => (
-        <SlideLayer
-          key={product.id}
-          product={product}
-          index={i}
-          total={productCount}
-          locale={locale}
-        />
-      ))}
+      {productCount === 0 ? (
+        <div className="flex min-h-[100dvh] items-center justify-center bg-paper px-6 text-center text-[14px] text-[var(--ink-soft)]">
+          {locale === 'ru'
+            ? 'Под выбранные фильтры ничего не нашлось. Попробуйте сбросить.'
+            : 'Nothing matches your filters. Try resetting.'}
+        </div>
+      ) : (
+        filtered.map((product, i) => (
+          <SlideLayer
+            key={product.id}
+            product={product}
+            index={i}
+            total={productCount}
+            locale={locale}
+          />
+        ))
+      )}
     </div>
   );
 }

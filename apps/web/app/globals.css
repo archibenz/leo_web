@@ -42,8 +42,12 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
+html.mobile-shop-locked,
 body.mobile-shop-locked {
   overscroll-behavior-y: none;
+}
+
+body.mobile-shop-locked {
   --shop-chrome-filter: 84px;
   --shop-chrome-slide: 132px;
 }
