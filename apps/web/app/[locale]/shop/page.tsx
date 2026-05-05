@@ -1,5 +1,6 @@
 import {Suspense} from 'react';
 import type {Metadata} from 'next';
+import Footer from '../../../components/Footer';
 import type {Locale} from '../../../i18n';
 import ShopClient from '../../../components/ShopClient';
 import {API_BASE} from '../../../lib/api';
@@ -41,7 +42,11 @@ export default async function ShopPage({params}: Props) {
         <ShopClient initialProducts={products} />
       </div>
       <div className="lg:hidden">
-        <MobileShopReveal products={mixed} locale={locale} />
+        <MobileShopReveal
+          products={mixed}
+          locale={locale}
+          footerSlide={<Footer locale={locale} />}
+        />
       </div>
     </Suspense>
   );

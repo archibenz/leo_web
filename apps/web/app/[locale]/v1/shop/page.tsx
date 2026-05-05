@@ -1,5 +1,6 @@
 import {Suspense} from 'react';
 import type {Metadata} from 'next';
+import Footer from '../../../../components/Footer';
 import type {Locale} from '../../../../i18n';
 import {API_BASE} from '../../../../lib/api';
 import DesktopNudge from './DesktopNudge';
@@ -39,7 +40,11 @@ export default async function MobileShopPage({params}: Props) {
         <DesktopNudge locale={locale} />
       </div>
       <div className="lg:hidden">
-        <MobileShopReveal products={mixed} locale={locale} />
+        <MobileShopReveal
+          products={mixed}
+          locale={locale}
+          footerSlide={<Footer locale={locale} />}
+        />
       </div>
     </Suspense>
   );

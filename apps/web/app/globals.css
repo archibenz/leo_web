@@ -48,6 +48,13 @@ body.mobile-shop-locked {
   scroll-snap-type: y mandatory;
 }
 
+/* Hide the global Footer on mobile shop — replaced by FooterSlide as the last
+   snap-point in the catalog so users can naturally reach the footer by
+   scrolling past the last product card. */
+body.mobile-shop-locked > div > footer {
+  display: none !important;
+}
+
 /* Mobile shop: halve global footer vertical chrome (mobile section). */
 body.mobile-shop-locked footer .sm\:hidden > div {
   padding-top: 0.75rem !important;

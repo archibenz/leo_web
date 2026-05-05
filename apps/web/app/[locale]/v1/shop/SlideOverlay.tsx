@@ -11,19 +11,20 @@ interface SlideOverlayProps {
 export default function SlideOverlay({product, locale}: SlideOverlayProps) {
   return (
     <>
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-40 bg-gradient-to-b from-black/55 via-black/20 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-48 bg-gradient-to-t from-black/65 via-black/25 to-transparent" />
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-col items-center px-6"
-        style={{paddingTop: 'calc(env(safe-area-inset-top, 0px) + 4.75rem)'}}
+        className="pointer-events-none absolute inset-x-0 z-20 flex flex-col items-center px-6"
+        style={{bottom: 'calc(env(safe-area-inset-bottom, 0px) + 3.25rem)'}}
       >
         {product.badge ? (
           <div className="mb-2.5">
             <CollectionBadge variant={product.badge} locale={locale} />
           </div>
         ) : null}
-        <h2 className="text-center font-display text-[20px] font-light leading-tight tracking-[0.04em] text-[var(--ink)] drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+        <h2 className="text-center font-display text-[14px] uppercase leading-tight tracking-[0.18em] text-paper drop-shadow-[0_2px_8px_rgba(0,0,0,0.5)]">
           {product.title}
         </h2>
+        <div aria-hidden="true" className="mt-2 h-px w-12 bg-paper/55" />
       </div>
     </>
   );

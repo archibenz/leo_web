@@ -1,16 +1,18 @@
 'use client';
 
-import {useEffect, useMemo} from 'react';
+import {useEffect, useMemo, type ReactNode} from 'react';
 import {useSearchParams} from 'next/navigation';
+import FooterSlide from './FooterSlide';
 import SlideLayer from './SlideLayer';
 import type {MobileShopItem} from './types';
 
 interface MobileShopRevealProps {
   products: MobileShopItem[];
   locale: string;
+  footerSlide?: ReactNode;
 }
 
-export default function MobileShopReveal({products, locale}: MobileShopRevealProps) {
+export default function MobileShopReveal({products, locale, footerSlide}: MobileShopRevealProps) {
   const searchParams = useSearchParams();
   const filterParam = searchParams.get('filter');
   const categoryParam = searchParams.get('category');
@@ -67,13 +69,11 @@ export default function MobileShopReveal({products, locale}: MobileShopRevealPro
   return (
     <div className="relative bg-paper">
       {filtered.map((product, i) => (
-        <SlideLayer
-          key={product.id}
-          product={product}
-          index={i}
-          locale={locale}
-        />
+        <SlideLayer key={product.id} product={product} index={i} locale={locale} />
       ))}
+      {footerSlide ? (
+        <FooterSlide zIndex={1 + filtered.length}>{footerSlide}</FooterSlide>
+      ) : null}
     </div>
   );
 }

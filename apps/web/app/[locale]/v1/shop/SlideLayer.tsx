@@ -1,8 +1,7 @@
 'use client';
 
-import Image from 'next/image';
-import Link from 'next/link';
-import {useMemo, useState} from 'react';
+import {useMemo} from 'react';
+import PhotoCarousel from './PhotoCarousel';
 import SlideOverlay from './SlideOverlay';
 import type {MobileShopItem} from './types';
 
@@ -22,21 +21,27 @@ function resolveAssetUrl(src: string): string {
   return src;
 }
 
-function pickPrimaryImage(item: MobileShopItem): string | null {
+function pickImages(item: MobileShopItem): string[] {
+  const all: string[] = [];
   if (item.images) {
     try {
       const parsed: unknown = JSON.parse(item.images);
       if (Array.isArray(parsed)) {
         for (const img of parsed) {
-          if (img && typeof img === 'object' && 'src' in img && typeof (img as {src: unknown}).src === 'string') {
-            return resolveAssetUrl((img as {src: string}).src);
+          if (
+            img &&
+            typeof img === 'object' &&
+            'src' in img &&
+            typeof (img as {src: unknown}).src === 'string'
+          ) {
+            all.push(resolveAssetUrl((img as {src: string}).src));
           }
         }
       }
     } catch { /* fall through */ }
   }
-  if (item.image) return resolveAssetUrl(item.image);
-  return null;
+  if (all.length === 0 && item.image) all.push(resolveAssetUrl(item.image));
+  return all;
 }
 
 interface SlideLayerProps {
@@ -46,44 +51,37 @@ interface SlideLayerProps {
 }
 
 export default function SlideLayer({product, index, locale}: SlideLayerProps) {
-  const primaryImage = useMemo(() => pickPrimaryImage(product), [product]);
-  const [imgError, setImgError] = useState(false);
+  const images = useMemo(() => pickImages(product), [product]);
+  const fallback = GRADIENTS[product.occasion ?? ''] ?? 'from-[#3a2018] to-[#8a5a3a]';
 
   return (
     <section
-      className="relative w-full overflow-hidden bg-paper"
+      className="relative w-full"
       style={{
         height: '100dvh',
         scrollSnapAlign: 'start',
         scrollSnapStop: 'always',
       }}
     >
-      <Link
-        href={`/${locale}/product/${product.id}`}
-        prefetch={false}
-        aria-label={product.title}
-        className="absolute inset-0 block"
+      <div
+        className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-paper"
+        style={{
+          zIndex: 1 + index,
+          contain: 'paint',
+          willChange: 'transform',
+          transform: 'translateZ(0)',
+          boxShadow: index > 0 ? '0 -18px 36px rgba(0, 0, 0, 0.4)' : 'none',
+        }}
       >
-        <div
-          className={`absolute inset-0 bg-gradient-to-br ${
-            GRADIENTS[product.occasion ?? ''] ?? 'from-[#3a2018] to-[#8a5a3a]'
-          }`}
+        <PhotoCarousel
+          images={images}
+          alt={product.title}
+          fallbackGradient={fallback}
+          productHref={`/${locale}/product/${product.id}`}
+          priorityFirst={index < 2}
         />
-        {primaryImage && !imgError ? (
-          <Image
-            src={primaryImage}
-            alt={product.title}
-            fill
-            sizes="100vw"
-            priority={index < 2}
-            loading={index < 2 ? undefined : 'lazy'}
-            onError={() => setImgError(true)}
-            className="object-cover"
-            style={{objectPosition: 'center 38%'}}
-          />
-        ) : null}
-      </Link>
-      <SlideOverlay product={product} locale={locale} />
+        <SlideOverlay product={product} locale={locale} />
+      </div>
     </section>
   );
 }
