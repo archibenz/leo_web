@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, MenuItem, CategoryCard } from './ui/navbar-menu';
 import { SearchBar } from './ui/search-bar';
 import MenuOverlay from './MenuOverlay';
+import { BrandHeart, BrandCart } from './icons';
 import { useCart, useFavorites, useAuth } from '../contexts';
 
 type HeaderNavbarProps = { locale: string };
@@ -17,42 +18,8 @@ type HeaderNavbarProps = { locale: string };
 const ProfileIcon = () => (
   <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 4-6 8-6s8 2 8 6" /></svg>
 );
-const HeartIcon = ({count = 0}: {count?: number} = {}) => (
-  <span className="relative flex h-[22px] w-[22px] items-center justify-center">
-    <Image
-      src={count > 0 ? '/icons/heart-filled.svg' : '/icons/heart.svg'}
-      alt=""
-      width={22}
-      height={22}
-      className="h-full w-full"
-      draggable={false}
-      unoptimized
-    />
-    {count > 0 ? (
-      <span className="pointer-events-none absolute inset-0 flex items-center justify-center pt-[1px] text-[9px] font-semibold leading-none text-paper">
-        {count > 9 ? '9+' : count}
-      </span>
-    ) : null}
-  </span>
-);
-const CartIcon = ({count = 0}: {count?: number} = {}) => (
-  <span className="relative flex h-[22px] w-[22px] items-center justify-center">
-    <Image
-      src={count > 0 ? '/icons/cart-filled.svg' : '/icons/cart.svg'}
-      alt=""
-      width={22}
-      height={22}
-      className="h-full w-full"
-      draggable={false}
-      unoptimized
-    />
-    {count > 0 ? (
-      <span className="pointer-events-none absolute inset-0 flex items-center justify-center pt-[1.5px] text-[9px] font-semibold leading-none text-paper">
-        {count > 9 ? '9+' : count}
-      </span>
-    ) : null}
-  </span>
-);
+const HeartIcon = ({count = 0}: {count?: number} = {}) => <BrandHeart count={count} size={18} />;
+const CartIcon = ({count = 0}: {count?: number} = {}) => <BrandCart count={count} size={18} />;
 
 const IconBtn = ({ onClick, ariaLabel, children, badge }: {
   onClick: () => void; ariaLabel: string; children: React.ReactNode; badge?: number;

@@ -15,6 +15,7 @@ import SizeChart from './SizeChart';
 import Accordion from './ui/Accordion';
 import {CareSymbolsRow} from './CareSymbols';
 import WildberriesButton from './WildberriesButton';
+import {BrandHeart} from './icons';
 
 import { API_BASE } from '../lib/api';
 /* ── Types ── */
@@ -276,9 +277,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
                   : 'border-[var(--ink)]/20 text-[var(--ink)] hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/[0.06]'
               }`}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
+              <BrandHeart filled={isFav} size={18} />
               {isFav ? t('favouriteAdded') : t('favourite')}
             </button>
           </div>

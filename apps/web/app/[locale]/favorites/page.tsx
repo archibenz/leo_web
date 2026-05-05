@@ -8,6 +8,7 @@ import {useFavorites, useCart} from '../../../contexts';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import Spinner from '../../../components/ui/Spinner';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
+import {BrandHeart} from '../../../components/icons';
 
 type Props = {
   params: Promise<{locale: string}>;
@@ -69,9 +70,7 @@ export default function FavoritesPage({params}: Props) {
           <div className="flex min-h-[40vh] items-center justify-center">
             <div className="paper-card max-w-md space-y-6 p-10 text-center">
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-ink/5">
-                <svg viewBox="0 0 24 24" className="h-10 w-10 text-ink-soft" fill="none" stroke="currentColor" strokeWidth="1.2">
-                  <path d="M12 21C12 21 4 14.5 4 9c0-3 2.5-5 5.5-5 1.5 0 3 .8 4.5 2.5C15.5 4.8 17 4 18.5 4 21.5 4 24 6 24 9c0 5.5-8 12-12 12z" transform="translate(-2, 0) scale(0.95)" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <BrandHeart size={40} />
               </div>
               <div className="space-y-2">
                 <p className="font-display text-2xl text-ink">{t('empty.title')}</p>
@@ -124,9 +123,7 @@ export default function FavoritesPage({params}: Props) {
                     className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-paper/80 text-ink-soft backdrop-blur-sm transition-all hover:bg-paper hover:text-ink"
                     aria-label={t('remove')}
                   >
-                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-                      <path d="M12 21C12 21 4 14.5 4 9c0-3 2.5-5 5.5-5 1.5 0 3 .8 4.5 2.5C15.5 4.8 17 4 18.5 4 21.5 4 24 6 24 9c0 5.5-8 12-12 12z" transform="translate(-2, 0) scale(0.95)" />
-                    </svg>
+                    <BrandHeart filled size={16} />
                   </button>
 
                   {/* Hover overlay with action */}
