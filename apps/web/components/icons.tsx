@@ -42,7 +42,7 @@ function SourcedIcon({
         alt=""
         width={size}
         height={size}
-        className="h-full w-full"
+        className="h-full w-full opacity-[0.65]"
         draggable={false}
         unoptimized
       />

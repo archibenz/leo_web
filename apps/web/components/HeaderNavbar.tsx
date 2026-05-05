@@ -31,7 +31,7 @@ const IconBtn = ({ onClick, ariaLabel, children, badge }: {
     style={{ WebkitTapHighlightColor: 'transparent' }}
     className="group relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 focus:outline-none"
   >
-    <span className="flex h-9 w-9 items-center justify-center rounded-full text-ink/55 transition-colors duration-200 group-hover:bg-ink/[0.07] group-hover:text-accent group-active:bg-ink/[0.12]">
+    <span className="flex h-9 w-9 items-center justify-center rounded-full text-ink/65 transition-colors duration-200 group-hover:bg-ink/[0.07] group-hover:text-accent group-active:bg-ink/[0.12]">
       {children}
     </span>
     {badge !== undefined && badge > 0 && (
