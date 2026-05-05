@@ -301,13 +301,16 @@ export default function HomeSections({
 
       {/* Content */}
       <div className="relative z-[2]">
+        {/* ── Shop hero — CTA banner before navigation tiles ── */}
+        {shopBannerWrapper ? shopBannerWrapper(banner) : banner}
+
         {/* ── Categories ── */}
         <section className={categoriesSectionClassName ?? 'px-6 pt-12 pb-8 sm:px-10 sm:pt-16 sm:pb-10 lg:px-16'}>
           <BlurReveal>
             <SectionHeading title={categoriesTitle} />
           </BlurReveal>
           <ScrollRow>
-            {categories.map((cat, i) => (
+            {categories.map((cat) => (
               <BlurReveal key={cat.key} mode="scroll" blur={10} translateY={16} className="flex-shrink-0 w-36 sm:w-56 lg:w-72">
                 <Link
                   href={`/${locale}/shop?category=${cat.key}`}
@@ -335,9 +338,6 @@ export default function HomeSections({
             ))}
           </ScrollRow>
         </section>
-
-        {/* ── Shop hero divider ── */}
-        {shopBannerWrapper ? shopBannerWrapper(banner) : banner}
 
         {/* ── Popular ── */}
         <section className={popularSectionClassName ?? 'px-6 pt-12 pb-14 sm:px-10 sm:pt-16 sm:pb-20 lg:px-16'}>

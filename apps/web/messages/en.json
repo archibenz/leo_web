@@ -52,7 +52,14 @@
       "trousers": "Trousers",
       "skirts": "Skirts",
       "blouses": "Blouses",
-      "care": "Care"
+      "care": "Care",
+      "popular": "Popular",
+      "tailoring": "Tailoring"
+    },
+    "sections": {
+      "selection": "Selection",
+      "categories": "Categories",
+      "more": "More"
     },
     "collections": "Collections",
     "winter": "Winter Collection",

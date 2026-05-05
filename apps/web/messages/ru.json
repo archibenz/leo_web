@@ -52,7 +52,14 @@
       "trousers": "Брюки",
       "skirts": "Юбки",
       "blouses": "Блузы",
-      "care": "Уход"
+      "care": "Уход",
+      "popular": "Популярное",
+      "tailoring": "Костюмы"
+    },
+    "sections": {
+      "selection": "Подборка",
+      "categories": "Категории",
+      "more": "Ещё"
     },
     "collections": "Коллекции",
     "winter": "Зимняя коллекция",

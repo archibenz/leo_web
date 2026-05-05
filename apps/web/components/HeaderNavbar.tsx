@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, MenuItem, CategoryCard, CollectionCard } from './ui/navbar-menu';
+import { Menu, MenuItem, CategoryCard } from './ui/navbar-menu';
 import { SearchBar } from './ui/search-bar';
 import MenuOverlay from './MenuOverlay';
 import { useCart, useFavorites, useAuth } from '../contexts';
@@ -45,13 +45,6 @@ const IconBtn = ({ onClick, ariaLabel, children, badge }: {
   </button>
 );
 
-const collectionImages = [
-  'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=600&h=900&fit=crop&q=85',
-  'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&h=900&fit=crop&q=85',
-  'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&h=900&fit=crop&q=85',
-  'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&h=900&fit=crop&q=85',
-];
-
 export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
   const t = useTranslations('header');
   const menuT = useTranslations('menu');
@@ -70,27 +63,28 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const categoryKeys = ['new', 'outerwear', 'dresses', 'knitwear', 'trousers', 'skirts', 'blouses', 'care'];
-  const categoryDescMap: Record<string, { en: string; ru: string }> = {
+  const categoryKeys = ['dresses', 'outerwear', 'tailoring', 'knitwear', 'blouses', 'skirts', 'trousers'];
+  const selectionKeys: ReadonlyArray<{ key: 'new' | 'popular'; filter: 'new' | 'popular' }> = [
+    { key: 'new', filter: 'new' },
+    { key: 'popular', filter: 'popular' },
+  ];
+  const selectionDescMap: Record<string, { en: string; ru: string }> = {
     new: { en: 'Latest arrivals', ru: 'Последние поступления' },
-    outerwear: { en: 'Coats & jackets', ru: 'Пальто & жакеты' },
+    popular: { en: 'Most loved', ru: 'Любимое многими' },
+  };
+  const categoryDescMap: Record<string, { en: string; ru: string }> = {
     dresses: { en: 'Midi, maxi, mini', ru: 'Миди, макси, мини' },
+    outerwear: { en: 'Coats & jackets', ru: 'Пальто & жакеты' },
+    tailoring: { en: 'Tailored suits', ru: 'Костюмы по фигуре' },
     knitwear: { en: 'Cashmere & wool', ru: 'Кашемир & шерсть' },
-    trousers: { en: 'Tailored cuts', ru: 'Точный крой' },
-    skirts: { en: 'Midi & maxi', ru: 'Миди и макси' },
     blouses: { en: 'Silk & linen', ru: 'Шёлк и лён' },
-    care: { en: 'Garment care', ru: 'Уход за одеждой' },
+    skirts: { en: 'Midi & maxi', ru: 'Миди и макси' },
+    trousers: { en: 'Tailored cuts', ru: 'Точный крой' },
   };
   const aboutDescMap: Record<string, { en: string; ru: string }> = {
     about: { en: 'Our story', ru: 'Наша история' },
     contact: { en: 'Get in touch', ru: 'Связаться' },
   };
-  const collections = [
-    { id: 'winter', season: 'winter', subItemKeys: ['skirts', 'dresses', 'jackets'] },
-    { id: 'spring', season: 'spring', subItemKeys: ['coats', 'trousers', 'blouses'] },
-    { id: 'summer', season: 'summer', subItemKeys: ['eveningDresses', 'tops'] },
-    { id: 'autumn', season: 'autumn', subItemKeys: ['suits', 'midiSkirts', 'cardigans'] },
-  ];
 
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 768px)');
@@ -180,41 +174,27 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
             <Menu setActive={setActive}>
               <MenuItem setActive={setActive} active={active} item={t('catalog')} href={`/${locale}/shop`}>
                 <div className="p-2 w-[min(720px,calc(100vw-2rem))]">
-                  <div className="mb-3 px-4 pt-3">
-                    <p className="font-accent text-[14px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{t('catalog')}</p>
+                  <div className="mb-2 px-4 pt-3">
+                    <p className="font-accent text-[14px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{menuT('sections.selection')}</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-0">
+                    {selectionKeys.map((item) => (
+                      <CategoryCard key={item.key} href={`/${locale}/shop?filter=${item.filter}`} label={menuT(`categories.${item.key}`)} description={desc(selectionDescMap, item.key)} />
+                    ))}
+                  </div>
+                  <div className="mx-4 mt-2 mb-2 h-px bg-gradient-to-r from-[#D4A574]/10 via-[#D4A574]/5 to-transparent" />
+                  <div className="mb-2 px-4">
+                    <p className="font-accent text-[14px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{menuT('sections.categories')}</p>
                   </div>
                   <div className="grid grid-cols-4 gap-0">
                     {categoryKeys.map((key) => (
-                      <CategoryCard key={key} href={key === 'care' ? `/${locale}/care` : `/${locale}/shop?category=${key}`} label={menuT(`categories.${key}`)} description={desc(categoryDescMap, key)} />
+                      <CategoryCard key={key} href={`/${locale}/shop?category=${key}`} label={menuT(`categories.${key}`)} description={desc(categoryDescMap, key)} />
                     ))}
                   </div>
                   <div className="mx-4 mt-2 mb-3 h-px bg-gradient-to-r from-[#D4A574]/10 via-[#D4A574]/5 to-transparent" />
                   <div className="px-4 pb-3">
                     <Link href={`/${locale}/shop`} className="group/all inline-flex items-center gap-2 font-display text-[15px] uppercase tracking-[0.12em] text-ink/40 transition-colors hover:text-[#D4A574]">
                       {locale === 'ru' ? 'Весь каталог' : 'View all'}
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="transition-transform duration-300 group-hover/all:translate-x-1"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
-                    </Link>
-                  </div>
-                </div>
-              </MenuItem>
-
-              <MenuItem setActive={setActive} active={active} item={t('collections')} href={`/${locale}/collections`}>
-                <div className="p-2 w-[min(1000px,calc(100vw-2rem))]">
-                  <div className="mb-3 px-5 pt-3">
-                    <p className="font-accent text-[14px] font-medium uppercase tracking-[0.2em] text-[#D4A574]/40">{t('collections')}</p>
-                  </div>
-                  <div className="grid grid-cols-4 gap-6 px-5 pb-4">
-                    {collections.map((col, i) => (
-                      <CollectionCard key={col.id} href={`/${locale}/shop?season=${col.season}`} title={menuT(col.id)}
-                        subtitle={`${col.subItemKeys.length} ${locale === 'ru' ? 'вещи' : 'items'}`}
-                        imageSrc={collectionImages[i]}
-                        items={col.subItemKeys.map((subKey) => ({ label: menuT(`clothing.${subKey}`), href: `/${locale}/shop?season=${col.season}&category=${subKey}` }))} />
-                    ))}
-                  </div>
-                  <div className="mx-5 h-px bg-gradient-to-r from-[#D4A574]/10 via-[#D4A574]/5 to-transparent" />
-                  <div className="px-5 py-3">
-                    <Link href={`/${locale}/collections`} className="group/all inline-flex items-center gap-2 font-display text-[15px] uppercase tracking-[0.12em] text-ink/40 transition-colors hover:text-[#D4A574]">
-                      {menuT('viewAllCollections')}
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="transition-transform duration-300 group-hover/all:translate-x-1"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
                     </Link>
                   </div>

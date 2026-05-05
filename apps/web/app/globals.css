@@ -45,18 +45,7 @@ html {
 html.mobile-shop-locked,
 body.mobile-shop-locked {
   overscroll-behavior-y: none;
-}
-
-body.mobile-shop-locked {
-  --shop-chrome-filter: 84px;
-  --shop-chrome-slide: 132px;
-}
-
-/* When SmartHeader is hidden (scroll-down), shrink chrome zone so the
-   product card fills the freed space — no big paper gap at top. */
-body.mobile-shop-locked.shop-header-hidden {
-  --shop-chrome-filter: 16px;
-  --shop-chrome-slide: 60px;
+  scroll-snap-type: y mandatory;
 }
 
 /* Mobile shop: halve global footer vertical chrome (mobile section). */

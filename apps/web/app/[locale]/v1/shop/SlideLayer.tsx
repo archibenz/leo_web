@@ -42,28 +42,20 @@ function pickPrimaryImage(item: MobileShopItem): string | null {
 interface SlideLayerProps {
   product: MobileShopItem;
   index: number;
-  total: number;
   locale: string;
 }
 
-export default function SlideLayer({product, index, total, locale}: SlideLayerProps) {
+export default function SlideLayer({product, index, locale}: SlideLayerProps) {
   const primaryImage = useMemo(() => pickPrimaryImage(product), [product]);
   const [imgError, setImgError] = useState(false);
 
-  // Sticky stacking with safe-area aware chrome zone (header + filter band).
-  // Higher z-index = later slide covers earlier from below.
-  // will-change + transform:translateZ(0) hints GPU compositing → smoother scroll.
   return (
-    <div
-      className="sticky w-full overflow-hidden bg-paper"
+    <section
+      className="relative w-full overflow-hidden bg-paper"
       style={{
-        top: 'calc(env(safe-area-inset-top, 0px) + var(--shop-chrome-slide, 132px))',
-        height: 'calc(100dvh - env(safe-area-inset-top, 0px) - var(--shop-chrome-slide, 132px))',
-        zIndex: 1 + index,
-        contain: 'paint',
-        willChange: 'transform',
-        transform: 'translateZ(0)',
-        transition: 'top 0.3s ease-out, height 0.3s ease-out',
+        height: '100dvh',
+        scrollSnapAlign: 'start',
+        scrollSnapStop: 'always',
       }}
     >
       <Link
@@ -87,17 +79,11 @@ export default function SlideLayer({product, index, total, locale}: SlideLayerPr
             loading={index < 2 ? undefined : 'lazy'}
             onError={() => setImgError(true)}
             className="object-cover"
-            style={{objectPosition: 'center 30%'}}
+            style={{objectPosition: 'center 38%'}}
           />
         ) : null}
       </Link>
-      <SlideOverlay
-        product={product}
-        index={index}
-        total={total}
-        locale={locale}
-        primaryImage={primaryImage ?? undefined}
-      />
-    </div>
+      <SlideOverlay product={product} locale={locale} />
+    </section>
   );
 }
