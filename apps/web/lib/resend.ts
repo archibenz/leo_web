@@ -7,12 +7,6 @@ export interface SubscribeResult {
   detail?: string;
 }
 
-interface ResendErrorBody {
-  message?: string;
-  name?: string;
-  statusCode?: number;
-}
-
 // Subscribe an email to the configured Resend audience. Returns a discriminated
 // status so the API route can map it to the right HTTP code without leaking
 // vendor-specific error shapes to the client.
@@ -54,8 +48,14 @@ export async function subscribeToNewsletter(
     return {status: 'ok'};
   }
 
-  const data = (await res.json().catch(() => ({}))) as ResendErrorBody;
-  const message = data.message?.toLowerCase() ?? '';
+  const raw: unknown = await res.json().catch(() => ({}));
+  const data: Record<string, unknown> =
+    raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
+  const rawMessage = data['message'];
+  const rawName = data['name'];
+  const messageStr = typeof rawMessage === 'string' ? rawMessage : '';
+  const nameStr = typeof rawName === 'string' ? rawName : undefined;
+  const message = messageStr.toLowerCase();
 
   // Resend API returns either 409 or a 4xx with "already exists" / duplicate
   // wording in the message. Normalise both into 'already'.
@@ -68,10 +68,13 @@ export async function subscribeToNewsletter(
     return {status: 'already'};
   }
 
+  // Resend echoes the submitted email back inside `data.message`, so logging
+  // it raw would write user PII to server logs. Drop the message field from
+  // the log entry; keep the status and error name for diagnostics.
   console.error('[newsletter] Resend subscribe failed', {
     status: res.status,
-    name: data.name,
-    message: data.message,
+    name: nameStr,
+    message: '<redacted>',
   });
-  return {status: 'error', detail: data.message ?? `http_${res.status}`};
+  return {status: 'error', detail: messageStr || `http_${res.status}`};
 }

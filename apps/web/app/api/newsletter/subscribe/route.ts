@@ -4,33 +4,56 @@ import {subscribeToNewsletter} from '../../../../lib/resend';
 
 const RATE_LIMIT = 5;
 const WINDOW_MS = 60 * 60 * 1000;
+const MAX_BUCKETS = 10_000;
+const MAX_BODY_BYTES = 1024;
 
 const ipBuckets = new Map<string, {count: number; resetAt: number}>();
 
+function pruneExpired(now: number): void {
+  for (const [key, bucket] of ipBuckets) {
+    if (bucket.resetAt < now) ipBuckets.delete(key);
+  }
+}
+
 function rateLimit(ip: string): boolean {
   const now = Date.now();
+  if (ipBuckets.size > MAX_BUCKETS) pruneExpired(now);
   const bucket = ipBuckets.get(ip);
   if (!bucket || bucket.resetAt < now) {
     ipBuckets.set(ip, {count: 1, resetAt: now + WINDOW_MS});
     return true;
   }
   if (bucket.count >= RATE_LIMIT) return false;
-  bucket.count += 1;
+  ipBuckets.set(ip, {...bucket, count: bucket.count + 1});
   return true;
 }
 
 function clientIp(req: NextRequest): string {
   const forwarded = req.headers.get('x-forwarded-for');
-  if (forwarded) return forwarded.split(',')[0]!.trim();
+  if (forwarded) {
+    // Use the LAST entry, not the first. The last hop is the IP appended by
+    // our trusted nginx proxy and cannot be spoofed by the client. Earlier
+    // entries can be forged by attackers via a self-set X-Forwarded-For header.
+    const parts = forwarded.split(',');
+    const last = parts[parts.length - 1];
+    if (last) return last.trim();
+  }
   return req.headers.get('x-real-ip') ?? 'unknown';
 }
 
 interface SubscribeBody {
   email?: unknown;
-  locale?: unknown;
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  const contentLength = req.headers.get('content-length');
+  if (contentLength) {
+    const declared = Number.parseInt(contentLength, 10);
+    if (Number.isFinite(declared) && declared > MAX_BODY_BYTES) {
+      return NextResponse.json({status: 'too_large'}, {status: 413});
+    }
+  }
+
   const ip = clientIp(req);
   if (!rateLimit(ip)) {
     return NextResponse.json({status: 'rate_limited'}, {status: 429});
