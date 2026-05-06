@@ -103,7 +103,6 @@
   },
   "footer": {
     "tagline": "Editorial womenswear crafted with precision.",
-    "studio": "Atelier: made-to-order & limited runs",
     "email": "reinasleo@gmail.com",
     "rights": "© 2026 REINASLEO. All rights reserved.",
     "privacy": "Privacy Policy",
@@ -913,6 +912,7 @@
     "cta": "Explore our collection",
     "shopLink": "Browse catalog",
     "productCare": "Garment care",
+    "contactCta": "Reach the atelier",
     "hub": {
       "title": "Customer Care",
       "subtitle": "Shipping, returns, sizing — everything you need before and after a purchase."
