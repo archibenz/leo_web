@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, type FormEvent} from 'react';
+import {useEffect, useState, type FormEvent} from 'react';
 import {useTranslations} from 'next-intl';
 import {isValidEmail} from '../lib/validation';
 
@@ -10,10 +10,20 @@ interface FooterNewsletterProps {
   locale: string;
 }
 
+const inputId = 'newsletter-email';
+const errorId = 'newsletter-error';
+
 export default function FooterNewsletter({locale}: FooterNewsletterProps) {
   const t = useTranslations('footer.newsletter');
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<Status>('idle');
+
+  useEffect(() => {
+    if (status === 'success') {
+      const t = setTimeout(() => setStatus('idle'), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [status]);
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -56,6 +66,7 @@ export default function FooterNewsletter({locale}: FooterNewsletterProps) {
             : null;
 
   const isLocked = status === 'loading' || status === 'success';
+  const isErrorState = status === 'error' || status === 'invalid';
 
   return (
     <form
@@ -66,6 +77,7 @@ export default function FooterNewsletter({locale}: FooterNewsletterProps) {
     >
       <div className="flex items-center gap-2 border-b border-[#F2E6D8]/15 pb-2 transition-colors duration-200 focus-within:border-[#D4A574]/60">
         <input
+          id={inputId}
           type="email"
           required
           autoComplete="email"
@@ -76,9 +88,12 @@ export default function FooterNewsletter({locale}: FooterNewsletterProps) {
             if (status !== 'idle' && status !== 'loading') setStatus('idle');
           }}
           placeholder={t('placeholder')}
+          // Visual: placeholder; SR: aria-label needed since no visible <label>
           aria-label={t('placeholder')}
+          aria-invalid={status === 'invalid' ? 'true' : undefined}
+          aria-describedby={message ? errorId : undefined}
           disabled={isLocked}
-          className="flex-1 bg-transparent py-2 text-[14px] text-[#F2E6D8]/90 placeholder:text-[#F2E6D8]/30 focus:outline-none disabled:opacity-50"
+          className="flex-1 bg-transparent py-2 text-[14px] text-[#F2E6D8]/90 placeholder:text-[#F2E6D8]/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#D4A574] disabled:opacity-50"
         />
         <button
           type="submit"
@@ -88,18 +103,17 @@ export default function FooterNewsletter({locale}: FooterNewsletterProps) {
           {status === 'loading' ? t('submitting') : t('submit')}
         </button>
       </div>
-      {message && (
-        <p
-          aria-live="polite"
-          className={`font-accent text-[10px] uppercase tracking-[0.2em] ${
-            status === 'error' || status === 'invalid'
-              ? 'text-[#c08a82]'
-              : 'text-[#D4A574]/80'
-          }`}
-        >
-          {message}
-        </p>
-      )}
+      <p
+        id={errorId}
+        aria-live="polite"
+        aria-atomic="true"
+        role={isErrorState ? 'alert' : undefined}
+        className={`font-accent text-[10px] uppercase tracking-[0.2em] ${
+          isErrorState ? 'text-[#c08a82]' : 'text-[#D4A574]/80'
+        } min-h-[12px]`}
+      >
+        {message ?? ''}
+      </p>
     </form>
   );
 }
