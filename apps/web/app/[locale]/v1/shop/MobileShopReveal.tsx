@@ -74,18 +74,10 @@ export default function MobileShopReveal({products, locale, footerSlide}: Mobile
   return (
     <div className="relative bg-paper">
       {filtered.map((product, i) => (
-        <SlideLayer
-          key={product.id}
-          product={product}
-          index={i}
-          total={filtered.length}
-          locale={locale}
-        />
+        <SlideLayer key={product.id} product={product} index={i} locale={locale} />
       ))}
       {footerSlide ? (
-        <FooterSlide zIndex={1 + filtered.length} locale={locale}>
-          {footerSlide}
-        </FooterSlide>
+        <FooterSlide zIndex={1 + filtered.length}>{footerSlide}</FooterSlide>
       ) : null}
     </div>
   );

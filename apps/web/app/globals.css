@@ -45,7 +45,7 @@ html {
 html.mobile-shop-locked,
 body.mobile-shop-locked {
   overscroll-behavior-y: none;
-  scroll-snap-type: y proximity;
+  scroll-snap-type: y mandatory;
 }
 
 /* Hide the global Footer on mobile shop — replaced by FooterSlide as the last
@@ -55,17 +55,16 @@ body.mobile-shop-locked > div > footer {
   display: none !important;
 }
 
-/* Mobile shop: tighten global footer vertical chrome inside the FooterSlide
-   so brand-hero block has room above without footer feeling cramped. */
+/* Mobile shop: halve global footer vertical chrome (mobile section). */
 body.mobile-shop-locked footer .sm\:hidden > div {
-  padding-top: 1rem !important;
-  padding-bottom: 1.25rem !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
 }
 body.mobile-shop-locked footer .sm\:hidden .space-y-6 > :not([hidden]) ~ :not([hidden]) {
-  margin-top: 0.875rem !important;
+  margin-top: 0.75rem !important;
 }
 body.mobile-shop-locked footer .sm\:hidden .gap-6 {
-  gap: 1rem !important;
+  gap: 0.75rem !important;
 }
 body.mobile-shop-locked footer .sm\:hidden .pt-4 {
   padding-top: 0.5rem !important;
