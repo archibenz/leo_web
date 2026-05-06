@@ -163,7 +163,7 @@
     "legalEntity": "ИП Романова К.А. · ИНН 781300971051 · ОГРНИП 321784700010380",
     "payments": {
       "title": "Оплата",
-      "methods": "Мир · СБП · Visa · Mastercard · Apple Pay · Долями"
+      "methods": "Мир · СБП · Долями"
     }
   },
   "home": {
