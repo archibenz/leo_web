@@ -1,6 +1,8 @@
 'use client';
 
-import type {ReactNode} from 'react';
+import {motion, useMotionTemplate} from 'framer-motion';
+import {type ReactNode} from 'react';
+import {useStackedScroll} from '../../../../hooks/useStackedScroll';
 
 interface FooterSlideProps {
   zIndex: number;
@@ -8,24 +10,35 @@ interface FooterSlideProps {
 }
 
 export default function FooterSlide({zIndex, children}: FooterSlideProps) {
+  const stack = useStackedScroll<HTMLElement>({shadow: true});
+  const boxShadow = useMotionTemplate`0 -22px 44px rgba(0, 0, 0, ${stack.shadowAlpha})`;
+
   return (
     <section
+      ref={stack.ref}
       className="relative w-full"
       style={{
-        minHeight: '100dvh',
+        // No min-height + no sticky inner = footer renders inline at its natural
+        // height and the user scrolls through it without the nested-scroll trap
+        // that the original sticky+overflow-y-auto pattern produced.
         scrollSnapAlign: 'start',
-        scrollSnapStop: 'always',
+        // 'normal' (not 'always') so swiping out of the last product slide
+        // glides into the footer rather than locking on it.
+        scrollSnapStop: 'normal',
       }}
     >
-      <div
-        className="sticky top-0 flex min-h-[100dvh] w-full flex-col overflow-y-auto bg-[#1a0f0a]"
+      <motion.div
+        className="flex w-full flex-col bg-[#1a0f0a]"
         style={{
+          position: 'relative',
           zIndex,
-          boxShadow: '0 -18px 36px rgba(0, 0, 0, 0.4)',
+          willChange: 'clip-path',
+          clipPath: stack.clipPath,
+          boxShadow,
         }}
       >
-        <div className="flex flex-1 flex-col justify-end">{children}</div>
-      </div>
+        {children}
+      </motion.div>
     </section>
   );
 }
