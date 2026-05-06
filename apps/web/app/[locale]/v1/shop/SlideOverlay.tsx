@@ -1,5 +1,3 @@
-'use client';
-
 import CollectionBadge from './CollectionBadge';
 import type {MobileShopItem} from './types';
 

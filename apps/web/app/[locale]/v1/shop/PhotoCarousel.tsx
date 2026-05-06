@@ -27,9 +27,11 @@ export default function PhotoCarousel({
     const container = containerRef.current;
     if (!container) return;
     let raf = 0;
+    let mounted = true;
     const onScroll = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
+        if (!mounted) return;
         const w = container.clientWidth;
         if (w > 0) {
           const idx = Math.round(container.scrollLeft / w);
@@ -39,6 +41,7 @@ export default function PhotoCarousel({
     };
     container.addEventListener('scroll', onScroll, {passive: true});
     return () => {
+      mounted = false;
       cancelAnimationFrame(raf);
       container.removeEventListener('scroll', onScroll);
     };
@@ -72,7 +75,8 @@ export default function PhotoCarousel({
         style={{
           scrollSnapType: 'x mandatory',
           WebkitOverflowScrolling: 'touch',
-          touchAction: 'pan-x pan-y',
+          touchAction: 'pan-x',
+          overscrollBehaviorX: 'contain',
         }}
       >
         {images.map((src, i) => (

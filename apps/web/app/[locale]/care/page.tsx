@@ -23,7 +23,6 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 
 export default async function CarePage({params}: Props) {
   const {locale} = await params;
-  void locale;
 
   let guides: unknown[] = [];
   try {
@@ -33,7 +32,7 @@ export default async function CarePage({params}: Props) {
 
   return (
     <Suspense>
-      <CarePageClient initialGuides={guides} />
+      <CarePageClient initialGuides={guides} locale={locale} />
     </Suspense>
   );
 }

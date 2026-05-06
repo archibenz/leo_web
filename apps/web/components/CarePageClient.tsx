@@ -2,7 +2,6 @@
 
 import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
-import {usePathname} from 'next/navigation';
 import Link from 'next/link';
 import BlurReveal from './BlurReveal';
 import {CareSymbolsRow} from './CareSymbols';
@@ -19,10 +18,13 @@ interface CareGuide {
   active: boolean;
 }
 
-export default function CarePageClient({initialGuides}: {initialGuides?: unknown[]}) {
+interface CarePageClientProps {
+  initialGuides?: unknown[];
+  locale: string;
+}
+
+export default function CarePageClient({initialGuides, locale}: CarePageClientProps) {
   const t = useTranslations('care');
-  const pathname = usePathname() || '/';
-  const locale = pathname.split('/')[1] || 'ru';
 
   const [guides, setGuides] = useState<CareGuide[]>((initialGuides as CareGuide[]) ?? []);
   const [loading, setLoading] = useState(!initialGuides?.length);
@@ -106,7 +108,7 @@ export default function CarePageClient({initialGuides}: {initialGuides?: unknown
               href={`/${locale}/contact`}
               className="inline-flex items-center gap-2 font-display text-[14px] uppercase tracking-[0.18em] text-[#D4A574] transition-colors hover:text-[#D4A574]/80"
             >
-              {locale === 'ru' ? 'Связаться с ателье' : 'Reach the atelier'}
+              {t('contactCta')}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
             </Link>
           </div>

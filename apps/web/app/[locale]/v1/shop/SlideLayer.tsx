@@ -66,7 +66,7 @@ export default function SlideLayer({product, index, locale}: SlideLayerProps) {
         scrollSnapStop: 'always',
         // Skip painting off-screen slides for buttery scroll on long catalogues.
         contentVisibility: 'auto',
-        containIntrinsicSize: '100dvh',
+        containIntrinsicSize: '100vw 100dvh',
       }}
     >
       <PhotoCarousel
