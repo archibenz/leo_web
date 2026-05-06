@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import { API_BASE } from '../lib/api';
+import DesktopShopStack from './DesktopShopStack';
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
@@ -647,9 +648,23 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
                 </div>
               ))}
             </div>
+          ) : filteredAndSorted.length > 4 ? (
+            <>
+              {/* Hero stack — first 4 products as full-viewport sticky sheets */}
+              <DesktopShopStack
+                items={filteredAndSorted.slice(0, 4)}
+                total={filteredAndSorted.length}
+                locale={locale}
+              />
+              <div className="flex flex-col gap-y-14 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-16 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-20">
+                {filteredAndSorted.slice(4).map((item, i) => (
+                  <ListCard key={item.id} item={item} idx={i + 4} locale={locale} t={t} />
+                ))}
+              </div>
+            </>
           ) : filteredAndSorted.length > 0 ? (
             <>
-              {/* 05 Couture Display — hero "лицо коллекции" + классическая сетка с порядковыми номерами */}
+              {/* Fallback for ≤4 items: classic hero + grid */}
               <HeroCard item={filteredAndSorted[0]} idx={0} locale={locale} t={t} tLook={tLook} />
               {filteredAndSorted.length > 1 && (
                 <div className="flex flex-col gap-y-14 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-16 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-20">

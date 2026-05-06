@@ -45,7 +45,7 @@ export default async function ShopPage({params}: Props) {
         <MobileShopReveal
           products={mixed}
           locale={locale}
-          footerSlide={<Footer locale={locale} />}
+          footerSlide={<Footer locale={locale} compact />}
         />
       </div>
     </Suspense>

@@ -69,6 +69,50 @@ export default function CarePageClient({initialGuides}: {initialGuides?: unknown
         </section>
       </BlurReveal>
 
+      {/* Customer Care Hub — anchored sections (#shipping, #returns, #size-guide, #faq, #contact) */}
+      <BlurReveal>
+        <section className="max-w-6xl mx-auto px-6 mb-20">
+          <div className="text-center mb-10">
+            <h2 className="font-display text-2xl md:text-3xl tracking-tight text-ink mb-3">
+              {t('hub.title')}
+            </h2>
+            <p className="text-ink/50 text-[14px] max-w-xl mx-auto">
+              {t('hub.subtitle')}
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {(['shipping', 'returns', 'sizeGuide', 'faq'] as const).map((key) => {
+              const anchorId =
+                key === 'sizeGuide' ? 'size-guide' : key;
+              return (
+                <article
+                  key={key}
+                  id={anchorId}
+                  className="rounded-2xl border border-[#D4A574]/[0.08] bg-gradient-to-b from-[#1a100c]/30 to-transparent p-6 md:p-7 scroll-mt-28"
+                >
+                  <h3 className="font-display text-xl tracking-tight text-ink mb-3">
+                    {t(`sections.${key}.title`)}
+                  </h3>
+                  <p className="text-ink/60 text-[14px] leading-relaxed">
+                    {t(`sections.${key}.body`)}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+          {/* Contact anchor — links from footer point here */}
+          <div id="contact" className="mt-10 text-center scroll-mt-28">
+            <Link
+              href={`/${locale}/contact`}
+              className="inline-flex items-center gap-2 font-display text-[14px] uppercase tracking-[0.18em] text-[#D4A574] transition-colors hover:text-[#D4A574]/80"
+            >
+              {locale === 'ru' ? 'Связаться с ателье' : 'Reach the atelier'}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
+            </Link>
+          </div>
+        </section>
+      </BlurReveal>
+
       {/* Guides grid */}
       {loading ? (
         <div className="flex justify-center py-20">

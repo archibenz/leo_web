@@ -109,7 +109,62 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Service",
     "navigate": "Navigate",
-    "connect": "Connect"
+    "connect": "Connect",
+    "atelier": {
+      "title": "Atelier",
+      "essay": "REINASLEO is a small Saint Petersburg atelier. Each piece is cut, sewn and finished in focused capsules — pattern by pattern, garment by garment. Made-to-order on request; limited runs in season.",
+      "location": "Saint Petersburg · By appointment",
+      "cta": "Read our story"
+    },
+    "columns": {
+      "shop": "Shop",
+      "collections": "Collections",
+      "care": "Customer Care",
+      "newsletter": "Atelier dispatches"
+    },
+    "shopLinks": {
+      "all": "All pieces",
+      "dresses": "Dresses",
+      "outerwear": "Outerwear",
+      "knitwear": "Knitwear",
+      "skirts": "Skirts",
+      "blouses": "Blouses",
+      "trousers": "Trousers",
+      "blazers": "Blazers",
+      "accessories": "Accessories",
+      "madeToOrder": "Made-to-Order"
+    },
+    "collectionLinks": {
+      "spring26": "Spring 2026",
+      "resort": "Resort",
+      "archive": "Archive",
+      "lookbook": "Lookbook"
+    },
+    "care": {
+      "shipping": "Shipping",
+      "returns": "Returns",
+      "sizeGuide": "Size Guide",
+      "garmentCare": "Garment Care",
+      "contact": "Contact",
+      "faq": "FAQ"
+    },
+    "newsletter": {
+      "description": "Quiet drops, fitting invitations and atelier notes. No noise.",
+      "placeholder": "Email address",
+      "submit": "Subscribe",
+      "submitting": "Sending…",
+      "success": "Welcome. Check your inbox.",
+      "already": "You're already on the list.",
+      "error": "Something went wrong. Try again shortly.",
+      "invalid": "Please enter a valid email.",
+      "disclaimer": "By subscribing you agree to our",
+      "privacyLink": "Privacy Policy"
+    },
+    "legalEntity": "Sole proprietor Romanova K.A. · INN 781300971051 · OGRNIP 321784700010380",
+    "payments": {
+      "title": "Payments",
+      "comingSoon": "Mir · Visa · Mastercard · ЮKassa coming soon"
+    }
   },
   "home": {
     "hero": {
@@ -857,7 +912,29 @@
     "empty": "Care information coming soon",
     "cta": "Explore our collection",
     "shopLink": "Browse catalog",
-    "productCare": "Garment care"
+    "productCare": "Garment care",
+    "hub": {
+      "title": "Customer Care",
+      "subtitle": "Shipping, returns, sizing — everything you need before and after a purchase."
+    },
+    "sections": {
+      "shipping": {
+        "title": "Shipping",
+        "body": "Standard delivery within Russia takes 3–5 business days via СДЭК. International rates are calculated at checkout. Express options available on request — write to the atelier."
+      },
+      "returns": {
+        "title": "Returns",
+        "body": "Return unworn pieces with original packaging within 14 days of receipt. Made-to-order pieces are final sale unless faulty. Contact us before sending — we'll arrange the pickup."
+      },
+      "sizeGuide": {
+        "title": "Size Guide",
+        "body": "Each product page links a size chart (XS–XXL / 42–52) with body measurements. For tailored fit, the atelier offers made-to-order on most pieces — share your measurements via contact form."
+      },
+      "faq": {
+        "title": "FAQ",
+        "body": "Have a question about fit, fabric, or order status? Reach the atelier directly — we typically respond within one business day."
+      }
+    }
   },
   "errors": {
     "notFound": {

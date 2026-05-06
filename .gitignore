@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 .next/
+*.tsbuildinfo
 apps/api/build/
 apps/api/.gradle/
 apps/api/bin/
