@@ -26,12 +26,17 @@ export default function MobileShopReveal({products, locale, footerSlide}: Mobile
     });
   }, [products, filterParam, categoryParam]);
 
+  // Lock mobile-shop scroll-snap CSS only when we actually render the
+  // slide-stack. With an empty filtered catalogue the global footer must stay
+  // visible — otherwise users see a blank "Каталог пуст" page with nothing
+  // below it.
+  const hasSlides = filtered.length > 0;
   useEffect(() => {
     const apply = () => {
       const small = window.innerWidth < 1024;
       const html = document.documentElement;
       const body = document.body;
-      if (small) {
+      if (small && hasSlides) {
         html.classList.add('mobile-shop-locked');
         body.classList.add('mobile-shop-locked');
       } else {
@@ -46,7 +51,7 @@ export default function MobileShopReveal({products, locale, footerSlide}: Mobile
       document.body.classList.remove('mobile-shop-locked');
       window.removeEventListener('resize', apply);
     };
-  }, []);
+  }, [hasSlides]);
 
   if (!products.length) {
     return (

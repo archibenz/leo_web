@@ -63,9 +63,12 @@ export default function SlideLayer({product, index, total, locale}: SlideLayerPr
     shadow: !isFirst,
     perspective: !isFirst,
     edgeHighlight: !isFirst,
+    scale: !isFirst,
   });
 
-  const boxShadow = useMotionTemplate`0 -22px 44px rgba(0, 0, 0, ${stack.shadowAlpha})`;
+  // Mobile shadow: deeper than desktop (32px offset, 64px blur) so the sheet
+  // edge reads as "lifting off the stack" even on small screens.
+  const boxShadow = useMotionTemplate`0 -32px 64px rgba(0, 0, 0, ${stack.shadowAlpha})`;
 
   return (
     <section
@@ -88,6 +91,7 @@ export default function SlideLayer({product, index, total, locale}: SlideLayerPr
           clipPath: stack.clipPath,
           boxShadow,
           rotateX: stack.rotateX,
+          scale: stack.scale,
         }}
       >
         <PhotoCarousel
