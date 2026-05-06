@@ -110,17 +110,17 @@
     "terms": "Terms of Service",
     "navigate": "Navigate",
     "connect": "Connect",
-    "atelier": {
-      "title": "Atelier",
-      "essay": "REINASLEO is a small Saint Petersburg atelier. Each piece is cut, sewn and finished in focused capsules — pattern by pattern, garment by garment. Made-to-order on request; limited runs in season.",
-      "location": "Saint Petersburg · By appointment",
+    "brand": {
+      "title": "About the brand",
+      "essay": "REINASLEO is editorial womenswear made for women who notice every detail. Silhouettes, fabrics and finishing built around a precise fit and quiet confidence that needs no announcement.",
+      "tag": "Capsule collections · Limited runs",
       "cta": "Read our story"
     },
     "columns": {
       "shop": "Shop",
       "collections": "Collections",
       "care": "Customer Care",
-      "newsletter": "Atelier dispatches"
+      "newsletter": "Newsletter"
     },
     "shopLinks": {
       "all": "All pieces",
@@ -162,8 +162,8 @@
     },
     "legalEntity": "Sole proprietor Romanova K.A. · INN 781300971051 · OGRNIP 321784700010380",
     "payments": {
-      "title": "Payments",
-      "comingSoon": "Mir · Visa · Mastercard · ЮKassa coming soon"
+      "title": "We accept",
+      "methods": "Mir · SBP · Visa · Mastercard · Apple Pay · Dolyami"
     }
   },
   "home": {

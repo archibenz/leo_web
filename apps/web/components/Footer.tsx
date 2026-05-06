@@ -2,13 +2,14 @@ import Link from 'next/link';
 import {getTranslations} from 'next-intl/server';
 import type {ReactNode} from 'react';
 import type {Locale} from '../i18n';
+import FooterAccordion from './FooterAccordion';
 import FooterLanguageSelect from './FooterLanguageSelect';
 import FooterNewsletter from './FooterNewsletter';
 
 interface FooterProps {
   locale: Locale;
   // compact = true → используется внутри FooterSlide на mobile-shop, чтобы
-  // длинное atelier-эссе не съело "thank you"-панель.
+  // длинное brand-эссе не съело "thank you"-панель.
   compact?: boolean;
 }
 
@@ -81,21 +82,21 @@ export default async function Footer({locale, compact = false}: FooterProps) {
           <div className="grid grid-cols-12 gap-x-8 gap-y-10">
             {/* Atelier — 3/12 */}
             <div className="col-span-3">
-              <FooterColTitle>{t('atelier.title')}</FooterColTitle>
+              <FooterColTitle>{t('brand.title')}</FooterColTitle>
               {!compact && (
                 <p className="mt-4 text-[13px] leading-[1.7] text-[#F2E6D8]/55">
-                  {t('atelier.essay')}
+                  {t('brand.essay')}
                 </p>
               )}
               <p className="mt-5 font-accent text-[10px] uppercase tracking-[0.25em] text-[#F2E6D8]/35">
-                {t('atelier.location')}
+                {t('brand.tag')}
               </p>
               <Link
                 href={`/${locale}/about`}
                 className="mt-3 inline-flex items-center gap-1.5 font-accent text-[11px] uppercase tracking-[0.25em] text-[#D4A574] transition-colors duration-200 hover:text-[#F2E6D8]"
                 prefetch
               >
-                {t('atelier.cta')}
+                {t('brand.cta')}
                 <span aria-hidden>→</span>
               </Link>
             </div>
@@ -155,21 +156,21 @@ export default async function Footer({locale, compact = false}: FooterProps) {
         <div className="space-y-4 py-6 lg:hidden">
           {/* Atelier — always visible */}
           <div className="border-b border-[#F2E6D8]/[0.06] pb-5">
-            <FooterColTitle>{t('atelier.title')}</FooterColTitle>
+            <FooterColTitle>{t('brand.title')}</FooterColTitle>
             {!compact && (
               <p className="mt-3 text-[13px] leading-[1.7] text-[#F2E6D8]/55">
-                {t('atelier.essay')}
+                {t('brand.essay')}
               </p>
             )}
             <p className="mt-3 font-accent text-[10px] uppercase tracking-[0.25em] text-[#F2E6D8]/35">
-              {t('atelier.location')}
+              {t('brand.tag')}
             </p>
             <Link
               href={`/${locale}/about`}
               className="mt-3 inline-flex items-center gap-1.5 font-accent text-[11px] uppercase tracking-[0.25em] text-[#D4A574]"
               prefetch
             >
-              {t('atelier.cta')} <span aria-hidden>→</span>
+              {t('brand.cta')} <span aria-hidden>→</span>
             </Link>
           </div>
 
@@ -219,7 +220,7 @@ export default async function Footer({locale, compact = false}: FooterProps) {
                 {t('payments.title')}
               </span>
               <span className="text-[11px] text-[#F2E6D8]/40">
-                {t('payments.comingSoon')}
+                {t('payments.methods')}
               </span>
               <span className="text-[#F2E6D8]/15">·</span>
               <Link
@@ -276,33 +277,6 @@ function FooterLinkList({items, translateKey, t}: FooterLinkListProps) {
         </li>
       ))}
     </ul>
-  );
-}
-
-function FooterAccordion({
-  title,
-  children,
-}: {
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <details className="group border-b border-[#F2E6D8]/[0.06] pb-3 [&_summary::-webkit-details-marker]:hidden">
-      <summary className="flex cursor-pointer list-none items-center justify-between py-3">
-        <FooterColTitle>{title}</FooterColTitle>
-        <svg
-          className="h-3 w-3 text-[#F2E6D8]/40 transition-transform duration-200 group-open:rotate-45"
-          viewBox="0 0 12 12"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          aria-hidden="true"
-        >
-          <path d="M6 1v10M1 6h10" strokeLinecap="round" />
-        </svg>
-      </summary>
-      <div className="pb-1 pt-1">{children}</div>
-    </details>
   );
 }
 
