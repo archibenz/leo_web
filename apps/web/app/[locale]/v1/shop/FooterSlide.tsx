@@ -1,27 +1,36 @@
 'use client';
 
-import {type ReactNode} from 'react';
+import type {ReactNode} from 'react';
 
 interface FooterSlideProps {
   zIndex: number;
   children: ReactNode;
 }
 
-// Footer behaves exactly like a product card: 100dvh snap target with
-// scroll-snap-stop: 'always' so a swipe from the last product slide lands
-// firmly on the footer, just like swiping between two slides.
+// Restored to the original c53db4b sticky-stack pattern: inner div sticks at
+// top:0 with z-index + box-shadow above the last slide, so the footer "lifts
+// onto" the catalog the same way the product cards lift onto each other.
+// With <Footer compact /> the editorial footer fits inside 100dvh on mobile,
+// so overflow-y-auto stays inert and there's no nested scroll lag.
 export default function FooterSlide({zIndex, children}: FooterSlideProps) {
   return (
     <section
-      className="relative w-full bg-[#1a0f0a]"
+      className="relative w-full"
       style={{
-        zIndex,
         minHeight: '100dvh',
         scrollSnapAlign: 'start',
         scrollSnapStop: 'always',
       }}
     >
-      {children}
+      <div
+        className="sticky top-0 flex min-h-[100dvh] w-full flex-col overflow-y-auto bg-[#1a0f0a]"
+        style={{
+          zIndex,
+          boxShadow: '0 -18px 36px rgba(0, 0, 0, 0.4)',
+        }}
+      >
+        <div className="flex flex-1 flex-col justify-end">{children}</div>
+      </div>
     </section>
   );
 }
