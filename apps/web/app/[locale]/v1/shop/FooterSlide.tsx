@@ -7,19 +7,13 @@ interface FooterSlideProps {
   children: ReactNode;
 }
 
-// Footer renders inline below the last product slide. Same scroll-snap target
-// as the slides, but with snap-stop 'normal' so the swipe glides through into
-// the footer without bouncing on it.
+// Footer renders inline below the last product slide WITHOUT a scroll-snap
+// target — the swipe glides directly from the last slide into the footer
+// content without bouncing on the brand-band edge. zIndex kept so the
+// editorial footer stays above the dark page background during transition.
 export default function FooterSlide({zIndex, children}: FooterSlideProps) {
   return (
-    <section
-      className="relative w-full bg-[#1a0f0a]"
-      style={{
-        zIndex,
-        scrollSnapAlign: 'start',
-        scrollSnapStop: 'normal',
-      }}
-    >
+    <section className="relative w-full bg-[#1a0f0a]" style={{zIndex}}>
       {children}
     </section>
   );

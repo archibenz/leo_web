@@ -114,10 +114,10 @@ export default function PhotoCarousel({
             <span
               key={i}
               aria-hidden="true"
-              className="block h-[5px] rounded-full bg-paper transition-all duration-300"
+              className="block h-[5px] rounded-full bg-ink shadow-[0_1px_4px_rgba(0,0,0,0.5)] transition-all duration-300"
               style={{
                 width: i === activeIndex ? '18px' : '5px',
-                opacity: i === activeIndex ? 0.95 : 0.45,
+                opacity: i === activeIndex ? 0.95 : 0.5,
               }}
             />
           ))}
