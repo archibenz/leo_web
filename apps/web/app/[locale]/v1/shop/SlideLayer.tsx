@@ -1,10 +1,8 @@
 'use client';
 
-import {motion, useMotionTemplate} from 'framer-motion';
 import {useMemo} from 'react';
 import PhotoCarousel from './PhotoCarousel';
 import SlideOverlay from './SlideOverlay';
-import {useStackedScroll} from '../../../../hooks/useStackedScroll';
 import type {MobileShopItem} from './types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? '';
@@ -52,52 +50,33 @@ interface SlideLayerProps {
   locale: string;
 }
 
+// Push-up scroll: each slide is a full-viewport snap target in normal flow.
+// No sticky stack, no clip-path. The "previous slide pushes up" feel comes
+// from the natural scroll between scroll-snap targets — iOS-Stories style.
 export default function SlideLayer({product, index, locale}: SlideLayerProps) {
   const images = useMemo(() => pickImages(product), [product]);
   const fallback = GRADIENTS[product.occasion ?? ''] ?? 'from-[#3a2018] to-[#8a5a3a]';
-  const isFirst = index === 0;
-
-  const stack = useStackedScroll<HTMLElement>({
-    disabled: isFirst,
-    shadow: !isFirst,
-  });
-
-  const boxShadow = useMotionTemplate`0 -22px 44px rgba(0, 0, 0, ${stack.shadowAlpha})`;
 
   return (
     <section
-      ref={stack.ref}
-      className="relative w-full"
+      className="relative w-full overflow-hidden bg-paper"
       style={{
         height: '100dvh',
         scrollSnapAlign: 'start',
         scrollSnapStop: 'always',
-        // Skip rendering off-screen slides until the user scrolls near them —
-        // big win when there are 10+ slides in the catalogue.
+        // Skip painting off-screen slides for buttery scroll on long catalogues.
         contentVisibility: 'auto',
         containIntrinsicSize: '100dvh',
       }}
     >
-      <motion.div
-        className="sticky top-0 h-[100dvh] w-full overflow-hidden bg-paper"
-        style={{
-          zIndex: 1 + index,
-          contain: 'paint',
-          willChange: 'clip-path',
-          transform: 'translateZ(0)',
-          clipPath: stack.clipPath,
-          boxShadow,
-        }}
-      >
-        <PhotoCarousel
-          images={images}
-          alt={product.title}
-          fallbackGradient={fallback}
-          productHref={`/${locale}/product/${product.id}`}
-          priorityFirst={index < 2}
-        />
-        <SlideOverlay product={product} locale={locale} />
-      </motion.div>
+      <PhotoCarousel
+        images={images}
+        alt={product.title}
+        fallbackGradient={fallback}
+        productHref={`/${locale}/product/${product.id}`}
+        priorityFirst={index < 2}
+      />
+      <SlideOverlay product={product} locale={locale} />
     </section>
   );
 }
