@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {Hammer, Heart, Sparkles} from 'lucide-react';
 import type {Locale} from '../../../i18n';
 import BlurReveal from '../../../components/BlurReveal';
+import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 
 type Props = {params: Promise<{locale: Locale}>};
 
@@ -45,37 +46,17 @@ export default async function AboutPage({params}: Props) {
     <div className="min-h-screen">
       {/* ── S1: Hero — cinematic logo reveal ── */}
       <section className="relative flex min-h-[80vh] items-center justify-center overflow-hidden">
-        {/* Atelier editorial banner — 5-layer composition, no WebGL */}
-        <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-          {/* Base — deep paper to ink linear gradient */}
-          <div
-            className="absolute inset-0"
-            style={{background: 'linear-gradient(160deg, #1B0E0A 0%, #2B1711 45%, #15080a 100%)'}}
-          />
-          {/* Warm gold glow — top-left (sunlight through atelier window) */}
-          <div
-            className="absolute inset-0"
-            style={{background: 'radial-gradient(ellipse 65% 80% at 22% 18%, rgba(212, 165, 116, 0.22) 0%, transparent 65%)'}}
-          />
-          {/* Deep oxblood spotlight — bottom-right (shadow) */}
-          <div
-            className="absolute inset-0"
-            style={{background: 'radial-gradient(ellipse 70% 90% at 78% 82%, rgba(154, 58, 42, 0.24) 0%, transparent 70%)'}}
-          />
-          {/* Soft vertical gold sheen — middle */}
-          <div
-            className="absolute inset-0"
-            style={{background: 'linear-gradient(180deg, transparent 0%, rgba(212, 165, 116, 0.05) 50%, transparent 100%)'}}
-          />
-          {/* Paper grain texture overlay */}
-          <div
-            className="absolute inset-0 opacity-[0.08] mix-blend-overlay pointer-events-none"
-            style={{
-              backgroundImage:
-                "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='40' height='40' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E\")",
-            }}
-          />
-        </div>
+        <HeroShaderBackgroundClient />
+        {/* Subtle warm gold tint — softens shader's red glow toward atelier feel */}
+        <div
+          className="pointer-events-none absolute inset-0 z-[2]"
+          aria-hidden="true"
+          style={{
+            background:
+              'radial-gradient(ellipse 70% 80% at 25% 20%, rgba(212, 165, 116, 0.14) 0%, transparent 60%)',
+            mixBlendMode: 'screen',
+          }}
+        />
         <div
           className="absolute inset-x-0 bottom-0 z-[5] h-64"
           style={{background: 'linear-gradient(to bottom, transparent, #1E120D)'}}
