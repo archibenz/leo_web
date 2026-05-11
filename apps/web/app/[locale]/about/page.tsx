@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {Hammer, Heart, Sparkles} from 'lucide-react';
 import type {Locale} from '../../../i18n';
 import BlurReveal from '../../../components/BlurReveal';
+import BrandMark from '../../../components/BrandMark';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 
 type Props = {params: Promise<{locale: Locale}>};
@@ -115,9 +116,9 @@ export default async function AboutPage({params}: Props) {
         >
           {([1, 2, 3] as const).map((n) => (
             <BlurReveal key={n} mode="scroll" className="relative pb-16 last:pb-0">
-              <span
-                aria-hidden
-                className="absolute top-2 -left-[3.85rem] h-3 w-3 rotate-45 bg-accent md:-left-[4.85rem]"
+              <BrandMark
+                size={18}
+                className="absolute top-1 -left-[4.25rem] rotate-45 text-accent md:-left-[5.25rem]"
               />
               <p className="pt-0 text-lg leading-relaxed text-ink-soft">
                 {t(`looks.point${n}`)}
@@ -154,10 +155,7 @@ export default async function AboutPage({params}: Props) {
                   />
                 </div>
                 <div className="relative p-6">
-                  <span
-                    aria-hidden
-                    className="mb-5 inline-block h-2.5 w-2.5 rotate-45 bg-accent"
-                  />
+                  <BrandMark size={16} className="mb-5 rotate-45 text-accent" />
                   <h3 className="font-display mb-3 text-xl text-ink">{title}</h3>
                   <p className="text-sm leading-relaxed text-ink-soft">{text}</p>
                 </div>
