@@ -320,7 +320,8 @@
     "philosophy": {
       "tag": "Philosophy",
       "title": "We create looks, not just clothing",
-      "text": "Every piece in the REINASLEO collection is part of a curated look where silhouette, texture, and colour work together. We believe true style is the harmony of details."
+      "text": "Every piece in the REINASLEO collection is part of a curated look where silhouette, texture, and colour work together. We believe true style is the harmony of details.",
+      "pullQuote": "More than clothing — a complete language of presence."
     },
     "looks": {
       "tag": "Concept",
@@ -350,7 +351,12 @@
       "individuality": "Individuality",
       "individualityText": "Style that highlights your uniqueness"
     },
-    "cta": "Explore collections"
+    "editorial": {
+      "tag": "Lookbook",
+      "title": "Worn in the world"
+    },
+    "cta": "Explore collections",
+    "cta_tag": "Discover"
   },
   "shop": {
     "tag": "Shop",
