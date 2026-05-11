@@ -116,12 +116,10 @@ export default async function AboutPage({params}: Props) {
           {([1, 2, 3] as const).map((n) => (
             <BlurReveal key={n} mode="scroll" className="relative pb-16 last:pb-0">
               <span
-                className="absolute top-0 -left-[2.6rem] flex h-14 w-14 items-center justify-center rounded-full bg-paper font-display text-xl text-accent md:-left-[3.6rem]"
-                style={{border: '1px solid rgba(212, 165, 116, 0.4)'}}
-              >
-                {String(n).padStart(2, '0')}
-              </span>
-              <p className="pt-3 text-lg leading-relaxed text-ink-soft">
+                aria-hidden
+                className="absolute top-2 -left-[3.85rem] h-3 w-3 rotate-45 bg-accent md:-left-[4.85rem]"
+              />
+              <p className="pt-0 text-lg leading-relaxed text-ink-soft">
                 {t(`looks.point${n}`)}
               </p>
             </BlurReveal>
@@ -157,11 +155,9 @@ export default async function AboutPage({params}: Props) {
                 </div>
                 <div className="relative p-6">
                   <span
-                    className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-full font-display text-base text-accent"
-                    style={{border: '1px solid rgba(212, 165, 116, 0.4)'}}
-                  >
-                    {String(n).padStart(2, '0')}
-                  </span>
+                    aria-hidden
+                    className="mb-5 inline-block h-2.5 w-2.5 rotate-45 bg-accent"
+                  />
                   <h3 className="font-display mb-3 text-xl text-ink">{title}</h3>
                   <p className="text-sm leading-relaxed text-ink-soft">{text}</p>
                 </div>
@@ -248,17 +244,8 @@ export default async function AboutPage({params}: Props) {
         />
         <p className="capsule-tag mb-6">{t('cta_tag')}</p>
         <div className="ribbon-line mx-auto mb-8 w-24" />
-        <Link
-          href={`/${locale}/shop`}
-          className="group inline-flex items-center gap-3 border-2 border-accent bg-transparent px-12 py-4 font-display text-sm uppercase tracking-[0.3em] text-accent transition-all duration-500 hover:bg-accent hover:text-paper hover:shadow-[0_10px_40px_rgba(212,165,116,0.25)]"
-        >
-          <span>{t('cta')}</span>
-          <span
-            aria-hidden
-            className="inline-block transition-transform duration-500 group-hover:translate-x-1.5"
-          >
-            →
-          </span>
+        <Link href={`/${locale}/shop`} className="lux-btn-primary">
+          {t('cta')}
         </Link>
       </section>
     </div>
