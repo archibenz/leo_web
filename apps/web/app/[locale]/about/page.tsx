@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {Hammer, Heart, Sparkles} from 'lucide-react';
 import type {Locale} from '../../../i18n';
 import BlurReveal from '../../../components/BlurReveal';
-import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 
 type Props = {params: Promise<{locale: Locale}>};
 
@@ -46,7 +45,37 @@ export default async function AboutPage({params}: Props) {
     <div className="min-h-screen">
       {/* ── S1: Hero — cinematic logo reveal ── */}
       <section className="relative flex min-h-[80vh] items-center justify-center overflow-hidden">
-        <HeroShaderBackgroundClient />
+        {/* Atelier editorial banner — 5-layer composition, no WebGL */}
+        <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+          {/* Base — deep paper to ink linear gradient */}
+          <div
+            className="absolute inset-0"
+            style={{background: 'linear-gradient(160deg, #1B0E0A 0%, #2B1711 45%, #15080a 100%)'}}
+          />
+          {/* Warm gold glow — top-left (sunlight through atelier window) */}
+          <div
+            className="absolute inset-0"
+            style={{background: 'radial-gradient(ellipse 65% 80% at 22% 18%, rgba(212, 165, 116, 0.22) 0%, transparent 65%)'}}
+          />
+          {/* Deep oxblood spotlight — bottom-right (shadow) */}
+          <div
+            className="absolute inset-0"
+            style={{background: 'radial-gradient(ellipse 70% 90% at 78% 82%, rgba(154, 58, 42, 0.24) 0%, transparent 70%)'}}
+          />
+          {/* Soft vertical gold sheen — middle */}
+          <div
+            className="absolute inset-0"
+            style={{background: 'linear-gradient(180deg, transparent 0%, rgba(212, 165, 116, 0.05) 50%, transparent 100%)'}}
+          />
+          {/* Paper grain texture overlay */}
+          <div
+            className="absolute inset-0 opacity-[0.08] mix-blend-overlay pointer-events-none"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='40' height='40' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E\")",
+            }}
+          />
+        </div>
         <div
           className="absolute inset-x-0 bottom-0 z-[5] h-64"
           style={{background: 'linear-gradient(to bottom, transparent, #1E120D)'}}
@@ -238,8 +267,17 @@ export default async function AboutPage({params}: Props) {
         />
         <p className="capsule-tag mb-6">{t('cta_tag')}</p>
         <div className="ribbon-line mx-auto mb-8 w-24" />
-        <Link href={`/${locale}/shop`} className="lux-btn-primary">
-          {t('cta')}
+        <Link
+          href={`/${locale}/shop`}
+          className="group inline-flex items-center gap-3 border-2 border-accent bg-transparent px-12 py-4 font-display text-sm uppercase tracking-[0.3em] text-accent transition-all duration-500 hover:bg-accent hover:text-paper hover:shadow-[0_10px_40px_rgba(212,165,116,0.25)]"
+        >
+          <span>{t('cta')}</span>
+          <span
+            aria-hidden
+            className="inline-block transition-transform duration-500 group-hover:translate-x-1.5"
+          >
+            →
+          </span>
         </Link>
       </section>
     </div>
