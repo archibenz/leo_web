@@ -9,7 +9,8 @@ export default function LoaderSplash({size = 128}: LoaderSplashProps) {
     <div
       role="status"
       aria-label="Loading"
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-paper"
+      className="fixed inset-x-0 top-0 z-[9999] flex items-center justify-center bg-paper"
+      style={{height: '100dvh', minHeight: '100dvh'}}
     >
       {/* Ambient radial glow — warm red echo from loader + golden ambience */}
       <div

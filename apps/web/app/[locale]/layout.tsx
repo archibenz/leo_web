@@ -70,7 +70,7 @@ export default async function LocaleLayout({
           <SmartHeader>
             <Header locale={locale} />
           </SmartHeader>
-          <main id="main-content" className="relative z-10 flex-1">{children}</main>
+          <main id="main-content" className="relative z-40 flex-1">{children}</main>
           <Footer locale={locale} />
         </div>
       </Providers>
