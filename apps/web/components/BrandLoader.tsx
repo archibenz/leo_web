@@ -15,10 +15,10 @@ const PETALS_PATHS = [
 
 export default function BrandLoader({
   size = 48,
-  speed = 'fast',
+  speed = 'slow',
   className = '',
 }: BrandLoaderProps) {
-  const cycle = speed === 'slow' ? '1.8s' : '1.1s';
+  const cycle = speed === 'fast' ? '1.1s' : '1.8s';
 
   return (
     <span
