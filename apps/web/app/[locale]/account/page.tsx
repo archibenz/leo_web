@@ -10,6 +10,7 @@ import {useRecentlyViewed} from '../../../hooks/useRecentlyViewed';
 import {apiFetch} from '../../../lib/api';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import BrandLoader from '../../../components/BrandLoader';
+import LoaderSplash from '../../../components/LoaderSplash';
 import {BrandHeart} from '../../../components/icons';
 import Link from 'next/link';
 
@@ -267,17 +268,7 @@ export default function AccountPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="relative min-h-screen pt-28 pb-6">
-        <HeroShaderBackgroundClient />
-        <div className="relative z-10 flex min-h-[60vh] items-center justify-center px-6 lg:px-8">
-          <div className="paper-card p-10 text-center">
-            <BrandLoader size={48} />
-            <p className="mt-4 text-ink-soft">{t('loading')}</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoaderSplash />;
   }
 
   // Logged in state

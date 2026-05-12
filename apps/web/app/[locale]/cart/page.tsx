@@ -7,7 +7,7 @@ import {useTranslations} from 'next-intl';
 import {useCart} from '../../../contexts/CartContext';
 import {useAuth} from '../../../contexts/AuthContext';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
-import BrandLoader from '../../../components/BrandLoader';
+import LoaderSplash from '../../../components/LoaderSplash';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 import {useRecentlyViewed} from '../../../hooks/useRecentlyViewed';
 
@@ -28,21 +28,8 @@ export default function CartPage() {
   const allTest = items.length > 0 && items.every(item => item.isTest);
   const realTotal = items.filter(i => !i.isTest).reduce((sum, i) => sum + (i.price ?? 0) * i.quantity, 0);
 
-  /* ── Loading state ── */
   if (isLoading) {
-    return (
-      <div className="relative min-h-screen pt-28 pb-6">
-        <HeroShaderBackgroundClient />
-        <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
-          <div className="flex min-h-[40vh] items-center justify-center">
-            <div className="text-center">
-              <BrandLoader size={48} />
-              <p className="mt-4 text-ink-soft">{t('loading')}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoaderSplash />;
   }
 
   return (

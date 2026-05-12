@@ -6,7 +6,7 @@ import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {useFavorites, useCart} from '../../../contexts';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
-import BrandLoader from '../../../components/BrandLoader';
+import LoaderSplash from '../../../components/LoaderSplash';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 import {BrandHeart} from '../../../components/icons';
 
@@ -25,19 +25,7 @@ export default function FavoritesPage({params}: Props) {
   const locale = pathname.split('/')[1] || 'ru';
 
   if (isLoading) {
-    return (
-      <div className="relative min-h-screen pt-28 pb-6">
-        <HeroShaderBackgroundClient />
-        <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
-          <div className="flex min-h-[40vh] items-center justify-center">
-            <div className="text-center">
-              <BrandLoader size={48} />
-              <p className="mt-4 text-ink-soft">{t('loading')}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoaderSplash />;
   }
 
   return (

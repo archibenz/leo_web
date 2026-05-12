@@ -1,9 +1,5 @@
-import BrandLoader from '../../../components/BrandLoader';
+import LoaderSplash from '../../../components/LoaderSplash';
 
 export default function Loading() {
-  return (
-    <div className="flex min-h-[60vh] items-center justify-center pt-28">
-      <BrandLoader size={96} speed="slow" />
-    </div>
-  );
+  return <LoaderSplash />;
 }
