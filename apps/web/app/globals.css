@@ -427,13 +427,13 @@ h2.font-display,
   to { transform: rotate(360deg); }
 }
 @keyframes brand-fade-square {
-  0%, 45%  { opacity: 1; }
-  55%, 95% { opacity: 0; }
+  0%, 30%  { opacity: 1; }
+  50%, 80% { opacity: 0; }
   100%     { opacity: 1; }
 }
 @keyframes brand-fade-petals {
-  0%, 45%  { opacity: 0; }
-  55%, 95% { opacity: 1; }
+  0%, 30%  { opacity: 0; }
+  50%, 80% { opacity: 1; }
   100%     { opacity: 0; }
 }
 
@@ -461,10 +461,10 @@ h2.font-display,
   will-change: opacity;
 }
 .brand-loader__square {
-  animation: brand-fade-square calc(var(--bl-cycle, 1.1s) * 2) linear infinite;
+  animation: brand-fade-square calc(var(--bl-cycle, 1.1s) * 2) ease-in-out infinite;
 }
 .brand-loader__petals {
-  animation: brand-fade-petals calc(var(--bl-cycle, 1.1s) * 2) linear infinite;
+  animation: brand-fade-petals calc(var(--bl-cycle, 1.1s) * 2) ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
