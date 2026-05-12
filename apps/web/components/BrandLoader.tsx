@@ -18,7 +18,7 @@ export default function BrandLoader({
   speed = 'slow',
   className = '',
 }: BrandLoaderProps) {
-  const cycle = speed === 'fast' ? '1.1s' : '1.8s';
+  const cycle = speed === 'fast' ? '1.1s' : '1.5s';
 
   return (
     <span
