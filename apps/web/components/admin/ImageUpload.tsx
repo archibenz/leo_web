@@ -3,7 +3,7 @@
 import {useState, useRef, useCallback} from 'react';
 import {useTranslations} from 'next-intl';
 import {API_BASE, apiFetch, getToken} from '../../lib/api';
-import Spinner from '../ui/Spinner';
+import BrandLoader from '../BrandLoader';
 
 interface ImageUploadProps {
   images: {src: string; alt: string}[];
@@ -131,7 +131,7 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
       >
         {uploading ? (
           <div className="flex items-center gap-2 text-sm text-[var(--ink-soft)]">
-            <Spinner size="sm" />
+            <BrandLoader size={20} />
             {t('uploading')}
           </div>
         ) : (

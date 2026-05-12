@@ -7,7 +7,7 @@ import {useTranslations} from 'next-intl';
 import {useCart} from '../../../contexts/CartContext';
 import {useAuth} from '../../../contexts/AuthContext';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
-import Spinner from '../../../components/ui/Spinner';
+import BrandLoader from '../../../components/BrandLoader';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 import {useRecentlyViewed} from '../../../hooks/useRecentlyViewed';
 
@@ -36,7 +36,7 @@ export default function CartPage() {
         <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
           <div className="flex min-h-[40vh] items-center justify-center">
             <div className="text-center">
-              <Spinner size="lg" />
+              <BrandLoader size={48} />
               <p className="mt-4 text-ink-soft">{t('loading')}</p>
             </div>
           </div>

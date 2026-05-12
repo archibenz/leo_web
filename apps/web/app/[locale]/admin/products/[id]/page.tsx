@@ -4,7 +4,7 @@ import {use, useState, useEffect, useCallback} from 'react';
 import {useTranslations} from 'next-intl';
 import AdminLayout from '../../../../../components/admin/AdminLayout';
 import ProductForm from '../../../../../components/admin/ProductForm';
-import Spinner from '../../../../../components/ui/Spinner';
+import BrandLoader from '../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../lib/api';
 
 type Props = {
@@ -103,7 +103,7 @@ function RecommendationsSection({productId}: {productId: string}) {
     return (
       <div className="paper-card p-6">
         <div className="flex items-center justify-center py-10">
-          <Spinner size="md" />
+          <BrandLoader size={32} />
         </div>
       </div>
     );

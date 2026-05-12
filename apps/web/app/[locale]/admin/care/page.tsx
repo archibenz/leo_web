@@ -5,7 +5,7 @@ import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '../../../../components/admin/AdminLayout';
-import Spinner from '../../../../components/ui/Spinner';
+import BrandLoader from '../../../../components/BrandLoader';
 import {apiFetch} from '../../../../lib/api';
 import {CareSymbolsRow} from '../../../../components/CareSymbols';
 
@@ -63,7 +63,7 @@ export default function AdminCarePage() {
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Spinner size="md" />
+            <BrandLoader size={32} />
           </div>
         ) : guides.length === 0 ? (
           <p className="text-sm text-[var(--ink-soft)]">

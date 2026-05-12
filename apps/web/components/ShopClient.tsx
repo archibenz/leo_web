@@ -3,7 +3,7 @@
 import {useState, useMemo, useCallback, useEffect, useRef} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname, useSearchParams} from 'next/navigation';
-import Spinner from './ui/Spinner';
+import BrandLoader from './BrandLoader';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -514,7 +514,7 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
       <section className="mx-auto w-full max-w-7xl px-4 pt-28 pb-10 sm:px-6 lg:px-8">
         <div className="flex min-h-[40vh] items-center justify-center">
           <div className="text-center">
-            <Spinner size="lg" />
+            <BrandLoader size={48} />
           </div>
         </div>
       </section>

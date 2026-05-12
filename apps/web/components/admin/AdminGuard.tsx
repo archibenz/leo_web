@@ -3,7 +3,7 @@
 import {useEffect} from 'react';
 import {useRouter, usePathname} from 'next/navigation';
 import {useAuth} from '../../contexts/AuthContext';
-import Spinner from '../ui/Spinner';
+import BrandLoader from '../BrandLoader';
 import {useTranslations} from 'next-intl';
 
 export default function AdminGuard({children}: {children: React.ReactNode}) {
@@ -22,7 +22,7 @@ export default function AdminGuard({children}: {children: React.ReactNode}) {
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <Spinner size="md" />
+        <BrandLoader size={32} />
       </div>
     );
   }

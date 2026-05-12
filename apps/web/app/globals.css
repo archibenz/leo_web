@@ -422,29 +422,55 @@ h2.font-display,
   }
 }
 
-/* Brand Spinner — dual-arc rotation */
-@keyframes spinnerOuter {
+/* BrandLoader — square ⇄ petals morphing loader */
+@keyframes brand-spin {
   to { transform: rotate(360deg); }
 }
-@keyframes spinnerInner {
-  to { transform: rotate(-360deg); }
+@keyframes brand-fade-square {
+  0%, 45%  { opacity: 1; }
+  55%, 95% { opacity: 0; }
+  100%     { opacity: 1; }
 }
-@keyframes spinnerPulse {
-  0%, 100% { opacity: 0.85; }
-  50% { opacity: 1; }
+@keyframes brand-fade-petals {
+  0%, 45%  { opacity: 0; }
+  55%, 95% { opacity: 1; }
+  100%     { opacity: 0; }
 }
 
-.spinner-brand {
-  filter: drop-shadow(0 0 6px rgba(212, 165, 116, 0.35));
-  animation: spinnerPulse 2.4s ease-in-out infinite;
+.brand-loader {
+  position: relative;
+  display: inline-flex;
+  color: #aa000d;
 }
-.spinner-arc-outer {
+.brand-loader__spin {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
   transform-origin: center;
-  animation: spinnerOuter 1.4s linear infinite;
+  animation: brand-spin var(--bl-cycle, 1.1s) linear infinite;
+  will-change: transform;
 }
-.spinner-arc-inner {
-  transform-origin: center;
-  animation: spinnerInner 1.8s linear infinite;
+.brand-loader__square,
+.brand-loader__petals {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  will-change: opacity;
+}
+.brand-loader__square {
+  animation: brand-fade-square calc(var(--bl-cycle, 1.1s) * 2) linear infinite;
+}
+.brand-loader__petals {
+  animation: brand-fade-petals calc(var(--bl-cycle, 1.1s) * 2) linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-loader__spin { animation: none; }
+  .brand-loader__square { animation: none; opacity: 1; }
+  .brand-loader__petals { animation: none; opacity: 0; }
 }
 
 /* ============================================

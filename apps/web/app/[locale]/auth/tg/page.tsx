@@ -5,7 +5,7 @@ import {useSearchParams, useRouter} from 'next/navigation';
 import {useLocale} from 'next-intl';
 import {apiFetch} from '../../../../lib/api';
 import {useAuth} from '../../../../contexts';
-import Spinner from '../../../../components/ui/Spinner';
+import BrandLoader from '../../../../components/BrandLoader';
 
 type ExchangeResponse = {
   token: string;
@@ -61,7 +61,7 @@ function TelegramAuthContent() {
   return (
     <div className="relative min-h-screen pt-28 pb-6 flex items-center justify-center px-6">
       <div className="paper-card p-10 text-center">
-        <Spinner size="lg" />
+        <BrandLoader size={48} />
         <p className="mt-4 text-ink-soft">Выполняем вход...</p>
       </div>
     </div>
@@ -74,7 +74,7 @@ export default function TelegramAuthPage() {
       fallback={
         <div className="relative min-h-screen pt-28 pb-6 flex items-center justify-center px-6">
           <div className="paper-card p-10 text-center">
-            <Spinner size="lg" />
+            <BrandLoader size={48} />
           </div>
         </div>
       }

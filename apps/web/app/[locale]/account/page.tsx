@@ -9,7 +9,7 @@ import {useAuth, useFavorites} from '../../../contexts';
 import {useRecentlyViewed} from '../../../hooks/useRecentlyViewed';
 import {apiFetch} from '../../../lib/api';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
-import Spinner from '../../../components/ui/Spinner';
+import BrandLoader from '../../../components/BrandLoader';
 import {BrandHeart} from '../../../components/icons';
 import Link from 'next/link';
 
@@ -272,7 +272,7 @@ export default function AccountPage() {
         <HeroShaderBackgroundClient />
         <div className="relative z-10 flex min-h-[60vh] items-center justify-center px-6 lg:px-8">
           <div className="paper-card p-10 text-center">
-            <Spinner size="lg" />
+            <BrandLoader size={48} />
             <p className="mt-4 text-ink-soft">{t('loading')}</p>
           </div>
         </div>
@@ -348,7 +348,7 @@ export default function AccountPage() {
                   <button type="submit" disabled={submitting}
                     className="relative w-full overflow-hidden rounded-full bg-button px-8 py-4 text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85 hover:shadow-lg hover:shadow-button/25 disabled:opacity-50">
                     <span className={`inline-block transition-all duration-300 ${submitting ? 'opacity-0' : 'opacity-100'}`}>{t('buttons.signIn')}</span>
-                    {submitting && <span className="absolute inset-0 flex items-center justify-center"><Spinner size="sm" /></span>}
+                    {submitting && <span className="absolute inset-0 flex items-center justify-center"><BrandLoader size={20} /></span>}
                   </button>
                 </form>
               )}
@@ -372,7 +372,7 @@ export default function AccountPage() {
 
                       <button type="button" onClick={handleRegSendCode} disabled={submitting || !regEmail.trim()}
                         className="relative w-full overflow-hidden rounded-full bg-button px-8 py-4 text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85 disabled:opacity-50">
-                        {submitting ? <Spinner size="sm" className="mx-auto" /> : t('buttons.continue')}
+                        {submitting ? <BrandLoader size={20} className="mx-auto" /> : t('buttons.continue')}
                       </button>
                     </div>
                   )}
@@ -455,7 +455,7 @@ export default function AccountPage() {
                       <button type="submit" disabled={submitting}
                         className="relative w-full overflow-hidden rounded-full bg-button px-8 py-4 text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85 disabled:opacity-50">
                         <span className={`inline-block transition-all duration-300 ${submitting ? 'opacity-0' : 'opacity-100'}`}>{t('buttons.signUp')}</span>
-                        {submitting && <span className="absolute inset-0 flex items-center justify-center"><Spinner size="sm" /></span>}
+                        {submitting && <span className="absolute inset-0 flex items-center justify-center"><BrandLoader size={20} /></span>}
                       </button>
                     </form>
                   )}
@@ -473,7 +473,7 @@ export default function AccountPage() {
               {tgPolling ? (
                 <div className="w-full rounded-2xl border border-accent/30 bg-accent/5 px-6 py-4 text-center space-y-3">
                   <div className="flex items-center justify-center gap-3">
-                    <Spinner size="sm" />
+                    <BrandLoader size={20} />
                     <span className="text-sm text-ink">{t('buttons.waitingTelegram')}</span>
                   </div>
                   <button type="button" onClick={stopPolling} className="text-xs text-ink-soft underline underline-offset-2 hover:text-ink transition-colors">{t('buttons.cancel')}</button>
@@ -484,7 +484,7 @@ export default function AccountPage() {
                   <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current text-[#229ED9]" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.932z"/>
                   </svg>
-                  {tgLoading ? <Spinner size="sm" /> : t('buttons.telegramLogin')}
+                  {tgLoading ? <BrandLoader size={20} /> : t('buttons.telegramLogin')}
                 </button>
               )}
             </div>
@@ -695,7 +695,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
           {activeTab === 'favorites' && (
             <>
               {favLoading ? (
-                <div className="flex items-center justify-center py-12"><Spinner size="lg" /></div>
+                <div className="flex items-center justify-center py-12"><BrandLoader size={48} /></div>
               ) : favoriteItems.length === 0 ? (
                 <div className="text-center py-12 space-y-4">
                   <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-ink/5">

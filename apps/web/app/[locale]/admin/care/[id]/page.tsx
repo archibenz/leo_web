@@ -4,7 +4,7 @@ import {useState, useEffect} from 'react';
 import {useParams} from 'next/navigation';
 import CareGuideForm from '../../../../../components/admin/CareGuideForm';
 import AdminLayout from '../../../../../components/admin/AdminLayout';
-import Spinner from '../../../../../components/ui/Spinner';
+import BrandLoader from '../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../lib/api';
 
 interface CareGuideData {
@@ -35,7 +35,7 @@ export default function EditCareGuidePage() {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center py-20">
-          <Spinner size="md" />
+          <BrandLoader size={32} />
         </div>
       </AdminLayout>
     );
