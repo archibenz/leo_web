@@ -26,6 +26,10 @@ public class VerificationService {
     private static final int MAX_ATTEMPTS = 5;
     private static final SecureRandom RANDOM = new SecureRandom();
 
+    // 64 zero chars — same width as a SHA-256 hex hash, so the constant-time
+    // compare in verifyCode takes the same time whether or not a pending code exists.
+    private static final String DUMMY_HASH = "0".repeat(64);
+
     private final VerificationCodeRepository codeRepository;
     private final EmailService emailService;
 
@@ -64,24 +68,25 @@ public class VerificationService {
 
         VerificationCode vc = codeRepository
                 .findTopByEmailAndUsedFalseOrderByCreatedAtDesc(normalizedEmail)
-                .orElseThrow(InvalidVerificationCodeException::new);
+                .orElse(null);
 
-        if (vc.getExpiresAt().isBefore(Instant.now())) {
-            throw new InvalidVerificationCodeException();
-        }
-
-        boolean match = MessageDigest.isEqual(
+        String storedHash = vc != null ? vc.getCodeHash() : DUMMY_HASH;
+        boolean hashMatches = MessageDigest.isEqual(
                 inputHash.getBytes(StandardCharsets.US_ASCII),
-                vc.getCodeHash().getBytes(StandardCharsets.US_ASCII));
+                storedHash.getBytes(StandardCharsets.US_ASCII));
 
-        if (!match) {
-            vc.incrementFailedAttempts();
-            if (vc.getFailedAttempts() >= MAX_ATTEMPTS) {
-                vc.markUsed();
-                log.warn("Verification code locked after {} failed attempts for {}",
-                        MAX_ATTEMPTS, maskEmail(normalizedEmail));
+        boolean expired = vc != null && vc.getExpiresAt().isBefore(Instant.now());
+
+        if (vc == null || expired || !hashMatches) {
+            if (vc != null && !expired) {
+                vc.incrementFailedAttempts();
+                if (vc.getFailedAttempts() >= MAX_ATTEMPTS) {
+                    vc.markUsed();
+                    log.warn("Verification code locked after {} failed attempts for {}",
+                            MAX_ATTEMPTS, maskEmail(normalizedEmail));
+                }
+                codeRepository.save(vc);
             }
-            codeRepository.save(vc);
             throw new InvalidVerificationCodeException();
         }
 
