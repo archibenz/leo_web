@@ -9,6 +9,7 @@ import com.reinasleo.api.model.*;
 import com.reinasleo.api.repository.CartItemRepository;
 import com.reinasleo.api.repository.CartRepository;
 import com.reinasleo.api.repository.ProductRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +44,7 @@ public class CartService {
         return toCartResponse(cart);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = DataIntegrityViolationException.class)
     public CartResponse addItem(User user, CartItemRequest request) {
         Product product = productRepository.findById(request.productId())
                 .orElseThrow(() -> new IllegalArgumentException("Product not found: " + request.productId()));
@@ -51,8 +52,21 @@ public class CartService {
         Cart cart = cartRepository.findByUserId(user.getId())
                 .orElseGet(() -> cartRepository.save(new Cart(user)));
 
+        try {
+            mergeAddItem(cart, product, request);
+        } catch (DataIntegrityViolationException e) {
+            // Concurrent addItem won the (cart_id, product_id, size) unique-index race;
+            // re-merge against the row that committed first.
+            mergeAddItem(cart, product, request);
+        }
+
+        analyticsService.trackEvent(user, product, "add_to_cart");
+        return toCartResponse(cart);
+    }
+
+    private void mergeAddItem(Cart cart, Product product, CartItemRequest request) {
         var existing = cartItemRepository.findByCartIdAndProductIdAndSize(
-                cart.getId(), request.productId(), request.size());
+                cart.getId(), product.getId(), request.size());
 
         int existingQty = existing.map(CartItem::getQuantity).orElse(0);
         int newQty = existingQty + request.quantity();
@@ -61,15 +75,17 @@ public class CartService {
         }
 
         if (existing.isPresent()) {
-            existing.get().setQuantity(newQty);
-        } else {
-            CartItem item = new CartItem(cart, product, request.size(), request.quantity());
-            cart.getItems().add(item);
+            CartItem row = existing.get();
+            row.setQuantity(newQty);
+            cartItemRepository.saveAndFlush(row);
+            if (cart.getItems().stream().noneMatch(i -> i.getId() != null && i.getId().equals(row.getId()))) {
+                cart.getItems().add(row);
+            }
+            return;
         }
-
-        cartRepository.save(cart);
-        analyticsService.trackEvent(user, product, "add_to_cart");
-        return toCartResponse(cart);
+        CartItem item = new CartItem(cart, product, request.size(), request.quantity());
+        CartItem saved = cartItemRepository.saveAndFlush(item);
+        cart.getItems().add(saved);
     }
 
     @Transactional

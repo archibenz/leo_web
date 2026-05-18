@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -47,7 +48,12 @@ public class OrderService {
             throw new IllegalStateException("Cart is empty");
         }
 
-        for (CartItem ci : cart.getItems()) {
+        // Acquire row locks in deterministic order to avoid deadlocks between
+        // concurrent checkouts touching overlapping product sets.
+        List<CartItem> sorted = cart.getItems().stream()
+                .sorted(Comparator.comparing(ci -> ci.getProduct().getId()))
+                .toList();
+        for (CartItem ci : sorted) {
             String productId = ci.getProduct().getId();
             Product locked = productRepository.findByIdForUpdate(productId)
                     .orElseThrow(() -> new IllegalStateException("Product not found: " + productId));

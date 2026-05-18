@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -22,10 +23,12 @@ import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -133,12 +136,61 @@ class CartServiceTest {
         when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.of(cart));
         when(cartItemRepository.findByCartIdAndProductIdAndSize(cart.getId(), "prod-3", "M"))
                 .thenReturn(Optional.empty());
-        when(cartRepository.save(any(Cart.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(cartItemRepository.saveAndFlush(any(CartItem.class))).thenAnswer(inv -> inv.getArgument(0));
         lenient().doNothing().when(analyticsService).trackEvent(any(), any(), any());
 
         CartItemRequest request = new CartItemRequest("prod-3", "M", 2);
 
         cartService.addItem(user, request);
+    }
+
+    @Test
+    void addItem_whenConcurrentInsertCausesViolation_mergesIntoExistingRow() {
+        User user = buildUser();
+        Product product = buildProduct("prod-5", 10);
+        Cart cart = buildCart(user);
+
+        CartItem committed = new CartItem(cart, product, "M", 1);
+        setField(committed, "id", UUID.randomUUID());
+
+        when(productRepository.findById("prod-5")).thenReturn(Optional.of(product));
+        when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findByCartIdAndProductIdAndSize(cart.getId(), "prod-5", "M"))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(committed));
+        when(cartItemRepository.saveAndFlush(any(CartItem.class)))
+                .thenThrow(new DataIntegrityViolationException("uq_cart_items_cart_product_size"))
+                .thenAnswer(inv -> inv.getArgument(0));
+        lenient().doNothing().when(analyticsService).trackEvent(any(), any(), any());
+
+        CartItemRequest request = new CartItemRequest("prod-5", "M", 2);
+        cartService.addItem(user, request);
+
+        assertThat(committed.getQuantity()).isEqualTo(3);
+        verify(cartItemRepository, times(2)).saveAndFlush(any(CartItem.class));
+    }
+
+    @Test
+    void addItem_whenConcurrentInsertWouldExceedStock_throwsOutOfStock() {
+        User user = buildUser();
+        Product product = buildProduct("prod-6", 3);
+        Cart cart = buildCart(user);
+
+        CartItem committed = new CartItem(cart, product, "M", 2);
+        setField(committed, "id", UUID.randomUUID());
+
+        when(productRepository.findById("prod-6")).thenReturn(Optional.of(product));
+        when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findByCartIdAndProductIdAndSize(cart.getId(), "prod-6", "M"))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(committed));
+        when(cartItemRepository.saveAndFlush(any(CartItem.class)))
+                .thenThrow(new DataIntegrityViolationException("uq_cart_items_cart_product_size"));
+
+        CartItemRequest request = new CartItemRequest("prod-6", "M", 2);
+
+        assertThatThrownBy(() -> cartService.addItem(user, request))
+                .isInstanceOf(OutOfStockException.class);
     }
 
     @Test
