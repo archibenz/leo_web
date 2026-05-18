@@ -1,4 +1,9 @@
+import type {Metadata} from 'next';
 import BrandLoader from '../../../components/BrandLoader';
+
+export const metadata: Metadata = {
+  robots: {index: false, follow: false},
+};
 
 export default function LoaderPreviewPage() {
   return (
