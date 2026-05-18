@@ -93,7 +93,7 @@ export default function FooterNewsletter({locale}: FooterNewsletterProps) {
           aria-invalid={status === 'invalid' ? 'true' : undefined}
           aria-describedby={message ? errorId : undefined}
           disabled={isLocked}
-          className="flex-1 bg-transparent py-2 text-[14px] text-[#F2E6D8]/90 placeholder:text-[#F2E6D8]/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#D4A574] disabled:opacity-50"
+          className="flex-1 bg-transparent py-2 text-[14px] text-[#F2E6D8]/90 placeholder:text-[#F2E6D8]/55 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#D4A574] disabled:opacity-50"
         />
         <button
           type="submit"

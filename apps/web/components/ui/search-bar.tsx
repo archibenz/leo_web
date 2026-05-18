@@ -127,9 +127,14 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
           </motion.div>
 
           {/* On mobile collapsed: hide input. On mobile focused or desktop: show input */}
+          <label htmlFor="search-bar-input" className="sr-only">
+            {placeholder}
+          </label>
           <input
             ref={inputRef}
-            type="text"
+            id="search-bar-input"
+            name="q"
+            type="search"
             role="combobox"
             aria-autocomplete="list"
             aria-expanded={isFocused && suggestions.length > 0}

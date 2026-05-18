@@ -68,6 +68,7 @@ export default async function AboutPage({params}: Props) {
             src="/logos/logo-white.svg"
             alt={t('hero.title')}
             loading="eager"
+            decoding="async"
             fetchPriority="high"
             className="brand-asset mx-auto mb-6 h-auto w-72 max-w-[85vw] drop-shadow-[0_4px_32px_rgba(0,0,0,0.5)] md:w-96 lg:w-[520px]"
           />
