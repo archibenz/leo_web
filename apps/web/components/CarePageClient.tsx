@@ -2,6 +2,7 @@
 
 import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
+import Image from 'next/image';
 import Link from 'next/link';
 import BlurReveal from './BlurReveal';
 import {CareSymbolsRow} from './CareSymbols';
@@ -131,11 +132,13 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
               <BlurReveal key={guide.id} delay={i * 80}>
                 <article className="group relative rounded-2xl border border-[#D4A574]/[0.08] bg-gradient-to-b from-[#1a100c]/40 to-transparent p-8 transition-all duration-500 hover:border-[#D4A574]/20 hover:shadow-[0_8px_40px_rgba(212,165,116,0.06)]">
                   {guide.image && (
-                    <div className="mb-6 aspect-[16/9] rounded-xl overflow-hidden">
-                      <img
+                    <div className="relative mb-6 aspect-[16/9] rounded-xl overflow-hidden">
+                      <Image
                         src={guide.image}
                         alt={guide.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                        fill
+                        sizes="(min-width: 768px) 50vw, 100vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-[1.03]"
                       />
                     </div>
                   )}

@@ -2,6 +2,7 @@
 
 import {useState} from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {useFavorites, useCart} from '../../../contexts';
@@ -83,10 +84,12 @@ export default function FavoritesPage({params}: Props) {
                 {/* Image container */}
                 <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-paperMuted">
                   {item.image ? (
-                    <img
+                    <Image
                       src={item.image}
                       alt={item.title}
-                      className="h-full w-full object-cover"
+                      fill
+                      sizes="(min-width: 1024px) 33vw, 50vw"
+                      className="object-cover"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-paperMuted to-paper">

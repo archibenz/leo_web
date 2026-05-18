@@ -2,6 +2,7 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 const transition = {
   type: "spring" as const,
@@ -167,12 +168,14 @@ export const CollectionCard = ({
   return (
     <div className="flex flex-col gap-4">
       <Link href={href} className="group relative overflow-hidden rounded-xl">
-        <div className="aspect-[2/3] w-full bg-paperMuted">
+        <div className="relative aspect-[2/3] w-full bg-paperMuted">
           {imageSrc && (
-            <img
+            <Image
               src={imageSrc}
               alt={title}
-              className="h-full w-full object-cover transition-all duration-700 group-hover:scale-105 group-hover:brightness-110"
+              fill
+              sizes="(min-width: 1024px) 240px, 50vw"
+              className="object-cover transition-all duration-700 group-hover:scale-105 group-hover:brightness-110"
             />
           )}
           {/* Dark overlay */}

@@ -13,6 +13,7 @@ import BrandLoader from '../../../components/BrandLoader';
 import LoaderSplash from '../../../components/LoaderSplash';
 import {BrandHeart} from '../../../components/icons';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type RegStep = 'email' | 'code' | 'details';
 
@@ -666,7 +667,13 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                     <Link key={item.id} href={`/${locale}/product/${item.id}`} className="group block">
                       <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-paperMuted">
                         {item.image ? (
-                          <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          <Image
+                            src={item.image}
+                            alt={item.title}
+                            fill
+                            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-paperMuted to-paper">
                             <svg viewBox="0 0 24 24" className="h-12 w-12 text-ink/10" fill="none" stroke="currentColor" strokeWidth="0.8">
@@ -704,7 +711,13 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                       <Link href={`/${locale}/product/${item.id}`} className="block">
                         <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-paperMuted">
                           {item.image ? (
-                            <img src={item.image} alt={item.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <Image
+                              src={item.image}
+                              alt={item.title}
+                              fill
+                              sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+                              className="object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-paperMuted to-paper">
                               <svg viewBox="0 0 24 24" className="h-12 w-12 text-ink/10" fill="none" stroke="currentColor" strokeWidth="0.8">

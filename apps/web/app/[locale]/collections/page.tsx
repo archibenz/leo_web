@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import {getTranslations} from 'next-intl/server';
+import Image from 'next/image';
 import Link from 'next/link';
 import type {Locale} from '../../../i18n';
 
@@ -52,11 +53,13 @@ export default async function CollectionsPage({params}: {params: Promise<{locale
             href={`/${locale}/shop?season=${season}`}
             className="group relative overflow-hidden rounded-xl"
           >
-            <div className="aspect-[2/3] w-full bg-[var(--paper-muted)]">
-              <img
+            <div className="relative aspect-[2/3] w-full bg-[var(--paper-muted)]">
+              <Image
                 src={seasonImages[i]}
                 alt={t(`seasons.${season}.name`)}
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                fill
+                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[var(--paper-base)]/80 via-transparent to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-5">

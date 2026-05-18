@@ -2,6 +2,7 @@
 
 import {useState} from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {useCart} from '../../../contexts/CartContext';
@@ -101,11 +102,13 @@ export default function CartPage() {
                     className="paper-card flex items-center gap-4 p-4 sm:p-5"
                   >
                     {item.image ? (
-                      <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-paperMuted">
-                        <img
+                      <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-paperMuted">
+                        <Image
                           src={item.image}
                           alt={item.title}
-                          className="h-full w-full object-cover"
+                          fill
+                          sizes="80px"
+                          className="object-cover"
                         />
                       </div>
                     ) : (
@@ -241,10 +244,12 @@ export default function CartPage() {
                 >
                   <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-gradient-to-br from-paperMuted to-paper transition-transform duration-300 group-hover:scale-[1.02]">
                     {item.image ? (
-                      <img
+                      <Image
                         src={item.image}
                         alt={item.title}
-                        className="h-full w-full object-cover"
+                        fill
+                        sizes="160px"
+                        className="object-cover"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
