@@ -1,5 +1,7 @@
 package com.reinasleo.api.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reinasleo.api.exception.EmailDeliveryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Map;
 
 @Service
 public class EmailService {
@@ -23,6 +26,7 @@ public class EmailService {
     private static final long[] BACKOFF_MILLIS = {1000L, 2000L, 4000L};
 
     private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
 
     @Value("${app.resend.api-key:}")
     private String resendApiKey;
@@ -34,6 +38,7 @@ public class EmailService {
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
+        this.objectMapper = new ObjectMapper();
     }
 
     /**
@@ -52,18 +57,19 @@ public class EmailService {
                     "RESEND_API_KEY not configured; refusing to send verification code");
         }
 
-        String jsonBody = """
-                {
-                  "from": "%s",
-                  "to": ["%s"],
-                  "subject": "REINASLEO — Код подтверждения / Verification code",
-                  "html": %s
-                }
-                """.formatted(
-                escapeJson(fromAddress),
-                escapeJson(toEmail),
-                toJsonString(buildHtml(code))
+        Map<String, Object> payload = Map.of(
+                "from", fromAddress,
+                "to", new String[] {toEmail},
+                "subject", "REINASLEO — Код подтверждения / Verification code",
+                "html", buildHtml(code)
         );
+
+        String jsonBody;
+        try {
+            jsonBody = objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            throw new EmailDeliveryException("Failed to serialise Resend payload", e);
+        }
 
         return sendWithRetry(toEmail, jsonBody, "verification code");
     }
@@ -212,17 +218,4 @@ public class EmailService {
                 """.formatted(code);
     }
 
-    private static String escapeJson(String value) {
-        return value.replace("\\", "\\\\").replace("\"", "\\\"");
-    }
-
-    private static String toJsonString(String value) {
-        return "\"" + value
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t")
-                + "\"";
-    }
 }
