@@ -8,22 +8,22 @@ const TOKEN_STORAGE_KEY = 'reinasleo_token';
 export type SyncConfig<T> = {
   localStorageKey: string;
   fetchServer: () => Promise<T[]>;
-  mergeGuest: (guest: T[]) => Promise<void>;
-  parseLocal: (raw: string) => T[];
-  serializeLocal: (items: T[]) => string;
+  mergeGuest: (_guest: T[]) => Promise<void>;
+  parseLocal: (_raw: string) => T[];
+  serializeLocal: (_items: T[]) => string;
   isAuthenticated: boolean;
   authLoading: boolean;
-  onServerLoadError?: (err: unknown) => void;
+  onServerLoadError?: (_err: unknown) => void;
 };
 
 export type SyncedList<T> = {
   items: T[];
-  setItems: (updater: T[] | ((prev: T[]) => T[])) => void;
+  setItems: (_updater: T[] | ((_prev: T[]) => T[])) => void;
   isLoading: boolean;
   refresh: () => Promise<void>;
 };
 
-function readLocal<T>(key: string, parse: (raw: string) => T[]): T[] {
+function readLocal<T>(key: string, parse: (_raw: string) => T[]): T[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = window.localStorage.getItem(key);
