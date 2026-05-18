@@ -133,12 +133,13 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
             role="combobox"
             aria-autocomplete="list"
             aria-expanded={isFocused && suggestions.length > 0}
+            aria-label={placeholder}
             placeholder={placeholder}
             value={searchQuery}
             onChange={handleSearch}
             onFocus={() => setIsFocused(true)}
             className={cn(
-              "focus-bare w-full py-2 pr-3 bg-transparent border-none outline-none placeholder:text-ink/35 text-[13px] text-ink/70 tracking-wide caret-ink/40",
+              "focus-bare w-full py-2 pr-3 bg-transparent border-none outline-none placeholder:text-ink/55 text-[13px] text-ink/80 tracking-wide caret-ink/40",
               isMobile && !isFocused ? "opacity-0 w-0 p-0" : "pl-2 opacity-100"
             )}
             tabIndex={isMobile && !isFocused ? -1 : 0}

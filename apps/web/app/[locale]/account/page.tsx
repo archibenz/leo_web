@@ -352,12 +352,12 @@ export default function AccountPage() {
                   {regStep === 'email' && (
                     <div className="space-y-5">
                       <div className="space-y-2">
-                        <label className="block text-sm uppercase tracking-widest text-ink-soft">{t('form.email')}</label>
-                        <input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={regEmail} onChange={(e) => setRegEmail(e.target.value)}
+                        <label htmlFor="reg-email" className="block text-sm uppercase tracking-widest text-ink-soft">{t('form.email')}</label>
+                        <input id="reg-email" type="email" inputMode="email" autoComplete="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={regEmail} onChange={(e) => setRegEmail(e.target.value)}
                           className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-base text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper"
                           placeholder={t('form.emailPlaceholder')} required
                           onKeyDown={(e) => e.key === 'Enter' && handleRegSendCode()} />
-                        <p className="text-[12px] text-ink/40">{t('register.emailHint')}</p>
+                        <p className="text-[12px] text-ink/60">{t('register.emailHint')}</p>
                       </div>
 
                       {error && <p className="rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-400">{error}</p>}
@@ -373,9 +373,9 @@ export default function AccountPage() {
                   {regStep === 'code' && (
                     <form onSubmit={(e) => { e.preventDefault(); handleRegVerifyCode(); }} className="space-y-5">
                       <div className="space-y-2">
-                        <label className="block text-sm uppercase tracking-widest text-ink-soft">{t('confirm.codeLabel')}</label>
-                        <p className="text-[12px] text-ink/40">{t('confirm.subtitle', {email: regEmail})}</p>
-                        <input type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} autoFocus
+                        <label htmlFor="reg-code" className="block text-sm uppercase tracking-widest text-ink-soft">{t('confirm.codeLabel')}</label>
+                        <p className="text-[12px] text-ink/60">{t('confirm.subtitle', {email: regEmail})}</p>
+                        <input id="reg-code" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} autoFocus
                           value={regCode} onChange={(e) => setRegCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                           className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-center text-xl tracking-[0.3em] text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper"
                           placeholder={t('settings.linkEmail.codePlaceholder')} />
@@ -389,9 +389,9 @@ export default function AccountPage() {
                       </button>
 
                       <div className="flex items-center justify-center gap-2 text-[12px]">
-                        <span className="text-ink/40">{t('confirm.didntReceive')}</span>
+                        <span className="text-ink/60">{t('confirm.didntReceive')}</span>
                         {cooldown > 0 ? (
-                          <span className="text-ink/30">{t('confirm.resendIn', {seconds: cooldown})}</span>
+                          <span className="text-ink/60">{t('confirm.resendIn', {seconds: cooldown})}</span>
                         ) : (
                           <button type="button" onClick={handleRegResend} disabled={submitting} className="text-accent hover:text-accent/80 transition-colors">
                             {t('confirm.resend')}
@@ -405,21 +405,21 @@ export default function AccountPage() {
                   {regStep === 'details' && (
                     <form onSubmit={handleRegisterSubmit} className="space-y-5">
                       <div className="space-y-2">
-                        <label className="block text-sm uppercase tracking-widest text-ink-soft">{t('form.name')}</label>
-                        <input type="text" autoComplete="given-name" autoCapitalize="words" value={regName} onChange={(e) => setRegName(e.target.value)}
+                        <label htmlFor="reg-name" className="block text-sm uppercase tracking-widest text-ink-soft">{t('form.name')}</label>
+                        <input id="reg-name" type="text" autoComplete="given-name" autoCapitalize="words" value={regName} onChange={(e) => setRegName(e.target.value)}
                           className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-base text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper"
                           placeholder={t('form.namePlaceholder')} minLength={2} maxLength={40} required />
                       </div>
                       <div className="space-y-2">
-                        <label className="block text-sm uppercase tracking-widest text-ink-soft">{t('form.password')}</label>
-                        <input type="password" autoComplete="new-password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)}
+                        <label htmlFor="reg-password" className="block text-sm uppercase tracking-widest text-ink-soft">{t('form.password')}</label>
+                        <input id="reg-password" type="password" autoComplete="new-password" value={regPassword} onChange={(e) => setRegPassword(e.target.value)}
                           className="w-full rounded-xl border border-ink/20 bg-paper/50 px-5 py-4 text-base text-ink outline-none transition-all duration-200 focus:border-accent focus:bg-paper"
                           placeholder={t('form.passwordPlaceholder')} minLength={6} required />
                       </div>
 
                       {/* Newsletter toggles */}
                       <div className="space-y-3 rounded-xl border border-ink/10 bg-ink/[0.02] p-4">
-                        <p className="text-[12px] font-medium uppercase tracking-wider text-ink/50">{t('settings.newsletter.title')}</p>
+                        <p className="text-[12px] font-medium uppercase tracking-wider text-ink/65">{t('settings.newsletter.title')}</p>
                         <ToggleRow label={t('settings.newsletter.promos')} checked={regPromos} onChange={setRegPromos} />
                         <ToggleRow label={t('settings.newsletter.collections')} checked={regCollections} onChange={setRegCollections} />
                         <ToggleRow label={t('settings.newsletter.projects')} checked={regProjects} onChange={setRegProjects} />
@@ -591,7 +591,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
         {/* ── Top Navigation Tabs ── */}
         <nav className="liquid-glass rounded-2xl flex flex-wrap items-baseline justify-center gap-x-6 gap-y-2 sm:gap-x-8 px-6 py-4 mb-10">
           <button type="button" onClick={() => setActiveTab('profile')} className={tabClass('profile')}>{t('profile.name')}</button>
-          <span className="text-sm font-display uppercase tracking-[0.12em] text-ink/25 cursor-default pb-1">{t('profile.orders')}</span>
+          <span aria-disabled="true" className="text-sm font-display uppercase tracking-[0.12em] text-ink/45 cursor-default pb-1">{t('profile.orders')}</span>
           <button type="button" onClick={() => setActiveTab('favorites')} className={tabClass('favorites')}>{t('profile.favorites')}</button>
           <button type="button" onClick={() => setActiveTab('settings')} className={tabClass('settings')}>{t('profile.settings')}</button>
           <button type="button" onClick={() => setShowLogoutConfirm(true)} className="text-sm font-display uppercase tracking-[0.12em] text-ink/60 transition-colors duration-200 hover:text-ink pb-1">{t('profile.logOut')}</button>
@@ -639,7 +639,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                   <p className="font-display text-base text-ink/60 mb-1">
                     {locale === 'ru' ? 'У вас пока нет заказов' : 'No orders yet'}
                   </p>
-                  <p className="text-[13px] text-ink/30 mb-5">
+                  <p className="text-[13px] text-ink/60 mb-5">
                     {locale === 'ru' ? 'Ваши покупки появятся здесь' : 'Your purchases will appear here'}
                   </p>
                   <Link href={`/${locale}/shop`}
@@ -733,7 +733,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
               <div className="space-y-5">
                 <div>
                   <h2 className="font-display text-[16px] font-semibold text-ink tracking-wide">{t('settings.linkEmail.title')}</h2>
-                  <p className="mt-1 text-[13px] text-ink/50">{t('settings.linkEmail.description')}</p>
+                  <p className="mt-1 text-[13px] text-ink/65">{t('settings.linkEmail.description')}</p>
                 </div>
                 {emailLinked && !linkSuccess ? (
                   <div className="flex items-center gap-2">
@@ -747,8 +747,8 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                 ) : (
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-[12px] font-medium uppercase tracking-wider text-ink/50 mb-1.5">{t('settings.linkEmail.emailLabel')}</label>
-                      <input type="email" value={settingsEmail} onChange={(e) => setSettingsEmail(e.target.value)}
+                      <label htmlFor="settings-email" className="block text-[12px] font-medium uppercase tracking-wider text-ink/65 mb-1.5">{t('settings.linkEmail.emailLabel')}</label>
+                      <input id="settings-email" type="email" value={settingsEmail} onChange={(e) => setSettingsEmail(e.target.value)}
                         placeholder={t('settings.linkEmail.emailPlaceholder')} disabled={linkStep !== 'email'}
                         className="admin-input disabled:opacity-50" onKeyDown={(e) => e.key === 'Enter' && linkStep === 'email' && handleSettingsSendCode()} />
                       {linkStep === 'email' && (
@@ -759,9 +759,9 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                     </div>
                     {linkStep === 'code' && (
                       <div>
-                        <label className="block text-[12px] font-medium uppercase tracking-wider text-ink/50 mb-1.5">{t('settings.linkEmail.codeLabel')}</label>
-                        <p className="text-[12px] text-ink/40 mb-2">{t('settings.linkEmail.codeHint', {email: settingsEmail})}</p>
-                        <input type="text" inputMode="numeric" maxLength={6} value={settingsCode}
+                        <label htmlFor="settings-code" className="block text-[12px] font-medium uppercase tracking-wider text-ink/65 mb-1.5">{t('settings.linkEmail.codeLabel')}</label>
+                        <p className="text-[12px] text-ink/65 mb-2">{t('settings.linkEmail.codeHint', {email: settingsEmail})}</p>
+                        <input id="settings-code" type="text" inputMode="numeric" maxLength={6} value={settingsCode}
                           onChange={(e) => setSettingsCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                           placeholder={t('settings.linkEmail.codePlaceholder')} className="admin-input text-center text-lg tracking-[0.3em]"
                           onKeyDown={(e) => e.key === 'Enter' && handleLink()} />
@@ -769,9 +769,9 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                           {linking ? t('settings.linkEmail.linking') : t('settings.linkEmail.submit')}
                         </button>
                         <div className="mt-2 flex items-center justify-center gap-2 text-[12px]">
-                          <span className="text-ink/40">{t('settings.linkEmail.didntReceive')}</span>
+                          <span className="text-ink/65">{t('settings.linkEmail.didntReceive')}</span>
                           {settingsCooldown > 0 ? (
-                            <span className="text-ink/30">{t('settings.linkEmail.resendIn', {seconds: settingsCooldown})}</span>
+                            <span className="text-ink/65">{t('settings.linkEmail.resendIn', {seconds: settingsCooldown})}</span>
                           ) : (
                             <button onClick={handleSettingsResend} disabled={sending} className="text-[#D4A574] hover:text-[#D4A574]/80 transition-colors">{t('settings.linkEmail.resend')}</button>
                           )}
@@ -789,10 +789,10 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
               <div className="space-y-5">
                 <div>
                   <h2 className="font-display text-[16px] font-semibold text-ink tracking-wide">{t('settings.newsletter.title')}</h2>
-                  <p className="mt-1 text-[13px] text-ink/50">{t('settings.newsletter.description')}</p>
+                  <p className="mt-1 text-[13px] text-ink/65">{t('settings.newsletter.description')}</p>
                 </div>
                 {!emailLinked && !linkSuccess ? (
-                  <p className="text-[13px] text-ink/40 italic">{t('settings.newsletter.needEmail')}</p>
+                  <p className="text-[13px] text-ink/65 italic">{t('settings.newsletter.needEmail')}</p>
                 ) : (
                   <div className="space-y-4">
                     <SettingsToggleRow label={t('settings.newsletter.promos')} hint={t('settings.newsletter.promosHint')} checked={promos} disabled={savingPrefs} onChange={(v) => handleToggle('promos', v)} />
@@ -877,7 +877,7 @@ function SettingsToggleRow({label, hint, checked, disabled, onChange}: {
     <div className="flex items-center justify-between gap-4">
       <div className="min-w-0">
         <p className="text-[14px] text-ink/80 font-medium">{label}</p>
-        <p className="text-[12px] text-ink/40 mt-0.5">{hint}</p>
+        <p className="text-[12px] text-ink/65 mt-0.5">{hint}</p>
       </div>
       <button type="button" role="switch" aria-checked={checked} disabled={disabled} onClick={() => onChange(!checked)}
         className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${checked ? 'bg-[#D4A574]' : 'bg-ink/15'} ${disabled ? 'opacity-50' : 'cursor-pointer'}`}>

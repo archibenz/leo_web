@@ -143,7 +143,7 @@ export const CategoryCard = ({
         {label}
       </span>
       {description && (
-        <span className="font-accent text-[16px] text-ink/35 leading-snug transition-colors duration-200 group-hover:text-ink/50">
+        <span className="font-accent text-[16px] text-ink/65 leading-snug transition-colors duration-200 group-hover:text-ink/80">
           {description}
         </span>
       )}

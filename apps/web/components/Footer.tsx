@@ -42,7 +42,7 @@ export default async function Footer({locale}: FooterProps) {
                   draggable="false"
                 />
               </div>
-              <p className="max-w-[260px] text-[15px] leading-relaxed text-[#F2E6D8]/40">
+              <p className="max-w-[260px] text-[15px] leading-relaxed text-[#F2E6D8]/65">
                 {t('tagline')}
               </p>
             </div>
@@ -85,13 +85,13 @@ export default async function Footer({locale}: FooterProps) {
 
           {/* Bottom bar */}
           <div className="flex items-center justify-between border-t border-[#F2E6D8]/[0.06] py-5">
-            <p className="text-[13px] text-[#F2E6D8]/25">{t('rights')}</p>
-            <div className="flex items-center gap-5 text-[13px] text-[#F2E6D8]/25">
-              <Link href={`/${locale}/privacy`} className="transition-colors hover:text-[#F2E6D8]/50" prefetch>
+            <p className="text-[13px] text-[#F2E6D8]/65">{t('rights')}</p>
+            <div className="flex items-center gap-5 text-[13px] text-[#F2E6D8]/65">
+              <Link href={`/${locale}/privacy`} className="transition-colors hover:text-[#F2E6D8]/90" prefetch>
                 {t('privacy')}
               </Link>
-              <span className="text-[#F2E6D8]/10">·</span>
-              <Link href={`/${locale}/terms`} className="transition-colors hover:text-[#F2E6D8]/50" prefetch>
+              <span className="text-[#F2E6D8]/30">·</span>
+              <Link href={`/${locale}/terms`} className="transition-colors hover:text-[#F2E6D8]/90" prefetch>
                 {t('terms')}
               </Link>
             </div>
@@ -119,7 +119,7 @@ export default async function Footer({locale}: FooterProps) {
             />
           </div>
 
-          <p className="text-[14px] leading-relaxed text-[#F2E6D8]/35">
+          <p className="text-[14px] leading-relaxed text-[#F2E6D8]/65">
             {t('tagline')}
           </p>
 
@@ -156,19 +156,19 @@ export default async function Footer({locale}: FooterProps) {
 
           {/* Language + legal */}
           <div className="flex items-center justify-between pt-2 border-t border-[#F2E6D8]/[0.06]">
-            <div className="flex items-center gap-3 text-[12px] text-[#F2E6D8]/25">
-              <Link href={`/${locale}/privacy`} className="transition hover:text-[#F2E6D8]/50" prefetch>
+            <div className="flex items-center gap-3 text-[12px] text-[#F2E6D8]/65">
+              <Link href={`/${locale}/privacy`} className="transition hover:text-[#F2E6D8]/90" prefetch>
                 {t('privacy')}
               </Link>
-              <span className="text-[#F2E6D8]/10">·</span>
-              <Link href={`/${locale}/terms`} className="transition hover:text-[#F2E6D8]/50" prefetch>
+              <span className="text-[#F2E6D8]/30">·</span>
+              <Link href={`/${locale}/terms`} className="transition hover:text-[#F2E6D8]/90" prefetch>
                 {t('terms')}
               </Link>
             </div>
             <FooterLanguageSelect currentLocale={locale} />
           </div>
 
-          <p className="text-[12px] text-[#F2E6D8]/20">{t('rights')}</p>
+          <p className="text-[12px] text-[#F2E6D8]/65">{t('rights')}</p>
         </div>
       </div>
 

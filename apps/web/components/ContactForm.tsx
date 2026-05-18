@@ -49,46 +49,49 @@ export default function ContactForm() {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
-          <label className="block text-[12px] font-medium uppercase tracking-[0.15em] text-ink/40">
+          <label htmlFor="contact-name" className="block text-[12px] font-medium uppercase tracking-[0.15em] text-ink/65">
             {t('name')}
           </label>
           <input
+            id="contact-name"
             name="name"
             required
             aria-required="true"
-            className="w-full rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3.5 text-[15px] text-ink/80 placeholder:text-ink/25 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60"
+            className="w-full rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3.5 text-[15px] text-ink/80 placeholder:text-ink/55 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60"
             placeholder={t('namePlaceholder')}
           />
         </div>
         <div className="space-y-2">
-          <label className="block text-[12px] font-medium uppercase tracking-[0.15em] text-ink/40">
+          <label htmlFor="contact-email" className="block text-[12px] font-medium uppercase tracking-[0.15em] text-ink/65">
             {t('email')}
           </label>
           <input
+            id="contact-email"
             name="email"
             type="email"
             required
             aria-required="true"
-            className="w-full rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3.5 text-[15px] text-ink/80 placeholder:text-ink/25 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60"
+            className="w-full rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3.5 text-[15px] text-ink/80 placeholder:text-ink/55 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60"
             placeholder={t('emailPlaceholder')}
           />
         </div>
       </div>
       <div className="space-y-2">
-        <label className="block text-[12px] font-medium uppercase tracking-[0.15em] text-ink/40">
+        <label htmlFor="contact-message" className="block text-[12px] font-medium uppercase tracking-[0.15em] text-ink/65">
           {t('message')}
         </label>
         <textarea
+          id="contact-message"
           name="message"
           required
           aria-required="true"
           rows={6}
-          className="w-full rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3.5 text-[15px] text-ink/80 placeholder:text-ink/25 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60 resize-none"
+          className="w-full rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3.5 text-[15px] text-ink/80 placeholder:text-ink/55 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60 resize-none"
           placeholder={t('messagePlaceholder')}
         />
       </div>
       <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-2.5 text-[12px] text-ink/30">
+        <div className="flex items-start gap-2.5 text-[12px] text-ink/70">
           <input id="consent-contact" type="checkbox" required className="accent-[#D4A574] h-4 w-4 mt-0.5 shrink-0" />
           <label htmlFor="consent-contact">{t('consent')}</label>
         </div>
