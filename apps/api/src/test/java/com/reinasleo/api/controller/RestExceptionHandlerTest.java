@@ -68,14 +68,14 @@ class RestExceptionHandlerTest {
     }
 
     @Test
-    void illegalArgumentException_errorIsStableCode_notMessage() {
+    void illegalArgumentException_messageIsStable_doesNotEchoInternalDetail() {
         ResponseEntity<Map<String, Object>> withMessage =
                 handler.handleIllegalArgument(new IllegalArgumentException("Product not found: xyz"));
 
         assertThat(withMessage.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(withMessage.getBody()).isNotNull();
         assertThat(withMessage.getBody()).containsEntry("error", "bad_request");
-        assertThat(withMessage.getBody()).containsEntry("message", "Product not found: xyz");
+        assertThat(withMessage.getBody()).containsEntry("message", "Bad request");
 
         ResponseEntity<Map<String, Object>> nullMessage =
                 handler.handleIllegalArgument(new IllegalArgumentException((String) null));

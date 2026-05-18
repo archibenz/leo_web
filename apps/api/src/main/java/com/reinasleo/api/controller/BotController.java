@@ -1,16 +1,15 @@
 package com.reinasleo.api.controller;
 
 import com.reinasleo.api.dto.*;
+import com.reinasleo.api.exception.UnauthorizedException;
 import com.reinasleo.api.model.BotVisit;
 import com.reinasleo.api.repository.BotVisitRepository;
 import com.reinasleo.api.service.BotAuthService;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -43,7 +42,7 @@ public class BotController {
         if (secret == null || !MessageDigest.isEqual(
                 secret.getBytes(StandardCharsets.UTF_8),
                 botApiSecret.getBytes(StandardCharsets.UTF_8))) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "invalid_bot_secret");
+            throw new UnauthorizedException("invalid_bot_secret");
         }
     }
 

@@ -55,13 +55,15 @@ class BotControllerTest {
     }
 
     @Test
-    void checkUser_withWrongSecret_returns401() throws Exception {
+    void checkUser_withWrongSecret_returns401WithDualEnvelope() throws Exception {
         mockMvc.perform(post("/api/bot/check-user")
                         .header("X-Bot-Secret", "wrong-secret")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"telegramId": 12345}
                                 """))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("invalid_bot_secret"))
+                .andExpect(jsonPath("$.message").value("invalid_bot_secret"));
     }
 }

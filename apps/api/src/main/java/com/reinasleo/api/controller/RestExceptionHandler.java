@@ -6,8 +6,10 @@ import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.exception.EmailDeliveryException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.exception.InvalidVerificationCodeException;
+import com.reinasleo.api.exception.NotFoundException;
 import com.reinasleo.api.exception.OutOfStockException;
 import com.reinasleo.api.exception.TokenAlreadyConsumedException;
+import com.reinasleo.api.exception.UnauthorizedException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -139,8 +141,9 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        log.debug("Generic IllegalArgumentException at boundary: {}", ex.getMessage());
         Map<String, Object> body = Map.of(
-                "message", ex.getMessage() != null ? ex.getMessage() : "Bad request",
+                "message", "Bad request",
                 "error", "bad_request"
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
@@ -162,6 +165,24 @@ public class RestExceptionHandler {
                 "error", ex.getCode()
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(NotFoundException ex) {
+        Map<String, Object> body = Map.of(
+                "message", ex.getCode(),
+                "error", ex.getCode()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<Map<String, Object>> handleUnauthorized(UnauthorizedException ex) {
+        Map<String, Object> body = Map.of(
+                "message", ex.getCode(),
+                "error", ex.getCode()
+        );
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
     }
 
     @ExceptionHandler(Exception.class)
