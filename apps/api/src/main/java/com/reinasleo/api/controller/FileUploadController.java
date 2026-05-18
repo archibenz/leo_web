@@ -1,11 +1,9 @@
 package com.reinasleo.api.controller;
 
-import com.reinasleo.api.model.User;
 import com.reinasleo.api.util.ImageContentValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -31,13 +29,7 @@ public class FileUploadController {
     private String uploadDir;
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> upload(
-            @AuthenticationPrincipal User user,
-            @RequestParam("file") MultipartFile file) {
-
-        if (user == null || !"admin".equals(user.getRole())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin access required");
-        }
+    public ResponseEntity<Map<String, String>> upload(@RequestParam("file") MultipartFile file) {
 
         if (file.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
