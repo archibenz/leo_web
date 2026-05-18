@@ -199,15 +199,29 @@ public class AdminProductService {
     @Transactional(readOnly = true)
     public List<RecentOrderResponse> getRecentOrders() {
         return orderRepository.findTop10ByOrderByCreatedAtDesc().stream()
-                .map(o -> new RecentOrderResponse(
-                        o.getId(),
-                        o.getUser() != null ? safeName(o.getUser().getName(), o.getUser().getSurname()) : "—",
-                        o.getUser() != null ? o.getUser().getEmail() : null,
-                        o.getStatus(),
-                        o.getTotal(),
-                        o.getItems() != null ? o.getItems().size() : 0,
-                        o.getCreatedAt()
-                ))
+                .map(o -> {
+                    var user = o.getUser();
+                    boolean deleted = user != null && user.getDeletedAt() != null;
+                    String customerName = user == null
+                            ? "—"
+                            : deleted
+                                    ? "[удалённый аккаунт]"
+                                    : safeName(user.getName(), user.getSurname());
+                    String customerEmail = user == null
+                            ? null
+                            : deleted
+                                    ? "[deleted account]"
+                                    : user.getEmail();
+                    return new RecentOrderResponse(
+                            o.getId(),
+                            customerName,
+                            customerEmail,
+                            o.getStatus(),
+                            o.getTotal(),
+                            o.getItems() != null ? o.getItems().size() : 0,
+                            o.getCreatedAt()
+                    );
+                })
                 .toList();
     }
 
