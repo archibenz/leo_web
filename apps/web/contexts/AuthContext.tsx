@@ -15,6 +15,8 @@ export type User = {
   newsletterPromos?: boolean;
   newsletterCollections?: boolean;
   newsletterProjects?: boolean;
+  hasPassword?: boolean;
+  hasTelegram?: boolean;
 };
 
 type RegisterData = {
@@ -48,6 +50,7 @@ type AuthContextType = {
   updateNewsletterPreferences: (prefs: NewsletterPreferences) => Promise<{success: boolean; error?: string}>;
   initTelegramAuth: () => Promise<{success: boolean; deepLink?: string; initToken?: string; error?: string}>;
   loginWithToken: (jwt: string) => Promise<void>;
+  deleteAccount: (credential: string, confirmation: string) => Promise<{success: boolean; error?: string}>;
   logout: () => void;
   validateEmail: (email: string) => boolean;
   isAdmin: boolean;
@@ -82,6 +85,8 @@ type MeApiResponse = {
   newsletterPromos?: boolean;
   newsletterCollections?: boolean;
   newsletterProjects?: boolean;
+  hasPassword?: boolean;
+  hasTelegram?: boolean;
 };
 
 function meToUser(data: MeApiResponse): User {
@@ -91,6 +96,8 @@ function meToUser(data: MeApiResponse): User {
     newsletterPromos: data.newsletterPromos,
     newsletterCollections: data.newsletterCollections,
     newsletterProjects: data.newsletterProjects,
+    hasPassword: data.hasPassword,
+    hasTelegram: data.hasTelegram,
   };
 }
 
@@ -312,6 +319,33 @@ export function AuthProvider({children}: {children: ReactNode}) {
     setUser(null);
   }, []);
 
+  const deleteAccount = useCallback(async (credential: string, confirmation: string): Promise<{success: boolean; error?: string}> => {
+    try {
+      await apiFetch<void>('/api/auth/me', {
+        method: 'DELETE',
+        body: JSON.stringify({credential, confirmation}),
+        skipAuthHandler: true,
+      });
+      clearToken();
+      setUser(null);
+      return {success: true};
+    } catch (err: unknown) {
+      const apiErr = err as {status?: number; body?: {error?: string}};
+      if (apiErr.status === 401) {
+        return {success: false, error: 'invalid_credentials'};
+      }
+      if (apiErr.status === 400) {
+        const bodyErr = apiErr.body?.error;
+        if (bodyErr === 'confirmation_mismatch') {
+          return {success: false, error: 'confirmation_mismatch'};
+        }
+        return {success: false, error: 'bad_request'};
+      }
+      if (apiErr.status === undefined) return {success: false, error: 'network_error'};
+      return {success: false, error: 'delete_failed'};
+    }
+  }, []);
+
   const value = useMemo(() => ({
     user,
     isAuthenticated: !!user,
@@ -323,10 +357,11 @@ export function AuthProvider({children}: {children: ReactNode}) {
     updateNewsletterPreferences,
     initTelegramAuth,
     loginWithToken,
+    deleteAccount,
     logout,
     validateEmail,
     isAdmin,
-  }), [user, isLoading, login, sendCode, register, linkEmail, updateNewsletterPreferences, initTelegramAuth, loginWithToken, logout, validateEmail, isAdmin]);
+  }), [user, isLoading, login, sendCode, register, linkEmail, updateNewsletterPreferences, initTelegramAuth, loginWithToken, deleteAccount, logout, validateEmail, isAdmin]);
 
   return (
     <AuthContext.Provider value={value}>
@@ -346,6 +381,7 @@ const defaultAuthContext: AuthContextType = {
   updateNewsletterPreferences: async () => ({success: false}),
   initTelegramAuth: async () => ({success: false}),
   loginWithToken: async () => {},
+  deleteAccount: async () => ({success: false}),
   logout: () => {},
   validateEmail: () => false,
   isAdmin: false,

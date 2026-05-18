@@ -577,7 +577,11 @@
       "networkError": "Connection problem. Check your internet and try again.",
       "nameLength": "Name must be between 2 and 40 characters",
       "surnameLength": "Surname must be between 2 and 40 characters",
-      "sessionExpired": "Your session has expired. Please sign in again to continue."
+      "sessionExpired": "Your session has expired. Please sign in again to continue.",
+      "invalidPasswordForDeletion": "Incorrect password. Please try again.",
+      "invalidTelegramIdForDeletion": "The Telegram ID you entered does not match this account.",
+      "confirmationMismatch": "Please type DELETE exactly (uppercase) to confirm.",
+      "deleteFailed": "Could not delete your account. Please try again later."
     },
     "profile": {
       "title": "Profile",
@@ -625,6 +629,26 @@
         "projects": "REINASLEO Projects",
         "projectsHint": "Brand news and collaborations",
         "needEmail": "Link your email above to manage newsletters"
+      }
+    },
+    "dangerZone": {
+      "title": "Delete account",
+      "description": "Permanently anonymize your account. Past orders stay in our records for accounting and legal reasons, but they will no longer be linked to your profile.",
+      "deleteButton": "Delete account permanently",
+      "toast": {
+        "success": "Your account has been deleted."
+      },
+      "modal": {
+        "title": "Delete your account?",
+        "warning": "This action cannot be undone. Your email, name, phone and other personal data will be anonymized. Past orders remain in our records under an anonymous identifier.",
+        "passwordLabel": "Current password",
+        "passwordPlaceholder": "••••••••",
+        "telegramIdLabel": "Telegram ID",
+        "telegramIdPlaceholder": "Numeric Telegram ID",
+        "confirmationLabel": "Type DELETE to confirm",
+        "confirmationHint": "Use uppercase letters. This protects against accidental deletion.",
+        "cancel": "Cancel",
+        "confirmDelete": "Delete forever"
       }
     }
   },

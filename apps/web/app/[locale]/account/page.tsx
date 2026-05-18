@@ -11,7 +11,9 @@ import {apiFetch} from '../../../lib/api';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import BrandLoader from '../../../components/BrandLoader';
 import LoaderSplash from '../../../components/LoaderSplash';
+import DeleteAccountModal from '../../../components/DeleteAccountModal';
 import {BrandHeart} from '../../../components/icons';
+import {showToast} from '../../../lib/toast';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -502,21 +504,34 @@ export default function AccountPage() {
 }
 
 function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t}: {
-  user: {name: string; surname?: string | null; email?: string | null; createdAt?: string | null; newsletterPromos?: boolean | null; newsletterCollections?: boolean | null; newsletterProjects?: boolean | null};
+  user: {name: string; surname?: string | null; email?: string | null; createdAt?: string | null; newsletterPromos?: boolean | null; newsletterCollections?: boolean | null; newsletterProjects?: boolean | null; hasPassword?: boolean; hasTelegram?: boolean};
   locale: string; isAdmin: boolean; logout: () => void; memberSinceDate: string | null;
   t: (key: string, values?: Record<string, string | number>) => string;
 }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialTab = (['profile', 'favorites', 'settings'] as const).includes(searchParams.get('tab') as 'profile' | 'favorites' | 'settings')
     ? (searchParams.get('tab') as 'profile' | 'favorites' | 'settings')
     : 'profile';
   const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'settings'>(initialTab);
   const {items: favoriteItems, removeItem: removeFavorite, isLoading: favLoading} = useFavorites();
-  const {sendCode, linkEmail, updateNewsletterPreferences} = useAuth();
+  const {sendCode, linkEmail, updateNewsletterPreferences, deleteAccount} = useAuth();
   const favT = useTranslations('favorites');
   const {items: recentItems} = useRecentlyViewed();
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const hasPassword = user.hasPassword === true || (user.hasPassword === undefined && !!user.email);
+
+  const handleDeleteConfirm = useCallback(async (credential: string, confirmation: string) => {
+    const result = await deleteAccount(credential, confirmation);
+    if (result.success) {
+      setShowDeleteModal(false);
+      showToast({kind: 'success', messageKey: 'account.dangerZone.toast.success', duration: 6000});
+      router.push(`/${locale}`);
+    }
+    return result;
+  }, [deleteAccount, router, locale]);
 
   // Settings state
   const [linkStep, setLinkStep] = useState<'email' | 'code'>('email');
@@ -823,6 +838,22 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                 className="w-full rounded-full border border-ink/20 bg-transparent px-6 py-3.5 text-sm font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-ink/5 hover:border-ink/40">
                 {t('settings.signOut')}
               </button>
+
+              <div className="h-px bg-gradient-to-r from-transparent via-red-500/20 to-transparent" />
+
+              {/* Danger Zone — GDPR Art.17 / 152-ФЗ */}
+              <div className="space-y-4 rounded-2xl border border-red-500/20 bg-red-500/[0.03] p-5">
+                <div>
+                  <h2 className="font-display text-[16px] font-semibold text-red-500/90 tracking-wide">{t('dangerZone.title')}</h2>
+                  <p className="mt-1 text-[13px] text-ink/65">{t('dangerZone.description')}</p>
+                </div>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="w-full rounded-full border border-red-500/40 bg-transparent px-6 py-3 text-sm font-medium uppercase tracking-wider text-red-500/90 transition-all duration-300 hover:bg-red-500/10 hover:border-red-500/60"
+                >
+                  {t('dangerZone.deleteButton')}
+                </button>
+              </div>
             </div>
           )}
 
@@ -830,6 +861,14 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
 
       </div>
     </div>
+
+    {/* ── Delete Account Modal ── */}
+    <DeleteAccountModal
+      open={showDeleteModal}
+      onClose={() => setShowDeleteModal(false)}
+      onConfirm={handleDeleteConfirm}
+      hasPassword={hasPassword}
+    />
 
     {/* ── Logout Confirmation Modal (Portal to body) ── */}
     {typeof document !== 'undefined' && createPortal(
