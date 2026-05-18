@@ -6,7 +6,7 @@ import './globals.css';
 
 const display = Cormorant_Garamond({
   subsets: ['latin', 'cyrillic'],
-  weight: ['300', '400', '500', '600'],
+  weight: ['400', '500', '600'],
   style: ['normal', 'italic'],
   variable: '--font-display',
   display: 'swap',
@@ -15,7 +15,7 @@ const display = Cormorant_Garamond({
 
 const body = Jost({
   subsets: ['latin', 'cyrillic'],
-  weight: ['300', '400', '500', '600'],
+  weight: ['400', '500', '600'],
   variable: '--font-body',
   display: 'swap',
   preload: true
@@ -23,11 +23,11 @@ const body = Jost({
 
 const accent = Cormorant({
   subsets: ['latin', 'cyrillic'],
-  weight: ['300', '400', '500', '600'],
+  weight: ['300', '400', '500'],
   style: ['normal', 'italic'],
   variable: '--font-accent',
   display: 'swap',
-  preload: true
+  preload: false
 });
 
 export const viewport: Viewport = {
