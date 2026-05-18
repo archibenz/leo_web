@@ -7,6 +7,9 @@ import com.reinasleo.api.dto.RegisterRequest;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.model.User;
+import com.reinasleo.api.repository.CartItemRepository;
+import com.reinasleo.api.repository.CartRepository;
+import com.reinasleo.api.repository.FavoriteRepository;
 import com.reinasleo.api.repository.UserRepository;
 import com.reinasleo.api.security.JwtService;
 import org.slf4j.Logger;
@@ -33,15 +36,24 @@ public class AuthService {
     private final JwtService jwtService;
     private final VerificationService verificationService;
     private final DeleteChallengeService deleteChallengeService;
+    private final CartItemRepository cartItemRepository;
+    private final CartRepository cartRepository;
+    private final FavoriteRepository favoriteRepository;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        JwtService jwtService, VerificationService verificationService,
-                       DeleteChallengeService deleteChallengeService) {
+                       DeleteChallengeService deleteChallengeService,
+                       CartItemRepository cartItemRepository,
+                       CartRepository cartRepository,
+                       FavoriteRepository favoriteRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.verificationService = verificationService;
         this.deleteChallengeService = deleteChallengeService;
+        this.cartItemRepository = cartItemRepository;
+        this.cartRepository = cartRepository;
+        this.favoriteRepository = favoriteRepository;
     }
 
     @Transactional
@@ -107,15 +119,16 @@ public class AuthService {
     }
 
     /**
-     * R1: soft-delete user (GDPR Art.17 / 152-ФЗ).
+     * R1 + R8: soft-delete user (GDPR Art.17 / 152-ФЗ).
      *
-     * <p>Anonymizes PII in-place, sets {@code deleted_at}, keeps the row so that
-     * downstream {@code orders} / {@code cart_items} (FK ON DELETE SET NULL / CASCADE
-     * in V2) preserve accounting trail. After this call:</p>
+     * <p>Anonymizes PII in-place, sets {@code deleted_at}, keeps the row so
+     * {@code orders} retain referential integrity for legal/accounting
+     * (V19 enforces ON DELETE RESTRICT). After this call:</p>
      * <ul>
      *   <li>email is reassigned to {@code deleted-<uuid>@deleted.local} (preserves unique index);</li>
      *   <li>name/surname/phone/dateOfBirth/passwordHash/telegramId become NULL;</li>
-     *   <li>name is set to "deleted" because the column is NOT NULL.</li>
+     *   <li>name is set to "deleted" because the column is NOT NULL;</li>
+     *   <li>cart, cart_items and favorites are wiped (behavioural fingerprint, quasi-PII).</li>
      * </ul>
      *
      * <p>Repository lookups (login, /me, telegram) skip rows with {@code deleted_at IS NOT NULL},
@@ -165,7 +178,14 @@ public class AuthService {
 
         userRepository.save(user);
 
-        log.info("account_deleted user_id={} legacy_email_hash={}", user.getId(), legacyEmailHash);
+        // Cart и favorites — поведенческие данные (GDPR Art.4(1) квази-PII).
+        // Удаляем полностью; orders остаются для legal/accounting (V19 RESTRICT).
+        int removedItems = cartItemRepository.deleteAllByUserId(user.getId());
+        int removedFavorites = favoriteRepository.deleteAllByUserId(user.getId());
+        int removedCarts = cartRepository.deleteByUserId(user.getId());
+
+        log.info("account_deleted user_id={} legacy_email_hash={} cart_items={} favorites={} carts={}",
+                user.getId(), legacyEmailHash, removedItems, removedFavorites, removedCarts);
     }
 
     private static boolean constantTimeEquals(String a, String b) {

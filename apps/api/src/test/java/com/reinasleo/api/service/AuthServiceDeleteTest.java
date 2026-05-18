@@ -3,6 +3,9 @@ package com.reinasleo.api.service;
 import com.reinasleo.api.dto.DeleteAccountRequest;
 import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.model.User;
+import com.reinasleo.api.repository.CartItemRepository;
+import com.reinasleo.api.repository.CartRepository;
+import com.reinasleo.api.repository.FavoriteRepository;
 import com.reinasleo.api.repository.UserRepository;
 import com.reinasleo.api.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,13 +34,17 @@ class AuthServiceDeleteTest {
     @Mock private JwtService jwtService;
     @Mock private VerificationService verificationService;
     @Mock private DeleteChallengeService deleteChallengeService;
+    @Mock private CartItemRepository cartItemRepository;
+    @Mock private CartRepository cartRepository;
+    @Mock private FavoriteRepository favoriteRepository;
 
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
         authService = new AuthService(userRepository, passwordEncoder, jwtService,
-                verificationService, deleteChallengeService);
+                verificationService, deleteChallengeService,
+                cartItemRepository, cartRepository, favoriteRepository);
     }
 
     private static User emailUser() {
@@ -84,6 +91,20 @@ class AuthServiceDeleteTest {
         assertThat(saved.isNewsletterPromos()).isFalse();
         assertThat(saved.isNewsletterCollections()).isFalse();
         assertThat(saved.isNewsletterProjects()).isFalse();
+    }
+
+    @Test
+    void deleteAccount_alsoWipesCartAndFavorites() {
+        User user = emailUser();
+        UUID userId = user.getId();
+        when(passwordEncoder.matches("correct-pw", "hashed-pw")).thenReturn(true);
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        authService.deleteAccount(user, new DeleteAccountRequest("correct-pw", "DELETE"));
+
+        verify(cartItemRepository).deleteAllByUserId(userId);
+        verify(favoriteRepository).deleteAllByUserId(userId);
+        verify(cartRepository).deleteByUserId(userId);
     }
 
     @Test

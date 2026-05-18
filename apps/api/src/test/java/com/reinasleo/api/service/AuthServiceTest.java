@@ -6,6 +6,9 @@ import com.reinasleo.api.dto.RegisterRequest;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.model.User;
+import com.reinasleo.api.repository.CartItemRepository;
+import com.reinasleo.api.repository.CartRepository;
+import com.reinasleo.api.repository.FavoriteRepository;
 import com.reinasleo.api.repository.UserRepository;
 import com.reinasleo.api.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,13 +37,17 @@ class AuthServiceTest {
     @Mock private JwtService jwtService;
     @Mock private VerificationService verificationService;
     @Mock private DeleteChallengeService deleteChallengeService;
+    @Mock private CartItemRepository cartItemRepository;
+    @Mock private CartRepository cartRepository;
+    @Mock private FavoriteRepository favoriteRepository;
 
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
         authService = new AuthService(userRepository, passwordEncoder, jwtService,
-                verificationService, deleteChallengeService);
+                verificationService, deleteChallengeService,
+                cartItemRepository, cartRepository, favoriteRepository);
     }
 
     private RegisterRequest validRegisterRequest() {
