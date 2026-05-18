@@ -59,8 +59,35 @@ class RateLimitFilterTest {
 
         verify(chain, times(10)).doFilter(any(ServletRequest.class), any(ServletResponse.class));
         assertThat(res.getStatus()).isEqualTo(429);
+        assertThat(res.getContentType()).isEqualTo("application/json");
+        assertThat(res.getContentAsString())
+                .isEqualTo("{\"message\":\"Too many requests. Try again later.\"}");
         assertThat(hits("auth")).isEqualTo(1.0);
         assertThat(hits("bot")).isZero();
+        assertThat(hits("contact")).isZero();
+    }
+
+    @Test
+    void botBucketExhausted_429AndIncrementsBotCounter() throws Exception {
+        FilterChain chain = mock(FilterChain.class);
+
+        // bot limit = 30/min.
+        for (int i = 0; i < 30; i++) {
+            filter.doFilter(req("/api/bot/login", "POST"), new MockHttpServletResponse(), chain);
+        }
+        verify(chain, times(30)).doFilter(any(ServletRequest.class), any(ServletResponse.class));
+        assertThat(hits("bot")).isZero();
+
+        MockHttpServletResponse res = new MockHttpServletResponse();
+        filter.doFilter(req("/api/bot/login", "POST"), res, chain);
+
+        verify(chain, times(30)).doFilter(any(ServletRequest.class), any(ServletResponse.class));
+        assertThat(res.getStatus()).isEqualTo(429);
+        assertThat(res.getContentType()).isEqualTo("application/json");
+        assertThat(res.getContentAsString())
+                .isEqualTo("{\"message\":\"Too many requests. Try again later.\"}");
+        assertThat(hits("bot")).isEqualTo(1.0);
+        assertThat(hits("auth")).isZero();
         assertThat(hits("contact")).isZero();
     }
 
@@ -72,11 +99,20 @@ class RateLimitFilterTest {
         for (int i = 0; i < 3; i++) {
             filter.doFilter(req("/api/contact", "POST"), new MockHttpServletResponse(), chain);
         }
+        verify(chain, times(3)).doFilter(any(ServletRequest.class), any(ServletResponse.class));
+        assertThat(hits("contact")).isZero();
+
         MockHttpServletResponse res = new MockHttpServletResponse();
         filter.doFilter(req("/api/contact", "POST"), res, chain);
 
+        verify(chain, times(3)).doFilter(any(ServletRequest.class), any(ServletResponse.class));
         assertThat(res.getStatus()).isEqualTo(429);
+        assertThat(res.getContentType()).isEqualTo("application/json");
+        assertThat(res.getContentAsString())
+                .isEqualTo("{\"message\":\"Too many requests. Try again later.\"}");
         assertThat(hits("contact")).isEqualTo(1.0);
+        assertThat(hits("auth")).isZero();
+        assertThat(hits("bot")).isZero();
     }
 
     @Test

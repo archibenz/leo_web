@@ -2,6 +2,7 @@ package com.reinasleo.api.service;
 
 import com.reinasleo.api.dto.CartItemRequest;
 import com.reinasleo.api.dto.UpdateCartItemRequest;
+import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.NotFoundException;
 import com.reinasleo.api.exception.OutOfStockException;
 import com.reinasleo.api.model.Cart;
@@ -217,6 +218,29 @@ class CartServiceTest {
 
         assertThatThrownBy(() -> cartService.addItem(user, request))
                 .isInstanceOf(OutOfStockException.class);
+        verify(analyticsService, never()).trackEvent(any(), any(), any());
+    }
+
+    @Test
+    void addItem_whenBothAttemptsHitDIVE_throwsConflictException() {
+        User user = buildUser();
+        Product product = buildProduct("prod-7", 10);
+        Cart cart = buildCart(user);
+
+        when(productRepository.findById("prod-7")).thenReturn(Optional.of(product));
+        when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findByCartIdAndProductIdAndSize(cart.getId(), "prod-7", "M"))
+                .thenReturn(Optional.empty());
+        when(cartItemRepository.saveAndFlush(any(CartItem.class)))
+                .thenThrow(new DataIntegrityViolationException("uq_cart_items_cart_product_size"))
+                .thenThrow(new DataIntegrityViolationException("uq_cart_items_cart_product_size"));
+
+        CartItemRequest request = new CartItemRequest("prod-7", "M", 1);
+
+        assertThatThrownBy(() -> cartService.addItem(user, request))
+                .isInstanceOf(ConflictException.class)
+                .satisfies(ex -> assertThat(((ConflictException) ex).getCode()).isEqualTo("cart_concurrent_modification"));
+        verify(cartItemRepository, times(2)).saveAndFlush(any(CartItem.class));
         verify(analyticsService, never()).trackEvent(any(), any(), any());
     }
 

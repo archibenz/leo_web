@@ -4,6 +4,7 @@ import com.reinasleo.api.dto.CartItemRequest;
 import com.reinasleo.api.dto.CartItemResponse;
 import com.reinasleo.api.dto.CartResponse;
 import com.reinasleo.api.dto.UpdateCartItemRequest;
+import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.NotFoundException;
 import com.reinasleo.api.exception.OutOfStockException;
 import com.reinasleo.api.model.*;
@@ -58,10 +59,16 @@ public class CartService {
     public CartResponse addItem(User user, CartItemRequest request) {
         try {
             return self.addItemAttempt(user, request);
-        } catch (DataIntegrityViolationException e) {
+        } catch (DataIntegrityViolationException firstAttempt) {
             // Concurrent addItem won the (cart_id, product_id, size) unique-index
             // race; replay against the row that committed first, in a fresh tx.
-            return self.addItemAttempt(user, request);
+            try {
+                return self.addItemAttempt(user, request);
+            } catch (DataIntegrityViolationException secondAttempt) {
+                // Three or more concurrent ops on the same cart compounded — surface
+                // a typed 409 so the FE can show a retry toast instead of generic 500.
+                throw new ConflictException("cart_concurrent_modification");
+            }
         }
     }
 
