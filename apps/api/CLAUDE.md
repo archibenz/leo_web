@@ -47,7 +47,7 @@ src/test/java/                 mirrors main package layout
 - Compare secrets / tokens / codes with `MessageDigest.isEqual(byte[], byte[])` — never `String.equals`.
 - Filters that must stay enabled: `JwtAuthFilter`, `RateLimitFilter`, `MetricsAuthFilter`.
 - `/actuator/health` is public; `/actuator/prometheus` requires `X-Metrics-Secret` (constant-time compare in `MetricsAuthFilter`).
-- Soft-deleted users (`deleted_at IS NOT NULL`) must not authenticate — use `UserRepository.findActiveById` / `findActiveByEmailIgnoreCase`; JWTs issued before deletion fail on next request.
+- Soft-deleted users (`deleted_at IS NOT NULL`) must not authenticate — use `UserRepository.findActiveById` / `findByEmailIgnoreCase` (both filter `WHERE deleted_at IS NULL`); JWTs issued before deletion fail on next request.
 
 ## Database
 
