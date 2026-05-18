@@ -84,3 +84,10 @@ i18n.ts, i18n-routing.ts       next-intl wiring
 - Unit: `vitest` in `components/__tests__/` and `lib/__tests__/`.
 - E2E: Playwright specs in `e2e/`; smoke-test critical flows (auth, checkout, account delete).
 - Run before PR: `npm run test` and `npm run test:e2e`.
+
+## API contract (relevant FE-touched endpoints)
+
+Full contract lives in root `CLAUDE.md`. FE-relevant additions:
+
+### Auth
+- `GET /api/auth/me/export` → `200` (Bearer JWT) — JSON dump of user-owned data (`user`, `orders`, `cart`, `favorites`, `verificationCodesIssued`, `exportedAt`). GDPR Art.20 portability. Use for "Download my data" action on the account page.

@@ -3,13 +3,16 @@ package com.reinasleo.api.service;
 import com.reinasleo.api.dto.LoginRequest;
 import com.reinasleo.api.dto.LoginResponse;
 import com.reinasleo.api.dto.RegisterRequest;
+import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.model.User;
 import com.reinasleo.api.repository.CartItemRepository;
 import com.reinasleo.api.repository.CartRepository;
 import com.reinasleo.api.repository.FavoriteRepository;
+import com.reinasleo.api.repository.OrderRepository;
 import com.reinasleo.api.repository.UserRepository;
+import com.reinasleo.api.repository.VerificationCodeRepository;
 import com.reinasleo.api.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +43,8 @@ class AuthServiceTest {
     @Mock private CartItemRepository cartItemRepository;
     @Mock private CartRepository cartRepository;
     @Mock private FavoriteRepository favoriteRepository;
+    @Mock private OrderRepository orderRepository;
+    @Mock private VerificationCodeRepository verificationCodeRepository;
 
     private AuthService authService;
 
@@ -47,7 +52,8 @@ class AuthServiceTest {
     void setUp() {
         authService = new AuthService(userRepository, passwordEncoder, jwtService,
                 verificationService, deleteChallengeService,
-                cartItemRepository, cartRepository, favoriteRepository);
+                cartItemRepository, cartRepository, favoriteRepository,
+                orderRepository, verificationCodeRepository);
     }
 
     private RegisterRequest validRegisterRequest() {
@@ -111,8 +117,8 @@ class AuthServiceTest {
         );
 
         assertThatThrownBy(() -> authService.register(request))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Privacy policy");
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("privacy_required");
     }
 
     @Test

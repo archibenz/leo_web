@@ -17,4 +17,6 @@ public interface VerificationCodeRepository extends JpaRepository<VerificationCo
     int markAllUnusedAsUsedForEmail(String email);
 
     int deleteByExpiresAtBefore(Instant cutoff);
+
+    long countByEmail(String email);
 }

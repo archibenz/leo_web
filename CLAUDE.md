@@ -42,6 +42,7 @@ The only coupling between frontend and backend is the HTTP API. Changes to API e
 - `GET /api/auth/me` → `{ user }` (Bearer JWT)
 - `DELETE /api/auth/me` → `204` (Bearer JWT) — body `{ credential, confirmation: "DELETE" }`. Soft-deletes user (GDPR Art.17 / 152-ФЗ): PII anonymized, `deleted_at` set, orders preserved. `credential` = password (email users) or 6-digit code from `/me/delete-challenge` (TG-only).
 - `POST /api/auth/me/delete-challenge` → `202` (Bearer JWT, TG-only) — issues 6-digit code with 5-minute TTL, sends to user's Telegram via `TelegramNotifier`. Used before `DELETE /api/auth/me` for TG-only accounts.
+- `GET /api/auth/me/export` → `200` (Bearer JWT) — returns user-owned data dump `{ user, orders, cart, favorites, verificationCodesIssued, exportedAt }` (GDPR Art.20 portability). Excludes password hash, JWT secret, and admin fields.
 - `POST /api/auth/telegram/init` → `{ token, deepLink }`
 - `GET /api/auth/telegram/exchange?token=X` → `{ token }`
 - `POST /api/auth/link-email`

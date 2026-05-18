@@ -2,12 +2,15 @@ package com.reinasleo.api.service;
 
 import com.reinasleo.api.dto.DeleteAccountRequest;
 import com.reinasleo.api.exception.BadRequestException;
+import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.model.User;
 import com.reinasleo.api.repository.CartItemRepository;
 import com.reinasleo.api.repository.CartRepository;
 import com.reinasleo.api.repository.FavoriteRepository;
+import com.reinasleo.api.repository.OrderRepository;
 import com.reinasleo.api.repository.UserRepository;
+import com.reinasleo.api.repository.VerificationCodeRepository;
 import com.reinasleo.api.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,6 +41,8 @@ class AuthServiceDeleteTest {
     @Mock private CartItemRepository cartItemRepository;
     @Mock private CartRepository cartRepository;
     @Mock private FavoriteRepository favoriteRepository;
+    @Mock private OrderRepository orderRepository;
+    @Mock private VerificationCodeRepository verificationCodeRepository;
 
     private AuthService authService;
 
@@ -45,7 +50,8 @@ class AuthServiceDeleteTest {
     void setUp() {
         authService = new AuthService(userRepository, passwordEncoder, jwtService,
                 verificationService, deleteChallengeService,
-                cartItemRepository, cartRepository, favoriteRepository);
+                cartItemRepository, cartRepository, favoriteRepository,
+                orderRepository, verificationCodeRepository);
     }
 
     private static User emailUser() {
@@ -181,11 +187,11 @@ class AuthServiceDeleteTest {
     }
 
     @Test
-    void issueDeleteChallenge_emailUser_throwsBadRequest() {
+    void issueDeleteChallenge_emailUser_throwsConflict() {
         User user = emailUser();
 
         assertThatThrownBy(() -> authService.issueDeleteChallenge(user))
-                .isInstanceOf(BadRequestException.class)
+                .isInstanceOf(ConflictException.class)
                 .hasMessage("challenge_not_supported");
     }
 

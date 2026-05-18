@@ -43,7 +43,10 @@ class CartServiceTest {
 
     @BeforeEach
     void setUp() {
-        cartService = new CartService(cartRepository, cartItemRepository, productRepository, analyticsService);
+        cartService = new CartService(cartRepository, cartItemRepository, productRepository, analyticsService, null);
+        // Self-reference replaces the @Lazy proxy in tests; direct method invocation is fine
+        // because we only need the retry path to execute — not a fresh JPA session.
+        setField(cartService, "self", cartService);
     }
 
     private User buildUser() {

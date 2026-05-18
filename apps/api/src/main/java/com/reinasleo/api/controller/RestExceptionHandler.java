@@ -1,6 +1,7 @@
 package com.reinasleo.api.controller;
 
 import com.reinasleo.api.exception.BadRequestException;
+import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.exception.EmailDeliveryException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
@@ -152,6 +153,15 @@ public class RestExceptionHandler {
                 "error", ex.getCode()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Map<String, Object>> handleConflict(ConflictException ex) {
+        Map<String, Object> body = Map.of(
+                "message", ex.getCode(),
+                "error", ex.getCode()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
     @ExceptionHandler(Exception.class)

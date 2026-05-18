@@ -9,8 +9,10 @@ import com.reinasleo.api.model.*;
 import com.reinasleo.api.repository.CartItemRepository;
 import com.reinasleo.api.repository.CartRepository;
 import com.reinasleo.api.repository.ProductRepository;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -24,15 +26,21 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final AnalyticsService analyticsService;
+    // Proxy reference for REQUIRES_NEW retry: a direct this.addItemRetry(...) call
+    // would bypass the Spring proxy and ignore the new propagation. Non-final so
+    // unit tests can substitute the same instance via reflection.
+    private CartService self;
 
     public CartService(CartRepository cartRepository,
                        CartItemRepository cartItemRepository,
                        ProductRepository productRepository,
-                       AnalyticsService analyticsService) {
+                       AnalyticsService analyticsService,
+                       @Lazy CartService self) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.analyticsService = analyticsService;
+        this.self = self;
     }
 
     @Transactional(readOnly = true)
@@ -44,7 +52,7 @@ public class CartService {
         return toCartResponse(cart);
     }
 
-    @Transactional(noRollbackFor = DataIntegrityViolationException.class)
+    @Transactional
     public CartResponse addItem(User user, CartItemRequest request) {
         Product product = productRepository.findById(request.productId())
                 .orElseThrow(() -> new IllegalArgumentException("Product not found: " + request.productId()));
@@ -54,13 +62,25 @@ public class CartService {
 
         try {
             mergeAddItem(cart, product, request);
+            analyticsService.trackEvent(user, product, "add_to_cart");
+            return toCartResponse(cart);
         } catch (DataIntegrityViolationException e) {
-            // Concurrent addItem won the (cart_id, product_id, size) unique-index race;
-            // re-merge against the row that committed first.
-            mergeAddItem(cart, product, request);
+            // Concurrent addItem won the (cart_id, product_id, size) unique-index race.
+            // The current JPA session is tainted after the failed flush — retry in a
+            // fresh tx via the Spring proxy so the inner call gets a clean EntityManager.
+            CartResponse response = self.addItemRetry(user.getId(), product.getId(), request);
+            analyticsService.trackEvent(user, product, "add_to_cart");
+            return response;
         }
+    }
 
-        analyticsService.trackEvent(user, product, "add_to_cart");
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public CartResponse addItemRetry(UUID userId, String productId, CartItemRequest request) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalStateException("Cart not found on retry: " + userId));
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
+        mergeAddItem(cart, product, request);
         return toCartResponse(cart);
     }
 

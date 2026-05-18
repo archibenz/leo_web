@@ -1,17 +1,28 @@
 package com.reinasleo.api.service;
 
+import com.reinasleo.api.dto.AccountExportResponse;
+import com.reinasleo.api.dto.CartExportDto;
+import com.reinasleo.api.dto.CartItemExportDto;
 import com.reinasleo.api.dto.DeleteAccountRequest;
+import com.reinasleo.api.dto.FavoriteExportDto;
 import com.reinasleo.api.dto.LoginRequest;
 import com.reinasleo.api.dto.LoginResponse;
+import com.reinasleo.api.dto.OrderExportDto;
+import com.reinasleo.api.dto.OrderItemExportDto;
 import com.reinasleo.api.dto.RegisterRequest;
+import com.reinasleo.api.dto.UserExportDto;
 import com.reinasleo.api.exception.BadRequestException;
+import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
+import com.reinasleo.api.model.Cart;
 import com.reinasleo.api.model.User;
 import com.reinasleo.api.repository.CartItemRepository;
 import com.reinasleo.api.repository.CartRepository;
 import com.reinasleo.api.repository.FavoriteRepository;
+import com.reinasleo.api.repository.OrderRepository;
 import com.reinasleo.api.repository.UserRepository;
+import com.reinasleo.api.repository.VerificationCodeRepository;
 import com.reinasleo.api.security.JwtService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +34,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.HexFormat;
+import java.util.List;
 
 @Service
 public class AuthService {
@@ -40,13 +53,17 @@ public class AuthService {
     private final CartItemRepository cartItemRepository;
     private final CartRepository cartRepository;
     private final FavoriteRepository favoriteRepository;
+    private final OrderRepository orderRepository;
+    private final VerificationCodeRepository verificationCodeRepository;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        JwtService jwtService, VerificationService verificationService,
                        DeleteChallengeService deleteChallengeService,
                        CartItemRepository cartItemRepository,
                        CartRepository cartRepository,
-                       FavoriteRepository favoriteRepository) {
+                       FavoriteRepository favoriteRepository,
+                       OrderRepository orderRepository,
+                       VerificationCodeRepository verificationCodeRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -55,6 +72,8 @@ public class AuthService {
         this.cartItemRepository = cartItemRepository;
         this.cartRepository = cartRepository;
         this.favoriteRepository = favoriteRepository;
+        this.orderRepository = orderRepository;
+        this.verificationCodeRepository = verificationCodeRepository;
     }
 
     @Transactional
@@ -63,7 +82,7 @@ public class AuthService {
             throw new InvalidCredentialsException();
         }
         if (user.getTelegramId() == null) {
-            throw new BadRequestException("challenge_not_supported");
+            throw new ConflictException("challenge_not_supported");
         }
         deleteChallengeService.issueChallenge(user.getTelegramId());
     }
@@ -81,7 +100,7 @@ public class AuthService {
         });
 
         if (request.privacyAccepted() == null || !request.privacyAccepted()) {
-            throw new IllegalArgumentException("Privacy policy must be accepted");
+            throw new BadRequestException("privacy_required");
         }
 
         String hash = passwordEncoder.encode(request.password());
@@ -199,6 +218,102 @@ public class AuthService {
                 .addKeyValue("favorites_removed", removedFavorites)
                 .addKeyValue("carts_removed", removedCarts)
                 .log("account deletion completed");
+    }
+
+    /**
+     * GDPR Art.20 — right to data portability.
+     *
+     * <p>Aggregates all user-owned data into a single machine-readable response:
+     * profile fields, orders + items, cart + items, favorites, and a count of
+     * verification codes ever issued. Projects entities into DTOs inside this
+     * transaction (open-in-view: false) so lazy relations stay safe.</p>
+     */
+    @Transactional(readOnly = true)
+    public AccountExportResponse exportAccountData(User user) {
+        if (user == null) {
+            throw new InvalidCredentialsException();
+        }
+
+        UserExportDto userDto = new UserExportDto(
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                user.getSurname(),
+                user.getPhone(),
+                user.getDateOfBirth(),
+                user.getTelegramId(),
+                user.isNewsletter(),
+                user.isNewsletterPromos(),
+                user.isNewsletterCollections(),
+                user.isNewsletterProjects(),
+                user.isPrivacyAccepted(),
+                user.getRole(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                user.getPasswordHash() != null,
+                user.getTelegramId() != null
+        );
+
+        List<OrderExportDto> orders = orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId()).stream()
+                .map(order -> {
+                    List<OrderItemExportDto> items = order.getItems().stream()
+                            .map(it -> new OrderItemExportDto(
+                                    it.getProduct().getId(),
+                                    it.getProduct().getTitle(),
+                                    it.getSize(),
+                                    it.getQuantity(),
+                                    it.getPrice()))
+                            .toList();
+                    return new OrderExportDto(
+                            order.getId(),
+                            order.getStatus(),
+                            order.getTotal(),
+                            items,
+                            order.getCreatedAt(),
+                            order.getUpdatedAt());
+                })
+                .toList();
+
+        Cart cart = cartRepository.findByUserId(user.getId()).orElse(null);
+        CartExportDto cartDto;
+        if (cart == null) {
+            cartDto = new CartExportDto(Collections.emptyList(), null, null);
+        } else {
+            List<CartItemExportDto> cartItems = cart.getItems().stream()
+                    .map(ci -> new CartItemExportDto(
+                            ci.getProduct().getId(),
+                            ci.getProduct().getTitle(),
+                            ci.getProduct().getPrice(),
+                            ci.getSize(),
+                            ci.getQuantity(),
+                            ci.getCreatedAt()))
+                    .toList();
+            cartDto = new CartExportDto(cartItems, cart.getCreatedAt(), cart.getUpdatedAt());
+        }
+
+        List<FavoriteExportDto> favorites = favoriteRepository.findByUserId(user.getId()).stream()
+                .map(fav -> new FavoriteExportDto(
+                        fav.getProduct().getId(),
+                        fav.getProduct().getTitle(),
+                        fav.getProduct().getPrice(),
+                        fav.getCreatedAt()))
+                .toList();
+
+        long verificationCodesIssued = user.getEmail() == null
+                ? 0L
+                : verificationCodeRepository.countByEmail(user.getEmail().trim().toLowerCase());
+
+        log.atInfo()
+                .addKeyValue("event", "account_exported")
+                .addKeyValue("user_id", user.getId())
+                .addKeyValue("orders_count", orders.size())
+                .addKeyValue("favorites_count", favorites.size())
+                .addKeyValue("cart_items_count", cartDto.items().size())
+                .log("account data exported");
+
+        return new AccountExportResponse(
+                userDto, orders, cartDto, favorites,
+                verificationCodesIssued, Instant.now());
     }
 
     private static boolean constantTimeEquals(String a, String b) {

@@ -116,11 +116,17 @@ public class AuthController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        if (user.getTelegramId() == null) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "challenge_not_supported");
-        }
         authService.issueDeleteChallenge(user);
         return ResponseEntity.accepted().build();
+    }
+
+    @GetMapping("/me/export")
+    public ResponseEntity<AccountExportResponse> exportMe(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        AccountExportResponse export = authService.exportAccountData(user);
+        return ResponseEntity.ok(export);
     }
 
     private UserResponse toUserResponse(User user) {
