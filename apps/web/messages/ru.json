@@ -646,8 +646,6 @@
         "warning": "Действие нельзя отменить. Email, имя, телефон и другие персональные данные будут анонимизированы. Прошлые заказы останутся в системе под анонимным идентификатором.",
         "passwordLabel": "Текущий пароль",
         "passwordPlaceholder": "••••••••",
-        "telegramIdLabel": "Telegram ID",
-        "telegramIdPlaceholder": "Числовой Telegram ID",
         "tgCodeLabel": "Код подтверждения",
         "tgCodePlaceholder": "000000",
         "tgChallengeButton": "Прислать код в Telegram",

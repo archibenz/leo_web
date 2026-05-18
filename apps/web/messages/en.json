@@ -646,8 +646,6 @@
         "warning": "This action cannot be undone. Your email, name, phone and other personal data will be anonymized. Past orders remain in our records under an anonymous identifier.",
         "passwordLabel": "Current password",
         "passwordPlaceholder": "••••••••",
-        "telegramIdLabel": "Telegram ID",
-        "telegramIdPlaceholder": "Numeric Telegram ID",
         "tgCodeLabel": "Confirmation code",
         "tgCodePlaceholder": "000000",
         "tgChallengeButton": "Send code to Telegram",

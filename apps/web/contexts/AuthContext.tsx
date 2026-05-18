@@ -145,7 +145,13 @@ export function AuthProvider({children}: {children: ReactNode}) {
       });
 
       setToken(data.token);
-      setUser({id: data.id, email: data.email, name: data.name, surname: data.surname, role: data.role});
+      try {
+        const me = await apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true});
+        setUser(meToUser(me));
+      } catch (meErr) {
+        console.warn('auth: /me follow-up failed', meErr);
+        setUser({id: data.id, email: data.email, name: data.name, surname: data.surname, role: data.role});
+      }
       return {success: true};
     } catch (err: unknown) {
       const apiErr = err as {status?: number; body?: {error?: string}};
@@ -219,7 +225,13 @@ export function AuthProvider({children}: {children: ReactNode}) {
       });
 
       setToken(resp.token);
-      setUser({id: resp.id, email: resp.email, name: resp.name, surname: resp.surname, role: resp.role});
+      try {
+        const me = await apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true});
+        setUser(meToUser(me));
+      } catch (meErr) {
+        console.warn('auth: /me follow-up failed', meErr);
+        setUser({id: resp.id, email: resp.email, name: resp.name, surname: resp.surname, role: resp.role});
+      }
       return {success: true};
     } catch (err: unknown) {
       console.error('register failed', err);
