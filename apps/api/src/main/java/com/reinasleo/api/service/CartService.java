@@ -4,6 +4,7 @@ import com.reinasleo.api.dto.CartItemRequest;
 import com.reinasleo.api.dto.CartItemResponse;
 import com.reinasleo.api.dto.CartResponse;
 import com.reinasleo.api.dto.UpdateCartItemRequest;
+import com.reinasleo.api.exception.NotFoundException;
 import com.reinasleo.api.exception.OutOfStockException;
 import com.reinasleo.api.model.*;
 import com.reinasleo.api.repository.CartItemRepository;
@@ -12,7 +13,6 @@ import com.reinasleo.api.repository.ProductRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -26,9 +26,9 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final AnalyticsService analyticsService;
-    // Proxy reference for REQUIRES_NEW retry: a direct this.addItemRetry(...) call
-    // would bypass the Spring proxy and ignore the new propagation. Non-final so
-    // unit tests can substitute the same instance via reflection.
+    // Proxy reference so addItem can invoke the @Transactional addItemAttempt via
+    // the Spring proxy (direct this.addItemAttempt would bypass the interceptor).
+    // Non-final so unit tests can substitute the same instance via reflection.
     private CartService self;
 
     public CartService(CartRepository cartRepository,
@@ -52,35 +52,30 @@ public class CartService {
         return toCartResponse(cart);
     }
 
-    @Transactional
+    // Orchestrator — intentionally NOT @Transactional. Both attempts run in
+    // their own fresh tx via the proxy, so a flush failure on the first attempt
+    // cannot poison this method's persistence context (there is none).
     public CartResponse addItem(User user, CartItemRequest request) {
+        try {
+            return self.addItemAttempt(user, request);
+        } catch (DataIntegrityViolationException e) {
+            // Concurrent addItem won the (cart_id, product_id, size) unique-index
+            // race; replay against the row that committed first, in a fresh tx.
+            return self.addItemAttempt(user, request);
+        }
+    }
+
+    @Transactional
+    public CartResponse addItemAttempt(User user, CartItemRequest request) {
         Product product = productRepository.findById(request.productId())
-                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + request.productId()));
+                .orElseThrow(() -> new NotFoundException("product_not_found"));
 
         Cart cart = cartRepository.findByUserId(user.getId())
                 .orElseGet(() -> cartRepository.save(new Cart(user)));
 
-        try {
-            mergeAddItem(cart, product, request);
-            analyticsService.trackEvent(user, product, "add_to_cart");
-            return toCartResponse(cart);
-        } catch (DataIntegrityViolationException e) {
-            // Concurrent addItem won the (cart_id, product_id, size) unique-index race.
-            // The current JPA session is tainted after the failed flush — retry in a
-            // fresh tx via the Spring proxy so the inner call gets a clean EntityManager.
-            CartResponse response = self.addItemRetry(user.getId(), product.getId(), request);
-            analyticsService.trackEvent(user, product, "add_to_cart");
-            return response;
-        }
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public CartResponse addItemRetry(UUID userId, String productId, CartItemRequest request) {
-        Cart cart = cartRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalStateException("Cart not found on retry: " + userId));
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
         mergeAddItem(cart, product, request);
+
+        analyticsService.trackEvent(user, product, "add_to_cart");
         return toCartResponse(cart);
     }
 
@@ -111,12 +106,12 @@ public class CartService {
     @Transactional
     public CartResponse updateItem(User user, UUID itemId, UpdateCartItemRequest request) {
         Cart cart = cartRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
+                .orElseThrow(() -> new NotFoundException("cart_not_found"));
 
         CartItem item = cart.getItems().stream()
                 .filter(i -> i.getId().equals(itemId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Cart item not found"));
+                .orElseThrow(() -> new NotFoundException("cart_item_not_found"));
 
         Product product = item.getProduct();
         if (request.quantity() > product.getStockQuantity()) {
@@ -131,7 +126,7 @@ public class CartService {
     @Transactional
     public CartResponse removeItem(User user, UUID itemId) {
         Cart cart = cartRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
+                .orElseThrow(() -> new NotFoundException("cart_not_found"));
 
         cart.getItems().removeIf(i -> i.getId().equals(itemId));
         cartRepository.save(cart);

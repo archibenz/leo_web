@@ -1,6 +1,7 @@
 package com.reinasleo.api.service;
 
 import com.reinasleo.api.dto.FavoriteResponse;
+import com.reinasleo.api.exception.NotFoundException;
 import com.reinasleo.api.model.Favorite;
 import com.reinasleo.api.model.Product;
 import com.reinasleo.api.model.User;
@@ -36,7 +37,7 @@ public class FavoriteService {
     @Transactional
     public FavoriteResponse addFavorite(User user, String productId) {
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("Product not found: " + productId));
+                .orElseThrow(() -> new NotFoundException("product_not_found"));
 
         var existing = favoriteRepository.findByUserIdAndProductId(user.getId(), productId);
         if (existing.isPresent()) {

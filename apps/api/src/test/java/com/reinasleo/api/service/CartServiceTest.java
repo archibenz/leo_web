@@ -2,6 +2,7 @@ package com.reinasleo.api.service;
 
 import com.reinasleo.api.dto.CartItemRequest;
 import com.reinasleo.api.dto.UpdateCartItemRequest;
+import com.reinasleo.api.exception.NotFoundException;
 import com.reinasleo.api.exception.OutOfStockException;
 import com.reinasleo.api.model.Cart;
 import com.reinasleo.api.model.CartItem;
@@ -26,7 +27,9 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,8 +47,9 @@ class CartServiceTest {
     @BeforeEach
     void setUp() {
         cartService = new CartService(cartRepository, cartItemRepository, productRepository, analyticsService, null);
-        // Self-reference replaces the @Lazy proxy in tests; direct method invocation is fine
-        // because we only need the retry path to execute — not a fresh JPA session.
+        // Wire the self-reference the same way the Spring @Lazy proxy would in prod;
+        // direct invocation is fine here because the unit test doesn't need a fresh
+        // JPA session — it exercises orchestrator-vs-attempt split only.
         setField(cartService, "self", cartService);
     }
 
@@ -145,6 +149,22 @@ class CartServiceTest {
         CartItemRequest request = new CartItemRequest("prod-3", "M", 2);
 
         cartService.addItem(user, request);
+
+        verify(analyticsService, times(1)).trackEvent(eq(user), eq(product), eq("add_to_cart"));
+    }
+
+    @Test
+    void addItem_whenProductMissing_throwsNotFound() {
+        User user = buildUser();
+
+        when(productRepository.findById("missing-product")).thenReturn(Optional.empty());
+
+        CartItemRequest request = new CartItemRequest("missing-product", "M", 1);
+
+        assertThatThrownBy(() -> cartService.addItem(user, request))
+                .isInstanceOf(NotFoundException.class)
+                .satisfies(ex -> assertThat(((NotFoundException) ex).getCode()).isEqualTo("product_not_found"));
+        verify(analyticsService, never()).trackEvent(any(), any(), any());
     }
 
     @Test
@@ -171,6 +191,9 @@ class CartServiceTest {
 
         assertThat(committed.getQuantity()).isEqualTo(3);
         verify(cartItemRepository, times(2)).saveAndFlush(any(CartItem.class));
+        // Orchestrator MUST fire analytics exactly once on success — DIVE on the first
+        // attempt rolls back before trackEvent runs, retry runs trackEvent itself.
+        verify(analyticsService, times(1)).trackEvent(eq(user), eq(product), eq("add_to_cart"));
     }
 
     @Test
@@ -194,6 +217,7 @@ class CartServiceTest {
 
         assertThatThrownBy(() -> cartService.addItem(user, request))
                 .isInstanceOf(OutOfStockException.class);
+        verify(analyticsService, never()).trackEvent(any(), any(), any());
     }
 
     @Test
@@ -211,5 +235,39 @@ class CartServiceTest {
 
         assertThatThrownBy(() -> cartService.updateItem(user, item.getId(), request))
                 .isInstanceOf(OutOfStockException.class);
+    }
+
+    @Test
+    void updateItem_whenCartMissing_throwsNotFound() {
+        User user = buildUser();
+
+        when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> cartService.updateItem(user, UUID.randomUUID(), new UpdateCartItemRequest(1)))
+                .isInstanceOf(NotFoundException.class)
+                .satisfies(ex -> assertThat(((NotFoundException) ex).getCode()).isEqualTo("cart_not_found"));
+    }
+
+    @Test
+    void updateItem_whenItemMissing_throwsNotFound() {
+        User user = buildUser();
+        Cart cart = buildCart(user);
+
+        when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.of(cart));
+
+        assertThatThrownBy(() -> cartService.updateItem(user, UUID.randomUUID(), new UpdateCartItemRequest(1)))
+                .isInstanceOf(NotFoundException.class)
+                .satisfies(ex -> assertThat(((NotFoundException) ex).getCode()).isEqualTo("cart_item_not_found"));
+    }
+
+    @Test
+    void removeItem_whenCartMissing_throwsNotFound() {
+        User user = buildUser();
+
+        when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> cartService.removeItem(user, UUID.randomUUID()))
+                .isInstanceOf(NotFoundException.class)
+                .satisfies(ex -> assertThat(((NotFoundException) ex).getCode()).isEqualTo("cart_not_found"));
     }
 }
