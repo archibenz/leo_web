@@ -5,6 +5,11 @@ const withNextIntl = createNextIntlPlugin('./i18n.ts');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   devIndicators: false,
+  eslint: {
+    // Lint runs as a separate CI step (`npm run lint`). Build is functional
+    // only — warnings in legacy files shouldn't block production bundling.
+    ignoreDuringBuilds: true,
+  },
   images: {
     remotePatterns: [
       {protocol: 'https', hostname: 'images.unsplash.com'},
