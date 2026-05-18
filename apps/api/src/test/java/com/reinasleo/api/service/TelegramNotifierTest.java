@@ -16,6 +16,8 @@ import java.net.http.HttpResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -45,7 +47,7 @@ class TelegramNotifierTest {
     @Test
     void sendDeleteChallenge_2xx_postsToTelegramAndDoesNotThrow() throws Exception {
         when(response.statusCode()).thenReturn(200);
-        when(httpClient.send(any(HttpRequest.class), any())).thenReturn(response);
+        doReturn(response).when(httpClient).send(any(HttpRequest.class), any());
 
         notifier.sendDeleteChallenge(123456789L, "123456");
 
@@ -78,7 +80,7 @@ class TelegramNotifierTest {
     void sendDeleteChallenge_4xx_doesNotRetryAndDoesNotThrow() throws Exception {
         when(response.statusCode()).thenReturn(400);
         when(response.body()).thenReturn("{\"ok\":false,\"description\":\"Bad Request\"}");
-        when(httpClient.send(any(HttpRequest.class), any())).thenReturn(response);
+        doReturn(response).when(httpClient).send(any(HttpRequest.class), any());
 
         notifier.sendDeleteChallenge(123456789L, "123456");
 
@@ -88,7 +90,7 @@ class TelegramNotifierTest {
     @Test
     void sendDeleteChallenge_5xx_retriesUpToThreeTimes() throws Exception {
         when(response.statusCode()).thenReturn(503);
-        when(httpClient.send(any(HttpRequest.class), any())).thenReturn(response);
+        doReturn(response).when(httpClient).send(any(HttpRequest.class), any());
 
         notifier.sendDeleteChallenge(123456789L, "123456");
 
@@ -97,8 +99,8 @@ class TelegramNotifierTest {
 
     @Test
     void sendDeleteChallenge_ioError_retriesAndSwallowsException() throws Exception {
-        when(httpClient.send(any(HttpRequest.class), any()))
-                .thenThrow(new IOException("connection refused"));
+        doThrow(new IOException("connection refused"))
+                .when(httpClient).send(any(HttpRequest.class), any());
 
         notifier.sendDeleteChallenge(123456789L, "123456");
 
@@ -111,9 +113,7 @@ class TelegramNotifierTest {
         when(fail.statusCode()).thenReturn(502);
         HttpResponse<String> ok = mock(HttpResponse.class);
         when(ok.statusCode()).thenReturn(200);
-        when(httpClient.send(any(HttpRequest.class), any()))
-                .thenReturn(fail)
-                .thenReturn(ok);
+        doReturn(fail).doReturn(ok).when(httpClient).send(any(HttpRequest.class), any());
 
         notifier.sendDeleteChallenge(123456789L, "123456");
 
