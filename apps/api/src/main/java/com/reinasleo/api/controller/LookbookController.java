@@ -1,5 +1,6 @@
 package com.reinasleo.api.controller;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import java.util.Map;
 @RestController
 public class LookbookController {
 
+    @Cacheable("lookbook")
     @GetMapping("/api/lookbook")
     public ResponseEntity<List<Map<String, String>>> list() {
         List<Map<String, String>> items = List.of(

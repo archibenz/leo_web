@@ -4,6 +4,8 @@ import com.reinasleo.api.dto.CareGuideRequest;
 import com.reinasleo.api.dto.CareGuideResponse;
 import com.reinasleo.api.model.CareGuide;
 import com.reinasleo.api.repository.CareGuideRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +23,7 @@ public class CareGuideService {
         this.careGuideRepository = careGuideRepository;
     }
 
+    @Cacheable(value = "careGuides", key = "'active'")
     @Transactional(readOnly = true)
     public List<CareGuideResponse> listActive() {
         return careGuideRepository.findByActiveTrueOrderBySortOrderAsc().stream()
@@ -28,6 +31,7 @@ public class CareGuideService {
                 .toList();
     }
 
+    @Cacheable(value = "careGuides", key = "'all'")
     @Transactional(readOnly = true)
     public List<CareGuideResponse> listAll() {
         return careGuideRepository.findAllByOrderBySortOrderAsc().stream()
@@ -42,6 +46,7 @@ public class CareGuideService {
         return toResponse(g);
     }
 
+    @CacheEvict(value = "careGuides", allEntries = true)
     @Transactional
     public CareGuideResponse create(CareGuideRequest req) {
         CareGuide g = new CareGuide();
@@ -49,6 +54,7 @@ public class CareGuideService {
         return toResponse(careGuideRepository.save(g));
     }
 
+    @CacheEvict(value = "careGuides", allEntries = true)
     @Transactional
     public CareGuideResponse update(UUID id, CareGuideRequest req) {
         CareGuide g = careGuideRepository.findById(id)
@@ -57,6 +63,7 @@ public class CareGuideService {
         return toResponse(careGuideRepository.save(g));
     }
 
+    @CacheEvict(value = "careGuides", allEntries = true)
     @Transactional
     public void delete(UUID id) {
         CareGuide g = careGuideRepository.findById(id)
