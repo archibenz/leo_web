@@ -73,6 +73,8 @@ export default function HomeContent({
               <img
                 src="/logos/logo-white.svg"
                 alt="REINASLEO"
+                loading="eager"
+                fetchPriority="high"
                 className="brand-asset h-auto w-72 max-w-[85vw] md:w-96 lg:w-[480px] drop-shadow-[0_4px_32px_rgba(0,0,0,0.5)]"
                 draggable="false"
               />
