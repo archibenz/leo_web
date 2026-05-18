@@ -33,12 +33,14 @@ class AuthServiceTest {
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private JwtService jwtService;
     @Mock private VerificationService verificationService;
+    @Mock private DeleteChallengeService deleteChallengeService;
 
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository, passwordEncoder, jwtService, verificationService);
+        authService = new AuthService(userRepository, passwordEncoder, jwtService,
+                verificationService, deleteChallengeService);
     }
 
     private RegisterRequest validRegisterRequest() {

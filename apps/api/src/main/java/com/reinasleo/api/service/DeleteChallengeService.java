@@ -1,0 +1,136 @@
+package com.reinasleo.api.service;
+
+import com.reinasleo.api.model.TelegramDeleteChallenge;
+import com.reinasleo.api.repository.TelegramDeleteChallengeRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
+
+/**
+ * R8: одноразовый код подтверждения удаления аккаунта для TG-only пользователей.
+ *
+ * <p>Старый flow ({@code DELETE /api/auth/me} с credential = telegramId)
+ * слабый: telegramId статичен, светится в URL некоторых клиентов, угоняется
+ * одним XSS. Новый flow:</p>
+ * <ol>
+ *   <li>{@code POST /api/auth/me/delete-challenge} — генерим 6 цифр,
+ *       сохраняем SHA-256 хеш с TTL 5 минут, отправляем код в TG-бот.</li>
+ *   <li>{@code DELETE /api/auth/me} — credential = код, сверяем
+ *       {@link MessageDigest#isEqual} по хешу.</li>
+ * </ol>
+ */
+@Service
+public class DeleteChallengeService {
+
+    private static final Logger log = LoggerFactory.getLogger(DeleteChallengeService.class);
+
+    private static final int CODE_LENGTH = 6;
+    private static final int TTL_MINUTES = 5;
+    private static final int MAX_ATTEMPTS = 5;
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final String DUMMY_HASH = "0".repeat(64);
+
+    private final TelegramDeleteChallengeRepository repository;
+    private final TelegramNotifier telegramNotifier;
+
+    public DeleteChallengeService(TelegramDeleteChallengeRepository repository,
+                                  TelegramNotifier telegramNotifier) {
+        this.repository = repository;
+        this.telegramNotifier = telegramNotifier;
+    }
+
+    @Transactional
+    public void issueChallenge(Long telegramId) {
+        if (telegramId == null) {
+            throw new IllegalArgumentException("telegram_id_required");
+        }
+
+        String code = generateCode();
+        String codeHash = sha256Hex(code);
+        Instant expiresAt = Instant.now().plus(TTL_MINUTES, ChronoUnit.MINUTES);
+
+        TelegramDeleteChallenge challenge = repository.findByTelegramId(telegramId)
+                .orElseGet(() -> new TelegramDeleteChallenge(telegramId, codeHash, expiresAt));
+
+        // Существующий вызов перезаписывает код, обнуляет attempts. Это даёт
+        // пользователю запросить новый код, если предыдущий не дошёл.
+        challenge.rotate(codeHash, expiresAt);
+        repository.save(challenge);
+
+        telegramNotifier.sendDeleteChallenge(telegramId, code);
+        log.info("delete_challenge.issued telegram_id={}", telegramId);
+    }
+
+    /**
+     * Проверяет код, инкрементит счётчик неудач. После {@link #MAX_ATTEMPTS}
+     * запись помечается просроченной (expires_at в прошлом) — пользователь
+     * вынужден запросить новый код.
+     */
+    @Transactional
+    public boolean consumeCode(Long telegramId, String providedCode) {
+        if (telegramId == null || providedCode == null || providedCode.isBlank()) {
+            return false;
+        }
+
+        Optional<TelegramDeleteChallenge> maybe = repository.findByTelegramId(telegramId);
+        String storedHash = maybe.map(TelegramDeleteChallenge::getCodeHash).orElse(DUMMY_HASH);
+        String providedHash = sha256Hex(providedCode.trim());
+
+        boolean hashMatches = MessageDigest.isEqual(
+                providedHash.getBytes(StandardCharsets.US_ASCII),
+                storedHash.getBytes(StandardCharsets.US_ASCII));
+
+        if (maybe.isEmpty()) {
+            return false;
+        }
+
+        TelegramDeleteChallenge challenge = maybe.get();
+        boolean expired = challenge.getExpiresAt().isBefore(Instant.now());
+
+        if (expired || !hashMatches) {
+            if (!expired) {
+                challenge.incrementFailedAttempts();
+                if (challenge.getFailedAttempts() >= MAX_ATTEMPTS) {
+                    challenge.rotate(DUMMY_HASH, Instant.now().minusSeconds(1));
+                    log.warn("delete_challenge.locked telegram_id={} attempts={}",
+                            telegramId, MAX_ATTEMPTS);
+                }
+                repository.save(challenge);
+            }
+            return false;
+        }
+
+        repository.delete(challenge);
+        log.info("delete_challenge.consumed telegram_id={}", telegramId);
+        return true;
+    }
+
+    private static String generateCode() {
+        int num = RANDOM.nextInt(1_000_000);
+        return String.format("%0" + CODE_LENGTH + "d", num);
+    }
+
+    private static String sha256Hex(String plain) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = digest.digest(plain.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder(bytes.length * 2);
+            for (byte b : bytes) {
+                sb.append(Character.forDigit((b >> 4) & 0xF, 16));
+                sb.append(Character.forDigit(b & 0xF, 16));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
+    }
+}

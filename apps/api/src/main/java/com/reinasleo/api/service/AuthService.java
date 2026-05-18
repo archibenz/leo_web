@@ -32,13 +32,27 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final VerificationService verificationService;
+    private final DeleteChallengeService deleteChallengeService;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                       JwtService jwtService, VerificationService verificationService) {
+                       JwtService jwtService, VerificationService verificationService,
+                       DeleteChallengeService deleteChallengeService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.verificationService = verificationService;
+        this.deleteChallengeService = deleteChallengeService;
+    }
+
+    @Transactional
+    public void issueDeleteChallenge(User user) {
+        if (user == null) {
+            throw new InvalidCredentialsException();
+        }
+        if (user.getTelegramId() == null) {
+            throw new IllegalArgumentException("challenge_not_supported");
+        }
+        deleteChallengeService.issueChallenge(user.getTelegramId());
     }
 
     @Transactional
@@ -124,9 +138,11 @@ public class AuthService {
                 throw new InvalidCredentialsException();
             }
         } else if (user.getTelegramId() != null) {
-            String expected = String.valueOf(user.getTelegramId());
+            // R8: для TG-only требуем одноразовый код из telegram_delete_challenges.
+            // Старый fallback (credential = telegramId) убран: ID статичен и
+            // утекает в URL некоторых клиентов, что слабый секрет.
             String provided = credential == null ? "" : credential.trim();
-            if (!constantTimeEquals(provided, expected)) {
+            if (!deleteChallengeService.consumeCode(user.getTelegramId(), provided)) {
                 throw new InvalidCredentialsException();
             }
         }

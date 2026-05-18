@@ -111,6 +111,18 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/me/delete-challenge")
+    public ResponseEntity<Void> issueDeleteChallenge(@AuthenticationPrincipal User user) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (user.getTelegramId() == null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "challenge_not_supported");
+        }
+        authService.issueDeleteChallenge(user);
+        return ResponseEntity.accepted().build();
+    }
+
     private UserResponse toUserResponse(User user) {
         return new UserResponse(
                 user.getId(), user.getEmail(), user.getName(),

@@ -30,12 +30,14 @@ class AuthServiceDeleteTest {
     @Mock private PasswordEncoder passwordEncoder;
     @Mock private JwtService jwtService;
     @Mock private VerificationService verificationService;
+    @Mock private DeleteChallengeService deleteChallengeService;
 
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository, passwordEncoder, jwtService, verificationService);
+        authService = new AuthService(userRepository, passwordEncoder, jwtService,
+                verificationService, deleteChallengeService);
     }
 
     private static User emailUser() {
@@ -124,11 +126,12 @@ class AuthServiceDeleteTest {
     }
 
     @Test
-    void deleteAccount_telegramOnlyUser_acceptsMatchingTelegramId() {
+    void deleteAccount_telegramOnlyUser_acceptsValidChallengeCode() {
         User user = telegramUser(123456789L);
+        when(deleteChallengeService.consumeCode(123456789L, "123456")).thenReturn(true);
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        authService.deleteAccount(user, new DeleteAccountRequest("123456789", "DELETE"));
+        authService.deleteAccount(user, new DeleteAccountRequest("123456", "DELETE"));
 
         verify(userRepository).save(user);
         assertThat(user.getDeletedAt()).isNotNull();
@@ -136,13 +139,32 @@ class AuthServiceDeleteTest {
     }
 
     @Test
-    void deleteAccount_telegramOnlyUser_rejectsWrongTelegramId() {
+    void deleteAccount_telegramOnlyUser_rejectsInvalidChallengeCode() {
         User user = telegramUser(123456789L);
+        when(deleteChallengeService.consumeCode(123456789L, "999999")).thenReturn(false);
 
-        assertThatThrownBy(() -> authService.deleteAccount(user, new DeleteAccountRequest("999", "DELETE")))
+        assertThatThrownBy(() -> authService.deleteAccount(user, new DeleteAccountRequest("999999", "DELETE")))
                 .isInstanceOf(InvalidCredentialsException.class);
 
         verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void issueDeleteChallenge_telegramUser_delegatesToChallengeService() {
+        User user = telegramUser(987654321L);
+
+        authService.issueDeleteChallenge(user);
+
+        verify(deleteChallengeService).issueChallenge(987654321L);
+    }
+
+    @Test
+    void issueDeleteChallenge_emailUser_throwsIllegalArgument() {
+        User user = emailUser();
+
+        assertThatThrownBy(() -> authService.issueDeleteChallenge(user))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("challenge_not_supported");
     }
 
     @Test
