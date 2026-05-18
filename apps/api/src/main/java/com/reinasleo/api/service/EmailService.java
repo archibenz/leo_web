@@ -3,8 +3,12 @@ package com.reinasleo.api.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reinasleo.api.exception.EmailDeliveryException;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
@@ -26,8 +30,22 @@ public class EmailService {
     private static final int MAX_ATTEMPTS = 3;
     private static final long[] BACKOFF_MILLIS = {1000L, 2000L, 4000L};
 
+    private static final String DURATION_METRIC = "reinasleo.email.resend.duration";
+
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
+    private final MeterRegistry meters;
+
+    private final Counter retryCounter2;
+    private final Counter retryCounter3;
+    private final Counter status2xxCounter;
+    private final Counter status4xxCounter;
+    private final Counter status5xxCounter;
+
+    private final Timer durationSuccess;
+    private final Timer durationClientError;
+    private final Timer durationServerError;
+    private final Timer durationTransportError;
 
     @Value("${app.resend.api-key:}")
     private String resendApiKey;
@@ -35,11 +53,37 @@ public class EmailService {
     @Value("${app.resend.from:REINASLEO <noreply@reinasleo.com>}")
     private String fromAddress;
 
-    public EmailService() {
-        this.httpClient = HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(10))
-                .build();
-        this.objectMapper = new ObjectMapper();
+    @Autowired
+    public EmailService(MeterRegistry meters) {
+        this(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build(),
+                new ObjectMapper(), meters);
+    }
+
+    // Test seam: позволяет подменить HttpClient (MockWebServer / Mockito) и ObjectMapper.
+    EmailService(HttpClient httpClient, ObjectMapper objectMapper, MeterRegistry meters) {
+        this.httpClient = httpClient;
+        this.objectMapper = objectMapper;
+        this.meters = meters;
+        this.retryCounter2 = Counter.builder("reinasleo.email.resend.retries")
+                .tag("attempt", "2").register(meters);
+        this.retryCounter3 = Counter.builder("reinasleo.email.resend.retries")
+                .tag("attempt", "3").register(meters);
+        this.status2xxCounter = Counter.builder("reinasleo.email.resend.status")
+                .tag("status_class", "2xx").register(meters);
+        this.status4xxCounter = Counter.builder("reinasleo.email.resend.status")
+                .tag("status_class", "4xx").register(meters);
+        this.status5xxCounter = Counter.builder("reinasleo.email.resend.status")
+                .tag("status_class", "5xx").register(meters);
+        this.durationSuccess = durationTimer(meters, "success");
+        this.durationClientError = durationTimer(meters, "client_error");
+        this.durationServerError = durationTimer(meters, "server_error");
+        this.durationTransportError = durationTimer(meters, "transport_error");
+    }
+
+    private static Timer durationTimer(MeterRegistry meters, String outcome) {
+        return Timer.builder(DURATION_METRIC)
+                .tag("outcome", outcome)
+                .register(meters);
     }
 
     /**
@@ -82,6 +126,12 @@ public class EmailService {
         String lastBodySnippet = null;
 
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            if (attempt == 2) {
+                retryCounter2.increment();
+            } else if (attempt == 3) {
+                retryCounter3.increment();
+            }
+
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(RESEND_API_URL))
                     .timeout(Duration.ofSeconds(15))
@@ -90,12 +140,15 @@ public class EmailService {
                     .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
+            Timer.Sample sample = Timer.start(meters);
             try {
                 HttpResponse<String> response = httpClient.send(
                         request, HttpResponse.BodyHandlers.ofString());
                 int status = response.statusCode();
 
                 if (status >= 200 && status < 300) {
+                    sample.stop(durationSuccess);
+                    status2xxCounter.increment();
                     if (attempt > 1) {
                         log.info("Resend delivered {} to {} on attempt {}/{}",
                                 purpose, maskedEmail, attempt, MAX_ATTEMPTS);
@@ -111,11 +164,16 @@ public class EmailService {
                 // 4xx — client error, do not retry (e.g. invalid email address,
                 // unauthorized key, rejected domain). Fail fast.
                 if (status >= 400 && status < 500) {
+                    sample.stop(durationClientError);
+                    status4xxCounter.increment();
                     log.error("Resend rejected {} for {} with 4xx status={} body={}",
                             purpose, maskedEmail, status, lastBodySnippet);
                     throw new EmailDeliveryException(
                             "Resend API rejected request with status " + status);
                 }
+
+                sample.stop(durationServerError);
+                status5xxCounter.increment();
 
                 // 5xx — transient, retry with backoff
                 if (attempt < MAX_ATTEMPTS) {
@@ -126,6 +184,7 @@ public class EmailService {
                     }
                 }
             } catch (IOException e) {
+                sample.stop(durationTransportError);
                 lastTransportError = e;
                 if (attempt < MAX_ATTEMPTS) {
                     log.warn("Resend IO error for {} on attempt {}/{}: {}, retrying in {}ms",
@@ -136,6 +195,7 @@ public class EmailService {
                     }
                 }
             } catch (InterruptedException e) {
+                sample.stop(durationTransportError);
                 Thread.currentThread().interrupt();
                 log.error("Resend call interrupted for {}", maskedEmail);
                 throw new EmailDeliveryException("Email delivery interrupted", e);

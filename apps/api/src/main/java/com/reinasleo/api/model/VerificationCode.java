@@ -30,6 +30,10 @@ public class VerificationCode {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     protected VerificationCode() {}
 
     public VerificationCode(String email, String codeHash, Instant expiresAt) {

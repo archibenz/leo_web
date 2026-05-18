@@ -3,12 +3,15 @@ package com.reinasleo.api.service;
 import com.reinasleo.api.exception.InvalidVerificationCodeException;
 import com.reinasleo.api.model.VerificationCode;
 import com.reinasleo.api.repository.VerificationCodeRepository;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -29,10 +32,12 @@ class VerificationServiceTest {
     @Mock private EmailService emailService;
 
     private VerificationService verificationService;
+    private MeterRegistry meterRegistry;
 
     @BeforeEach
     void setUp() {
-        verificationService = new VerificationService(codeRepository, emailService);
+        meterRegistry = new SimpleMeterRegistry();
+        verificationService = new VerificationService(codeRepository, emailService, meterRegistry);
     }
 
     @Test
@@ -158,6 +163,93 @@ class VerificationServiceTest {
                 .isInstanceOf(InvalidVerificationCodeException.class);
 
         verify(codeRepository, never()).save(any());
+    }
+
+    @Test
+    void sendCode_incrementsIssuedCounter() {
+        when(codeRepository.save(any(VerificationCode.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(emailService.sendVerificationCode(any(), any())).thenReturn(true);
+
+        verificationService.sendCode("user@example.com");
+
+        assertThat(meterRegistry.counter("reinasleo.verification.code.issued").count())
+                .isEqualTo(1.0);
+    }
+
+    @Test
+    void verifyCode_okPath_incrementsVerifiedOkCounter() {
+        String plain = "123456";
+        VerificationCode vc = new VerificationCode(
+                "test@example.com", sha256Hex(plain),
+                Instant.now().plus(5, ChronoUnit.MINUTES)
+        );
+        when(codeRepository.findTopByEmailAndUsedFalseOrderByCreatedAtDesc("test@example.com"))
+                .thenReturn(Optional.of(vc));
+        when(codeRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        verificationService.verifyCode("test@example.com", plain);
+
+        assertThat(meterRegistry.counter("reinasleo.verification.code.verified", "outcome", "ok").count())
+                .isEqualTo(1.0);
+        assertThat(meterRegistry.counter("reinasleo.verification.code.verified", "outcome", "bad").count())
+                .isZero();
+    }
+
+    @Test
+    void verifyCode_wrongCode_incrementsVerifiedBadCounter() {
+        VerificationCode vc = new VerificationCode(
+                "test@example.com", sha256Hex("123456"),
+                Instant.now().plus(5, ChronoUnit.MINUTES)
+        );
+        when(codeRepository.findTopByEmailAndUsedFalseOrderByCreatedAtDesc("test@example.com"))
+                .thenReturn(Optional.of(vc));
+        when(codeRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        assertThatThrownBy(() -> verificationService.verifyCode("test@example.com", "000000"))
+                .isInstanceOf(InvalidVerificationCodeException.class);
+
+        assertThat(meterRegistry.counter("reinasleo.verification.code.verified", "outcome", "bad").count())
+                .isEqualTo(1.0);
+        assertThat(meterRegistry.counter("reinasleo.verification.code.locked").count()).isZero();
+    }
+
+    @Test
+    void verifyCode_atThreshold_incrementsLockedCounter() {
+        VerificationCode vc = new VerificationCode(
+                "test@example.com", sha256Hex("123456"),
+                Instant.now().plus(5, ChronoUnit.MINUTES)
+        );
+        when(codeRepository.findTopByEmailAndUsedFalseOrderByCreatedAtDesc("test@example.com"))
+                .thenReturn(Optional.of(vc));
+        when(codeRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        for (int i = 0; i < 5; i++) {
+            assertThatThrownBy(() -> verificationService.verifyCode("test@example.com", "000000"))
+                    .isInstanceOf(InvalidVerificationCodeException.class);
+        }
+
+        assertThat(meterRegistry.counter("reinasleo.verification.code.locked").count())
+                .isEqualTo(1.0);
+        assertThat(meterRegistry.counter("reinasleo.verification.code.verified", "outcome", "bad").count())
+                .isEqualTo(5.0);
+    }
+
+    @Test
+    void verifyCode_onOptimisticLockFailure_failsSafeWithoutBubbling() {
+        VerificationCode vc = new VerificationCode(
+                "test@example.com", sha256Hex("123456"),
+                Instant.now().plus(5, ChronoUnit.MINUTES)
+        );
+        when(codeRepository.findTopByEmailAndUsedFalseOrderByCreatedAtDesc("test@example.com"))
+                .thenReturn(Optional.of(vc));
+        when(codeRepository.save(any()))
+                .thenThrow(new ObjectOptimisticLockingFailureException(VerificationCode.class, "id"));
+
+        assertThatThrownBy(() -> verificationService.verifyCode("test@example.com", "000000"))
+                .isInstanceOf(InvalidVerificationCodeException.class);
+
+        // Race: counter for locked must not fire (we exited early before reaching that branch).
+        assertThat(meterRegistry.counter("reinasleo.verification.code.locked").count()).isZero();
     }
 
     private static String sha256Hex(String plain) {

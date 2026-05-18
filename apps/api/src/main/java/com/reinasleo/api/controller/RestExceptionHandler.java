@@ -1,5 +1,6 @@
 package com.reinasleo.api.controller;
 
+import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.exception.EmailDeliveryException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
@@ -103,7 +104,7 @@ public class RestExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleOutOfStock(OutOfStockException ex) {
         Map<String, Object> body = Map.of(
                 "message", ex.getMessage(),
-                "code", "out_of_stock",
+                "error", "out_of_stock",
                 "productId", ex.getProductId(),
                 "requested", ex.getRequestedQuantity(),
                 "available", ex.getAvailableStock()
@@ -139,7 +140,16 @@ public class RestExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
         Map<String, Object> body = Map.of(
                 "message", ex.getMessage() != null ? ex.getMessage() : "Bad request",
-                "error", ex.getMessage() != null ? ex.getMessage() : "bad_request"
+                "error", "bad_request"
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<Map<String, Object>> handleBadRequest(BadRequestException ex) {
+        Map<String, Object> body = Map.of(
+                "message", ex.getCode(),
+                "error", ex.getCode()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }

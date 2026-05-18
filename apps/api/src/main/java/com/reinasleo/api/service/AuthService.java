@@ -4,6 +4,7 @@ import com.reinasleo.api.dto.DeleteAccountRequest;
 import com.reinasleo.api.dto.LoginRequest;
 import com.reinasleo.api.dto.LoginResponse;
 import com.reinasleo.api.dto.RegisterRequest;
+import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.model.User;
@@ -62,7 +63,7 @@ public class AuthService {
             throw new InvalidCredentialsException();
         }
         if (user.getTelegramId() == null) {
-            throw new IllegalArgumentException("challenge_not_supported");
+            throw new BadRequestException("challenge_not_supported");
         }
         deleteChallengeService.issueChallenge(user.getTelegramId());
     }
@@ -141,15 +142,17 @@ public class AuthService {
         }
         if (request == null || request.confirmation() == null
                 || !constantTimeEquals(request.confirmation(), DELETE_CONFIRMATION_TOKEN)) {
-            throw new IllegalArgumentException("confirmation_mismatch");
+            throw new BadRequestException("confirmation_mismatch");
         }
 
         String credential = request.credential();
+        String method;
         if (user.getPasswordHash() != null) {
             if (credential == null || credential.isEmpty()
                     || !passwordEncoder.matches(credential, user.getPasswordHash())) {
                 throw new InvalidCredentialsException();
             }
+            method = "password";
         } else if (user.getTelegramId() != null) {
             // R8: для TG-only требуем одноразовый код из telegram_delete_challenges.
             // Старый fallback (credential = telegramId) убран: ID статичен и
@@ -158,9 +161,12 @@ public class AuthService {
             if (!deleteChallengeService.consumeCode(user.getTelegramId(), provided)) {
                 throw new InvalidCredentialsException();
             }
+            method = "telegram_code";
+        } else {
+            // account has neither password nor telegramId — should never happen,
+            // but we still let the operation proceed because there is nothing to verify.
+            method = "none";
         }
-        // else: account has neither password nor telegramId — should never happen,
-        // but we still let the operation proceed because there is nothing to verify.
 
         String legacyEmailHash = user.getEmail() == null ? "n/a" : sha256Hex(user.getEmail());
 
@@ -184,8 +190,15 @@ public class AuthService {
         int removedFavorites = favoriteRepository.deleteAllByUserId(user.getId());
         int removedCarts = cartRepository.deleteByUserId(user.getId());
 
-        log.info("account_deleted user_id={} legacy_email_hash={} cart_items={} favorites={} carts={}",
-                user.getId(), legacyEmailHash, removedItems, removedFavorites, removedCarts);
+        log.atInfo()
+                .addKeyValue("event", "account_deleted")
+                .addKeyValue("user_id", user.getId())
+                .addKeyValue("method", method)
+                .addKeyValue("legacy_email_hash", legacyEmailHash)
+                .addKeyValue("cart_items_removed", removedItems)
+                .addKeyValue("favorites_removed", removedFavorites)
+                .addKeyValue("carts_removed", removedCarts)
+                .log("account deletion completed");
     }
 
     private static boolean constantTimeEquals(String a, String b) {

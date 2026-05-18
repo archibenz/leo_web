@@ -23,6 +23,10 @@ public class TelegramDeleteChallenge {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    private Long version;
+
     protected TelegramDeleteChallenge() {}
 
     public TelegramDeleteChallenge(Long telegramId, String codeHash, Instant expiresAt) {
@@ -45,6 +49,10 @@ public class TelegramDeleteChallenge {
 
     public void incrementFailedAttempts() {
         this.failedAttempts++;
+    }
+
+    public void expire() {
+        this.expiresAt = Instant.now().minusSeconds(1);
     }
 
     public Long getTelegramId() { return telegramId; }

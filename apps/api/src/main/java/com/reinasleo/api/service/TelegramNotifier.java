@@ -2,8 +2,11 @@ package com.reinasleo.api.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -31,37 +34,61 @@ public class TelegramNotifier {
     private static final int MAX_ATTEMPTS = 3;
     private static final long BACKOFF_MILLIS = 500L;
 
+    private static final String SEND_METRIC = "reinasleo.tg.notifier.send";
+
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final String apiBaseUrl;
 
+    private final Counter successCounter;
+    private final Counter clientErrorCounter;
+    private final Counter serverErrorCounter;
+    private final Counter transportErrorCounter;
+    private final Counter skippedCounter;
+
     @Value("${app.telegram.bot-token}")
     private String botToken;
 
-    public TelegramNotifier() {
+    @Autowired
+    public TelegramNotifier(MeterRegistry meters) {
         this(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build(),
-                new ObjectMapper(), TELEGRAM_API_BASE);
+                new ObjectMapper(), TELEGRAM_API_BASE, meters);
     }
 
     // Тестовый конструктор: позволяет подменить HttpClient (WireMock / MockWebServer)
     // и base URL, при этом @Value-инъекция botToken остаётся через reflection в тестах.
-    TelegramNotifier(HttpClient httpClient, ObjectMapper objectMapper, String apiBaseUrl) {
+    TelegramNotifier(HttpClient httpClient, ObjectMapper objectMapper, String apiBaseUrl,
+                     MeterRegistry meters) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.apiBaseUrl = apiBaseUrl;
+        this.successCounter = sendCounter(meters, "success");
+        this.clientErrorCounter = sendCounter(meters, "client_error");
+        this.serverErrorCounter = sendCounter(meters, "server_error");
+        this.transportErrorCounter = sendCounter(meters, "transport_error");
+        this.skippedCounter = sendCounter(meters, "skipped");
+    }
+
+    private static Counter sendCounter(MeterRegistry meters, String outcome) {
+        return Counter.builder(SEND_METRIC)
+                .tag("outcome", outcome)
+                .register(meters);
     }
 
     public void sendDeleteChallenge(Long telegramId, String code) {
         if (telegramId == null) {
             log.warn("delete_challenge.send_skipped reason=null_telegram_id");
+            skippedCounter.increment();
             return;
         }
         if (botToken == null || botToken.isBlank()) {
             log.error("delete_challenge.send_failed reason=missing_bot_token telegram_id={}", telegramId);
+            skippedCounter.increment();
             return;
         }
         if (code == null || code.isEmpty()) {
             log.warn("delete_challenge.send_skipped reason=empty_code telegram_id={}", telegramId);
+            skippedCounter.increment();
             return;
         }
 
@@ -81,6 +108,7 @@ public class TelegramNotifier {
             jsonBody = objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException e) {
             log.error("delete_challenge.send_failed reason=serialize_error telegram_id={}", telegramId, e);
+            transportErrorCounter.increment();
             return;
         }
 
@@ -89,6 +117,7 @@ public class TelegramNotifier {
     }
 
     private void sendWithRetry(URI uri, String jsonBody, Long telegramId, String code) {
+        boolean transportErrorSeen = false;
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)
@@ -105,6 +134,7 @@ public class TelegramNotifier {
                 if (status >= 200 && status < 300) {
                     log.info("delete_challenge.sent telegram_id={} code_len={} code_masked={} attempt={}",
                             telegramId, code.length(), maskCode(code), attempt);
+                    successCounter.increment();
                     return;
                 }
 
@@ -113,17 +143,21 @@ public class TelegramNotifier {
                     // не ретраим, юзер всё равно может попробовать снова.
                     log.warn("delete_challenge.bot_api_4xx telegram_id={} status={} body={}",
                             telegramId, status, truncate(response.body(), 200));
+                    clientErrorCounter.increment();
                     return;
                 }
 
+                transportErrorSeen = false;
                 log.warn("delete_challenge.bot_api_5xx telegram_id={} status={} attempt={}/{}",
                         telegramId, status, attempt, MAX_ATTEMPTS);
             } catch (IOException e) {
+                transportErrorSeen = true;
                 log.warn("delete_challenge.io_error telegram_id={} attempt={}/{} message={}",
                         telegramId, attempt, MAX_ATTEMPTS, e.getMessage());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 log.error("delete_challenge.interrupted telegram_id={}", telegramId);
+                transportErrorCounter.increment();
                 return;
             }
 
@@ -132,6 +166,7 @@ public class TelegramNotifier {
                     Thread.sleep(BACKOFF_MILLIS);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
+                    transportErrorCounter.increment();
                     return;
                 }
             }
@@ -139,6 +174,11 @@ public class TelegramNotifier {
 
         log.error("delete_challenge.send_failed telegram_id={} attempts={} reason=exhausted",
                 telegramId, MAX_ATTEMPTS);
+        if (transportErrorSeen) {
+            transportErrorCounter.increment();
+        } else {
+            serverErrorCounter.increment();
+        }
     }
 
     private static String maskCode(String code) {

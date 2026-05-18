@@ -1,9 +1,13 @@
 package com.reinasleo.api.service;
 
+import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.model.TelegramDeleteChallenge;
 import com.reinasleo.api.repository.TelegramDeleteChallengeRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,16 +46,28 @@ public class DeleteChallengeService {
     private final TelegramDeleteChallengeRepository repository;
     private final TelegramNotifier telegramNotifier;
 
+    private final Counter issuedCounter;
+    private final Counter consumedCounter;
+    private final Counter failedCounter;
+    private final Counter lockedCounter;
+
     public DeleteChallengeService(TelegramDeleteChallengeRepository repository,
-                                  TelegramNotifier telegramNotifier) {
+                                  TelegramNotifier telegramNotifier,
+                                  MeterRegistry meters) {
         this.repository = repository;
         this.telegramNotifier = telegramNotifier;
+        this.issuedCounter = Counter.builder("reinasleo.delete_challenge.issued").register(meters);
+        this.consumedCounter = Counter.builder("reinasleo.delete_challenge.consumed").register(meters);
+        this.failedCounter = Counter.builder("reinasleo.delete_challenge.failed")
+                .tag("reason", "wrong_code")
+                .register(meters);
+        this.lockedCounter = Counter.builder("reinasleo.delete_challenge.locked").register(meters);
     }
 
     @Transactional
     public void issueChallenge(Long telegramId) {
         if (telegramId == null) {
-            throw new IllegalArgumentException("telegram_id_required");
+            throw new BadRequestException("telegram_id_required");
         }
 
         String code = generateCode();
@@ -67,6 +83,7 @@ public class DeleteChallengeService {
         repository.save(challenge);
 
         telegramNotifier.sendDeleteChallenge(telegramId, code);
+        issuedCounter.increment();
         log.info("delete_challenge.issued telegram_id={}", telegramId);
     }
 
@@ -99,17 +116,32 @@ public class DeleteChallengeService {
         if (expired || !hashMatches) {
             if (!expired) {
                 challenge.incrementFailedAttempts();
-                if (challenge.getFailedAttempts() >= MAX_ATTEMPTS) {
-                    challenge.rotate(DUMMY_HASH, Instant.now().minusSeconds(1));
+                boolean locked = challenge.getFailedAttempts() >= MAX_ATTEMPTS;
+                if (locked) {
+                    challenge.expire();
                     log.warn("delete_challenge.locked telegram_id={} attempts={}",
                             telegramId, MAX_ATTEMPTS);
                 }
-                repository.save(challenge);
+                try {
+                    repository.save(challenge);
+                } catch (ObjectOptimisticLockingFailureException race) {
+                    // Конкурентный запрос уже инкрементил счётчик: для anti-bruteforce
+                    // безопаснее уронить нашу попытку, чем дать атакующему лишний
+                    // шанс из-за lost update. Юзер увидит тот же 401, что и при
+                    // неверном коде.
+                    return false;
+                }
+                if (locked) {
+                    lockedCounter.increment();
+                } else {
+                    failedCounter.increment();
+                }
             }
             return false;
         }
 
         repository.delete(challenge);
+        consumedCounter.increment();
         log.info("delete_challenge.consumed telegram_id={}", telegramId);
         return true;
     }

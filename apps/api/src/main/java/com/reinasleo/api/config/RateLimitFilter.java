@@ -4,6 +4,8 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -28,6 +30,22 @@ public class RateLimitFilter implements Filter {
     private final Cache<String, Bucket> botBuckets = buildCache();
     private final Cache<String, Bucket> contactBuckets = buildCache();
 
+    private final Counter authHitCounter;
+    private final Counter botHitCounter;
+    private final Counter contactHitCounter;
+
+    public RateLimitFilter(MeterRegistry meters) {
+        this.authHitCounter = hitCounter(meters, "auth");
+        this.botHitCounter = hitCounter(meters, "bot");
+        this.contactHitCounter = hitCounter(meters, "contact");
+    }
+
+    private static Counter hitCounter(MeterRegistry meters, String bucket) {
+        return Counter.builder("reinasleo.rate_limit.hit")
+                .tag("bucket", bucket)
+                .register(meters);
+    }
+
     private static Cache<String, Bucket> buildCache() {
         return Caffeine.newBuilder()
                 .expireAfterAccess(EVICTION_AFTER_ACCESS)
@@ -44,20 +62,22 @@ public class RateLimitFilter implements Filter {
         String ip = getClientIp(req);
 
         if (path.startsWith("/api/auth/")) {
-            if (isRateLimited(authBuckets, ip, res, this::createAuthBucket)) return;
+            if (isRateLimited(authBuckets, ip, res, this::createAuthBucket, authHitCounter)) return;
         } else if (path.startsWith("/api/bot/")) {
-            if (isRateLimited(botBuckets, ip, res, this::createBotBucket)) return;
+            if (isRateLimited(botBuckets, ip, res, this::createBotBucket, botHitCounter)) return;
         } else if (path.equals("/api/contact") && "POST".equalsIgnoreCase(req.getMethod())) {
-            if (isRateLimited(contactBuckets, ip, res, this::createContactBucket)) return;
+            if (isRateLimited(contactBuckets, ip, res, this::createContactBucket, contactHitCounter)) return;
         }
 
         chain.doFilter(request, response);
     }
 
     private boolean isRateLimited(Cache<String, Bucket> buckets, String ip, HttpServletResponse res,
-                                   java.util.function.Supplier<Bucket> factory) throws IOException {
+                                   java.util.function.Supplier<Bucket> factory,
+                                   Counter hitCounter) throws IOException {
         Bucket bucket = buckets.get(ip, k -> factory.get());
         if (bucket == null || !bucket.tryConsume(1)) {
+            hitCounter.increment();
             res.setStatus(429);
             res.setContentType("application/json");
             res.getWriter().write("{\"message\":\"Too many requests. Try again later.\"}");

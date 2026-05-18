@@ -4,8 +4,11 @@ import com.reinasleo.api.exception.EmailDeliveryException;
 import com.reinasleo.api.exception.InvalidVerificationCodeException;
 import com.reinasleo.api.model.VerificationCode;
 import com.reinasleo.api.repository.VerificationCodeRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,9 +36,24 @@ public class VerificationService {
     private final VerificationCodeRepository codeRepository;
     private final EmailService emailService;
 
-    public VerificationService(VerificationCodeRepository codeRepository, EmailService emailService) {
+    private final Counter issuedCounter;
+    private final Counter verifiedOkCounter;
+    private final Counter verifiedBadCounter;
+    private final Counter lockedCounter;
+
+    public VerificationService(VerificationCodeRepository codeRepository,
+                               EmailService emailService,
+                               MeterRegistry meters) {
         this.codeRepository = codeRepository;
         this.emailService = emailService;
+        this.issuedCounter = Counter.builder("reinasleo.verification.code.issued").register(meters);
+        this.verifiedOkCounter = Counter.builder("reinasleo.verification.code.verified")
+                .tag("outcome", "ok")
+                .register(meters);
+        this.verifiedBadCounter = Counter.builder("reinasleo.verification.code.verified")
+                .tag("outcome", "bad")
+                .register(meters);
+        this.lockedCounter = Counter.builder("reinasleo.verification.code.locked").register(meters);
     }
 
     @Transactional
@@ -59,6 +77,7 @@ public class VerificationService {
                     maskEmail(normalizedEmail), e.getMessage());
             throw e;
         }
+        issuedCounter.increment();
     }
 
     @Transactional
@@ -80,18 +99,30 @@ public class VerificationService {
         if (vc == null || expired || !hashMatches) {
             if (vc != null && !expired) {
                 vc.incrementFailedAttempts();
-                if (vc.getFailedAttempts() >= MAX_ATTEMPTS) {
+                boolean locked = vc.getFailedAttempts() >= MAX_ATTEMPTS;
+                if (locked) {
                     vc.markUsed();
                     log.warn("Verification code locked after {} failed attempts for {}",
                             MAX_ATTEMPTS, maskEmail(normalizedEmail));
                 }
-                codeRepository.save(vc);
+                try {
+                    codeRepository.save(vc);
+                } catch (ObjectOptimisticLockingFailureException race) {
+                    // Конкурент уже инкрементил attempts — fail safe, не дублируем
+                    // инкремент и метрику, юзер всё равно получит invalid_code.
+                    throw new InvalidVerificationCodeException();
+                }
+                if (locked) {
+                    lockedCounter.increment();
+                }
             }
+            verifiedBadCounter.increment();
             throw new InvalidVerificationCodeException();
         }
 
         vc.markUsed();
         codeRepository.save(vc);
+        verifiedOkCounter.increment();
     }
 
     private String generateCode() {

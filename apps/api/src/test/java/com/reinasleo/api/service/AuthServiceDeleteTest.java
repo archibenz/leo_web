@@ -1,6 +1,7 @@
 package com.reinasleo.api.service;
 
 import com.reinasleo.api.dto.DeleteAccountRequest;
+import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.model.User;
 import com.reinasleo.api.repository.CartItemRepository;
@@ -131,17 +132,17 @@ class AuthServiceDeleteTest {
     }
 
     @Test
-    void deleteAccount_wrongConfirmation_throwsIllegalArgument() {
+    void deleteAccount_wrongConfirmation_throwsBadRequest() {
         User user = emailUser();
 
         assertThatThrownBy(() -> authService.deleteAccount(user, new DeleteAccountRequest("any", "delete")))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BadRequestException.class)
                 .hasMessage("confirmation_mismatch");
         assertThatThrownBy(() -> authService.deleteAccount(user, new DeleteAccountRequest("any", "DELETE ")))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BadRequestException.class)
                 .hasMessage("confirmation_mismatch");
         assertThatThrownBy(() -> authService.deleteAccount(user, new DeleteAccountRequest("any", null)))
-                .isInstanceOf(IllegalArgumentException.class);
+                .isInstanceOf(BadRequestException.class);
 
         verify(userRepository, never()).save(any());
     }
@@ -180,11 +181,11 @@ class AuthServiceDeleteTest {
     }
 
     @Test
-    void issueDeleteChallenge_emailUser_throwsIllegalArgument() {
+    void issueDeleteChallenge_emailUser_throwsBadRequest() {
         User user = emailUser();
 
         assertThatThrownBy(() -> authService.issueDeleteChallenge(user))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(BadRequestException.class)
                 .hasMessage("challenge_not_supported");
     }
 
