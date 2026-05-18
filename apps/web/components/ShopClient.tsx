@@ -275,21 +275,6 @@ function ListCard({item, idx, locale, t}: ListCardProps) {
               onError={() => setImgError(true)}
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
             />
-            {multi && images.slice(1, 4).map((src, i) => (
-              // Preload next few hover-images invisibly so the first hover swap is instant.
-              // Using <link rel="preload"> would be cleaner but needs next/head inside client component.
-              // Plain <img width=0 height=0> triggers the same browser fetch + cache.
-              <img
-                key={src}
-                src={src}
-                alt=""
-                aria-hidden
-                width={0}
-                height={0}
-                style={{position: 'absolute', width: 0, height: 0, opacity: 0, pointerEvents: 'none'}}
-                loading="lazy"
-              />
-            ))}
           </div>
         ) : (
           <BrandFallback title={item.title} occasion={item.occasion} />

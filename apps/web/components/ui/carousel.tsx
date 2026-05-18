@@ -218,6 +218,12 @@ export function Carousel({ slides }: CarouselProps) {
                 filter: isActive ? "none" : "brightness(0.5)",
               }}
               onClick={() => handleSlideClick(index, isActive, slide.href)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleSlideClick(index, isActive, slide.href);
+                }
+              }}
               role="button"
               tabIndex={isActive ? 0 : -1}
               aria-label={isActive ? `Open ${slide.title}` : `Show ${slide.title}`}
