@@ -67,6 +67,8 @@ app:
   bot:
     api-secret: ${BOT_API_SECRET}
     username: ${BOT_USERNAME:reinasleo_bot}
+  telegram:
+    bot-token: ${TELEGRAM_BOT_TOKEN}
   upload:
     dir: ${UPLOAD_DIR:uploads}
   metrics:

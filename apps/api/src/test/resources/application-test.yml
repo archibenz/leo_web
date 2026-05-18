@@ -28,3 +28,5 @@ app:
     dir: /tmp/test-uploads
   metrics:
     secret: test-metrics-secret
+  telegram:
+    bot-token: test-bot-token

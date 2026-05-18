@@ -1,40 +1,153 @@
 package com.reinasleo.api.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
+import java.util.Map;
+
 /**
- * R8 stub: отправка системных сообщений в Telegram-бот.
+ * Отправка системных сообщений в Telegram-бот (одноразовые коды для удаления
+ * аккаунта). Реальный HTTP-вызов на {@code https://api.telegram.org/bot<token>/sendMessage}.
  *
- * <p>На текущем этапе реального вызова TG Bot API нет — все сообщения
- * только логируются. Когда подключим клиент к {@code @reinasleo_studio_aibot}
- * (отдельный сервис {@code hermes-gateway}), этот класс получит реальный
- * HTTP-вызов на {@code https://api.telegram.org/bot<token>/sendMessage}.</p>
- *
- * <p>Контракт остаётся стабильным: остальная часть бэкенда вызывает
- * {@link #sendDeleteChallenge(Long, String)} и не знает, есть ли уже
- * интеграция или нет.</p>
+ * <p>Контракт: метод никогда не бросает исключений — endpoint /delete-challenge
+ * всегда возвращает 202; user может повторить запрос, если сообщение не дошло.</p>
  */
 @Service
 public class TelegramNotifier {
 
     private static final Logger log = LoggerFactory.getLogger(TelegramNotifier.class);
+    private static final String TELEGRAM_API_BASE = "https://api.telegram.org";
+
+    private static final int MAX_ATTEMPTS = 3;
+    private static final long BACKOFF_MILLIS = 500L;
+
+    private final HttpClient httpClient;
+    private final ObjectMapper objectMapper;
+    private final String apiBaseUrl;
+
+    @Value("${app.telegram.bot-token}")
+    private String botToken;
+
+    public TelegramNotifier() {
+        this(HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).build(),
+                new ObjectMapper(), TELEGRAM_API_BASE);
+    }
+
+    // Тестовый конструктор: позволяет подменить HttpClient (WireMock / MockWebServer)
+    // и base URL, при этом @Value-инъекция botToken остаётся через reflection в тестах.
+    TelegramNotifier(HttpClient httpClient, ObjectMapper objectMapper, String apiBaseUrl) {
+        this.httpClient = httpClient;
+        this.objectMapper = objectMapper;
+        this.apiBaseUrl = apiBaseUrl;
+    }
 
     public void sendDeleteChallenge(Long telegramId, String code) {
         if (telegramId == null) {
             log.warn("delete_challenge.send_skipped reason=null_telegram_id");
             return;
         }
-        // TODO(R8-follow-up): replace with real Telegram Bot API sendMessage call.
-        // Until then, log the event with a masked code so we can confirm flow
-        // end-to-end in staging without leaking the code into prod logs.
-        log.info("delete_challenge.sent telegram_id={} code_len={} code_masked={}",
-                telegramId, code.length(), maskCode(code));
+        if (botToken == null || botToken.isBlank()) {
+            log.error("delete_challenge.send_failed reason=missing_bot_token telegram_id={}", telegramId);
+            return;
+        }
+        if (code == null || code.isEmpty()) {
+            log.warn("delete_challenge.send_skipped reason=empty_code telegram_id={}", telegramId);
+            return;
+        }
+
+        String text = """
+                Ваш код для удаления аккаунта: %s
+                Your account deletion code: %s
+
+                Действует 5 минут / Valid for 5 minutes.""".formatted(code, code);
+
+        Map<String, Object> payload = Map.of(
+                "chat_id", telegramId,
+                "text", text
+        );
+
+        String jsonBody;
+        try {
+            jsonBody = objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            log.error("delete_challenge.send_failed reason=serialize_error telegram_id={}", telegramId, e);
+            return;
+        }
+
+        URI uri = URI.create(apiBaseUrl + "/bot" + botToken + "/sendMessage");
+        sendWithRetry(uri, jsonBody, telegramId, code);
+    }
+
+    private void sendWithRetry(URI uri, String jsonBody, Long telegramId, String code) {
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .timeout(Duration.ofSeconds(10))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
+
+            try {
+                HttpResponse<String> response = httpClient.send(
+                        request, HttpResponse.BodyHandlers.ofString());
+                int status = response.statusCode();
+
+                if (status >= 200 && status < 300) {
+                    log.info("delete_challenge.sent telegram_id={} code_len={} code_masked={} attempt={}",
+                            telegramId, code.length(), maskCode(code), attempt);
+                    return;
+                }
+
+                if (status >= 400 && status < 500) {
+                    // Невалидный токен, чат не существует, бот не запущен у юзера —
+                    // не ретраим, юзер всё равно может попробовать снова.
+                    log.warn("delete_challenge.bot_api_4xx telegram_id={} status={} body={}",
+                            telegramId, status, truncate(response.body(), 200));
+                    return;
+                }
+
+                log.warn("delete_challenge.bot_api_5xx telegram_id={} status={} attempt={}/{}",
+                        telegramId, status, attempt, MAX_ATTEMPTS);
+            } catch (IOException e) {
+                log.warn("delete_challenge.io_error telegram_id={} attempt={}/{} message={}",
+                        telegramId, attempt, MAX_ATTEMPTS, e.getMessage());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                log.error("delete_challenge.interrupted telegram_id={}", telegramId);
+                return;
+            }
+
+            if (attempt < MAX_ATTEMPTS) {
+                try {
+                    Thread.sleep(BACKOFF_MILLIS);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        }
+
+        log.error("delete_challenge.send_failed telegram_id={} attempts={} reason=exhausted",
+                telegramId, MAX_ATTEMPTS);
     }
 
     private static String maskCode(String code) {
         if (code == null || code.length() < 4) return "****";
         return code.charAt(0) + "****" + code.charAt(code.length() - 1);
+    }
+
+    private static String truncate(String s, int max) {
+        if (s == null) return null;
+        return s.length() <= max ? s : s.substring(0, max) + "...";
     }
 }
