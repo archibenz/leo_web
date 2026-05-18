@@ -1,6 +1,7 @@
 package com.reinasleo.api.controller;
 
 import com.reinasleo.api.dto.*;
+import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.model.User;
 import com.reinasleo.api.repository.UserRepository;
@@ -12,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Map;
 
@@ -72,7 +72,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         if (user.getEmail() != null && !user.getEmail().isBlank()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "email_already_linked");
+            throw new ConflictException("email_already_linked");
         }
         String normalizedEmail = request.email().trim().toLowerCase();
 

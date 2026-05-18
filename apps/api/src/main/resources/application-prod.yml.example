@@ -1,0 +1,77 @@
+# REINASLEO prod profile template.
+#
+# Copy this file to application-prod.yml in your deployment (the real file is
+# gitignored) and set every ${VAR} via environment variable. No defaults are
+# provided so missing vars crash the application at startup — intentional per
+# security policy (apps/api/CLAUDE.md: secrets via ${ENV_VAR} only, NO :default
+# fallback).
+#
+# Activate with SPRING_PROFILES_ACTIVE=prod. This also switches logback-spring.xml
+# to the JSON encoder.
+#
+# Pre-flight env-var checklist: apps/api/.env.example
+# Activation script: scripts/check-env.sh --template
+
+server:
+  port: 8080
+  forward-headers-strategy: framework  # honour X-Forwarded-* behind reverse proxy
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate  # never auto-migrate in prod
+  flyway:
+    enabled: true
+    baseline-on-migrate: false  # require migration history
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+
+app:
+  # Auth
+  jwt:
+    secret: ${JWT_SECRET}              # >= 32 bytes, HMAC-SHA256
+    expiration-ms: ${JWT_EXPIRATION_MS} # token TTL in ms (e.g. 86400000 = 24h)
+
+  # CORS — comma-separated allow-list, e.g. https://reinasleo.com,https://www.reinasleo.com
+  cors:
+    allowed-origins: ${CORS_ORIGIN}
+
+  # Email (Resend HTTPS API)
+  resend:
+    api-key: ${RESEND_API_KEY}
+    from: ${RESEND_FROM}               # e.g. "REINASLEO <noreply@reinasleo.com>"
+
+  # Bot ↔ API handshake (X-Bot-Secret header)
+  bot:
+    api-secret: ${BOT_API_SECRET}
+    username: ${BOT_USERNAME}          # bot @username without leading @
+
+  # Telegram (account-delete OTP via sendMessage)
+  telegram:
+    bot-token: ${TELEGRAM_BOT_TOKEN}
+
+  # File uploads (admin only). Mount a persistent volume in prod.
+  upload:
+    dir: ${UPLOAD_DIR}
+
+  # Prometheus scrape secret (X-Metrics-Secret header, constant-time compare)
+  metrics:
+    secret: ${METRICS_SECRET}
+
+logging:
+  config: classpath:logback-spring.xml
