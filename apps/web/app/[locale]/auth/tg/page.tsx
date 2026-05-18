@@ -29,7 +29,9 @@ function TelegramAuthContent() {
       return;
     }
 
-    apiFetch<ExchangeResponse>(`/api/auth/telegram/exchange?token=${encodeURIComponent(token)}`)
+    apiFetch<ExchangeResponse>(`/api/auth/telegram/exchange`, {
+      headers: {Authorization: `Bearer ${token}`},
+    })
       .then(async data => {
         await loginWithToken(data.token);
         router.replace(`/${locale}/account`);

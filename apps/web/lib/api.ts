@@ -45,7 +45,7 @@ export async function apiFetch<T>(
     'Content-Type': 'application/json',
     ...(fetchOptions.headers as Record<string, string> ?? {}),
   };
-  if (token) {
+  if (token && !headers['Authorization']) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 

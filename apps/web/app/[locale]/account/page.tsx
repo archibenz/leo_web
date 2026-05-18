@@ -59,7 +59,8 @@ export default function AccountPage() {
   const tryPoll = useCallback(async (initToken: string): Promise<'success' | 'pending' | 'expired'> => {
     try {
       const data = await apiFetch<{status: 'pending' | 'ready'; token?: string}>(
-        `/api/auth/telegram/poll?token=${encodeURIComponent(initToken)}`,
+        `/api/auth/telegram/poll`,
+        {headers: {Authorization: `Bearer ${initToken}`}},
       );
       if (data.status === 'ready' && data.token) {
         await loginWithToken(data.token);
