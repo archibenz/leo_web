@@ -85,15 +85,26 @@ public class RateLimitFilter implements Filter {
     }
 
     private String getClientIp(HttpServletRequest request) {
+        // Prefer X-Real-IP — nginx in front sets this to the immediate peer IP
+        // and the client cannot inject it. Fall back to the LAST entry of XFF
+        // (the hop appended by our trusted proxy); earlier entries are
+        // attacker-controllable and were causing rate-limit bypass when the
+        // first XFF entry was trusted. Must stay in sync with
+        // apps/web/app/api/newsletter/subscribe/route.ts::clientIp.
         String realIp = request.getHeader("X-Real-IP");
         if (realIp != null && !realIp.isEmpty()) {
             return realIp.trim();
         }
         String forwardedFor = request.getHeader("X-Forwarded-For");
         if (forwardedFor != null && !forwardedFor.isEmpty()) {
-            int comma = forwardedFor.indexOf(',');
-            String first = comma >= 0 ? forwardedFor.substring(0, comma) : forwardedFor;
-            return first.trim();
+            int lastComma = forwardedFor.lastIndexOf(',');
+            String last = lastComma >= 0
+                    ? forwardedFor.substring(lastComma + 1)
+                    : forwardedFor;
+            String trimmed = last.trim();
+            if (!trimmed.isEmpty()) {
+                return trimmed;
+            }
         }
         return request.getRemoteAddr();
     }
