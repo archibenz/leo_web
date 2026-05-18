@@ -515,7 +515,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
     : 'profile';
   const [activeTab, setActiveTab] = useState<'profile' | 'favorites' | 'settings'>(initialTab);
   const {items: favoriteItems, removeItem: removeFavorite, isLoading: favLoading} = useFavorites();
-  const {sendCode, linkEmail, updateNewsletterPreferences, deleteAccount} = useAuth();
+  const {sendCode, linkEmail, updateNewsletterPreferences, deleteAccount, requestDeleteChallenge} = useAuth();
   const favT = useTranslations('favorites');
   const {items: recentItems} = useRecentlyViewed();
 
@@ -867,6 +867,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
       open={showDeleteModal}
       onClose={() => setShowDeleteModal(false)}
       onConfirm={handleDeleteConfirm}
+      onRequestChallenge={requestDeleteChallenge}
       hasPassword={hasPassword}
     />
 

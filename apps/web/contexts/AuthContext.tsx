@@ -51,6 +51,7 @@ type AuthContextType = {
   initTelegramAuth: () => Promise<{success: boolean; deepLink?: string; initToken?: string; error?: string}>;
   loginWithToken: (jwt: string) => Promise<void>;
   deleteAccount: (credential: string, confirmation: string) => Promise<{success: boolean; error?: string}>;
+  requestDeleteChallenge: () => Promise<{success: boolean; error?: string}>;
   logout: () => void;
   validateEmail: (email: string) => boolean;
   isAdmin: boolean;
@@ -319,6 +320,22 @@ export function AuthProvider({children}: {children: ReactNode}) {
     setUser(null);
   }, []);
 
+  const requestDeleteChallenge = useCallback(async (): Promise<{success: boolean; error?: string}> => {
+    try {
+      await apiFetch<void>('/api/auth/me/delete-challenge', {
+        method: 'POST',
+        skipAuthHandler: true,
+      });
+      return {success: true};
+    } catch (err: unknown) {
+      const apiErr = err as {status?: number};
+      if (apiErr.status === 401) return {success: false, error: 'invalid_credentials'};
+      if (apiErr.status === 409) return {success: false, error: 'challenge_not_supported'};
+      if (apiErr.status === undefined) return {success: false, error: 'network_error'};
+      return {success: false, error: 'challenge_failed'};
+    }
+  }, []);
+
   const deleteAccount = useCallback(async (credential: string, confirmation: string): Promise<{success: boolean; error?: string}> => {
     try {
       await apiFetch<void>('/api/auth/me', {
@@ -358,10 +375,11 @@ export function AuthProvider({children}: {children: ReactNode}) {
     initTelegramAuth,
     loginWithToken,
     deleteAccount,
+    requestDeleteChallenge,
     logout,
     validateEmail,
     isAdmin,
-  }), [user, isLoading, login, sendCode, register, linkEmail, updateNewsletterPreferences, initTelegramAuth, loginWithToken, deleteAccount, logout, validateEmail, isAdmin]);
+  }), [user, isLoading, login, sendCode, register, linkEmail, updateNewsletterPreferences, initTelegramAuth, loginWithToken, deleteAccount, requestDeleteChallenge, logout, validateEmail, isAdmin]);
 
   return (
     <AuthContext.Provider value={value}>
@@ -382,6 +400,7 @@ const defaultAuthContext: AuthContextType = {
   initTelegramAuth: async () => ({success: false}),
   loginWithToken: async () => {},
   deleteAccount: async () => ({success: false}),
+  requestDeleteChallenge: async () => ({success: false}),
   logout: () => {},
   validateEmail: () => false,
   isAdmin: false,

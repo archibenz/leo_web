@@ -10,16 +10,21 @@ type Props = {
   open: boolean;
   onClose: () => void;
   onConfirm: (credential: string, confirmation: string) => Promise<{success: boolean; error?: string}>;
+  onRequestChallenge?: () => Promise<{success: boolean; error?: string}>;
   hasPassword: boolean;
 };
 
-export default function DeleteAccountModal({open, onClose, onConfirm, hasPassword}: Props) {
+export default function DeleteAccountModal({open, onClose, onConfirm, onRequestChallenge, hasPassword}: Props) {
   const t = useTranslations('account.dangerZone.modal');
   const tErrors = useTranslations('account.errors');
   const [credential, setCredential] = useState('');
   const [confirmText, setConfirmText] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [challengeSent, setChallengeSent] = useState(false);
+  const [requesting, setRequesting] = useState(false);
+
+  const usesChallenge = !hasPassword && !!onRequestChallenge;
 
   useEffect(() => {
     if (!open) {
@@ -27,6 +32,8 @@ export default function DeleteAccountModal({open, onClose, onConfirm, hasPasswor
       setConfirmText('');
       setError('');
       setSubmitting(false);
+      setChallengeSent(false);
+      setRequesting(false);
     }
   }, [open]);
 
@@ -41,7 +48,23 @@ export default function DeleteAccountModal({open, onClose, onConfirm, hasPasswor
 
   if (typeof document === 'undefined') return null;
 
-  const canSubmit = !submitting && confirmText === 'DELETE' && credential.trim().length > 0;
+  const credentialReady = usesChallenge ? challengeSent && credential.trim().length === 6 : credential.trim().length > 0;
+  const canSubmit = !submitting && confirmText === 'DELETE' && credentialReady;
+
+  const handleRequestChallenge = async () => {
+    if (!onRequestChallenge || requesting) return;
+    setRequesting(true);
+    setError('');
+    const result = await onRequestChallenge();
+    setRequesting(false);
+    if (result.success) {
+      setChallengeSent(true);
+    } else if (result.error === 'network_error') {
+      setError(tErrors('networkError'));
+    } else {
+      setError(tErrors('deleteFailed'));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +75,7 @@ export default function DeleteAccountModal({open, onClose, onConfirm, hasPasswor
     setSubmitting(false);
     if (!result.success) {
       if (result.error === 'invalid_credentials') {
-        setError(hasPassword ? tErrors('invalidPasswordForDeletion') : tErrors('invalidTelegramIdForDeletion'));
+        setError(hasPassword ? tErrors('invalidPasswordForDeletion') : tErrors('invalidTelegramCodeForDeletion'));
       } else if (result.error === 'confirmation_mismatch') {
         setError(tErrors('confirmationMismatch'));
       } else if (result.error === 'network_error') {
@@ -100,23 +123,57 @@ export default function DeleteAccountModal({open, onClose, onConfirm, hasPasswor
               </div>
 
               <div className="space-y-3">
-                <div>
-                  <label htmlFor="delete-cred" className="block text-[12px] font-medium uppercase tracking-wider text-ink/65 mb-1.5">
-                    {hasPassword ? t('passwordLabel') : t('telegramIdLabel')}
-                  </label>
-                  <input
-                    id="delete-cred"
-                    type={hasPassword ? 'password' : 'text'}
-                    inputMode={hasPassword ? undefined : 'numeric'}
-                    autoComplete={hasPassword ? 'current-password' : 'off'}
-                    value={credential}
-                    onChange={(e) => setCredential(e.target.value)}
-                    className="admin-input"
-                    placeholder={hasPassword ? t('passwordPlaceholder') : t('telegramIdPlaceholder')}
-                    required
-                    disabled={submitting}
-                  />
-                </div>
+                {usesChallenge ? (
+                  <div>
+                    <label htmlFor="delete-cred" className="block text-[12px] font-medium uppercase tracking-wider text-ink/65 mb-1.5">
+                      {t('tgCodeLabel')}
+                    </label>
+                    {!challengeSent ? (
+                      <button
+                        type="button"
+                        onClick={handleRequestChallenge}
+                        disabled={requesting}
+                        className="w-full rounded-full border border-ink/25 bg-transparent px-4 py-3 text-sm font-medium uppercase tracking-wider text-ink/85 transition-all duration-200 hover:bg-ink/5 disabled:opacity-50"
+                      >
+                        {requesting ? t('tgChallengeRequesting') : t('tgChallengeButton')}
+                      </button>
+                    ) : (
+                      <>
+                        <input
+                          id="delete-cred"
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="one-time-code"
+                          maxLength={6}
+                          value={credential}
+                          onChange={(e) => setCredential(e.target.value.replace(/\D/g, ''))}
+                          className="admin-input tracking-[0.2em]"
+                          placeholder={t('tgCodePlaceholder')}
+                          required
+                          disabled={submitting}
+                        />
+                        <p className="mt-1 text-[12px] text-ink/55">{t('tgChallengeSent')}</p>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <label htmlFor="delete-cred" className="block text-[12px] font-medium uppercase tracking-wider text-ink/65 mb-1.5">
+                      {t('passwordLabel')}
+                    </label>
+                    <input
+                      id="delete-cred"
+                      type="password"
+                      autoComplete="current-password"
+                      value={credential}
+                      onChange={(e) => setCredential(e.target.value)}
+                      className="admin-input"
+                      placeholder={t('passwordPlaceholder')}
+                      required
+                      disabled={submitting}
+                    />
+                  </div>
+                )}
 
                 <div>
                   <label htmlFor="delete-confirm" className="block text-[12px] font-medium uppercase tracking-wider text-ink/65 mb-1.5">
