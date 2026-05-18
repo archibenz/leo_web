@@ -126,26 +126,42 @@ a {
 
 /* ============================================
    Focus & Selection Styles - Elegant & Minimal
-   ============================================ */
-
-/* Remove all outlines - use box-shadow only */
-:focus-visible {
-  outline: none !important;
-}
+   ============================================
+   WCAG 2.4.7: keyboard focus must be visible.
+   - :focus (mouse/touch)       → no outline (avoid pointer-driven flicker)
+   - :focus-visible (keyboard)  → explicit gold ring via outline + box-shadow
+   Inputs override below to keep the brand glow but still surface keyboard focus. */
 
 :focus {
-  outline: none !important;
+  outline: none;
 }
 
-/* Input/textarea/select focus - glow effect */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Input/textarea/select focus - glow effect (mouse + keyboard) */
 input:focus,
 textarea:focus,
-select:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 8px rgba(212, 165, 116, 0.15);
+}
+
+/* Keyboard focus on inputs — stronger ring on top of the glow */
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: none !important;
-  border-color: var(--accent) !important;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent), 0 0 8px rgba(212, 165, 116, 0.15);
 }
 
@@ -167,10 +183,9 @@ input.focus-bare:focus-visible {
   box-shadow: none !important;
 }
 
-/* Buttons - no outline, subtle glow only */
-button:focus,
-button:focus-visible {
-  outline: none !important;
+/* Buttons - clear mouse focus, keyboard focus handled by :focus-visible rule above */
+button:focus {
+  outline: none;
 }
 
 /* Text selection colors (for allowed elements) */
