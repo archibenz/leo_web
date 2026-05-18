@@ -38,14 +38,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             String token = header.substring(7);
             if (jwtService.isValid(token)) {
                 UUID userId = jwtService.extractUserId(token);
-                userRepository.findById(userId).ifPresent(user -> {
-                    Collection<GrantedAuthority> authorities = "admin".equals(user.getRole())
-                            ? List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
-                            : List.of();
-                    var auth = new UsernamePasswordAuthenticationToken(
-                            user, null, authorities);
-                    SecurityContextHolder.getContext().setAuthentication(auth);
-                });
+                userRepository.findById(userId)
+                        .filter(u -> u.getDeletedAt() == null)
+                        .ifPresent(user -> {
+                            Collection<GrantedAuthority> authorities = "admin".equals(user.getRole())
+                                    ? List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                                    : List.of();
+                            var auth = new UsernamePasswordAuthenticationToken(
+                                    user, null, authorities);
+                            SecurityContextHolder.getContext().setAuthentication(auth);
+                        });
             }
         }
 

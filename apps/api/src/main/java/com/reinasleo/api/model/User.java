@@ -60,6 +60,9 @@ public class User {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
     protected User() {}
 
     public User(String email, String name, String surname, String passwordHash,
@@ -107,12 +110,17 @@ public class User {
     public String getPhone() { return phone; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
+    public Instant getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(Instant deletedAt) { this.deletedAt = deletedAt; }
+    public boolean isDeleted() { return deletedAt != null; }
 
     public void setEmail(String email) { this.email = email; }
+    public void setName(String name) { this.name = name; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
     public void setTelegramId(Long telegramId) { this.telegramId = telegramId; }
     public void setPhone(String phone) { this.phone = phone; }
     public void setSurname(String surname) { this.surname = surname; }
+    public void setDateOfBirth(LocalDate dateOfBirth) { this.dateOfBirth = dateOfBirth; }
 
     public boolean isNewsletterPromos() { return newsletterPromos; }
     public void setNewsletterPromos(boolean v) { this.newsletterPromos = v; }

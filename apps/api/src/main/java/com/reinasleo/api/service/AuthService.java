@@ -1,5 +1,6 @@
 package com.reinasleo.api.service;
 
+import com.reinasleo.api.dto.DeleteAccountRequest;
 import com.reinasleo.api.dto.LoginRequest;
 import com.reinasleo.api.dto.LoginResponse;
 import com.reinasleo.api.dto.RegisterRequest;
@@ -8,12 +9,24 @@ import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.model.User;
 import com.reinasleo.api.repository.UserRepository;
 import com.reinasleo.api.security.JwtService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.util.HexFormat;
+
 @Service
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+
+    private static final String DELETE_CONFIRMATION_TOKEN = "DELETE";
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -77,5 +90,82 @@ public class AuthService {
 
         String token = jwtService.generateToken(user.getId(), user.getEmail());
         return new LoginResponse(token, user.getId(), user.getEmail(), user.getName(), user.getSurname(), user.getRole());
+    }
+
+    /**
+     * R1: soft-delete user (GDPR Art.17 / 152-ФЗ).
+     *
+     * <p>Anonymizes PII in-place, sets {@code deleted_at}, keeps the row so that
+     * downstream {@code orders} / {@code cart_items} (FK ON DELETE SET NULL / CASCADE
+     * in V2) preserve accounting trail. After this call:</p>
+     * <ul>
+     *   <li>email is reassigned to {@code deleted-<uuid>@deleted.local} (preserves unique index);</li>
+     *   <li>name/surname/phone/dateOfBirth/passwordHash/telegramId become NULL;</li>
+     *   <li>name is set to "deleted" because the column is NOT NULL.</li>
+     * </ul>
+     *
+     * <p>Repository lookups (login, /me, telegram) skip rows with {@code deleted_at IS NOT NULL},
+     * so any previously issued JWT is rejected on next request.</p>
+     */
+    @Transactional
+    public void deleteAccount(User user, DeleteAccountRequest request) {
+        if (user == null) {
+            throw new InvalidCredentialsException();
+        }
+        if (request == null || request.confirmation() == null
+                || !constantTimeEquals(request.confirmation(), DELETE_CONFIRMATION_TOKEN)) {
+            throw new IllegalArgumentException("confirmation_mismatch");
+        }
+
+        String credential = request.credential();
+        if (user.getPasswordHash() != null) {
+            if (credential == null || credential.isEmpty()
+                    || !passwordEncoder.matches(credential, user.getPasswordHash())) {
+                throw new InvalidCredentialsException();
+            }
+        } else if (user.getTelegramId() != null) {
+            String expected = String.valueOf(user.getTelegramId());
+            String provided = credential == null ? "" : credential.trim();
+            if (!constantTimeEquals(provided, expected)) {
+                throw new InvalidCredentialsException();
+            }
+        }
+        // else: account has neither password nor telegramId — should never happen,
+        // but we still let the operation proceed because there is nothing to verify.
+
+        String legacyEmailHash = user.getEmail() == null ? "n/a" : sha256Hex(user.getEmail());
+
+        user.setEmail("deleted-" + user.getId() + "@deleted.local");
+        user.setName("deleted");
+        user.setSurname(null);
+        user.setPhone(null);
+        user.setDateOfBirth(null);
+        user.setPasswordHash(null);
+        user.setTelegramId(null);
+        user.setNewsletterPromos(false);
+        user.setNewsletterCollections(false);
+        user.setNewsletterProjects(false);
+        user.setDeletedAt(Instant.now());
+
+        userRepository.save(user);
+
+        log.info("account_deleted user_id={} legacy_email_hash={}", user.getId(), legacyEmailHash);
+    }
+
+    private static boolean constantTimeEquals(String a, String b) {
+        if (a == null || b == null) return false;
+        byte[] aBytes = a.getBytes(StandardCharsets.UTF_8);
+        byte[] bBytes = b.getBytes(StandardCharsets.UTF_8);
+        return MessageDigest.isEqual(aBytes, bBytes);
+    }
+
+    private static String sha256Hex(String input) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest(input.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (NoSuchAlgorithmException e) {
+            return "sha256_unavailable";
+        }
     }
 }

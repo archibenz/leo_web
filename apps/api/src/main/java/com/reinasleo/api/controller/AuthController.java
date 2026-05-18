@@ -100,10 +100,22 @@ public class AuthController {
         return ResponseEntity.ok(toUserResponse(user));
     }
 
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteMe(
+            @AuthenticationPrincipal User user,
+            @Valid @RequestBody DeleteAccountRequest request) {
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        authService.deleteAccount(user, request);
+        return ResponseEntity.noContent().build();
+    }
+
     private UserResponse toUserResponse(User user) {
         return new UserResponse(
                 user.getId(), user.getEmail(), user.getName(),
                 user.getSurname(), user.getDateOfBirth(), user.getCreatedAt(), user.getRole(),
-                user.isNewsletterPromos(), user.isNewsletterCollections(), user.isNewsletterProjects());
+                user.isNewsletterPromos(), user.isNewsletterCollections(), user.isNewsletterProjects(),
+                user.getPasswordHash() != null, user.getTelegramId() != null);
     }
 }

@@ -14,5 +14,7 @@ public record UserResponse(
         String role,
         boolean newsletterPromos,
         boolean newsletterCollections,
-        boolean newsletterProjects
+        boolean newsletterProjects,
+        boolean hasPassword,
+        boolean hasTelegram
 ) {}

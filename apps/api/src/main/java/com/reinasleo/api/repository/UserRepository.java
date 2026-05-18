@@ -12,17 +12,19 @@ import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
 
-    @Query("SELECT u FROM User u WHERE lower(u.email) = lower(:email)")
+    @Query("SELECT u FROM User u WHERE lower(u.email) = lower(:email) AND u.deletedAt IS NULL")
     Optional<User> findByEmailIgnoreCase(String email);
 
-    Optional<User> findByTelegramId(Long telegramId);
+    @Query("SELECT u FROM User u WHERE u.telegramId = :telegramId AND u.deletedAt IS NULL")
+    Optional<User> findByTelegramId(@Param("telegramId") Long telegramId);
 
-    long countByCreatedAtAfter(Instant since);
+    @Query("SELECT COUNT(u) FROM User u WHERE u.createdAt > :since AND u.deletedAt IS NULL")
+    long countByCreatedAtAfter(@Param("since") Instant since);
 
     @Query(value = """
             SELECT DATE(created_at AT TIME ZONE 'UTC') AS day, COUNT(*) AS cnt
             FROM users
-            WHERE created_at >= :since
+            WHERE created_at >= :since AND deleted_at IS NULL
             GROUP BY DATE(created_at AT TIME ZONE 'UTC')
             ORDER BY day ASC
             """, nativeQuery = true)
