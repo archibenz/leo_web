@@ -1,316 +1,139 @@
-# REINASLEO — Premium Women's Fashion
+# REINASLEO Web
 
-**First draft homepage** with editorial retro-collage aesthetic. Modern monorepo with Next.js 15 (App Router) + Spring Boot 3 (Java 21).
+Premium women's fashion storefront. Next.js 15 web app with a Spring Boot 3
+API and PostgreSQL behind it.
 
----
-
-## Monorepo Structure
+## Architecture
 
 ```
-/
-├── apps/
-│   ├── web/       Next.js 15 frontend (TypeScript + TailwindCSS)
-│   └── api/       Spring Boot 3 API (Java 21 + Gradle)
-└── README.md
+apps/web/   Next.js 15 (App Router, RSC), TypeScript, Tailwind, next-intl
+apps/api/   Spring Boot 3.3 (Java 21), Spring Security, JPA, Flyway
+            actuator + Prometheus, JSON structured logging
+docker-compose.yml   PostgreSQL 16 for local dev
+scripts/check-env.sh runtime env validation against application.yml
 ```
 
----
+The web app and the API are owned by separate agents — see
+`apps/web/CLAUDE.md` and `apps/api/CLAUDE.md`. The only coupling between
+them is the HTTP REST contract documented in `CLAUDE.md` at the repo root.
 
-## Quick Start
+Auxiliary services (Telegram bot, analytics) live in sibling repos
+(`leo_bot`, `leo_analytics`).
 
-### Web (Next.js)
+## Local development
+
+Prerequisites: Node 20+, Java 21, Docker.
 
 ```bash
-cd apps/web
-npm install
-npm run dev
-# Open http://localhost:3000/en  (or /ru for Russian)
+# 1. Postgres
+docker compose up -d
+
+# 2. API (terminal 1)
+cp apps/api/.env.example apps/api/.env   # fill in secrets
+npm run api:dev                          # http://localhost:8080
+
+# 3. Web (terminal 2)
+cp apps/web/.env.example apps/web/.env.local
+npm run web:dev                          # http://localhost:3000/en
 ```
 
-**Environment variables** (optional):
-- `NEXT_PUBLIC_API_BASE` – API base URL (default: `http://localhost:8080`)
+The API reads its env from `apps/api/.env` (gradle's bootRun task picks it
+up). The web reads `apps/web/.env.local`.
 
-**TypeScript check:**
+Routes default to `/en`; localized as `/en/...` and `/ru/...`.
+
+## Environment
+
+See `.env.example` files for the canonical list — never commit `.env`.
+
+- `apps/api/.env.example` — DB, JWT, Resend, Bot secret, CORS, metrics scraper secret
+- `apps/web/.env.example` — public API base, site URL, Resend audience
+
+Validate before starting:
+
 ```bash
-npm run build  # or npx tsc --noEmit
+npm run check:env             # template mode (keys only)
+npm run check:env:strict      # values must be non-empty
 ```
 
-**Hero Background:**
-The hero section features an animated ShaderGradient background with graceful fallbacks:
-- Animated WebGL gradient (if WebGL supported and motion not reduced)
-- Static CSS gradient fallback (SSR, reduced motion, or no WebGL)
-- Paper texture overlay for readability
+Secrets in `application.yml` are wired via `${ENV_VAR}` with no fallback —
+the app refuses to start when a required var is missing.
 
-### API (Spring Boot)
+## Scripts
 
-```bash
-cd apps/api
-gradle bootRun
-# Runs on http://localhost:8080
-```
+| Command | What |
+|---|---|
+| `npm run web:dev` | Next.js dev server on :3000 |
+| `npm run web:build` | Production build of the web app |
+| `npm run web:start` | Run the built web app |
+| `npm run api:dev` | `gradle bootRun` on :8080 |
+| `npm run api:build` | `gradle build` (runs tests) |
+| `npm run check:env` | Validate `application.yml` ↔ `.env.example` |
 
-**Endpoints:**
-- `GET /api/health` – health check
-- `POST /api/contact` – contact form (validates name/email/message)
-- `GET /api/lookbook` – placeholder lookbook items
+Inside `apps/web/`:
 
----
+| Command | What |
+|---|---|
+| `npm run lint` | ESLint |
+| `npm test` | Vitest unit tests |
+| `npm run test:e2e` | Playwright end-to-end |
 
-## ✅ TypeScript Configuration Fixed
+Inside `apps/api/`:
 
-The `Cannot find type definition file for 'node'` error has been resolved:
+| Command | What |
+|---|---|
+| `gradle test` | JUnit 5 |
+| `gradle bootRun` | Run the API |
+| `gradle build` | Build the JAR |
 
-1. **Installed dependencies** including `@types/node`
-2. **Updated Next.js** to 15.5.9 (latest stable with security fixes)
-3. **Updated next-intl** to 3.26.2 (Next.js 15 compatible)
-4. **Fixed async cookies API** for Next.js 15
-5. **Updated tsconfig.json** with proper Next.js plugin configuration
+## API surface
 
-All TypeScript compilation passes with zero errors.
+REST contract is the single coupling between web and API. Full list in
+the root `CLAUDE.md`. Highlights:
 
----
+- Auth (JWT + Telegram link): `POST /api/auth/{register,login}`, `GET /api/auth/me`
+- Commerce: `/api/cart/*`, `/api/favorite/*`, `/api/orders/*`
+- Public: `/api/catalog/*`, `/api/lookbook`, `/api/care-guides`, `/api/contact`
+- Bot ingress (X-Bot-Secret header): `/api/bot/*`
+- Health: `GET /api/health`, `GET /actuator/health`, `GET /actuator/info`
+- Metrics: `GET /actuator/prometheus` — requires `X-Metrics-Secret` header
+  matching `METRICS_SECRET` env var (or a JWT with `ROLE_ADMIN`)
 
-## Localization (RU / EN)
+## Observability
 
-- Routes: `/en/...` and `/ru/...`
-- Language toggle in header switches locale and keeps current path.
-- Translations: `apps/web/messages/en.json`, `apps/web/messages/ru.json`
+The API exports Prometheus metrics and emits structured JSON logs in
+`prod`:
 
----
+- `/actuator/health` — public, used by load balancer / uptime checks
+- `/actuator/prometheus` — secret-protected scrape endpoint
+- `logback-spring.xml` switches to `LogstashEncoder` under the `prod`
+  Spring profile; `local` / `dev` / `test` keep human-readable text output
+- `DatabaseHealthIndicator` executes `SELECT 1` and is rolled into
+  `/actuator/health`
 
-## Design System
-
-**Colors:**
-- Paper background: `#F3E9DA` to `#EFE3D2`
-- Ink: `#2B1711` (dark), `#3A1F16` (soft)
-- Accent: `#C89B3C` (mustard gold)
-
-**Typography:**
-- Display (headings): Bebas Neue (large, bold, poster-like)
-- Body: Inter
-
-**Texture & effects:**
-- Paper grain via CSS pseudo-element (SVG noise filter)
-- Crumpled shadow overlays for tactile feel
-- Collage elements: tape strips, circular tags, ribbons
-
-**Customization:**
-- `apps/web/app/globals.css` – adjust `--texture-opacity` and `--crumple-opacity` (lines 7–13 in `:root`)
-- `apps/web/tailwind.config.ts` – accent color and theme overrides
-
----
-
-## Brand Emblem
-
-Location: `apps/web/components/BrandEmblem.tsx`
-
-**How to replace:**
-1. Open `BrandEmblem.tsx`
-2. Find the `<svg>` block (lines 15–37)
-3. Replace the inline SVG with your emblem
-4. Keep `viewBox="0 0 64 64"` for easy drop-in
-
-The emblem appears:
-- In the header (left)
-- As a watermark in the hero background (5% opacity)
-
----
-
-## Pages & Routes
-
-| Route | Description |
-|-------|-------------|
-| `/[locale]` | Home (hero, manifesto, atelier, lookbook teaser, newsletter) |
-| `/[locale]/about` | About page (placeholder) |
-| `/[locale]/lookbook` | Lookbook grid (6 placeholder frames) |
-| `/[locale]/contact` | Contact form (posts to API) |
-
-All routes are locale-prefixed (`/en` or `/ru`).
-
----
-
-## Replacing Placeholders with Real Content
-
-### Hero & Lookbook Frames
-
-**File:** `apps/web/app/[locale]/page.tsx`
-
-1. **Hero editorial frame** (lines 103–116):
-   - Replace the gradient `<div>` with an `<Image>` or real photo component
-   - Keep the `.collage-frame` wrapper and decorative elements
-
-2. **Lookbook grid** (lines 193–209):
-   - Each card is a placeholder; replace inner `<div>` with actual images
-   - Labels come from `messages/*.json` → `home.lookbook.labels`
-
-### Product Pages (future)
-
-When adding e-commerce:
-- Create `apps/web/app/[locale]/shop/page.tsx` for product listings
-- Add product detail routes: `apps/web/app/[locale]/shop/[slug]/page.tsx`
-- Update API with product endpoints
-- Connect to PostgreSQL (see below)
-
----
-
-## Adding a Database (PostgreSQL)
-
-The API uses in-memory stubs (no DB required). To add PostgreSQL:
-
-1. **Add dependencies** to `apps/api/build.gradle.kts`:
-   ```kotlin
-   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-   runtimeOnly("org.postgresql:postgresql")
-   ```
-
-2. **Update `apps/api/src/main/resources/application.yml`**:
-   ```yaml
-   spring:
-     datasource:
-       url: jdbc:postgresql://localhost:5432/reinasleo
-       username: youruser
-       password: yourpass
-     jpa:
-       hibernate:
-         ddl-auto: update
-       show-sql: true
-   ```
-
-3. **Convert models** (e.g., `ContactMessage`) to JPA entities:
-   ```java
-   @Entity
-   public class ContactMessage {
-     @Id @GeneratedValue
-     private Long id;
-     // ... fields
-   }
-   ```
-
-4. **Create repositories**:
-   ```java
-   public interface ContactRepository extends JpaRepository<ContactMessage, Long> {}
-   ```
-
-5. **Update services** to use the repository instead of in-memory list.
-
----
-
-## Performance Checklist
-
-- ✅ Server components by default
-- ✅ Self-hosted fonts (`next/font/google`)
-- ✅ No external images (CSS/SVG placeholders)
-- ✅ Gzip enabled in Spring Boot
-- ✅ Minimal dependencies
-- ✅ Next.js 15.5.9 (latest stable)
-
-**Next steps:**
-- Add `next/image` for optimized images when you have real photos
-- Enable static export for home/about if content is static
-- Add caching headers for API responses
-
----
+Wire your Prometheus scraper with the `X-Metrics-Secret` header; ship logs
+from stdout to whatever sink you run (Loki, Datadog, Cloudwatch).
 
 ## Deployment
 
-### Web (Vercel / Netlify)
+Web is built and served as a Node app (Vercel-style platform or behind
+nginx). API is a Spring Boot fat-jar. In production both sit behind nginx,
+which terminates TLS and proxies `/api/**` and `/uploads/**` to the API on
+:8080. CORS therefore allows only the public origins listed in
+`CORS_ORIGIN`.
 
-```bash
-cd apps/web
-npm run build
-npm start
-```
+Set `SPRING_PROFILES_ACTIVE=prod` so the API emits JSON logs and the web
+build picks up the production `NEXT_PUBLIC_*` values.
 
-**Environment:**
-- Set `NEXT_PUBLIC_API_BASE` to your production API URL
+## Commit conventions
 
-### API (Docker / VPS)
+The repo follows Conventional Commits (`feat(api): …`, `fix(web): …`,
+`perf(web): …`, `chore: …`, `test(api): …`, `style(loader): …`). Keep one
+logical change per commit and write the body for the next reader.
 
-```bash
-cd apps/api
-gradle build
-java -jar build/libs/reinasleo-api-0.0.1-SNAPSHOT.jar
-```
+## Where to look next
 
-**Environment:**
-- Set `app.cors.allowed-origins` in `application.yml` to your web domain
-
----
-
-## Tech Stack Summary
-
-| Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 15.5+ (App Router), React 19, TypeScript 5.7 |
-| Styling | TailwindCSS 3.4+ |
-| i18n | next-intl 3.26+ |
-| Backend | Spring Boot 3.x, Java 21 |
-| Build | npm (web), Gradle 8+ (API) |
-| Data | In-memory (PostgreSQL ready) |
-
----
-
-## Troubleshooting
-
-### TypeScript Errors
-
-If you see `Cannot find type definition file for 'node'`:
-```bash
-cd apps/web
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### Port Already in Use
-
-**Web (3000):**
-```bash
-lsof -ti:3000 | xargs kill -9
-```
-
-**API (8080):**
-```bash
-lsof -ti:8080 | xargs kill -9
-```
-
-### ShaderGradient Background Issues
-
-**Canvas is blank or not rendering:**
-1. **Check WebGL support**: Open browser console and verify WebGL is enabled
-   - Chrome/Edge: `chrome://flags` → Enable "WebGL 2.0"
-   - Firefox: `about:config` → `webgl.enable-webgl2` = true
-2. **Try different browser**: Some browsers have stricter WebGL policies
-3. **Check browser console**: Look for WebGL context errors
-4. **Reduce performance load**: The component automatically falls back if WebGL fails
-5. **Disable grain**: If performance is poor, edit `HeroShaderBackground.tsx` and set `grain="off"`
-
-**Background shows static fallback instead of animation:**
-- This is expected if:
-  - User has `prefers-reduced-motion` enabled (accessibility)
-  - WebGL is not supported/available
-  - During SSR (server-side rendering)
-- The fallback maintains the same visual aesthetic with a static gradient
-
-**Performance issues:**
-- The shader uses `pixelDensity={1}` and optimized settings for performance
-- If still slow, try reducing `uDensity` or `uStrength` values in the component
-- Consider disabling grain: `grain="off"`
-
-**Component not found errors:**
-```bash
-cd apps/web
-npm install @shadergradient/react
-# Verify installation:
-npm list @shadergradient/react
-```
-
----
-
-## License & Credits
-
-**Built for:** REINASLEO  
-**Design aesthetic:** Editorial retro-collage, warm paper tones, mustard-gold accents, tactile typography
-
----
-
-**Questions?** Check inline comments in `BrandEmblem.tsx`, `globals.css`, and `page.tsx` for customization hooks.
+- `CLAUDE.md` (root) — agent boundaries, shared REST contract, security rules
+- `apps/web/CLAUDE.md` — Next.js conventions, component patterns
+- `apps/api/CLAUDE.md` — Spring Boot conventions, security model
+- `docs/superpowers/` — operational runbooks
