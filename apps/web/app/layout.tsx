@@ -36,7 +36,9 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 };
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
+// new URL('') throws — fall back to the production origin so static metadata
+// stays valid in environments where NEXT_PUBLIC_SITE_URL is unset (CI, local).
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://reinasleo.com';
 
 export const metadata: Metadata = {
   // Root-level title — fallback for non-locale routes (404, errors).
@@ -52,6 +54,7 @@ export const metadata: Metadata = {
     languages: {
       'en': '/en',
       'ru': '/ru',
+      'x-default': '/ru',
     },
   },
   openGraph: {

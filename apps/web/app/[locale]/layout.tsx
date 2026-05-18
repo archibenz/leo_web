@@ -43,7 +43,7 @@ export default async function LocaleLayout({
   const locale = localeParam as Locale;
   const messages = await getMessages();
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://reinasleo.com';
   const orgJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
