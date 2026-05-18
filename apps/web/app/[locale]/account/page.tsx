@@ -521,7 +521,30 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const hasPassword = user.hasPassword === true || (user.hasPassword === undefined && !!user.email);
+
+  const handleExport = useCallback(async () => {
+    setExporting(true);
+    try {
+      const data = await apiFetch<unknown>('/api/auth/me/export');
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const stamp = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `reinasleo-account-${stamp}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('data export failed', err);
+      showToast({kind: 'error', messageKey: 'account.dataExport.error', duration: 6000});
+    } finally {
+      setExporting(false);
+    }
+  }, []);
 
   const handleDeleteConfirm = useCallback(async (credential: string, confirmation: string) => {
     const result = await deleteAccount(credential, confirmation);
@@ -838,6 +861,23 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                 className="w-full rounded-full border border-ink/20 bg-transparent px-6 py-3.5 text-sm font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-ink/5 hover:border-ink/40">
                 {t('settings.signOut')}
               </button>
+
+              <div className="h-px bg-gradient-to-r from-transparent via-ink/8 to-transparent" />
+
+              {/* Data Export — GDPR Art.20 */}
+              <div className="space-y-4 rounded-2xl border border-ink/10 bg-ink/[0.02] p-5">
+                <div>
+                  <h2 className="font-display text-[16px] font-semibold text-ink tracking-wide">{t('dataExport.title')}</h2>
+                  <p className="mt-1 text-[13px] text-ink/65">{t('dataExport.description')}</p>
+                </div>
+                <button
+                  onClick={handleExport}
+                  disabled={exporting}
+                  className="w-full rounded-full border border-ink/20 bg-transparent px-6 py-3 text-sm font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-ink/5 hover:border-ink/40 disabled:opacity-50"
+                >
+                  {exporting ? t('dataExport.downloading') : t('dataExport.button')}
+                </button>
+              </div>
 
               <div className="h-px bg-gradient-to-r from-transparent via-red-500/20 to-transparent" />
 

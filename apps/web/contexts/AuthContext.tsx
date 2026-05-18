@@ -247,6 +247,9 @@ export function AuthProvider({children}: {children: ReactNode}) {
       if (apiErr.status === 429) return {success: false, error: 'rate_limited'};
       if (apiErr.status === undefined) return {success: false, error: 'network_error'};
       if (apiErr.status === 400) {
+        if (apiErr.body?.error === 'privacy_required') {
+          return {success: false, error: 'privacy_required'};
+        }
         const fieldErrors = apiErr.body?.errors;
         if (Array.isArray(fieldErrors)) {
           const passwordErr = fieldErrors.find(e => e?.field === 'password');

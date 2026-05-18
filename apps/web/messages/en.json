@@ -634,6 +634,13 @@
         "needEmail": "Link your email above to manage newsletters"
       }
     },
+    "dataExport": {
+      "title": "Download your data",
+      "description": "Receive a JSON file with everything we hold about your account: profile, orders, cart, favorites. GDPR Article 20.",
+      "button": "Download my data",
+      "downloading": "Preparing…",
+      "error": "Could not download data. Please try again."
+    },
     "dangerZone": {
       "title": "Delete account",
       "description": "Permanently anonymize your account. Past orders stay in our records for accounting and legal reasons, but they will no longer be linked to your profile.",
