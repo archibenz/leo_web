@@ -130,7 +130,7 @@ public class BotAuthService {
             throw new TokenAlreadyConsumedException();
         }
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findActiveById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user_not_found"));
 
         String jwt = jwtService.generateToken(user.getId(), user.getEmail());
@@ -172,7 +172,7 @@ public class BotAuthService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "token_has_no_user");
         }
 
-        User user = userRepository.findById(entry.getUserId())
+        User user = userRepository.findActiveById(entry.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user_not_found"));
 
         String jwt = jwtService.generateToken(user.getId(), user.getEmail());

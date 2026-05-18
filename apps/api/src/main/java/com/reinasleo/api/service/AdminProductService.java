@@ -134,7 +134,7 @@ public class AdminProductService {
 
         // KPI for director dashboard
         Instant sevenDaysAgo = Instant.now().minus(7, ChronoUnit.DAYS);
-        long totalUsers = userRepository.count();
+        long totalUsers = userRepository.countActive();
         long totalOrders = orderRepository.count();
         BigDecimal totalRevenue = orderRepository.sumTotalRevenue();
         long newUsers7d = userRepository.countByCreatedAtAfter(sevenDaysAgo);

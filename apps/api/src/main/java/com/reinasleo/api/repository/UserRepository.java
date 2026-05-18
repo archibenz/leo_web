@@ -18,6 +18,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u FROM User u WHERE u.telegramId = :telegramId AND u.deletedAt IS NULL")
     Optional<User> findByTelegramId(@Param("telegramId") Long telegramId);
 
+    @Query("SELECT u FROM User u WHERE u.id = :id AND u.deletedAt IS NULL")
+    Optional<User> findActiveById(@Param("id") UUID id);
+
+    @Query("SELECT COUNT(u) FROM User u WHERE u.deletedAt IS NULL")
+    long countActive();
+
     @Query("SELECT COUNT(u) FROM User u WHERE u.createdAt > :since AND u.deletedAt IS NULL")
     long countByCreatedAtAfter(@Param("since") Instant since);
 
