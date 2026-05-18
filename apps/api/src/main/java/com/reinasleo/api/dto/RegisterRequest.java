@@ -3,6 +3,7 @@ package com.reinasleo.api.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
@@ -25,7 +26,10 @@ public record RegisterRequest(
         String surname,
 
         @NotBlank(message = "Password is required")
-        @Size(min = 6, max = 128, message = "Password must be between 6 and 128 characters")
+        @Pattern(
+                regexp = "^(?=.*[A-Za-z])(?=.*\\d).{8,128}$",
+                message = "password_weak"
+        )
         String password,
 
         LocalDate dateOfBirth,

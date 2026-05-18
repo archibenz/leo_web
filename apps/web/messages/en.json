@@ -567,7 +567,7 @@
       "invalidEmail": "Please enter a valid email address",
       "userNotFound": "No account found with this email",
       "invalidPassword": "Incorrect password",
-      "passwordTooShort": "Password must be at least 6 characters",
+      "passwordWeak": "Password must be at least 8 characters and contain at least one letter and one digit",
       "emailExists": "An account with this email already exists",
       "invalidCredentials": "Invalid email or password",
       "invalidCode": "Invalid or expired verification code",

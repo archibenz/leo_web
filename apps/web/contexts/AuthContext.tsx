@@ -55,6 +55,8 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+const PASSWORD_RE = /^(?=.*[A-Za-z])(?=.*\d).{8,128}$/;
+
 type LoginApiResponse = {
   token: string;
   id: string;
@@ -171,8 +173,8 @@ export function AuthProvider({children}: {children: ReactNode}) {
     if (!isValidEmail(data.email)) {
       return {success: false, error: 'invalid_email'};
     }
-    if (data.password.length < 6) {
-      return {success: false, error: 'password_too_short'};
+    if (!PASSWORD_RE.test(data.password)) {
+      return {success: false, error: 'password_weak'};
     }
     if (!data.firstName.trim()) {
       return {success: false, error: 'name_required'};
@@ -213,13 +215,29 @@ export function AuthProvider({children}: {children: ReactNode}) {
       return {success: true};
     } catch (err: unknown) {
       console.error('register failed', err);
-      const apiErr = err as {status?: number; body?: {error?: string; message?: string}};
+      const apiErr = err as {
+        status?: number;
+        body?: {
+          error?: string;
+          message?: string;
+          errors?: Array<{field?: string; message?: string}>;
+        };
+      };
       if (apiErr.status === 409) return {success: false, error: 'email_exists'};
       if (apiErr.status === 429) return {success: false, error: 'rate_limited'};
       if (apiErr.status === undefined) return {success: false, error: 'network_error'};
-      const bodyErr = apiErr.body?.error ?? apiErr.body?.message;
-      if (apiErr.status === 400 && typeof bodyErr === 'string' && bodyErr.toLowerCase().includes('code')) {
-        return {success: false, error: 'invalid_code'};
+      if (apiErr.status === 400) {
+        const fieldErrors = apiErr.body?.errors;
+        if (Array.isArray(fieldErrors)) {
+          const passwordErr = fieldErrors.find(e => e?.field === 'password');
+          if (passwordErr) return {success: false, error: 'password_weak'};
+          const codeErr = fieldErrors.find(e => e?.field === 'code');
+          if (codeErr) return {success: false, error: 'invalid_code'};
+        }
+        const bodyErr = apiErr.body?.error ?? apiErr.body?.message;
+        if (typeof bodyErr === 'string' && bodyErr.toLowerCase().includes('code')) {
+          return {success: false, error: 'invalid_code'};
+        }
       }
       return {success: false, error: 'registration_failed'};
     }
