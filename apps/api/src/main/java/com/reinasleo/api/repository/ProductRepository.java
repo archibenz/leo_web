@@ -4,6 +4,7 @@ import com.reinasleo.api.model.Product;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -31,4 +32,8 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     long countByActiveTrueAndIsTestFalseAndStockQuantityGreaterThanAndStockQuantityLessThanEqual(int min, int max);
     List<Product> findByCollectionId(UUID collectionId);
     void deleteByCollectionId(UUID collectionId);
+
+    @Modifying
+    @Query("UPDATE Product p SET p.collectionId = null WHERE p.collectionId = :collectionId")
+    int unlinkCollection(@Param("collectionId") UUID collectionId);
 }

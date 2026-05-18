@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -28,15 +30,17 @@ public class CollectionService {
 
     @Transactional(readOnly = true)
     public List<CollectionResponse> listAll() {
+        Map<UUID, Long> counts = loadCounts();
         return collectionRepository.findAll().stream()
-                .map(this::toResponse)
+                .map(c -> toResponse(c, counts.getOrDefault(c.getId(), 0L)))
                 .toList();
     }
 
     @Transactional(readOnly = true)
     public List<CollectionResponse> listActive() {
+        Map<UUID, Long> counts = loadCounts();
         return collectionRepository.findByActiveTrueOrderBySortOrderAsc().stream()
-                .map(this::toResponse)
+                .map(c -> toResponse(c, counts.getOrDefault(c.getId(), 0L)))
                 .toList();
     }
 
@@ -99,11 +103,7 @@ public class CollectionService {
     public void hardDelete(UUID id) {
         Collection c = collectionRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Collection not found"));
-        // Unlink products from this collection
-        productRepository.findByCollectionId(id).forEach(p -> {
-            p.setCollectionId(null);
-            productRepository.save(p);
-        });
+        productRepository.unlinkCollection(id);
         collectionRepository.delete(c);
     }
 
@@ -117,10 +117,24 @@ public class CollectionService {
 
     private CollectionResponse toResponse(Collection c) {
         long productCount = productRepository.findByCollectionIdAndActiveTrueOrderByCreatedAtDesc(c.getId()).size();
+        return toResponse(c, productCount);
+    }
+
+    private CollectionResponse toResponse(Collection c, long productCount) {
         return new CollectionResponse(
                 c.getId(), c.getName(), c.getSlug(), c.getDescription(),
                 c.getImageUrl(), c.isActive(), c.getSortOrder(),
                 productCount, c.getCreatedAt()
         );
+    }
+
+    private Map<UUID, Long> loadCounts() {
+        Map<UUID, Long> result = new HashMap<>();
+        for (Object[] row : productRepository.countActiveByCollection()) {
+            if (row[0] != null) {
+                result.put((UUID) row[0], (Long) row[1]);
+            }
+        }
+        return result;
     }
 }
