@@ -1,6 +1,7 @@
 package com.reinasleo.api.config;
 
 import com.reinasleo.api.security.JwtAuthFilter;
+import com.reinasleo.api.security.MetricsAuthFilter;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -27,9 +28,11 @@ public class SecurityConfig {
     private String[] allowedOrigins;
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final MetricsAuthFilter metricsAuthFilter;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, MetricsAuthFilter metricsAuthFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.metricsAuthFilter = metricsAuthFilter;
     }
 
     @PostConstruct
@@ -65,6 +68,8 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/prometheus").hasAnyAuthority("ROLE_ADMIN", "ROLE_METRICS")
+                        .requestMatchers("/actuator/**").hasAuthority("ROLE_ADMIN")
                         // Public read APIs
                         .requestMatchers("/api/health").permitAll()
                         .requestMatchers("/api/lookbook", "/api/lookbook/**").permitAll()
@@ -84,6 +89,7 @@ public class SecurityConfig {
                         // Catch-all
                         .anyRequest().denyAll()
                 )
+                .addFilterBefore(metricsAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

@@ -44,8 +44,17 @@ spring:
 management:
   endpoints:
     web:
+      base-path: /actuator
       exposure:
-        include: health,info
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: reinasleo-api
 app:
   resend:
     api-key: ${RESEND_API_KEY}
@@ -60,3 +69,5 @@ app:
     username: ${BOT_USERNAME:reinasleo_bot}
   upload:
     dir: ${UPLOAD_DIR:uploads}
+  metrics:
+    secret: ${METRICS_SECRET}

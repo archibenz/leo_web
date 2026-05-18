@@ -26,3 +26,5 @@ app:
     from: "test@test.com"
   upload:
     dir: /tmp/test-uploads
+  metrics:
+    secret: test-metrics-secret
