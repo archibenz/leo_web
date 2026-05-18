@@ -2,6 +2,7 @@ package com.reinasleo.api.repository;
 
 import com.reinasleo.api.model.ProductInterestEvent;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,4 +27,7 @@ public interface ProductInterestEventRepository extends JpaRepository<ProductInt
             @Param("since") Instant since,
             Pageable pageable
     );
+
+    @EntityGraph(attributePaths = {"product"})
+    List<ProductInterestEvent> findByUserIdOrderByCreatedAtDesc(UUID userId);
 }

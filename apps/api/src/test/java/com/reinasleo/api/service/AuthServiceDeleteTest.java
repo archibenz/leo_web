@@ -9,6 +9,7 @@ import com.reinasleo.api.repository.CartItemRepository;
 import com.reinasleo.api.repository.CartRepository;
 import com.reinasleo.api.repository.FavoriteRepository;
 import com.reinasleo.api.repository.OrderRepository;
+import com.reinasleo.api.repository.ProductInterestEventRepository;
 import com.reinasleo.api.repository.UserRepository;
 import com.reinasleo.api.repository.VerificationCodeRepository;
 import com.reinasleo.api.security.JwtService;
@@ -43,6 +44,7 @@ class AuthServiceDeleteTest {
     @Mock private FavoriteRepository favoriteRepository;
     @Mock private OrderRepository orderRepository;
     @Mock private VerificationCodeRepository verificationCodeRepository;
+    @Mock private ProductInterestEventRepository productInterestEventRepository;
 
     private AuthService authService;
 
@@ -51,7 +53,7 @@ class AuthServiceDeleteTest {
         authService = new AuthService(userRepository, passwordEncoder, jwtService,
                 verificationService, deleteChallengeService,
                 cartItemRepository, cartRepository, favoriteRepository,
-                orderRepository, verificationCodeRepository);
+                orderRepository, verificationCodeRepository, productInterestEventRepository);
     }
 
     private static User emailUser() {

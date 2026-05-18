@@ -9,6 +9,7 @@ import com.reinasleo.api.dto.LoginRequest;
 import com.reinasleo.api.dto.LoginResponse;
 import com.reinasleo.api.dto.OrderExportDto;
 import com.reinasleo.api.dto.OrderItemExportDto;
+import com.reinasleo.api.dto.ProductInterestEventExportDto;
 import com.reinasleo.api.dto.RegisterRequest;
 import com.reinasleo.api.dto.UserExportDto;
 import com.reinasleo.api.exception.BadRequestException;
@@ -21,6 +22,7 @@ import com.reinasleo.api.repository.CartItemRepository;
 import com.reinasleo.api.repository.CartRepository;
 import com.reinasleo.api.repository.FavoriteRepository;
 import com.reinasleo.api.repository.OrderRepository;
+import com.reinasleo.api.repository.ProductInterestEventRepository;
 import com.reinasleo.api.repository.UserRepository;
 import com.reinasleo.api.repository.VerificationCodeRepository;
 import com.reinasleo.api.security.JwtService;
@@ -55,6 +57,7 @@ public class AuthService {
     private final FavoriteRepository favoriteRepository;
     private final OrderRepository orderRepository;
     private final VerificationCodeRepository verificationCodeRepository;
+    private final ProductInterestEventRepository productInterestEventRepository;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        JwtService jwtService, VerificationService verificationService,
@@ -63,7 +66,8 @@ public class AuthService {
                        CartRepository cartRepository,
                        FavoriteRepository favoriteRepository,
                        OrderRepository orderRepository,
-                       VerificationCodeRepository verificationCodeRepository) {
+                       VerificationCodeRepository verificationCodeRepository,
+                       ProductInterestEventRepository productInterestEventRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -74,6 +78,7 @@ public class AuthService {
         this.favoriteRepository = favoriteRepository;
         this.orderRepository = orderRepository;
         this.verificationCodeRepository = verificationCodeRepository;
+        this.productInterestEventRepository = productInterestEventRepository;
     }
 
     @Transactional
@@ -224,9 +229,10 @@ public class AuthService {
      * GDPR Art.20 — right to data portability.
      *
      * <p>Aggregates all user-owned data into a single machine-readable response:
-     * profile fields, orders + items, cart + items, favorites, and a count of
-     * verification codes ever issued. Projects entities into DTOs inside this
-     * transaction (open-in-view: false) so lazy relations stay safe.</p>
+     * profile fields, orders + items, cart + items, favorites, behavioural
+     * product-interest events, and a count of verification codes ever issued.
+     * Projects entities into DTOs inside this transaction (open-in-view: false)
+     * so lazy relations stay safe.</p>
      */
     @Transactional(readOnly = true)
     public AccountExportResponse exportAccountData(User user) {
@@ -299,6 +305,16 @@ public class AuthService {
                         fav.getCreatedAt()))
                 .toList();
 
+        // FK is ON DELETE SET NULL, so anonymised post-deletion rows drop out here.
+        List<ProductInterestEventExportDto> productInterestEvents =
+                productInterestEventRepository.findByUserIdOrderByCreatedAtDesc(user.getId()).stream()
+                        .map(e -> new ProductInterestEventExportDto(
+                                e.getProduct().getId(),
+                                e.getProduct().getTitle(),
+                                e.getEventType(),
+                                e.getCreatedAt()))
+                        .toList();
+
         long verificationCodesIssued = user.getEmail() == null
                 ? 0L
                 : verificationCodeRepository.countByEmail(user.getEmail().trim().toLowerCase());
@@ -309,10 +325,11 @@ public class AuthService {
                 .addKeyValue("orders_count", orders.size())
                 .addKeyValue("favorites_count", favorites.size())
                 .addKeyValue("cart_items_count", cartDto.items().size())
+                .addKeyValue("product_interest_events_count", productInterestEvents.size())
                 .log("account data exported");
 
         return new AccountExportResponse(
-                userDto, orders, cartDto, favorites,
+                userDto, orders, cartDto, favorites, productInterestEvents,
                 verificationCodesIssued, Instant.now());
     }
 

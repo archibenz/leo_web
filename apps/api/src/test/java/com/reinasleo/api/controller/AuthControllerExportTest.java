@@ -1,42 +1,42 @@
 package com.reinasleo.api.controller;
 
-import com.reinasleo.api.model.Favorite;
-import com.reinasleo.api.model.Order;
-import com.reinasleo.api.model.OrderItem;
-import com.reinasleo.api.model.Product;
+import com.reinasleo.api.dto.AccountExportResponse;
+import com.reinasleo.api.dto.CartExportDto;
+import com.reinasleo.api.dto.FavoriteExportDto;
+import com.reinasleo.api.dto.OrderExportDto;
+import com.reinasleo.api.dto.OrderItemExportDto;
+import com.reinasleo.api.dto.ProductInterestEventExportDto;
+import com.reinasleo.api.dto.UserExportDto;
 import com.reinasleo.api.model.User;
-import com.reinasleo.api.repository.CartRepository;
-import com.reinasleo.api.repository.FavoriteRepository;
-import com.reinasleo.api.repository.OrderRepository;
-import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.UserRepository;
 import com.reinasleo.api.security.JwtService;
+import com.reinasleo.api.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.junit.jupiter.api.Disabled;
-
-// H2 (test profile) does not support Product.sizes TEXT[] column, so this
-// integration test cannot persist a real Product. AuthServiceExportTest
-// (Mockito) covers the aggregation logic; this class is preserved for the
-// future Testcontainers/Postgres test pass.
-@Disabled("requires Postgres testcontainers — H2 cannot create products(sizes TEXT[])")
+// AuthService mocked so JPA persistence (Product.sizes TEXT[] unsupported on H2)
+// is bypassed; tests cover the HTTP layer only.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -44,23 +44,16 @@ class AuthControllerExportTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private UserRepository userRepository;
-    @Autowired private ProductRepository productRepository;
-    @Autowired private OrderRepository orderRepository;
-    @Autowired private FavoriteRepository favoriteRepository;
-    @Autowired private CartRepository cartRepository;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private JwtService jwtService;
+    @MockBean private AuthService authService;
 
     private User user;
     private String token;
 
     @BeforeEach
     void setUp() {
-        orderRepository.deleteAll();
-        favoriteRepository.deleteAll();
-        cartRepository.deleteAll();
         userRepository.deleteAll();
-        productRepository.deleteAll();
         String hash = passwordEncoder.encode("Sup3rSecret!");
         user = new User(
                 "alice-export@example.com",
@@ -75,8 +68,44 @@ class AuthControllerExportTest {
         token = jwtService.generateToken(user.getId(), user.getEmail());
     }
 
+    private UserExportDto userExportDto(User u, boolean hasPassword, boolean hasTelegram) {
+        return new UserExportDto(
+                u.getId(),
+                u.getEmail(),
+                u.getName(),
+                u.getSurname(),
+                u.getPhone(),
+                u.getDateOfBirth(),
+                u.getTelegramId(),
+                u.isNewsletter(),
+                u.isNewsletterPromos(),
+                u.isNewsletterCollections(),
+                u.isNewsletterProjects(),
+                u.isPrivacyAccepted(),
+                u.getRole(),
+                u.getCreatedAt(),
+                u.getUpdatedAt(),
+                hasPassword,
+                hasTelegram
+        );
+    }
+
+    private AccountExportResponse emptyExport() {
+        return new AccountExportResponse(
+                userExportDto(user, true, false),
+                List.of(),
+                new CartExportDto(List.of(), null, null),
+                List.of(),
+                List.of(),
+                0L,
+                Instant.now()
+        );
+    }
+
     @Test
     void export_withValidJwt_returns200AndContainsUserBlock() throws Exception {
+        when(authService.exportAccountData(any(User.class))).thenReturn(emptyExport());
+
         mockMvc.perform(get("/api/auth/me/export")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -89,11 +118,14 @@ class AuthControllerExportTest {
                 .andExpect(jsonPath("$.exportedAt").exists())
                 .andExpect(jsonPath("$.orders").isArray())
                 .andExpect(jsonPath("$.cart").exists())
-                .andExpect(jsonPath("$.favorites").isArray());
+                .andExpect(jsonPath("$.favorites").isArray())
+                .andExpect(jsonPath("$.productInterestEvents").isArray());
     }
 
     @Test
     void export_responseExcludesPasswordHash() throws Exception {
+        when(authService.exportAccountData(any(User.class))).thenReturn(emptyExport());
+
         mockMvc.perform(get("/api/auth/me/export")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
@@ -111,18 +143,21 @@ class AuthControllerExportTest {
     }
 
     @Test
-    @Transactional
     void export_includesOrders_whenUserHasOrders() throws Exception {
-        Product product = new Product();
-        product.setId("p-test-1");
-        product.setTitle("Test Dress");
-        product.setPrice(new BigDecimal("9999.00"));
-        product.setStockQuantity(10);
-        productRepository.save(product);
-
-        Order order = new Order(user, new BigDecimal("9999.00"));
-        order.getItems().add(new OrderItem(order, product, "M", 1, new BigDecimal("9999.00")));
-        orderRepository.save(order);
+        OrderItemExportDto orderItem = new OrderItemExportDto(
+                "p-test-1", "Test Dress", "M", 1, new BigDecimal("9999.00"));
+        OrderExportDto order = new OrderExportDto(
+                UUID.randomUUID(), "pending", new BigDecimal("9999.00"),
+                List.of(orderItem), Instant.now(), Instant.now());
+        AccountExportResponse response = new AccountExportResponse(
+                userExportDto(user, true, false),
+                List.of(order),
+                new CartExportDto(List.of(), null, null),
+                List.of(),
+                List.of(),
+                0L,
+                Instant.now());
+        when(authService.exportAccountData(any(User.class))).thenReturn(response);
 
         mockMvc.perform(get("/api/auth/me/export")
                         .header("Authorization", "Bearer " + token))
@@ -136,16 +171,18 @@ class AuthControllerExportTest {
     }
 
     @Test
-    @Transactional
     void export_includesFavorites_whenUserHasFavorites() throws Exception {
-        Product product = new Product();
-        product.setId("p-fav-1");
-        product.setTitle("Fav Dress");
-        product.setPrice(new BigDecimal("5555.00"));
-        product.setStockQuantity(5);
-        productRepository.save(product);
-
-        favoriteRepository.save(new Favorite(user, product));
+        FavoriteExportDto fav = new FavoriteExportDto(
+                "p-fav-1", "Fav Dress", new BigDecimal("5555.00"), Instant.now());
+        AccountExportResponse response = new AccountExportResponse(
+                userExportDto(user, true, false),
+                List.of(),
+                new CartExportDto(List.of(), null, null),
+                List.of(fav),
+                List.of(),
+                0L,
+                Instant.now());
+        when(authService.exportAccountData(any(User.class))).thenReturn(response);
 
         mockMvc.perform(get("/api/auth/me/export")
                         .header("Authorization", "Bearer " + token))
@@ -157,12 +194,38 @@ class AuthControllerExportTest {
 
     @Test
     void export_emptyAccount_returns200WithEmptyCollections() throws Exception {
+        when(authService.exportAccountData(any(User.class))).thenReturn(emptyExport());
+
         mockMvc.perform(get("/api/auth/me/export")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orders").isEmpty())
                 .andExpect(jsonPath("$.favorites").isEmpty())
                 .andExpect(jsonPath("$.cart.items").isEmpty())
+                .andExpect(jsonPath("$.productInterestEvents").isEmpty())
                 .andExpect(jsonPath("$.verificationCodesIssued").value(0));
+    }
+
+    @Test
+    void export_includesProductInterestEvents_whenUserHasEvents() throws Exception {
+        ProductInterestEventExportDto event = new ProductInterestEventExportDto(
+                "p-evt-1", "Tracked Dress", "add_to_cart", Instant.now());
+        AccountExportResponse response = new AccountExportResponse(
+                userExportDto(user, true, false),
+                List.of(),
+                new CartExportDto(List.of(), null, null),
+                List.of(),
+                List.of(event),
+                0L,
+                Instant.now());
+        when(authService.exportAccountData(any(User.class))).thenReturn(response);
+
+        mockMvc.perform(get("/api/auth/me/export")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.productInterestEvents.length()").value(1))
+                .andExpect(jsonPath("$.productInterestEvents[0].productId").value("p-evt-1"))
+                .andExpect(jsonPath("$.productInterestEvents[0].productTitle").value("Tracked Dress"))
+                .andExpect(jsonPath("$.productInterestEvents[0].eventType").value("add_to_cart"));
     }
 }

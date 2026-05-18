@@ -90,4 +90,4 @@ i18n.ts, i18n-routing.ts       next-intl wiring
 Full contract lives in root `CLAUDE.md`. FE-relevant additions:
 
 ### Auth
-- `GET /api/auth/me/export` → `200` (Bearer JWT) — JSON dump of user-owned data (`user`, `orders`, `cart`, `favorites`, `verificationCodesIssued`, `exportedAt`). GDPR Art.20 portability. Use for "Download my data" action on the account page.
+- `GET /api/auth/me/export` → `200` (Bearer JWT) — JSON dump of user-owned data (`user`, `orders`, `cart`, `favorites`, `productInterestEvents`, `verificationCodesIssued`, `exportedAt`). GDPR Art.20 portability. Use for "Download my data" action on the account page.
