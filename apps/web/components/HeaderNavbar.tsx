@@ -35,7 +35,7 @@ const IconBtn = ({ onClick, ariaLabel, children, badge }: {
       {children}
     </span>
     {badge !== undefined && badge > 0 && (
-      <span className="pointer-events-none absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-paper">
+      <span aria-hidden="true" className="pointer-events-none absolute right-1 top-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-paper">
         {badge > 9 ? '9+' : badge}
       </span>
     )}
@@ -230,8 +230,8 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               <SearchBar placeholder={t('search')} />
             </div>
 
-            <IconBtn onClick={() => go('/favorites')} ariaLabel={t('favorites')}><HeartIcon count={favoritesCount} /></IconBtn>
-            <IconBtn onClick={() => go('/cart')} ariaLabel={t('cart')}><CartIcon count={cartCount} /></IconBtn>
+            <IconBtn onClick={() => go('/favorites')} ariaLabel={t('favoritesWithCount', {count: favoritesCount})}><HeartIcon count={favoritesCount} /></IconBtn>
+            <IconBtn onClick={() => go('/cart')} ariaLabel={t('cartWithCount', {count: cartCount})}><CartIcon count={cartCount} /></IconBtn>
 
             <div ref={profileDropdownRef} className="relative" onMouseEnter={handleProfileMouseEnter} onMouseLeave={handleProfileMouseLeave}>
               {isAuthenticated && user ? (
