@@ -1,5 +1,7 @@
 package com.reinasleo.api.controller;
 
+import com.reinasleo.api.exception.BadRequestException;
+import com.reinasleo.api.util.FilenameSanitizer;
 import com.reinasleo.api.util.ImageContentValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -53,28 +55,33 @@ public class FileUploadController {
         }
 
         try {
-            Path uploadPath = Paths.get(uploadDir, "products");
+            Path uploadPath = Paths.get(uploadDir, "products").toAbsolutePath().normalize();
             Files.createDirectories(uploadPath);
 
-            String originalName = file.getOriginalFilename();
+            // FilenameSanitizer rejects traversal even though we persist under a UUID:
+            // an attacker-controlled filename never reaches the filesystem.
             String extension = "";
-            if (originalName != null && originalName.contains(".")) {
-                String ext = originalName.substring(originalName.lastIndexOf("."));
-                if (ext.matches("\\.[a-zA-Z0-9]{1,10}")) {
-                    extension = ext;
+            String originalName = file.getOriginalFilename();
+            if (originalName != null && !originalName.isBlank()) {
+                String safeOriginal = FilenameSanitizer.sanitize(originalName);
+                int dot = safeOriginal.lastIndexOf('.');
+                if (dot > 0 && dot < safeOriginal.length() - 1) {
+                    String ext = safeOriginal.substring(dot);
+                    if (ext.matches("\\.[a-zA-Z0-9]{1,10}")) {
+                        extension = ext;
+                    }
                 }
             }
             String filename = UUID.randomUUID() + extension;
 
-            Path filePath = uploadPath.resolve(filename).normalize();
-            if (!filePath.startsWith(uploadPath)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filename");
-            }
+            Path filePath = FilenameSanitizer.resolveInside(uploadPath, filename);
             file.transferTo(filePath.toFile());
 
             String url = "/uploads/products/" + filename;
             return ResponseEntity.ok(Map.of("url", url));
 
+        } catch (BadRequestException e) {
+            throw e;
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save file");
         }

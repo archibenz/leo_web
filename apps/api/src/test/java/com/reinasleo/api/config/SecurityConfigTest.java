@@ -11,9 +11,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -171,5 +173,34 @@ class SecurityConfigTest {
     void unknownRoute_isDeniedByDefault() throws Exception {
         mockMvc.perform(get("/api/this-route-does-not-exist"))
                 .andExpect(status().isForbidden());
+    }
+
+    // ---- Security headers ----
+
+    @Test
+    void responses_carryHstsHeader_withTwoYearMaxAgeAndSubdomains() throws Exception {
+        // Spring Security only emits HSTS on secure requests (production runs
+        // behind TLS); mark the mock request secure to mirror that path.
+        String hsts = mockMvc.perform(get("/api/health").secure(true))
+                .andExpect(status().isOk())
+                .andExpect(header().exists("Strict-Transport-Security"))
+                .andReturn().getResponse().getHeader("Strict-Transport-Security");
+        assertNotNull(hsts, "Strict-Transport-Security header must be emitted");
+        assertTrue(hsts.contains("max-age=63072000"),
+                "HSTS max-age must be 2 years (63072000), got: " + hsts);
+        assertTrue(hsts.toLowerCase().contains("includesubdomains"),
+                "HSTS must include subdomains, got: " + hsts);
+    }
+
+    @Test
+    void responses_carryBaselineSecurityHeaders() throws Exception {
+        // Sanity guard: the pre-existing header set must keep firing alongside HSTS.
+        mockMvc.perform(get("/api/health").secure(true))
+                .andExpect(status().isOk())
+                .andExpect(header().string("X-Frame-Options", "DENY"))
+                .andExpect(header().string("X-Content-Type-Options", "nosniff"))
+                .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"))
+                .andExpect(header().string("Permissions-Policy",
+                        "camera=(), microphone=(), geolocation=()"));
     }
 }

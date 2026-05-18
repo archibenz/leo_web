@@ -1,8 +1,10 @@
 package com.reinasleo.api.controller;
 
 import com.reinasleo.api.dto.*;
+import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.service.AdminProductService;
 import com.reinasleo.api.service.CollectionService;
+import com.reinasleo.api.util.FilenameSanitizer;
 import com.reinasleo.api.util.ImageContentValidator;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
@@ -174,23 +176,26 @@ public class BotAdminController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to read uploaded file");
         }
         try {
-            Path uploadPath = Paths.get(uploadDir, "products");
+            Path uploadPath = Paths.get(uploadDir, "products").toAbsolutePath().normalize();
             Files.createDirectories(uploadPath);
-            String originalName = file.getOriginalFilename();
             String ext = "";
-            if (originalName != null && originalName.contains(".")) {
-                String rawExt = originalName.substring(originalName.lastIndexOf("."));
-                if (rawExt.matches("\\.[a-zA-Z0-9]{1,10}")) {
-                    ext = rawExt;
+            String originalName = file.getOriginalFilename();
+            if (originalName != null && !originalName.isBlank()) {
+                String safeOriginal = FilenameSanitizer.sanitize(originalName);
+                int dot = safeOriginal.lastIndexOf('.');
+                if (dot > 0 && dot < safeOriginal.length() - 1) {
+                    String rawExt = safeOriginal.substring(dot);
+                    if (rawExt.matches("\\.[a-zA-Z0-9]{1,10}")) {
+                        ext = rawExt;
+                    }
                 }
             }
             String filename = UUID.randomUUID() + ext;
-            Path filePath = uploadPath.resolve(filename).normalize();
-            if (!filePath.startsWith(uploadPath)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filename");
-            }
+            Path filePath = FilenameSanitizer.resolveInside(uploadPath, filename);
             file.transferTo(filePath.toFile());
             return ResponseEntity.ok(Map.of("url", "/uploads/products/" + filename));
+        } catch (BadRequestException e) {
+            throw e;
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Upload failed");
         }

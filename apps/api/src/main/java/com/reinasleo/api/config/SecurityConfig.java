@@ -53,15 +53,20 @@ public class SecurityConfig {
                 .httpBasic(basic -> basic.disable())
                 .formLogin(form -> form.disable())
                 .logout(logout -> logout.disable())
-                .headers(headers -> headers
-                    .frameOptions(frame -> frame.deny())
-                    .contentTypeOptions(content -> {})
-                    .cacheControl(cache -> cache.disable())
-                    .referrerPolicy(referrer -> referrer.policy(
-                        org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
-                    .permissionsPolicy(permissions -> permissions.policy(
-                        "camera=(), microphone=(), geolocation=()"))
-                )
+                .headers(headers -> {
+                    headers.frameOptions(frame -> frame.deny());
+                    headers.contentTypeOptions(content -> {});
+                    headers.cacheControl(cache -> cache.disable());
+                    headers.referrerPolicy(referrer -> referrer.policy(
+                        org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN));
+                    headers.permissionsPolicy(permissions -> permissions.policy(
+                        "camera=(), microphone=(), geolocation=()"));
+                    // Defence-in-depth: nginx / Cloudflare usually inject HSTS, but emitting
+                    // it here too keeps the guarantee if the proxy is bypassed. 63072000s = 2y.
+                    headers.httpStrictTransportSecurity(hsts -> hsts
+                        .includeSubDomains(true)
+                        .maxAgeInSeconds(63072000));
+                })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         // Static and infra
