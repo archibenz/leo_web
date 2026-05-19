@@ -60,24 +60,24 @@ const POPULAR_GRADIENTS = [
   'from-[#1a1a2e] to-[#4a3a5e]',
 ];
 
-const SHOP_HERO_IMAGE = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&h=600&fit=crop&q=80';
+const SHOP_HERO_IMAGE = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=2400&h=1350&fit=crop&crop=center&q=80';
 
 const CATEGORY_IMAGES: Record<string, string> = {
-  dresses: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500&h=670&fit=crop&q=80',
-  coats: 'https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=500&h=670&fit=crop&q=80',
-  knitwear: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=500&h=670&fit=crop&q=80',
-  skirts: 'https://images.unsplash.com/photo-1577900232427-18219b9166a0?w=500&h=670&fit=crop&q=80',
-  blouses: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=500&h=670&fit=crop&q=80',
-  trousers: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=500&h=670&fit=crop&q=80',
-  blazers: 'https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=500&h=670&fit=crop&q=80',
-  accessories: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=500&h=670&fit=crop&q=80',
+  dresses: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&h=1067&fit=crop&q=80',
+  coats: 'https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=800&h=1067&fit=crop&q=80',
+  knitwear: 'https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&h=1067&fit=crop&q=80',
+  skirts: 'https://images.unsplash.com/photo-1577900232427-18219b9166a0?w=800&h=1067&fit=crop&q=80',
+  blouses: 'https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=800&h=1067&fit=crop&q=80',
+  trousers: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=800&h=1067&fit=crop&q=80',
+  blazers: 'https://images.unsplash.com/photo-1591369822096-ffd140ec948f?w=800&h=1067&fit=crop&q=80',
+  accessories: 'https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=800&h=1067&fit=crop&q=80',
 };
 
 const POPULAR_IMAGES = [
-  'https://images.unsplash.com/photo-1551803091-e20673f15770?w=500&h=670&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=500&h=670&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1549062572-544a64fb0c56?w=500&h=670&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=500&h=670&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1551803091-e20673f15770?w=800&h=1067&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1562572159-4efc207f5aff?w=800&h=1067&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1549062572-544a64fb0c56?w=800&h=1067&fit=crop&q=80',
+  'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&h=1067&fit=crop&q=80',
 ];
 
 /* ── Arrow icon ── */
@@ -222,8 +222,8 @@ function ShopHeroCard({title, subtitle, locale}: {title: string; subtitle: strin
         src={SHOP_HERO_IMAGE}
         alt="Shop collection"
         className="absolute inset-0 h-full w-full object-cover"
-        width={1200}
-        height={800}
+        width={2400}
+        height={1350}
         loading="lazy"
         sizes="100vw"
         draggable={false}
@@ -322,7 +322,7 @@ export default function HomeSections({
                     }`}
                   >
                     {CATEGORY_IMAGES[cat.key] && (
-                      <Image src={CATEGORY_IMAGES[cat.key]} alt={cat.label} className="h-full w-full object-cover" width={600} height={900} loading="lazy" sizes="(max-width: 640px) 144px, (max-width: 1024px) 224px, 288px" draggable={false} />
+                      <Image src={CATEGORY_IMAGES[cat.key]} alt={cat.label} className="h-full w-full object-cover" width={800} height={1067} loading="lazy" sizes="(max-width: 640px) 144px, (max-width: 1024px) 224px, 288px" draggable={false} />
                     )}
                   </div>
                   <div className="mt-3 space-y-1">
@@ -357,7 +357,7 @@ export default function HomeSections({
                     }`}
                   >
                     {POPULAR_IMAGES[i] && (
-                      <Image src={POPULAR_IMAGES[i]} alt={item.label} className="h-full w-full object-cover" width={600} height={900} loading="lazy" sizes="(max-width: 640px) 144px, (max-width: 1024px) 224px, 288px" draggable={false} />
+                      <Image src={POPULAR_IMAGES[i]} alt={item.label} className="h-full w-full object-cover" width={800} height={1067} loading="lazy" sizes="(max-width: 640px) 144px, (max-width: 1024px) 224px, 288px" draggable={false} />
                     )}
                   </div>
                   <div className="mt-3 space-y-1">

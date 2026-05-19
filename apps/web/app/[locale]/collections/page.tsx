@@ -24,10 +24,10 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 const seasons = ['winter', 'spring', 'summer', 'autumn'] as const;
 
 const seasonImages = [
-  'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=600&h=900&fit=crop&q=85',
-  'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&h=900&fit=crop&q=85',
-  'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&h=900&fit=crop&q=85',
-  'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&h=900&fit=crop&q=85',
+  'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=800&h=1067&fit=crop&q=85',
+  'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&h=1067&fit=crop&q=85',
+  'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&h=1067&fit=crop&q=85',
+  'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&h=1067&fit=crop&q=85',
 ];
 
 export default async function CollectionsPage({params}: {params: Promise<{locale: Locale}>}) {

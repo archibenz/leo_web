@@ -30,7 +30,7 @@ interface CollectionShowcaseProps {
   bannerWrapper?: (banner: ReactNode) => ReactNode;
 }
 
-const HERO_IMAGE = 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=1600&h=700&fit=crop&crop=top&q=80';
+const HERO_IMAGE = 'https://images.unsplash.com/photo-1558171813-4c088753af8f?w=2400&h=1350&fit=crop&crop=center&q=80';
 
 const ITEM_IMAGES = [
   'https://images.unsplash.com/photo-1539008835657-9e8e9680c956?w=800&h=800&fit=crop&q=80',
@@ -68,8 +68,8 @@ function HeroCard({title, subtitle, locale, season}: {title: string; subtitle: s
         src={HERO_IMAGE}
         alt="Collection hero"
         className="absolute inset-0 h-full w-full object-cover"
-        width={1200}
-        height={800}
+        width={2400}
+        height={1350}
         loading="lazy"
         sizes="100vw"
         draggable={false}
