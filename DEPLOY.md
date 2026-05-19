@@ -10,12 +10,12 @@ updated: 2026-04-23
 # 🚀 Deploy Workflow (нормальный)
 
 > Стандартная процедура деплоя изменений в production. Для emergency hot fix → vault: `Reinasleo Web/Workflows/Hot Fix Deploy.md`.
-
-> **Twin doc**: этот файл зеркалится байт-в-байт в `reinasleo-deploy-web/DEPLOY.md`. При правках обновляй оба. Diff check: `diff leo_web/DEPLOY.md reinasleo-deploy-web/DEPLOY.md`.
+>
+> **Twin doc**: This file is mirrored byte-for-byte in `leo_web/DEPLOY.md`. When editing, update both.
 
 ## Prerequisites
 
-Этот runbook предполагает, что сервер уже provisioned. Для Day-0 fresh-server bootstrap (пакеты, users, DB, TLS) — см. `reinasleo-deploy-web/BOOTSTRAP.md`.
+This runbook assumes a server already provisioned per [`BOOTSTRAP.md`](./BOOTSTRAP.md). For a fresh server, start there first.
 
 ## Принципы
 
@@ -261,6 +261,21 @@ ssh reinasleo 'cd /opt/reinasleo/leo_web && git checkout PREVIOUS_HASH'
 # 3. Rebuild + restart соответствующего сервиса
 # (см. секции выше)
 ```
+
+### DB rollback from backup
+
+Flyway is forward-only — `git checkout` does NOT roll back a migration. If V{N} broke prod:
+
+```bash
+ssh reinasleo 'systemctl stop reinasleo-api'
+ssh reinasleo 'ls -lt /opt/reinasleo/backups/ | head -5'  # pick the right dump
+ssh reinasleo 'sudo -u postgres dropdb reinasleo && sudo -u postgres createdb reinasleo -O reinasleo'
+ssh reinasleo 'gunzip -c /opt/reinasleo/backups/reinasleo_YYYYMMDD_HHMMSS.sql.gz | sudo -u postgres psql reinasleo'
+ssh reinasleo 'cd /opt/reinasleo/leo_web && git checkout PREV_HASH && cd apps/api && ./gradlew bootJar -x test --no-daemon'
+ssh reinasleo 'systemctl start reinasleo-api'
+```
+
+After restore, verify Flyway history matches: `sudo -u postgres psql -d reinasleo -c "SELECT version, installed_on FROM flyway_schema_history ORDER BY installed_rank DESC LIMIT 5;"`
 
 ## Чеклист перед deploy
 
