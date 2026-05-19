@@ -72,7 +72,7 @@ public class SecurityConfig {
                         // Static and infra
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/actuator/prometheus").hasAnyAuthority("ROLE_ADMIN", "ROLE_METRICS")
                         .requestMatchers("/actuator/**").hasAuthority("ROLE_ADMIN")
                         // Public read APIs
