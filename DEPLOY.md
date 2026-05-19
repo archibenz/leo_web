@@ -11,6 +11,12 @@ updated: 2026-04-23
 
 > Стандартная процедура деплоя изменений в production. Для emergency hot fix → vault: `Reinasleo Web/Workflows/Hot Fix Deploy.md`.
 
+> **Twin doc**: этот файл зеркалится байт-в-байт в `reinasleo-deploy-web/DEPLOY.md`. При правках обновляй оба. Diff check: `diff leo_web/DEPLOY.md reinasleo-deploy-web/DEPLOY.md`.
+
+## Prerequisites
+
+Этот runbook предполагает, что сервер уже provisioned. Для Day-0 fresh-server bootstrap (пакеты, users, DB, TLS) — см. `reinasleo-deploy-web/BOOTSTRAP.md`.
+
 ## Принципы
 
 1. **Deploy только по явной команде пользователя** (CLAUDE.md правило)

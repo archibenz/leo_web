@@ -17,8 +17,10 @@ The web app and the API are owned by separate agents — see
 `apps/web/CLAUDE.md` and `apps/api/CLAUDE.md`. The only coupling between
 them is the HTTP REST contract documented in `CLAUDE.md` at the repo root.
 
-Auxiliary services (Telegram bot, analytics) live in sibling repos
-(`leo_bot`, `leo_analytics`).
+Auxiliary services live in sibling repos:
+
+- `leo_bot` — Telegram bot (deployed as `reinasleo-bot` systemd unit)
+- `leo_analytics` — analytics API (deployed as `reinasleo-analytics-api` systemd unit, see `reinasleo-deploy-web/systemd/`)
 
 ## Local development
 
