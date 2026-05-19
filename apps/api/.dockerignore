@@ -1,0 +1,16 @@
+build
+bin
+.gradle
+.idea
+.vscode
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+Dockerfile
+.dockerignore
+README.md
+CLAUDE.md
