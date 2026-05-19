@@ -95,7 +95,7 @@ the root `CLAUDE.md`. Highlights:
 - Commerce: `/api/cart/*`, `/api/favorite/*`, `/api/orders/*`
 - Public: `/api/catalog/*`, `/api/lookbook`, `/api/care-guides`, `/api/contact`
 - Bot ingress (X-Bot-Secret header): `/api/bot/*`
-- Health: `GET /api/health`, `GET /actuator/health`, `GET /actuator/info`
+- Health: `GET /api/health`, `GET /actuator/health`
 - Metrics: `GET /actuator/prometheus` — requires `X-Metrics-Secret` header
   matching `METRICS_SECRET` env var (or a JWT with `ROLE_ADMIN`)
 
