@@ -14,7 +14,6 @@ dist
 .vscode
 .idea
 coverage
-.nyc_output
 playwright-report
 test-results
 e2e/.auth
@@ -22,3 +21,16 @@ Dockerfile
 .dockerignore
 README.md
 CLAUDE.md
+
+# Test sources & configs (not needed at build/runtime)
+e2e
+playwright.config.ts
+vitest.config.ts
+vitest.setup.ts
+tsconfig.tsbuildinfo
+TYPE_STRICTNESS.md
+**/__tests__
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx

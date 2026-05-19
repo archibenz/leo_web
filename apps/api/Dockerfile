@@ -26,7 +26,6 @@ RUN useradd --system --create-home --shell /usr/sbin/nologin --uid 1001 spring
 WORKDIR /app
 
 COPY --from=build --chown=spring:spring /workspace/app.jar /app/app.jar
-COPY --chown=spring:spring src/main/resources/application-prod.yml.example /app/application-prod.yml.example
 
 USER spring
 
