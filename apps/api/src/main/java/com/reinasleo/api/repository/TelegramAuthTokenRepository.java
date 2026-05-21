@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface TelegramAuthTokenRepository extends JpaRepository<TelegramAuthToken, String> {
 
@@ -26,6 +27,24 @@ public interface TelegramAuthTokenRepository extends JpaRepository<TelegramAuthT
               AND t.expiresAt > CURRENT_TIMESTAMP
             """)
     int markUsedIfAvailable(@Param("token") String token);
+
+    /**
+     * Atomic mark-and-fetch: claims the token and returns its user_id in one
+     * round-trip, eliminating the TOCTOU window between UPDATE and SELECT.
+     * Returns empty if the token is already used, expired, or unbound.
+     * Native query because JPQL does not support UPDATE ... RETURNING.
+     */
+    @Modifying
+    @Query(value = """
+            UPDATE telegram_auth_tokens
+            SET used = true
+            WHERE token = :token
+              AND used = false
+              AND user_id IS NOT NULL
+              AND expires_at > NOW()
+            RETURNING user_id
+            """, nativeQuery = true)
+    Optional<UUID> claimAndReturnUserId(@Param("token") String token);
 
     @Modifying
     @Query("""

@@ -160,19 +160,13 @@ public class BotAuthService {
 
     @Transactional
     public LoginResponse exchangeToken(String loginToken) {
-        int claimed = tokenRepository.markUsedIfAvailable(loginToken);
-        if (claimed == 0) {
-            throw new TokenAlreadyConsumedException();
-        }
+        // Single round-trip atomic claim: marks token used AND returns user_id,
+        // eliminating the TOCTOU window between UPDATE and re-fetch. Empty if
+        // token is consumed, expired, or never bound to a user.
+        UUID userId = tokenRepository.claimAndReturnUserId(loginToken)
+                .orElseThrow(TokenAlreadyConsumedException::new);
 
-        TelegramAuthToken entry = tokenRepository.findById(loginToken)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "login_token_not_found"));
-
-        if (entry.getUserId() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "token_has_no_user");
-        }
-
-        User user = userRepository.findActiveById(entry.getUserId())
+        User user = userRepository.findActiveById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user_not_found"));
 
         String jwt = jwtService.generateToken(user.getId(), user.getEmail());

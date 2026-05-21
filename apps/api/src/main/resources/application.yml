@@ -67,7 +67,7 @@ app:
     allowed-origins: ${CORS_ORIGIN}
   jwt:
     secret: ${JWT_SECRET}
-    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+    expiration-ms: ${JWT_EXPIRATION_MS}
   bot:
     api-secret: ${BOT_API_SECRET}
     username: ${BOT_USERNAME:reinasleo_bot}

@@ -14,13 +14,28 @@ import java.util.UUID;
 @Service
 public class JwtService {
 
+    // HS256 requires at least 256 bits of secret material per RFC 7518 §3.2.
+    // jjwt enforces this at first sign-time; checking at startup turns the
+    // runtime crash into a fail-fast boot error.
+    private static final int MIN_SECRET_BYTES = 32;
+
     private final SecretKey key;
     private final long expirationMs;
 
     public JwtService(
             @Value("${app.jwt.secret}") String secret,
             @Value("${app.jwt.expiration-ms}") long expirationMs) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException(
+                    "JWT_SECRET env var is required — refusing to start.");
+        }
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < MIN_SECRET_BYTES) {
+            throw new IllegalStateException(
+                    "JWT_SECRET is too short: " + keyBytes.length + " bytes provided, "
+                            + MIN_SECRET_BYTES + " bytes (256 bit) required for HS256.");
+        }
+        this.key = Keys.hmacShaKeyFor(keyBytes);
         this.expirationMs = expirationMs;
     }
 

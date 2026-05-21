@@ -27,15 +27,21 @@ public class RateLimitFilter implements Filter {
     private static final Duration EVICTION_AFTER_ACCESS = Duration.ofMinutes(5);
 
     private final Cache<String, Bucket> authBuckets = buildCache();
+    private final Cache<String, Bucket> telegramBuckets = buildCache();
+    private final Cache<String, Bucket> deleteChallengeBuckets = buildCache();
     private final Cache<String, Bucket> botBuckets = buildCache();
     private final Cache<String, Bucket> contactBuckets = buildCache();
 
     private final Counter authHitCounter;
+    private final Counter telegramHitCounter;
+    private final Counter deleteChallengeHitCounter;
     private final Counter botHitCounter;
     private final Counter contactHitCounter;
 
     public RateLimitFilter(MeterRegistry meters) {
         this.authHitCounter = hitCounter(meters, "auth");
+        this.telegramHitCounter = hitCounter(meters, "telegram");
+        this.deleteChallengeHitCounter = hitCounter(meters, "delete_challenge");
         this.botHitCounter = hitCounter(meters, "bot");
         this.contactHitCounter = hitCounter(meters, "contact");
     }
@@ -61,7 +67,18 @@ public class RateLimitFilter implements Filter {
         String path = req.getRequestURI();
         String ip = getClientIp(req);
 
-        if (path.startsWith("/api/auth/")) {
+        // Telegram polling (/api/auth/telegram/poll) needs frequent calls — frontend
+        // polls every ~1s during the OAuth deep-link window. Separate it from the
+        // password-auth bucket so legitimate poll traffic does not exhaust the
+        // /api/auth/** allowance and so token-init farming sits in a smaller bucket.
+        // Delete-challenge has a per-user (Telegram message) cost — narrower limit
+        // discourages abuse-by-replay.
+        if (path.equals("/api/auth/me/delete-challenge")) {
+            if (isRateLimited(deleteChallengeBuckets, ip, res,
+                    this::createDeleteChallengeBucket, deleteChallengeHitCounter)) return;
+        } else if (path.startsWith("/api/auth/telegram/")) {
+            if (isRateLimited(telegramBuckets, ip, res, this::createTelegramBucket, telegramHitCounter)) return;
+        } else if (path.startsWith("/api/auth/")) {
             if (isRateLimited(authBuckets, ip, res, this::createAuthBucket, authHitCounter)) return;
         } else if (path.startsWith("/api/bot/")) {
             if (isRateLimited(botBuckets, ip, res, this::createBotBucket, botHitCounter)) return;
@@ -89,6 +106,22 @@ public class RateLimitFilter implements Filter {
     private Bucket createAuthBucket() {
         return Bucket.builder()
                 .addLimit(Bandwidth.simple(10, Duration.ofMinutes(1)))
+                .build();
+    }
+
+    private Bucket createTelegramBucket() {
+        // 60 req/min: covers ~1s poll during the OAuth window plus init/exchange,
+        // while still capping token-farming at 3600/hour per IP.
+        return Bucket.builder()
+                .addLimit(Bandwidth.simple(60, Duration.ofMinutes(1)))
+                .build();
+    }
+
+    private Bucket createDeleteChallengeBucket() {
+        // Each call sends a Telegram message — 3 per 15 min is enough for a
+        // legitimate user retrying, and tight enough to make spam pointless.
+        return Bucket.builder()
+                .addLimit(Bandwidth.simple(3, Duration.ofMinutes(15)))
                 .build();
     }
 
