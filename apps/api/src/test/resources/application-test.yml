@@ -22,7 +22,7 @@ app:
     api-secret: test-bot-secret
     username: test_bot
   resend:
-    api-key: ""
+    api-key: "DO-NOT-USE-test-resend-api-key"
     from: "test@test.com"
   upload:
     dir: /tmp/test-uploads
