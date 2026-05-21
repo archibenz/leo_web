@@ -52,6 +52,10 @@ export async function apiFetch<T>(
   const res = await fetch(`${API_BASE}${path}`, {
     ...fetchOptions,
     headers,
+    // Send the httpOnly rl_session cookie automatically. New logins are
+    // authenticated via the cookie; existing localStorage tokens still work
+    // through the Authorization header above (transitional period).
+    credentials: 'include',
   });
 
   if (res.status === 204) {

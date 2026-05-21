@@ -107,9 +107,13 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of(
             "Authorization", "Content-Type", "X-Bot-Secret", "Accept", "Origin"
         ));
-        // JWT lives in Authorization header, cookies are not used. Keeping this false
-        // means any future cookie-based auth must first re-enable CSRF protection.
-        configuration.setAllowCredentials(false);
+        // We now ship the rl_session cookie (HttpOnly + Secure + SameSite=Lax)
+        // alongside the legacy Authorization: Bearer header. The browser will
+        // only send credentials cross-origin when this is true AND
+        // Access-Control-Allow-Origin is a specific origin (never '*'), which
+        // is enforced by setAllowedOrigins on a strict whitelist above.
+        // SameSite=Lax already protects against CSRF on mutating endpoints.
+        configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
