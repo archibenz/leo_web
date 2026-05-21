@@ -6,6 +6,7 @@ import com.reinasleo.api.exception.EmailDeliveryException;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,8 +48,16 @@ public class EmailService {
     private final Timer durationServerError;
     private final Timer durationTransportError;
 
-    @Value("${app.resend.api-key:}")
+    @Value("${app.resend.api-key}")
     private String resendApiKey;
+
+    @PostConstruct
+    void validateApiKey() {
+        if (resendApiKey == null || resendApiKey.isBlank()) {
+            throw new IllegalStateException(
+                    "RESEND_API_KEY not configured; refusing to start application");
+        }
+    }
 
     @Value("${app.resend.from:REINASLEO <noreply@reinasleo.com>}")
     private String fromAddress;

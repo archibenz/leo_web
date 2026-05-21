@@ -3,6 +3,7 @@ package com.reinasleo.api.security;
 import com.reinasleo.api.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,6 +21,8 @@ import java.util.UUID;
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
+    private static final String BEARER_PREFIX = "Bearer ";
+
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
@@ -33,24 +36,38 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String header = request.getHeader("Authorization");
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-            if (jwtService.isValid(token)) {
-                UUID userId = jwtService.extractUserId(token);
-                userRepository.findById(userId)
-                        .filter(u -> u.getDeletedAt() == null)
-                        .ifPresent(user -> {
-                            Collection<GrantedAuthority> authorities = "admin".equals(user.getRole())
-                                    ? List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
-                                    : List.of();
-                            var auth = new UsernamePasswordAuthenticationToken(
-                                    user, null, authorities);
-                            SecurityContextHolder.getContext().setAuthentication(auth);
-                        });
-            }
+        String token = extractToken(request);
+        if (token != null && jwtService.isValid(token)) {
+            UUID userId = jwtService.extractUserId(token);
+            userRepository.findActiveById(userId)
+                    .ifPresent(user -> {
+                        Collection<GrantedAuthority> authorities = "admin".equals(user.getRole())
+                                ? List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                                : List.of();
+                        var auth = new UsernamePasswordAuthenticationToken(
+                                user, null, authorities);
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                    });
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private static String extractToken(HttpServletRequest request) {
+        String header = request.getHeader("Authorization");
+        if (header != null && header.startsWith(BEARER_PREFIX)) {
+            String value = header.substring(BEARER_PREFIX.length()).trim();
+            if (!value.isEmpty()) return value;
+        }
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                if (AuthCookies.SESSION_COOKIE.equals(c.getName())) {
+                    String value = c.getValue();
+                    if (value != null && !value.isEmpty()) return value;
+                }
+            }
+        }
+        return null;
     }
 }

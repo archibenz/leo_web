@@ -14,25 +14,42 @@ const intlMiddleware = createIntlMiddleware({
 const apiBase = process.env.NEXT_PUBLIC_API_BASE?.trim();
 const connectSrc = apiBase && apiBase.length > 0 ? `'self' ${apiBase}` : "'self'";
 
-// 'unsafe-inline' on style-src covers next/image inline sizing styles and
-// framer-motion runtime style injection. 'unsafe-inline' on script-src is
-// required for Next.js' inline bootstrap JSON (`__NEXT_DATA__`). Switching
-// to nonces is the follow-up — see Round 12 M-2.
-const csp = [
-  "default-src 'self'",
-  "img-src 'self' https: data: blob:",
-  "style-src 'self' 'unsafe-inline'",
-  "script-src 'self' 'unsafe-inline'",
-  "font-src 'self' data:",
-  `connect-src ${connectSrc}`,
-  "frame-ancestors 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "object-src 'none'"
-].join('; ');
+// style-src keeps 'unsafe-inline' because next/image inline sizing styles and
+// framer-motion's runtime style injection both require it. Script XSS is the
+// higher-impact vector and is closed via per-request nonce + 'strict-dynamic'.
+function buildCsp(nonce: string): string {
+  return [
+    "default-src 'self'",
+    "img-src 'self' https: data: blob:",
+    "style-src 'self' 'unsafe-inline'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    "font-src 'self' data:",
+    `connect-src ${connectSrc}`,
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'"
+  ].join('; ');
+}
+
+function generateNonce(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  let binary = '';
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary);
+}
 
 export default function middleware(request: NextRequest) {
+  const nonce = generateNonce();
+  // Mutate request headers so Server Components can read the nonce via
+  // `headers()` and apply it to <Script nonce={nonce}>. Next.js automatically
+  // applies the same nonce to its own inline bootstrap script when this header
+  // is present in the request.
+  request.headers.set('x-nonce', nonce);
+
   const response = intlMiddleware(request);
+  const csp = buildCsp(nonce);
 
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');

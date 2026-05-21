@@ -5,8 +5,10 @@ import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.model.User;
 import com.reinasleo.api.repository.UserRepository;
+import com.reinasleo.api.security.AuthCookies;
 import com.reinasleo.api.service.AuthService;
 import com.reinasleo.api.service.VerificationService;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,13 +26,16 @@ public class AuthController {
     private final VerificationService verificationService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthCookies authCookies;
 
     public AuthController(AuthService authService, VerificationService verificationService,
-                          UserRepository userRepository, PasswordEncoder passwordEncoder) {
+                          UserRepository userRepository, PasswordEncoder passwordEncoder,
+                          AuthCookies authCookies) {
         this.authService = authService;
         this.verificationService = verificationService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authCookies = authCookies;
     }
 
     @PostMapping("/send-code")
@@ -40,19 +45,24 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<LoginResponse> register(@Valid @RequestBody RegisterRequest request,
+                                                  HttpServletResponse httpResponse) {
         LoginResponse response = authService.register(request);
+        authCookies.issue(httpResponse, response.token());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request,
+                                               HttpServletResponse httpResponse) {
         LoginResponse response = authService.login(request);
+        authCookies.issue(httpResponse, response.token());
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout() {
+    public ResponseEntity<Void> logout(HttpServletResponse httpResponse) {
+        authCookies.clear(httpResponse);
         return ResponseEntity.noContent().build();
     }
 
@@ -103,11 +113,13 @@ public class AuthController {
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteMe(
             @AuthenticationPrincipal User user,
-            @Valid @RequestBody DeleteAccountRequest request) {
+            @Valid @RequestBody DeleteAccountRequest request,
+            HttpServletResponse httpResponse) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         authService.deleteAccount(user, request);
+        authCookies.clear(httpResponse);
         return ResponseEntity.noContent().build();
     }
 
