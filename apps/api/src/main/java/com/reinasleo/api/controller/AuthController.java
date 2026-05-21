@@ -1,10 +1,7 @@
 package com.reinasleo.api.controller;
 
 import com.reinasleo.api.dto.*;
-import com.reinasleo.api.exception.ConflictException;
-import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.model.User;
-import com.reinasleo.api.repository.UserRepository;
 import com.reinasleo.api.security.AuthCookies;
 import com.reinasleo.api.service.AuthService;
 import com.reinasleo.api.service.VerificationService;
@@ -13,7 +10,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -24,17 +20,12 @@ public class AuthController {
 
     private final AuthService authService;
     private final VerificationService verificationService;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
     private final AuthCookies authCookies;
 
     public AuthController(AuthService authService, VerificationService verificationService,
-                          UserRepository userRepository, PasswordEncoder passwordEncoder,
                           AuthCookies authCookies) {
         this.authService = authService;
         this.verificationService = verificationService;
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
         this.authCookies = authCookies;
     }
 
@@ -66,11 +57,13 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
+    // SecurityConfig protects all /api/auth/me/** with .authenticated(), so by
+    // the time these handlers run @AuthenticationPrincipal User is guaranteed
+    // non-null. Earlier null-checks were unreachable dead code that obscured
+    // the security invariant — removed.
+
     @GetMapping("/me")
     public ResponseEntity<UserResponse> me(@AuthenticationPrincipal User user) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
         return ResponseEntity.ok(toUserResponse(user));
     }
 
@@ -78,36 +71,16 @@ public class AuthController {
     public ResponseEntity<UserResponse> linkEmail(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody LinkEmailRequest request) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        if (user.getEmail() != null && !user.getEmail().isBlank()) {
-            throw new ConflictException("email_already_linked");
-        }
-        String normalizedEmail = request.email().trim().toLowerCase();
-
-        verificationService.verifyCode(normalizedEmail, request.code());
-
-        userRepository.findByEmailIgnoreCase(normalizedEmail).ifPresent(existing -> {
-            throw new EmailAlreadyExistsException(normalizedEmail);
-        });
-        user.setEmail(normalizedEmail);
-        userRepository.save(user);
-        return ResponseEntity.ok(toUserResponse(user));
+        User updated = authService.linkEmail(user, request);
+        return ResponseEntity.ok(toUserResponse(updated));
     }
 
     @PutMapping("/newsletter-preferences")
     public ResponseEntity<UserResponse> updateNewsletterPreferences(
             @AuthenticationPrincipal User user,
             @Valid @RequestBody NewsletterPreferencesRequest request) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        user.setNewsletterPromos(request.promos());
-        user.setNewsletterCollections(request.collections());
-        user.setNewsletterProjects(request.projects());
-        userRepository.save(user);
-        return ResponseEntity.ok(toUserResponse(user));
+        User updated = authService.updateNewsletterPreferences(user, request);
+        return ResponseEntity.ok(toUserResponse(updated));
     }
 
     @DeleteMapping("/me")
@@ -115,9 +88,6 @@ public class AuthController {
             @AuthenticationPrincipal User user,
             @Valid @RequestBody DeleteAccountRequest request,
             HttpServletResponse httpResponse) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
         authService.deleteAccount(user, request);
         authCookies.clear(httpResponse);
         return ResponseEntity.noContent().build();
@@ -125,18 +95,12 @@ public class AuthController {
 
     @PostMapping("/me/delete-challenge")
     public ResponseEntity<Void> issueDeleteChallenge(@AuthenticationPrincipal User user) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
         authService.issueDeleteChallenge(user);
         return ResponseEntity.accepted().build();
     }
 
     @GetMapping("/me/export")
     public ResponseEntity<AccountExportResponse> exportMe(@AuthenticationPrincipal User user) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
         AccountExportResponse export = authService.exportAccountData(user);
         return ResponseEntity.ok(export);
     }

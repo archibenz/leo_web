@@ -197,8 +197,16 @@ public class PublicCatalogService {
                 .toList();
     }
 
-    private Map<UUID, String> loadCollectionNames() {
-        return collectionRepository.findAll().stream()
+    /**
+     * Loads (active-only) collection-id → name map. Cached: hot read paths
+     * (`listActiveProducts`, `getCollectionProducts`, `getProductRecommendations`,
+     * `getHomepage`) hit this on every miss. Eviction is handled by
+     * `CollectionService` and `AdminProductService` via @CacheEvict on
+     * collection mutations.
+     */
+    @Cacheable("collectionNames")
+    public Map<UUID, String> loadCollectionNames() {
+        return collectionRepository.findByActiveTrueOrderBySortOrderAsc().stream()
                 .collect(Collectors.toMap(Collection::getId, Collection::getName));
     }
 

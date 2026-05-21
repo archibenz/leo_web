@@ -9,4 +9,5 @@ import java.util.UUID;
 public interface StockAlertRepository extends JpaRepository<StockAlert, UUID> {
     List<StockAlert> findByAcknowledgedFalseOrderByCreatedAtDesc();
     boolean existsByProductIdAndAlertTypeAndAcknowledgedFalse(String productId, String alertType);
+    long countByAcknowledgedFalse();
 }

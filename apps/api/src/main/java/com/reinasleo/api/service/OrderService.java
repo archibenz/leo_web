@@ -2,6 +2,8 @@ package com.reinasleo.api.service;
 
 import com.reinasleo.api.dto.OrderItemResponse;
 import com.reinasleo.api.dto.OrderResponse;
+import com.reinasleo.api.exception.BadRequestException;
+import com.reinasleo.api.exception.NotFoundException;
 import com.reinasleo.api.exception.OutOfStockException;
 import com.reinasleo.api.model.*;
 import com.reinasleo.api.repository.CartRepository;
@@ -42,10 +44,10 @@ public class OrderService {
     @Transactional
     public OrderResponse checkout(User user) {
         Cart cart = cartRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new IllegalStateException("Cart is empty"));
+                .orElseThrow(() -> new BadRequestException("cart_empty"));
 
         if (cart.getItems().isEmpty()) {
-            throw new IllegalStateException("Cart is empty");
+            throw new BadRequestException("cart_empty");
         }
 
         // Acquire row locks in deterministic order to avoid deadlocks between
@@ -56,7 +58,7 @@ public class OrderService {
         for (CartItem ci : sorted) {
             String productId = ci.getProduct().getId();
             Product locked = productRepository.findByIdForUpdate(productId)
-                    .orElseThrow(() -> new IllegalStateException("Product not found: " + productId));
+                    .orElseThrow(() -> new NotFoundException("product_not_found"));
 
             if (ci.getQuantity() > locked.getStockQuantity()) {
                 throw new OutOfStockException(locked.getId(), ci.getQuantity(), locked.getStockQuantity());

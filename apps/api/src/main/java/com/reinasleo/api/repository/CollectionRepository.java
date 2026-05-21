@@ -10,4 +10,5 @@ import java.util.UUID;
 public interface CollectionRepository extends JpaRepository<Collection, UUID> {
     Optional<Collection> findBySlug(String slug);
     List<Collection> findByActiveTrueOrderBySortOrderAsc();
+    long countByActiveTrue();
 }

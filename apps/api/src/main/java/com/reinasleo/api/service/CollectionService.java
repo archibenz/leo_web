@@ -58,7 +58,7 @@ public class CollectionService {
         return toResponse(c);
     }
 
-    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
+    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames"}, allEntries = true)
     @Transactional
     public CollectionResponse create(CollectionRequest req) {
         Collection c = new Collection();
@@ -73,7 +73,7 @@ public class CollectionService {
         return toResponse(saved);
     }
 
-    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
+    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames"}, allEntries = true)
     @Transactional
     public CollectionResponse update(UUID id, CollectionRequest req) {
         Collection c = collectionRepository.findById(id)
@@ -89,7 +89,7 @@ public class CollectionService {
         return toResponse(saved);
     }
 
-    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
+    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames"}, allEntries = true)
     @Transactional
     public void deactivate(UUID id) {
         Collection c = collectionRepository.findById(id)
@@ -98,7 +98,7 @@ public class CollectionService {
         collectionRepository.save(c);
     }
 
-    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
+    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames"}, allEntries = true)
     @Transactional
     public void hardDelete(UUID id) {
         Collection c = collectionRepository.findById(id)
@@ -116,7 +116,9 @@ public class CollectionService {
     }
 
     private CollectionResponse toResponse(Collection c) {
-        long productCount = productRepository.findByCollectionIdAndActiveTrueOrderByCreatedAtDesc(c.getId()).size();
+        // SELECT COUNT(*) — no row materialisation. Previously this loaded
+        // every active product in the collection just to call .size().
+        long productCount = productRepository.countByCollectionIdAndActiveTrue(c.getId());
         return toResponse(c, productCount);
     }
 

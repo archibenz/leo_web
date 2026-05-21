@@ -83,7 +83,7 @@ public class AdminProductService {
         return toAdminResponse(p);
     }
 
-    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
+    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames"}, allEntries = true)
     @Transactional
     public AdminProductResponse create(AdminProductRequest req) {
         if (req.id() == null || req.id().isBlank()) {
@@ -102,7 +102,7 @@ public class AdminProductService {
         return toAdminResponse(saved);
     }
 
-    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
+    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames"}, allEntries = true)
     @Transactional
     public AdminProductResponse update(String id, AdminProductRequest req) {
         Product p = productRepository.findById(id)
@@ -113,7 +113,7 @@ public class AdminProductService {
         return toAdminResponse(saved);
     }
 
-    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
+    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames"}, allEntries = true)
     @Transactional
     public void deactivate(String id) {
         Product p = productRepository.findById(id)
@@ -122,7 +122,7 @@ public class AdminProductService {
         productRepository.save(p);
     }
 
-    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
+    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames"}, allEntries = true)
     @Transactional
     public AdminProductResponse updateStock(String id, int quantity) {
         Product p = productRepository.findById(id)
@@ -133,7 +133,7 @@ public class AdminProductService {
         return toAdminResponse(saved);
     }
 
-    @CacheEvict(value = {"products", "collections", "homepage"}, allEntries = true)
+    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames"}, allEntries = true)
     @Transactional
     public void hardDelete(String id) {
         Product p = productRepository.findById(id)
@@ -144,9 +144,9 @@ public class AdminProductService {
     @Transactional(readOnly = true)
     public DashboardResponse getDashboard() {
         long totalProducts = productRepository.countByActiveTrueAndIsTestFalse();
-        long totalCollections = collectionRepository.findByActiveTrueOrderBySortOrderAsc().size();
+        long totalCollections = collectionRepository.countByActiveTrue();
         long outOfStock = productRepository.countByActiveTrueAndIsTestFalseAndStockQuantityEquals(0);
-        long totalAlerts = stockAlertRepository.findByAcknowledgedFalseOrderByCreatedAtDesc().size();
+        long totalAlerts = stockAlertRepository.countByAcknowledgedFalse();
         // Low stock: stock > 0 and stock <= 5 (default threshold), only real products
         long lowStock = productRepository.countByActiveTrueAndIsTestFalseAndStockQuantityGreaterThanAndStockQuantityLessThanEqual(0, 5);
 

@@ -5,8 +5,10 @@ import com.reinasleo.api.dto.CartExportDto;
 import com.reinasleo.api.dto.CartItemExportDto;
 import com.reinasleo.api.dto.DeleteAccountRequest;
 import com.reinasleo.api.dto.FavoriteExportDto;
+import com.reinasleo.api.dto.LinkEmailRequest;
 import com.reinasleo.api.dto.LoginRequest;
 import com.reinasleo.api.dto.LoginResponse;
+import com.reinasleo.api.dto.NewsletterPreferencesRequest;
 import com.reinasleo.api.dto.OrderExportDto;
 import com.reinasleo.api.dto.OrderItemExportDto;
 import com.reinasleo.api.dto.ProductInterestEventExportDto;
@@ -126,6 +128,41 @@ public class AuthService {
 
         String token = jwtService.generateToken(saved.getId(), saved.getEmail());
         return new LoginResponse(token, saved.getId(), saved.getEmail(), saved.getName(), saved.getSurname(), saved.getRole());
+    }
+
+    /**
+     * Bind an email to a Telegram-registered user after verifying ownership.
+     *
+     * <p>Wraps the verify-code consumption AND the user mutation in one
+     * {@code @Transactional} boundary so a unique-constraint violation on
+     * email rolls back the code consumption — preventing the user from
+     * permanently losing their verification code on a race-loss.</p>
+     */
+    @Transactional
+    public User linkEmail(User user, LinkEmailRequest request) {
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            throw new ConflictException("email_already_linked");
+        }
+        String normalizedEmail = request.email().trim().toLowerCase();
+        verificationService.verifyCode(normalizedEmail, request.code());
+        userRepository.findByEmailIgnoreCase(normalizedEmail).ifPresent(existing -> {
+            throw new EmailAlreadyExistsException(normalizedEmail);
+        });
+        user.setEmail(normalizedEmail);
+        return userRepository.save(user);
+    }
+
+    /**
+     * Update marketing-preference flags on the authenticated user.
+     * Wrapped in {@code @Transactional} so all three flag writes either
+     * persist together or roll back together.
+     */
+    @Transactional
+    public User updateNewsletterPreferences(User user, NewsletterPreferencesRequest request) {
+        user.setNewsletterPromos(request.promos());
+        user.setNewsletterCollections(request.collections());
+        user.setNewsletterProjects(request.projects());
+        return userRepository.save(user);
     }
 
     @Transactional(readOnly = true)
