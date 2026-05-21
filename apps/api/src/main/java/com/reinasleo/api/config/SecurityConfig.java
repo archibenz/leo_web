@@ -82,6 +82,16 @@ public class SecurityConfig {
                         .requestMatchers("/api/care-guides", "/api/care-guides/**").permitAll()
                         // Public POST APIs (rate-limited or secret-protected at controller layer)
                         .requestMatchers("/api/contact").permitAll()
+                        // Authenticated /api/auth/* endpoints — must be listed BEFORE the
+                        // public /api/auth/** matcher (Spring picks first match). These
+                        // controllers read @AuthenticationPrincipal User and assume non-null;
+                        // routing anonymous probes here through permitAll caused NPE → 500.
+                        .requestMatchers(
+                                "/api/auth/me",
+                                "/api/auth/me/**",
+                                "/api/auth/link-email",
+                                "/api/auth/newsletter-preferences"
+                        ).authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         // /api/bot/admin/** is technically covered by /api/bot/** below;
                         // listed explicitly so the next reader sees that bot admin endpoints
