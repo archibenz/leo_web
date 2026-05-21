@@ -1,4 +1,5 @@
 import type {Metadata} from 'next';
+import {headers} from 'next/headers';
 import type {Locale} from '../../../../i18n';
 import ProductDetailClient from '../../../../components/ProductDetailClient';
 import {safeJsonLd} from '../../../../lib/jsonLd';
@@ -47,6 +48,7 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 export default async function ProductPage({params}: Props) {
   const {locale, id} = await params;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   let productJsonLd = null;
   let initialProduct = null;
@@ -77,6 +79,7 @@ export default async function ProductPage({params}: Props) {
       {productJsonLd && (
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{__html: safeJsonLd(productJsonLd)}}
         />
       )}

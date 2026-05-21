@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import type {ReactNode} from 'react';
+import {headers} from 'next/headers';
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
 import Header from '../../components/Header';
@@ -42,6 +43,9 @@ export default async function LocaleLayout({
   const {locale: localeParam} = await params;
   const locale = localeParam as Locale;
   const messages = await getMessages();
+  // Per-request CSP nonce, generated in middleware.ts. Falls back to undefined
+  // in dev / unit-test contexts where the middleware isn't wired up.
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://reinasleo.com';
   const orgJsonLd = {
@@ -58,6 +62,7 @@ export default async function LocaleLayout({
       <Providers>
         <script
           type="application/ld+json"
+          nonce={nonce}
           dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}}
         />
         <div className="relative flex min-h-screen flex-col">
