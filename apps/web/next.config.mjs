@@ -22,8 +22,8 @@ const nextConfig = {
     ],
     minimumCacheTTL: 86400,
     formats: ['image/avif', 'image/webp'],
-    dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+    // dangerouslyAllowSVG removed: SVG can carry CSS/foreignObject exfil and clickjacking
+    // even with the per-image CSP sandbox. Brand SVGs are served as /public/*.svg (not via next/image).
   },
 };
 

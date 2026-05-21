@@ -24,7 +24,10 @@ function TelegramAuthContent() {
 
   useEffect(() => {
     const token = searchParams.get('token');
-    if (!token) {
+    // Reject malformed tokens client-side: backend issues 32-char hex (UUID
+    // without dashes). A crafted URL with arbitrary characters should not
+    // reach the exchange endpoint or land in headers.
+    if (!token || !/^[A-Za-z0-9_-]{20,128}$/.test(token)) {
       setStatus('error');
       return;
     }
