@@ -21,6 +21,10 @@ spring:
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: reinasleo-pool
 
   jpa:
     open-in-view: false

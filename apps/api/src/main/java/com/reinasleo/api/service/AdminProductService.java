@@ -23,6 +23,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class AdminProductService {
@@ -53,9 +55,25 @@ public class AdminProductService {
 
     @Transactional(readOnly = true)
     public List<AdminProductResponse> listAll() {
-        return productRepository.findAll().stream()
-                .map(this::toAdminResponse)
+        List<Product> products = productRepository.findAll();
+        Map<UUID, String> collectionNames = loadCollectionNamesFor(products);
+        return products.stream()
+                .map(p -> toAdminResponse(p, collectionNames))
                 .toList();
+    }
+
+    private Map<UUID, String> loadCollectionNamesFor(List<Product> products) {
+        Set<UUID> ids = products.stream()
+                .map(Product::getCollectionId)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        return collectionRepository.findAllById(ids).stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        Collection::getId,
+                        Collection::getName));
     }
 
     @Transactional(readOnly = true)
@@ -306,10 +324,16 @@ public class AdminProductService {
     }
 
     private AdminProductResponse toAdminResponse(Product p) {
+        return toAdminResponse(p, null);
+    }
+
+    private AdminProductResponse toAdminResponse(Product p, Map<UUID, String> nameCache) {
         String collectionName = null;
         if (p.getCollectionId() != null) {
-            collectionName = collectionRepository.findById(p.getCollectionId())
-                    .map(Collection::getName).orElse(null);
+            collectionName = (nameCache != null)
+                    ? nameCache.get(p.getCollectionId())
+                    : collectionRepository.findById(p.getCollectionId())
+                            .map(Collection::getName).orElse(null);
         }
         return new AdminProductResponse(
                 p.getId(), p.getTitle(), p.getDescription(), p.getPrice(),
