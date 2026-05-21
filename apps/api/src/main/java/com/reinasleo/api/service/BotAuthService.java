@@ -113,6 +113,11 @@ public class BotAuthService {
 
     @Transactional
     public PollAuthResponse pollAuth(String initToken) {
+        // Pre-check: token must exist and not be expired. We need to
+        // distinguish "still pending" (used=false) from "ready" (used=true) —
+        // the atomic delete below only fires for the ready case, so a read
+        // is required to decide which branch we are on. The actual claim
+        // (delete + user_id fetch) is then atomic via deleteAndReturnUserId.
         TelegramAuthToken entry = tokenRepository.findById(initToken)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "token_not_found"));
 
@@ -124,11 +129,11 @@ public class BotAuthService {
             return PollAuthResponse.pending();
         }
 
-        UUID userId = entry.getUserId();
-        int claimed = tokenRepository.deleteIfClaimed(initToken);
-        if (claimed == 0) {
-            throw new TokenAlreadyConsumedException();
-        }
+        // Atomic delete + return: closes the TOCTOU window between the
+        // is-ready read above and the actual claim. Empty means another
+        // poll won the race.
+        UUID userId = tokenRepository.deleteAndReturnUserId(initToken)
+                .orElseThrow(TokenAlreadyConsumedException::new);
 
         User user = userRepository.findActiveById(userId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "user_not_found"));

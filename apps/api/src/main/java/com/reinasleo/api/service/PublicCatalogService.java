@@ -205,7 +205,12 @@ public class PublicCatalogService {
      * collection mutations.
      */
     @Cacheable("collectionNames")
+    @Transactional(readOnly = true)
     public Map<UUID, String> loadCollectionNames() {
+        // @Transactional required because open-in-view=false: on cache miss we
+        // need an active Hibernate session for the repository call. Without
+        // this, cold caches throw TransactionRequiredException under strict
+        // JPA configurations.
         return collectionRepository.findByActiveTrueOrderBySortOrderAsc().stream()
                 .collect(Collectors.toMap(Collection::getId, Collection::getName));
     }

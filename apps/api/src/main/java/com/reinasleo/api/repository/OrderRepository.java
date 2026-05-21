@@ -15,6 +15,12 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @EntityGraph(attributePaths = {"items", "items.product"})
     List<Order> findByUserIdOrderByCreatedAtDesc(UUID userId);
 
+    // Hard cap for the display path /api/me/orders — prevents memory cliffs
+    // for accounts with thousands of orders. exportAccountData (GDPR) still
+    // uses the unbounded query above intentionally.
+    @EntityGraph(attributePaths = {"items", "items.product"})
+    List<Order> findTop50ByUserIdOrderByCreatedAtDesc(UUID userId);
+
     long countByCreatedAtAfter(Instant since);
 
     @Query("SELECT COALESCE(SUM(o.total), 0) FROM Order o WHERE o.status <> 'cancelled'")

@@ -354,7 +354,17 @@ export function AuthProvider({children}: {children: ReactNode}) {
 
   const isAdmin = user?.role === 'admin';
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    // Call the backend FIRST so the httpOnly rl_session cookie is cleared.
+    // Without this, the cookie lives for the full JWT TTL (24h) even after
+    // "logout" — and AdminGuard's cookie-presence check lets a logged-out
+    // user past the redirect. Fail-open: if the request fails (network /
+    // backend down) we still clear local state below so the UI is consistent.
+    try {
+      await apiFetch<void>('/api/auth/logout', {method: 'POST', skipAuthHandler: true});
+    } catch {
+      // ignore — log out client-side anyway
+    }
     clearToken();
     setUser(null);
   }, []);

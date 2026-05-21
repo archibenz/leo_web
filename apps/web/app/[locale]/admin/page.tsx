@@ -136,7 +136,12 @@ export default function AdminDashboardPage() {
       if (dashboard) {
         setDashboard({...dashboard, totalAlerts: dashboard.totalAlerts - 1});
       }
-    } catch {}
+    } catch {
+      // Previously swallowed silently — admin saw the alert "disappear" but
+      // the backend never acknowledged it. Surface a load-level error so they
+      // know to reload.
+      setLoadError('load_failed');
+    }
   };
 
   return (

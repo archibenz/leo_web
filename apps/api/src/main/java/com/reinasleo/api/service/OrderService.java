@@ -36,7 +36,7 @@ public class OrderService {
 
     @Transactional(readOnly = true)
     public List<OrderResponse> getOrders(User user) {
-        return orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId()).stream()
+        return orderRepository.findTop50ByUserIdOrderByCreatedAtDesc(user.getId()).stream()
                 .map(this::toResponse)
                 .toList();
     }

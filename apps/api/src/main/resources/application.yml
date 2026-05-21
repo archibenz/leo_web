@@ -62,7 +62,7 @@ management:
 app:
   resend:
     api-key: ${RESEND_API_KEY}
-    from: ${RESEND_FROM:REINASLEO <noreply@reinasleo.com>}
+    from: ${RESEND_FROM}
   cors:
     allowed-origins: ${CORS_ORIGIN}
   jwt:
@@ -70,7 +70,7 @@ app:
     expiration-ms: ${JWT_EXPIRATION_MS}
   bot:
     api-secret: ${BOT_API_SECRET}
-    username: ${BOT_USERNAME:reinasleo_bot}
+    username: ${BOT_USERNAME}
   telegram:
     bot-token: ${TELEGRAM_BOT_TOKEN}
   upload:

@@ -6,7 +6,7 @@ This file extends `../../CLAUDE.md`. Read root first, then these specifics.
 
 - Spring Boot 3.3.4 on Java 21 (Kotlin Gradle build script)
 - PostgreSQL 16 via `docker-compose.yml` at repo root
-- Flyway forward-only migrations: `V1..V17` in `src/main/resources/db/migration/`
+- Flyway forward-only migrations: `V1..V23` in `src/main/resources/db/migration/`
 - JPA / Hibernate, `open-in-view: false` — repositories must own transaction boundaries
 - Caffeine cache, Resend HTTP for email, Micrometer + Prometheus for metrics
 
@@ -27,7 +27,7 @@ src/main/java/com/reinasleo/api/
   util/                        pure helpers, no Spring beans
 src/main/resources/
   application.yml              required env vars, NO :fallback defaults
-  db/migration/                Flyway V1..V17 — never edit a shipped migration
+  db/migration/                Flyway V1..V23 — never edit a shipped migration
   logback-spring.xml           JSON encoder in prod, text locally
 src/test/java/                 mirrors main package layout
 ```

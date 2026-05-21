@@ -46,6 +46,23 @@ public interface TelegramAuthTokenRepository extends JpaRepository<TelegramAuthT
             """, nativeQuery = true)
     Optional<UUID> claimAndReturnUserId(@Param("token") String token);
 
+    /**
+     * Atomic delete-and-return for the poll path. Token must already be
+     * marked used (by botLogin/botRegister), bound to a user, and not expired.
+     * Replaces the two-step `findById + deleteIfClaimed` pattern in pollAuth
+     * which had a residual TOCTOU window between the read and the delete.
+     */
+    @Modifying
+    @Query(value = """
+            DELETE FROM telegram_auth_tokens
+            WHERE token = :token
+              AND used = true
+              AND user_id IS NOT NULL
+              AND expires_at > NOW()
+            RETURNING user_id
+            """, nativeQuery = true)
+    Optional<UUID> deleteAndReturnUserId(@Param("token") String token);
+
     @Modifying
     @Query("""
             DELETE FROM TelegramAuthToken t
