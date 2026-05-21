@@ -39,3 +39,16 @@ output/
 apps/web/playwright-report/
 apps/web/test-results/
 apps/web/e2e/.auth/
+
+# Private content lives in the separate repo `archibenz/leo_web-claude`.
+# These paths are symlinks to ../leo_web-claude/ and never committed here.
+# Public `leo_web` only carries source code (apps/, package*.json, .github/, Dockerfiles).
+CLAUDE.md
+AGENTS.md
+DEPLOY.md
+docker-compose.yml
+docs
+.beads
+scripts/README.md
+scripts/backup-db.sh
+scripts/check-env.sh
