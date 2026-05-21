@@ -22,11 +22,13 @@ function GalleryImage({
   className,
   loading = 'lazy',
   sizes,
+  priority,
 }: {
   image: ProductImage;
   className?: string;
   loading?: 'lazy' | 'eager';
   sizes?: string;
+  priority?: boolean;
 }) {
   const [errored, setErrored] = useState(false);
   const hasSrc = Boolean(image.src) && !errored;
@@ -43,7 +45,7 @@ function GalleryImage({
           src={image.src}
           alt={image.alt}
           fill
-          loading={loading}
+          {...(priority ? {priority: true} : {loading})}
           sizes={sizes}
           draggable={false}
           onError={() => setErrored(true)}
@@ -230,6 +232,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 <div key={img.id} className="relative h-full w-full flex-shrink-0">
                   <GalleryImage
                     image={img}
+                    priority={i === 0}
                     loading={isNeighbor ? 'eager' : 'lazy'}
                     sizes="(max-width: 1024px) 100vw, 60vw"
                   />

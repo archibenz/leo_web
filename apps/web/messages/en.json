@@ -501,6 +501,15 @@
     "clearConfirmTitle": "Clear cart?",
     "clearConfirmMessage": "All items will be removed from your cart. This cannot be undone."
   },
+  "auth": {
+    "tg": {
+      "expired": {
+        "title": "Link expired",
+        "description": "This sign-in link is no longer valid. Return to the sign-in page and try again.",
+        "cta": "Go back"
+      }
+    }
+  },
   "account": {
     "tag": "Account",
     "signIn": "Sign in",

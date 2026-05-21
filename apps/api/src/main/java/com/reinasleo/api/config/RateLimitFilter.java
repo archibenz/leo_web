@@ -4,6 +4,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
+import io.github.bucket4j.ConsumptionProbe;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.Filter;
@@ -93,14 +94,19 @@ public class RateLimitFilter implements Filter {
                                    java.util.function.Supplier<Bucket> factory,
                                    Counter hitCounter) throws IOException {
         Bucket bucket = buckets.get(ip, k -> factory.get());
-        if (bucket == null || !bucket.tryConsume(1)) {
-            hitCounter.increment();
-            res.setStatus(429);
-            res.setContentType("application/json");
-            res.getWriter().write("{\"message\":\"Too many requests. Try again later.\"}");
-            return true;
+        ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
+        if (probe.isConsumed()) {
+            return false;
         }
-        return false;
+        hitCounter.increment();
+        // RFC 6585 §4: Retry-After tells the client when to back off until.
+        // bucket4j returns nanos until enough tokens refill for one consume.
+        long retryAfterSeconds = Math.max(1, probe.getNanosToWaitForRefill() / 1_000_000_000L);
+        res.setStatus(429);
+        res.setHeader("Retry-After", String.valueOf(retryAfterSeconds));
+        res.setContentType("application/json");
+        res.getWriter().write("{\"message\":\"Too many requests. Try again later.\"}");
+        return true;
     }
 
     private Bucket createAuthBucket() {
