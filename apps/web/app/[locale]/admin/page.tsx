@@ -99,6 +99,7 @@ export default function AdminDashboardPage() {
   const [topFavorites, setTopFavorites] = useState<TopProduct[]>([]);
   const [topCarts, setTopCarts] = useState<TopProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -119,7 +120,12 @@ export default function AdminDashboardPage() {
         setTopFavorites(favs);
         setTopCarts(carts);
       })
-      .catch(() => {})
+      .catch((err: unknown) => {
+        // Previously swallowed silently — partial 403/500 left an empty dashboard
+        // with no feedback. Surface the failure so the admin knows to retry.
+        const status = (err as {status?: number})?.status;
+        setLoadError(status === 403 ? 'forbidden' : 'load_failed');
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -141,6 +147,17 @@ export default function AdminDashboardPage() {
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <BrandLoader size={32} />
+          </div>
+        ) : loadError ? (
+          <div className="paper-card p-8 text-center">
+            <p className="text-sm text-[var(--ink)] mb-2">
+              {loadError === 'forbidden'
+                ? 'Доступ запрещён. Войдите как администратор.'
+                : 'Не удалось загрузить данные. Попробуйте обновить страницу.'}
+            </p>
+            <button onClick={() => window.location.reload()} className="lux-btn-primary mt-4">
+              Обновить
+            </button>
           </div>
         ) : (
           <>

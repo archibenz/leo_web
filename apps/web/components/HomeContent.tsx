@@ -1,6 +1,7 @@
 'use client';
 
 import {type ReactNode} from 'react';
+import Image from 'next/image';
 import HeroShaderBackgroundClient from './HeroShaderBackgroundClient';
 import BlurReveal from './BlurReveal';
 import ScrollHint from './ScrollHint';
@@ -70,13 +71,18 @@ export default function HomeContent({
         <section className="relative" style={{minHeight: '150vh'}}>
           <div className="relative flex min-h-screen flex-col items-center justify-center px-6 py-32 text-center lg:py-40">
             <BlurReveal delay={200} duration={1200} blur={16} translateY={0}>
-              <img
+              {/* next/image with priority emits a <link rel="preload"> ahead of
+                  render — beats a raw <img fetchpriority="high"> which only the
+                  browser scanner picks up. LCP candidate on the home page. */}
+              <Image
                 src="/logos/logo-white.svg"
                 alt="REINASLEO"
-                loading="eager"
-                fetchPriority="high"
+                width={480}
+                height={120}
+                priority
+                unoptimized
                 className="brand-asset h-auto w-72 max-w-[85vw] md:w-96 lg:w-[480px] drop-shadow-[0_4px_32px_rgba(0,0,0,0.5)]"
-                draggable="false"
+                draggable={false}
               />
             </BlurReveal>
           </div>

@@ -169,7 +169,9 @@ export function AuthProvider({children}: {children: ReactNode}) {
         const me = await apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true});
         setUser(meToUser(me));
       } catch (meErr) {
-        console.warn('auth: /me follow-up failed', meErr);
+        // Log only the message — avoid emitting raw error bodies (PII from
+        // /me response) to client console buffers (Vercel/Datadog RUM, etc.).
+        console.warn('auth: /me follow-up failed', meErr instanceof Error ? meErr.message : 'unknown');
         setUser({id: data.id, email: data.email, name: data.name, surname: data.surname, role: data.role});
       }
       return {success: true};
@@ -249,7 +251,9 @@ export function AuthProvider({children}: {children: ReactNode}) {
         const me = await apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true});
         setUser(meToUser(me));
       } catch (meErr) {
-        console.warn('auth: /me follow-up failed', meErr);
+        // Log only the message — avoid emitting raw error bodies (PII from
+        // /me response) to client console buffers (Vercel/Datadog RUM, etc.).
+        console.warn('auth: /me follow-up failed', meErr instanceof Error ? meErr.message : 'unknown');
         setUser({id: resp.id, email: resp.email, name: resp.name, surname: resp.surname, role: resp.role});
       }
       return {success: true};

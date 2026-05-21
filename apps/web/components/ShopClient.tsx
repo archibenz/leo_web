@@ -388,7 +388,9 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
 
   /* ---- fetch products from API (skip if SSR already provided them) ---- */
   useEffect(() => {
-    if (initialProducts && initialProducts.length > 0) return;
+    // Skip if SSR ran at all — an empty array is a valid SSR response
+    // (no products yet) and should NOT trigger a redundant client refetch.
+    if (initialProducts !== undefined) return;
     const controller = new AbortController();
     fetch(`${API_BASE}/api/catalog/products`, {signal: controller.signal})
       .then(res => res.json())
