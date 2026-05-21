@@ -6,6 +6,8 @@ const withNextIntl = createNextIntlPlugin('./i18n.ts');
 const nextConfig = {
   output: 'standalone',
   devIndicators: false,
+  // Drop X-Powered-By: Next.js — leaks framework + version, gives no benefit.
+  poweredByHeader: false,
   eslint: {
     // Lint runs as a separate CI step (`npm run lint`). Build is functional
     // only — warnings in legacy files shouldn't block production bundling.

@@ -151,8 +151,13 @@ public class PublicCatalogService {
                         if (collectionIds == null || collectionIds.isEmpty()) {
                             return buildCollectionResponses(countsByCollection);
                         }
-                        return collectionIds.stream()
-                                .map(id -> collectionRepository.findById(UUID.fromString(id)).orElse(null))
+                        List<UUID> uuids = collectionIds.stream()
+                                .map(UUID::fromString)
+                                .toList();
+                        Map<UUID, Collection> byId = collectionRepository.findAllById(uuids).stream()
+                                .collect(Collectors.toMap(Collection::getId, c -> c));
+                        return uuids.stream()
+                                .map(byId::get)
                                 .filter(c -> c != null && c.isActive())
                                 .map(c -> new CollectionResponse(
                                         c.getId(), c.getName(), c.getSlug(), c.getDescription(),

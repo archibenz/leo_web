@@ -128,6 +128,26 @@ export function AuthProvider({children}: {children: ReactNode}) {
       .finally(() => setIsLoading(false));
   }, []);
 
+  // Cross-tab auth sync: when the token is set/cleared in another tab, mirror it here.
+  // localStorage 'storage' events fire only in *other* tabs, never the originator.
+  useEffect(() => {
+    function handleStorage(e: StorageEvent) {
+      if (e.key !== 'reinasleo_token' || e.storageArea !== localStorage) return;
+      if (!e.newValue) {
+        setUser(null);
+        return;
+      }
+      apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true})
+        .then(data => setUser(meToUser(data)))
+        .catch(() => {
+          clearToken();
+          setUser(null);
+        });
+    }
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   const validateEmail = useCallback((email: string): boolean => {
     return isValidEmail(email);
   }, []);
