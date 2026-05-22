@@ -176,11 +176,15 @@ select:focus-visible {
   }
 }
 
-/* Naked inputs (e.g. search) — no focus glow */
+/* Naked inputs (e.g. search) — no focus glow.
+   Also clear outline: parent wrap has overflow-hidden which clips outline-offset
+   accent ring to a thin vertical bar at the input's inner left edge, covering
+   the search icon. Outline must be cleared, not just border + shadow. */
 input.focus-bare:focus,
 input.focus-bare:focus-visible {
   border-color: transparent !important;
   box-shadow: none !important;
+  outline: none !important;
 }
 
 /* Buttons - clear mouse focus, keyboard focus handled by :focus-visible rule above */
