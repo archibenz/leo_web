@@ -144,7 +144,7 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
             onChange={handleSearch}
             onFocus={() => setIsFocused(true)}
             className={cn(
-              "focus-bare w-full py-2 pr-3 bg-transparent border-none outline-none placeholder:text-ink/55 text-[13px] text-ink/80 tracking-wide",
+              "focus-bare appearance-none w-full py-2 pr-3 bg-transparent border-none outline-none placeholder:text-ink/55 text-[13px] text-ink/80 tracking-wide [&::-webkit-search-decoration]:hidden [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden",
               isMobile && !isFocused ? "opacity-0 w-0 p-0" : "pl-2 opacity-100"
             )}
             tabIndex={isMobile && !isFocused ? -1 : 0}
