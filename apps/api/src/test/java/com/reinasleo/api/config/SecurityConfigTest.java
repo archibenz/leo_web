@@ -114,12 +114,15 @@ class SecurityConfigTest {
     }
 
     @Test
-    void authMeEndpoint_isPublicAtSecurityLayer() throws Exception {
-        // /api/auth/me is permitAll — controller decides whether the user is
-        // logged in based on the SecurityContext that JwtAuthFilter populates.
+    void authMeEndpoint_requiresAuthAtSecurityLayer() throws Exception {
+        // /api/auth/me is authenticated — anonymous probes are rejected at
+        // the security layer (401 / 403). The previous "permitAll, controller
+        // decides" contract caused NPE → 500 when @AuthenticationPrincipal
+        // received a null principal.
         int status = mockMvc.perform(get("/api/auth/me"))
                 .andReturn().getResponse().getStatus();
-        assertNotEquals(403, status, "auth/me must not be 403 from security layer");
+        assertTrue(status == 401 || status == 403,
+                "auth/me must require auth at security layer (401 or 403), got: " + status);
     }
 
     @Test

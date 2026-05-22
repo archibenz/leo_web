@@ -59,7 +59,7 @@ class PublicCatalogServiceTest {
         Product p2 = createProduct("p2", "Dress B", new BigDecimal("200.00"), true, 0);
 
         when(productRepository.findByActiveTrueOrderByCreatedAtDesc()).thenReturn(List.of(p1, p2));
-        when(collectionRepository.findAll()).thenReturn(List.of());
+        when(collectionRepository.findByActiveTrueOrderBySortOrderAsc()).thenReturn(List.of());
 
         List<PublicProductResponse> result = catalogService.listActiveProducts();
 
@@ -87,7 +87,7 @@ class PublicCatalogServiceTest {
         } catch (Exception ignored) {}
 
         when(productRepository.findByActiveTrueOrderByCreatedAtDesc()).thenReturn(List.of(p));
-        when(collectionRepository.findAll()).thenReturn(List.of(collection));
+        when(collectionRepository.findByActiveTrueOrderBySortOrderAsc()).thenReturn(List.of(collection));
 
         List<PublicProductResponse> result = catalogService.listActiveProducts();
 
