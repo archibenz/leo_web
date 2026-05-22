@@ -1,6 +1,5 @@
 import {Suspense} from 'react';
 import type {Metadata} from 'next';
-import FooterEditorial from '../../../components/FooterEditorial';
 import type {Locale} from '../../../i18n';
 import ShopClient from '../../../components/ShopClient';
 import {API_BASE} from '../../../lib/api';
@@ -45,7 +44,6 @@ export default async function ShopPage({params}: Props) {
         <MobileShopReveal
           products={mixed}
           locale={locale}
-          footerSlide={<FooterEditorial locale={locale} compact />}
         />
       </div>
     </Suspense>
