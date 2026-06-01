@@ -4,6 +4,7 @@ import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.exception.EmailDeliveryException;
+import com.reinasleo.api.exception.IllegalStateTransitionException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.exception.InvalidVerificationCodeException;
 import com.reinasleo.api.exception.NotFoundException;
@@ -183,6 +184,17 @@ public class RestExceptionHandler {
                 "error", ex.getCode()
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
+    @ExceptionHandler(IllegalStateTransitionException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalStateTransition(IllegalStateTransitionException ex) {
+        Map<String, Object> body = Map.of(
+                "message", "Illegal Order state transition",
+                "error", "illegal_state_transition",
+                "from", ex.getFromState(),
+                "to", ex.getToState()
+        );
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
     @ExceptionHandler(Exception.class)
