@@ -2,8 +2,16 @@
   "parser": "@typescript-eslint/parser",
   "extends": ["next/core-web-vitals", "eslint:recommended"],
   "rules": {
-    "no-unused-vars": "warn",
+    "no-unused-vars": ["warn", {"argsIgnorePattern": "^_", "varsIgnorePattern": "^_", "caughtErrorsIgnorePattern": "^_"}],
     "no-console": ["warn", {"allow": ["error"]}],
     "react-hooks/exhaustive-deps": "warn"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["**/*.ts", "**/*.tsx"],
+      "rules": {
+        "no-undef": "off"
+      }
+    }
+  ]
 }

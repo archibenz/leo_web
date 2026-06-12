@@ -51,10 +51,10 @@ export default function AdminHomepagePage() {
       setCollections(cols);
 
       if (config.featuredProducts) {
-        try { setFeaturedProductIds(JSON.parse(config.featuredProducts)); } catch {}
+        try { setFeaturedProductIds(JSON.parse(config.featuredProducts)); } catch { /* malformed JSON — keep default */ }
       }
       if (config.homepageCollections) {
-        try { setHomepageCollectionIds(JSON.parse(config.homepageCollections)); } catch {}
+        try { setHomepageCollectionIds(JSON.parse(config.homepageCollections)); } catch { /* malformed JSON — keep default */ }
       }
       if (config.currentSeason) {
         setSeason(config.currentSeason);
@@ -62,7 +62,9 @@ export default function AdminHomepagePage() {
       if (config.currentSeasonYear) {
         setSeasonYear(config.currentSeasonYear);
       }
-    } catch {}
+    } catch (err) {
+      console.error('[AdminHomepage] load failed', err);
+    }
     setLoading(false);
   }, []);
 

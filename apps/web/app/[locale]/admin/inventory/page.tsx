@@ -43,7 +43,9 @@ export default function AdminInventoryPage() {
       });
       setProducts(prev => prev.map(p => p.id === id ? {...p, stockQuantity: updated.stockQuantity} : p));
       setEditingId(null);
-    } catch {}
+    } catch (err) {
+      console.error('[AdminInventory] stock update failed', err);
+    }
   };
 
   return (

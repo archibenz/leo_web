@@ -58,7 +58,9 @@ function RecommendationsSection({productId}: {productId: string}) {
       ]);
       setRecommendations(recs);
       setAllProducts(prods.filter(p => p.id !== productId));
-    } catch {}
+    } catch (err) {
+      console.error('[AdminProduct] load failed', err);
+    }
     setLoading(false);
   }, [productId]);
 

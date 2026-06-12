@@ -38,7 +38,9 @@ export default function AdminCollectionsPage() {
     try {
       await apiFetch(`/api/admin/collections/${id}?permanent=true`, {method: 'DELETE'});
       setCollections(prev => prev.filter(c => c.id !== id));
-    } catch {}
+    } catch (err) {
+      console.error('[AdminCollections] delete failed', err);
+    }
   };
 
   return (

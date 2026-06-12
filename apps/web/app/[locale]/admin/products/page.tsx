@@ -40,7 +40,9 @@ export default function AdminProductsPage() {
     try {
       await apiFetch(`/api/admin/products/${id}?permanent=true`, {method: 'DELETE'});
       setProducts(prev => prev.filter(p => p.id !== id));
-    } catch {}
+    } catch (err) {
+      console.error('[AdminProducts] delete failed', err);
+    }
   };
 
   return (

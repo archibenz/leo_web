@@ -59,7 +59,7 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
       apiFetch<Record<string, unknown>>(`/api/admin/products/${productId}`).then(data => {
         let imgs: {src: string; alt: string}[] = [];
         if (typeof data.images === 'string') {
-          try { imgs = JSON.parse(data.images); } catch {}
+          try { imgs = JSON.parse(data.images); } catch { /* malformed JSON — keep empty list */ }
         }
         setForm({
           id: (data.id as string) || '',

@@ -43,7 +43,9 @@ export default function AdminCarePage() {
     try {
       await apiFetch(`/api/admin/care-guides/${id}`, {method: 'DELETE'});
       setGuides(prev => prev.filter(g => g.id !== id));
-    } catch {}
+    } catch (err) {
+      console.error('[AdminCare] delete failed', err);
+    }
   };
 
   return (
