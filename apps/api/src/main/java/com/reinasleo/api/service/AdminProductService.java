@@ -1,6 +1,7 @@
 package com.reinasleo.api.service;
 
 import com.reinasleo.api.dto.*;
+import com.reinasleo.api.event.BackInStockEvent;
 import com.reinasleo.api.model.Collection;
 import com.reinasleo.api.model.Product;
 import com.reinasleo.api.model.StockAlert;
@@ -12,6 +13,7 @@ import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.StockAlertRepository;
 import com.reinasleo.api.repository.UserRepository;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -36,6 +38,7 @@ public class AdminProductService {
     private final OrderRepository orderRepository;
     private final BotVisitRepository botVisitRepository;
     private final ProductInterestEventRepository productInterestEventRepository;
+    private final ApplicationEventPublisher events;
 
     public AdminProductService(ProductRepository productRepository,
                                CollectionRepository collectionRepository,
@@ -43,7 +46,8 @@ public class AdminProductService {
                                UserRepository userRepository,
                                OrderRepository orderRepository,
                                BotVisitRepository botVisitRepository,
-                               ProductInterestEventRepository productInterestEventRepository) {
+                               ProductInterestEventRepository productInterestEventRepository,
+                               ApplicationEventPublisher events) {
         this.productRepository = productRepository;
         this.collectionRepository = collectionRepository;
         this.stockAlertRepository = stockAlertRepository;
@@ -51,6 +55,7 @@ public class AdminProductService {
         this.orderRepository = orderRepository;
         this.botVisitRepository = botVisitRepository;
         this.productInterestEventRepository = productInterestEventRepository;
+        this.events = events;
     }
 
     @Transactional(readOnly = true)
@@ -107,9 +112,11 @@ public class AdminProductService {
     public AdminProductResponse update(String id, AdminProductRequest req) {
         Product p = productRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+        int oldStock = p.getStockQuantity();
         applyFields(p, req);
         Product saved = productRepository.save(p);
         checkStockAlerts(saved);
+        publishBackInStock(oldStock, saved);
         return toAdminResponse(saved);
     }
 
@@ -127,9 +134,11 @@ public class AdminProductService {
     public AdminProductResponse updateStock(String id, int quantity) {
         Product p = productRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
+        int oldStock = p.getStockQuantity();
         p.setStockQuantity(quantity);
         Product saved = productRepository.save(p);
         checkStockAlerts(saved);
+        publishBackInStock(oldStock, saved);
         return toAdminResponse(saved);
     }
 
@@ -299,6 +308,12 @@ public class AdminProductService {
             if (!stockAlertRepository.existsByProductIdAndAlertTypeAndAcknowledgedFalse(p.getId(), "low_stock")) {
                 stockAlertRepository.save(new StockAlert(p.getId(), "low_stock"));
             }
+        }
+    }
+
+    private void publishBackInStock(int oldStock, Product saved) {
+        if (oldStock == 0 && saved.getStockQuantity() > 0 && !saved.isTest()) {
+            events.publishEvent(new BackInStockEvent(saved.getId(), saved.getTitle()));
         }
     }
 

@@ -20,7 +20,8 @@ import java.util.Map;
 
 /**
  * Отправка системных сообщений в Telegram-бот (одноразовые коды для удаления
- * аккаунта). Реальный HTTP-вызов на {@code https://api.telegram.org/bot<token>/sendMessage}.
+ * аккаунта, уведомления «снова в наличии»). Реальный HTTP-вызов на
+ * {@code https://api.telegram.org/bot<token>/sendMessage}.
  *
  * <p>Контракт: метод никогда не бросает исключений — endpoint /delete-challenge
  * всегда возвращает 202; user может повторить запрос, если сообщение не дошло.</p>
@@ -113,10 +114,46 @@ public class TelegramNotifier {
         }
 
         URI uri = URI.create(apiBaseUrl + "/bot" + botToken + "/sendMessage");
-        sendWithRetry(uri, jsonBody, telegramId, code);
+        sendWithRetry(uri, jsonBody, telegramId, "delete_challenge");
     }
 
-    private void sendWithRetry(URI uri, String jsonBody, Long telegramId, String code) {
+    public void sendBackInStock(Long telegramId, String productTitle, String productUrl) {
+        if (telegramId == null) {
+            log.warn("back_in_stock.send_skipped reason=null_telegram_id");
+            skippedCounter.increment();
+            return;
+        }
+        if (botToken == null || botToken.isBlank()) {
+            log.error("back_in_stock.send_failed reason=missing_bot_token telegram_id={}", telegramId);
+            skippedCounter.increment();
+            return;
+        }
+
+        String text = """
+                Снова в наличии: %s
+                Back in stock: %s
+
+                %s""".formatted(productTitle, productTitle, productUrl);
+
+        Map<String, Object> payload = Map.of(
+                "chat_id", telegramId,
+                "text", text
+        );
+
+        String jsonBody;
+        try {
+            jsonBody = objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            log.error("back_in_stock.send_failed reason=serialize_error telegram_id={}", telegramId, e);
+            transportErrorCounter.increment();
+            return;
+        }
+
+        URI uri = URI.create(apiBaseUrl + "/bot" + botToken + "/sendMessage");
+        sendWithRetry(uri, jsonBody, telegramId, "back_in_stock");
+    }
+
+    private void sendWithRetry(URI uri, String jsonBody, Long telegramId, String logEvent) {
         boolean transportErrorSeen = false;
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             HttpRequest request = HttpRequest.newBuilder()
@@ -132,8 +169,7 @@ public class TelegramNotifier {
                 int status = response.statusCode();
 
                 if (status >= 200 && status < 300) {
-                    log.info("delete_challenge.sent telegram_id={} code_len={} code_masked={} attempt={}",
-                            telegramId, code.length(), maskCode(code), attempt);
+                    log.info("{}.sent telegram_id={} attempt={}", logEvent, telegramId, attempt);
                     successCounter.increment();
                     return;
                 }
@@ -141,22 +177,22 @@ public class TelegramNotifier {
                 if (status >= 400 && status < 500) {
                     // Невалидный токен, чат не существует, бот не запущен у юзера —
                     // не ретраим, юзер всё равно может попробовать снова.
-                    log.warn("delete_challenge.bot_api_4xx telegram_id={} status={} body={}",
-                            telegramId, status, truncate(response.body(), 200));
+                    log.warn("{}.bot_api_4xx telegram_id={} status={} body={}",
+                            logEvent, telegramId, status, truncate(response.body(), 200));
                     clientErrorCounter.increment();
                     return;
                 }
 
                 transportErrorSeen = false;
-                log.warn("delete_challenge.bot_api_5xx telegram_id={} status={} attempt={}/{}",
-                        telegramId, status, attempt, MAX_ATTEMPTS);
+                log.warn("{}.bot_api_5xx telegram_id={} status={} attempt={}/{}",
+                        logEvent, telegramId, status, attempt, MAX_ATTEMPTS);
             } catch (IOException e) {
                 transportErrorSeen = true;
-                log.warn("delete_challenge.io_error telegram_id={} attempt={}/{} message={}",
-                        telegramId, attempt, MAX_ATTEMPTS, e.getMessage());
+                log.warn("{}.io_error telegram_id={} attempt={}/{} message={}",
+                        logEvent, telegramId, attempt, MAX_ATTEMPTS, e.getMessage());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                log.error("delete_challenge.interrupted telegram_id={}", telegramId);
+                log.error("{}.interrupted telegram_id={}", logEvent, telegramId);
                 transportErrorCounter.increment();
                 return;
             }
@@ -172,18 +208,13 @@ public class TelegramNotifier {
             }
         }
 
-        log.error("delete_challenge.send_failed telegram_id={} attempts={} reason=exhausted",
-                telegramId, MAX_ATTEMPTS);
+        log.error("{}.send_failed telegram_id={} attempts={} reason=exhausted",
+                logEvent, telegramId, MAX_ATTEMPTS);
         if (transportErrorSeen) {
             transportErrorCounter.increment();
         } else {
             serverErrorCounter.increment();
         }
-    }
-
-    private static String maskCode(String code) {
-        if (code == null || code.length() < 4) return "****";
-        return code.charAt(0) + "****" + code.charAt(code.length() - 1);
     }
 
     private static String truncate(String s, int max) {
