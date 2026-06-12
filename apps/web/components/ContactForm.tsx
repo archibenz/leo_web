@@ -3,6 +3,7 @@
 import {FormEvent, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {API_BASE} from '../lib/api';
+import {track} from '../lib/analytics';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -42,6 +43,7 @@ export default function ContactForm() {
       }
 
       setStatus('success');
+      track('contact_submit');
       form.reset();
     } catch (err) {
       if (process.env.NODE_ENV !== 'production') {

@@ -7,6 +7,7 @@ import Header from '../../components/Header';
 import SmartHeader from '../../components/SmartHeader';
 import Footer from '../../components/Footer';
 import Providers from '../../components/Providers';
+import Metrika from '../../components/Metrika';
 import {safeJsonLd} from '../../lib/jsonLd';
 
 import {locales, type Locale} from '../../i18n';
@@ -65,6 +66,7 @@ export default async function LocaleLayout({
           nonce={nonce}
           dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}}
         />
+        <Metrika nonce={nonce} />
         <div className="relative flex min-h-screen flex-col">
           <a
             href="#main-content"

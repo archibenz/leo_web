@@ -87,6 +87,14 @@ export default async function Footer({locale}: FooterProps) {
           <div className="flex items-center justify-between border-t border-[#F2E6D8]/[0.06] py-5">
             <p className="text-[13px] text-[#F2E6D8]/65">{t('rights')}</p>
             <div className="flex items-center gap-5 text-[13px] text-[#F2E6D8]/65">
+              <Link href={`/${locale}/delivery`} className="transition-colors hover:text-[#F2E6D8]/90" prefetch>
+                {t('delivery')}
+              </Link>
+              <span className="text-[#F2E6D8]/30">·</span>
+              <Link href={`/${locale}/offer`} className="transition-colors hover:text-[#F2E6D8]/90" prefetch>
+                {t('offer')}
+              </Link>
+              <span className="text-[#F2E6D8]/30">·</span>
               <Link href={`/${locale}/privacy`} className="transition-colors hover:text-[#F2E6D8]/90" prefetch>
                 {t('privacy')}
               </Link>
@@ -156,7 +164,15 @@ export default async function Footer({locale}: FooterProps) {
 
           {/* Language + legal */}
           <div className="flex items-center justify-between pt-2 border-t border-[#F2E6D8]/[0.06]">
-            <div className="flex items-center gap-3 text-[12px] text-[#F2E6D8]/65">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#F2E6D8]/65">
+              <Link href={`/${locale}/delivery`} className="transition hover:text-[#F2E6D8]/90" prefetch>
+                {t('delivery')}
+              </Link>
+              <span className="text-[#F2E6D8]/30">·</span>
+              <Link href={`/${locale}/offer`} className="transition hover:text-[#F2E6D8]/90" prefetch>
+                {t('offer')}
+              </Link>
+              <span className="text-[#F2E6D8]/30">·</span>
               <Link href={`/${locale}/privacy`} className="transition hover:text-[#F2E6D8]/90" prefetch>
                 {t('privacy')}
               </Link>

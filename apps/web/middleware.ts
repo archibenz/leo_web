@@ -26,14 +26,21 @@ const imgHosts = [
   'https://www.reinasleo.com'
 ].join(' ');
 
+// Yandex.Metrika hosts are allowed only when the counter is configured.
+// tag.js itself loads via the nonce'd inline snippet + 'strict-dynamic';
+// the explicit script-src entry is a fallback for CSP2-only browsers.
+const ymHosts = process.env.NEXT_PUBLIC_YM_ID?.trim()
+  ? ' https://mc.yandex.ru https://mc.yandex.com'
+  : '';
+
 function buildCsp(nonce: string): string {
   return [
     "default-src 'self'",
-    `img-src 'self' data: blob: ${imgHosts}`,
+    `img-src 'self' data: blob: ${imgHosts}${ymHosts}`,
     "style-src 'self' 'unsafe-inline'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${ymHosts}`,
     "font-src 'self' data:",
-    `connect-src ${connectSrc}`,
+    `connect-src ${connectSrc}${ymHosts}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

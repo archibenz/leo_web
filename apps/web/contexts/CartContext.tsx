@@ -4,6 +4,7 @@ import {createContext, useContext, useCallback, useMemo, useRef, type ReactNode}
 import {useAuth} from './AuthContext';
 import {apiFetch, getToken} from '../lib/api';
 import {showToast} from '../lib/toast';
+import {track} from '../lib/analytics';
 import {useSyncedList, defaultSerializeArray} from '../lib/useSyncedList';
 
 export type CartItem = {
@@ -144,6 +145,12 @@ export function CartProvider({children}: {children: ReactNode}) {
   }, [setItems]);
 
   const addItem = useCallback((item: Omit<CartItem, 'quantity'>) => {
+    track('add_to_cart', {
+      product_id: item.id.includes('__') ? item.id.split('__')[0] : item.id,
+      title: item.title,
+      price: item.price,
+      size: item.size,
+    });
     if (isAuthenticated && getToken()) {
       const productId = item.id.includes('__') ? item.id.split('__')[0] : item.id;
       const size = item.size ?? (item.id.includes('__') ? item.id.split('__')[1] : undefined);

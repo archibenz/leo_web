@@ -7,6 +7,7 @@ import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {useCart} from '../../../contexts/CartContext';
 import {useAuth} from '../../../contexts/AuthContext';
+import {track} from '../../../lib/analytics';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import LoaderSplash from '../../../components/LoaderSplash';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
@@ -195,6 +196,7 @@ export default function CartPage() {
 
                     <Link
                       href="/"
+                      onClick={() => track('begin_checkout', {value: subtotal, items: count})}
                       className="block w-full rounded-full bg-button py-4 text-center text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85 hover:shadow-lg hover:shadow-button/25"
                     >
                       {t('checkout')}
@@ -222,6 +224,7 @@ export default function CartPage() {
 
               <Link
                 href="/"
+                onClick={() => track('begin_checkout', {value: subtotal, items: count})}
                 className="block w-full rounded-full bg-button py-4 text-center text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85 hover:shadow-lg hover:shadow-button/25"
               >
                 {t('checkout')}

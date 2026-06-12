@@ -7,6 +7,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {useCart} from '../contexts/CartContext';
 import {useFavorites} from '../contexts/FavoritesContext';
+import {useAuth} from '../contexts/AuthContext';
+import {track} from '../lib/analytics';
+import {apiFetch} from '../lib/api';
 import ProductGallery from './ProductGallery';
 import type {ProductImage} from './ProductGallery';
 import SizeSelector from './SizeSelector';
@@ -100,6 +103,25 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
 
   const {addItem: addToCart} = useCart();
   const {toggleItem, isFavorite} = useFavorites();
+  const {isAuthenticated} = useAuth();
+
+  const [alertState, setAlertState] = useState<'idle' | 'saving' | 'subscribed'>('idle');
+  const [alertTelegramLinked, setAlertTelegramLinked] = useState(true);
+
+  useEffect(() => {
+    if (!product) return;
+    track('view_item', {product_id: product.id, title: product.title, price: product.price});
+  }, [product]);
+
+  useEffect(() => {
+    if (!product || product.inStock || !isAuthenticated) return;
+    apiFetch<{productIds: string[]; telegramLinked: boolean}>('/api/me/product-alerts')
+      .then(data => {
+        setAlertTelegramLinked(data.telegramLinked);
+        if (data.productIds.includes(product.id)) setAlertState('subscribed');
+      })
+      .catch(() => { /* non-critical — keep the subscribe button visible */ });
+  }, [product, isAuthenticated]);
 
   useEffect(() => {
     if (!product) return;
@@ -184,6 +206,25 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
     toggleItem({id: product.id, title: product.title, image: product.image ?? undefined});
   };
 
+  const handleNotifyMe = async () => {
+    if (!isAuthenticated) {
+      router.push(`/${locale}/account`);
+      return;
+    }
+    setAlertState('saving');
+    try {
+      const res = await apiFetch<{productId: string; subscribed: boolean; telegramLinked: boolean}>(
+        '/api/me/product-alerts',
+        {method: 'POST', body: JSON.stringify({productId: product.id})}
+      );
+      setAlertTelegramLinked(res.telegramLinked);
+      setAlertState('subscribed');
+      track('stock_alert_subscribe', {product_id: product.id, title: product.title});
+    } catch {
+      setAlertState('idle');
+    }
+  };
+
   const accordionItems = [
     {
       key: 'delivery',
@@ -265,6 +306,30 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
 
           {/* CTAs */}
           <div className="flex flex-col gap-3">
+            {!product.inStock && (
+              <div className="space-y-3 rounded-lg border border-[var(--accent)]/25 bg-[var(--accent)]/[0.05] px-4 py-4">
+                <p className="text-sm font-medium text-[var(--ink)]">{t('outOfStock')}</p>
+                {alertState === 'subscribed' ? (
+                  <p className="text-sm leading-relaxed text-[var(--accent)]">
+                    {t('notifySubscribed')}
+                    {!alertTelegramLinked && ` ${t('notifyLinkTelegram')}`}
+                  </p>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleNotifyMe}
+                      disabled={alertState === 'saving'}
+                      className="flex h-12 w-full items-center justify-center rounded-full border-2 border-[var(--accent)]/50 text-sm font-medium text-[var(--accent)] transition-all duration-200 hover:bg-[var(--accent)]/[0.08] active:scale-[0.98] disabled:opacity-50"
+                    >
+                      {t('notifyMe')}
+                    </button>
+                    {!isAuthenticated && (
+                      <p className="text-xs text-[var(--ink-soft)]">{t('notifyLoginHint')}</p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
             <WildberriesButton href="https://www.wildberries.ru/seller/609562">
               {t('buyWildberries')}
             </WildberriesButton>

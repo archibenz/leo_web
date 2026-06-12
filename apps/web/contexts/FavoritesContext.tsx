@@ -3,6 +3,7 @@
 import {createContext, useContext, useCallback, useMemo, type ReactNode} from 'react';
 import {useAuth} from './AuthContext';
 import {apiFetch, getToken} from '../lib/api';
+import {track} from '../lib/analytics';
 import {useSyncedList, defaultSerializeArray} from '../lib/useSyncedList';
 
 export type FavoriteItem = {
@@ -105,6 +106,10 @@ export function FavoritesProvider({children}: {children: ReactNode}) {
 
   const toggleItem = useCallback((item: FavoriteItem) => {
     const exists = items.some(i => i.id === item.id);
+    track(exists ? 'remove_from_favorites' : 'add_to_favorites', {
+      product_id: item.id,
+      title: item.title,
+    });
     if (exists) {
       removeItem(item.id);
     } else {
