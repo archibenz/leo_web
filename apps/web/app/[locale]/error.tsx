@@ -18,5 +18,5 @@ export default function LocaleError({error, reset}: ErrorProps) {
     }
   }, [error]);
 
-  return <ServerErrorTag locale={locale} reference={error.digest} onRetry={reset} />;
+  return <ServerErrorTag locale={locale} onRetry={reset} />;
 }

@@ -37,7 +37,7 @@ export default function GlobalError({error, reset}: GlobalErrorProps) {
     <html lang={defaultLocale}>
       <body>
         <NextIntlClientProvider locale={defaultLocale} messages={messages}>
-          <ServerErrorTag locale={defaultLocale} reference={error.digest} onRetry={reset} />
+          <ServerErrorTag locale={defaultLocale} onRetry={reset} />
         </NextIntlClientProvider>
       </body>
     </html>

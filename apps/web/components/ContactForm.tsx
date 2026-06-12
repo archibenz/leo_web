@@ -6,6 +6,10 @@ import {API_BASE} from '../lib/api';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
+const fieldClass =
+  'w-full rounded-lg border border-[#D4A574]/15 bg-[#140c08]/40 px-3.5 py-2.5 text-[14px] text-ink/85 placeholder:text-ink/50 outline-none transition-colors duration-300 focus:border-[#D4A574]/40';
+const labelClass = 'block text-[13px] text-ink/65';
+
 export default function ContactForm() {
   const t = useTranslations('contact.form');
   const [status, setStatus] = useState<Status>('idle');
@@ -40,44 +44,44 @@ export default function ContactForm() {
       setStatus('success');
       form.reset();
     } catch (err) {
-      console.error('ContactForm submit failed', err);
+      if (process.env.NODE_ENV !== 'production') {
+        console.error('ContactForm submit failed', err);
+      }
       setStatus('error');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="space-y-2">
-          <label htmlFor="contact-name" className="block text-[12px] font-medium uppercase tracking-[0.15em] text-ink/65">
-            {t('name')}
-          </label>
-          <input
-            id="contact-name"
-            name="name"
-            required
-            aria-required="true"
-            className="w-full rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3.5 text-[15px] text-ink/80 placeholder:text-ink/55 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60"
-            placeholder={t('namePlaceholder')}
-          />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="contact-email" className="block text-[12px] font-medium uppercase tracking-[0.15em] text-ink/65">
-            {t('email')}
-          </label>
-          <input
-            id="contact-email"
-            name="email"
-            type="email"
-            required
-            aria-required="true"
-            className="w-full rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3.5 text-[15px] text-ink/80 placeholder:text-ink/55 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60"
-            placeholder={t('emailPlaceholder')}
-          />
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-1.5">
+        <label htmlFor="contact-name" className={labelClass}>
+          {t('name')}
+        </label>
+        <input
+          id="contact-name"
+          name="name"
+          required
+          aria-required="true"
+          className={fieldClass}
+          placeholder={t('namePlaceholder')}
+        />
       </div>
-      <div className="space-y-2">
-        <label htmlFor="contact-message" className="block text-[12px] font-medium uppercase tracking-[0.15em] text-ink/65">
+      <div className="space-y-1.5">
+        <label htmlFor="contact-email" className={labelClass}>
+          {t('email')}
+        </label>
+        <input
+          id="contact-email"
+          name="email"
+          type="email"
+          required
+          aria-required="true"
+          className={fieldClass}
+          placeholder={t('emailPlaceholder')}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label htmlFor="contact-message" className={labelClass}>
           {t('message')}
         </label>
         <textarea
@@ -85,27 +89,28 @@ export default function ContactForm() {
           name="message"
           required
           aria-required="true"
-          rows={6}
-          className="w-full rounded-xl border border-[#D4A574]/[0.08] bg-[#1a100c]/40 px-4 py-3.5 text-[15px] text-ink/80 placeholder:text-ink/55 outline-none transition-all duration-300 focus:border-[#D4A574]/30 focus:bg-[#1a100c]/60 resize-none"
+          rows={5}
+          className={`${fieldClass} resize-none`}
           placeholder={t('messagePlaceholder')}
         />
       </div>
-      <div className="flex flex-col gap-4 pt-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-2.5 text-[12px] text-ink/70">
-          <input id="consent-contact" type="checkbox" required className="accent-[#D4A574] h-4 w-4 mt-0.5 shrink-0" />
-          <label htmlFor="consent-contact">{t('consent')}</label>
-        </div>
-        <button
-          type="submit"
-          disabled={status === 'submitting'}
-          className="w-full sm:w-auto rounded-full bg-[#D4A574] px-8 py-3 text-[13px] font-medium uppercase tracking-[0.12em] text-[#1E120D] transition-all duration-300 hover:bg-[#D4A574]/90 hover:-translate-y-0.5 disabled:opacity-50"
-        >
-          {status === 'submitting' ? t('sending') : t('submit')}
-        </button>
+
+      <div className="flex items-start gap-2.5 text-[12px] leading-relaxed text-ink/65">
+        <input id="consent-contact" type="checkbox" required className="accent-[#D4A574] h-4 w-4 mt-0.5 shrink-0" />
+        <label htmlFor="consent-contact">{t('consent')}</label>
       </div>
-      <div aria-live="polite" role="status" className="text-sm">
+
+      <button
+        type="submit"
+        disabled={status === 'submitting'}
+        className="mt-1 w-full rounded-full bg-[#9A3A2A] px-8 py-3 text-[13px] font-medium tracking-[0.04em] text-ink transition-all duration-300 hover:bg-[#b14534] hover:-translate-y-0.5 disabled:opacity-50"
+      >
+        {status === 'submitting' ? t('sending') : t('submit')}
+      </button>
+
+      <div role={status === 'error' ? 'alert' : 'status'} className="min-h-[1.25rem] text-sm">
         {status === 'success' && <span className="text-green-400/80">{t('success')}</span>}
-        {status === 'error' && <span role="alert" className="text-red-400/80">{t('error')}</span>}
+        {status === 'error' && <span className="text-red-400/80">{t('error')}</span>}
       </div>
     </form>
   );
