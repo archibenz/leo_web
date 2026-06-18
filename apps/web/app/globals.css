@@ -1342,3 +1342,46 @@ h2.font-display,
   from { transform: translateX(0); }
   to   { transform: translateX(-25%); }
 }
+
+/* ──────────────────────────────────────────────────────────────
+   Variant 2 "White" — scoped helpers (wv- prefix). Used only on the
+   /white showcase route; namespaced so they never touch the gradient site.
+   ────────────────────────────────────────────────────────────── */
+@keyframes wvRise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.wv-rise {
+  opacity: 0;
+  animation: wvRise 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.wv-delay-1 { animation-delay: 0.08s; }
+.wv-delay-2 { animation-delay: 0.16s; }
+.wv-delay-3 { animation-delay: 0.24s; }
+
+.wv-btn {
+  background: #1c1714;
+  color: #fff;
+  border: 1px solid #1c1714;
+  transition: background 0.4s cubic-bezier(0.4, 0, 0, 1), color 0.4s cubic-bezier(0.4, 0, 0, 1);
+}
+.wv-btn:hover {
+  background: transparent;
+  color: #1c1714;
+}
+
+.wv-quickadd {
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+}
+.wv-card:hover .wv-quickadd,
+.wv-card:focus-visible .wv-quickadd {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wv-rise { animation: none; opacity: 1; }
+  .wv-quickadd { transition: opacity 0.2s ease; transform: none; }
+}
