@@ -44,6 +44,7 @@
     }
   },
   "menu": {
+    "label": "Menu",
     "categories": {
       "new": "New",
       "evening": "Evening",

@@ -44,6 +44,7 @@
     }
   },
   "menu": {
+    "label": "Меню",
     "categories": {
       "new": "Новинки",
       "evening": "Вечерние",

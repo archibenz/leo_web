@@ -91,8 +91,9 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
             isOpen ? 'menu-panel-open' : 'menu-panel-close'
           }`}
           style={{boxShadow: '0 0 60px rgba(212, 165, 116, 0.08), 0 25px 50px rgba(0, 0, 0, 0.5)'}}
-          role="menu"
-          aria-label="Main menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('label')}
         >
           <div className="max-h-[calc(100vh-110px)] overflow-y-auto px-4 py-5 sm:px-7 sm:py-7">
             <p className="mb-3 font-accent text-[11px] uppercase tracking-[0.22em] text-[var(--accent)]/70">
@@ -106,7 +107,6 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
                   href={`/${locale}/v1/shop?filter=${item.filter}`}
                   onClick={onClose}
                   className="group flex items-baseline gap-2 py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-[#F2E6D8] transition-colors hover:text-accent focus:text-accent"
-                  role="menuitem"
                 >
                   <span className="text-[var(--accent)]/45 transition-colors group-hover:text-[var(--accent)]">·</span>
                   {t(`categories.${item.key}`)}
@@ -126,7 +126,6 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
                   href={`/${locale}/v1/shop?category=${key}`}
                   onClick={onClose}
                   className="block py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-[#F2E6D8] transition-colors hover:text-accent focus:text-accent truncate"
-                  role="menuitem"
                 >
                   {t(`categories.${key}`)}
                 </Link>
@@ -135,12 +134,11 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
 
             <div className="my-5 border-t border-[#F2E6D8]/10" />
 
-            <div className="flex flex-wrap gap-x-5 gap-y-2 pt-1">
+            <nav className="flex flex-wrap gap-x-5 gap-y-2 pt-1">
               <Link
                 href={`/${locale}/v1/shop`}
                 onClick={onClose}
                 className="text-[13px] uppercase tracking-[0.08em] text-[#F2E6D8]/70 transition-colors hover:text-accent focus:text-accent"
-                role="menuitem"
               >
                 {nav('shop')}
               </Link>
@@ -148,7 +146,6 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
                 href={`/${locale}/care`}
                 onClick={onClose}
                 className="text-[13px] uppercase tracking-[0.08em] text-[#F2E6D8]/70 transition-colors hover:text-accent focus:text-accent"
-                role="menuitem"
               >
                 {t('categories.care')}
               </Link>
@@ -156,7 +153,6 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
                 href={`/${locale}/about`}
                 onClick={onClose}
                 className="text-[13px] uppercase tracking-[0.08em] text-[#F2E6D8]/70 transition-colors hover:text-accent focus:text-accent"
-                role="menuitem"
               >
                 {nav('about')}
               </Link>
@@ -164,11 +160,10 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
                 href={`/${locale}/contact`}
                 onClick={onClose}
                 className="text-[13px] uppercase tracking-[0.08em] text-[#F2E6D8]/70 transition-colors hover:text-accent focus:text-accent"
-                role="menuitem"
               >
                 {nav('contact')}
               </Link>
-            </div>
+            </nav>
           </div>
         </div>
       </div>
