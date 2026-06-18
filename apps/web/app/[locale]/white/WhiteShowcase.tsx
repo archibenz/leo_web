@@ -45,7 +45,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[1000] overflow-y-auto bg-white font-sans antialiased"
+      className="wv-root fixed inset-0 z-[1000] overflow-y-auto bg-white font-sans antialiased"
       style={{color: INK}}
     >
       {/* Header — thin, centered wordmark */}

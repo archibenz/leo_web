@@ -41,7 +41,7 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
   if (!mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[1000] overflow-y-auto bg-white font-sans antialiased" style={{color: INK}}>
+    <div className="wv-root fixed inset-0 z-[1000] overflow-y-auto bg-white font-sans antialiased" style={{color: INK}}>
       {/* Header */}
       <header className="sticky top-0 z-10 bg-white/85 backdrop-blur-md" style={{borderBottom: `1px solid ${HAIR}`}}>
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-5 sm:px-10">

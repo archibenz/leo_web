@@ -1381,6 +1381,25 @@ h2.font-display,
   opacity: 1;
 }
 
+/* Keyboard focus on white: the global ring is gold (var(--accent)) which is
+   only 2.23:1 on #fff — fails WCAG 2.4.11. Override inside the white portal
+   with an ink ring (17.8:1), square geometry, and drop the gold input glow. */
+.wv-root a:focus-visible,
+.wv-root button:focus-visible,
+.wv-root [role="button"]:focus-visible,
+.wv-root summary:focus-visible,
+.wv-root [tabindex]:focus-visible,
+.wv-root input:focus-visible {
+  outline: 2px solid #1c1714;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+.wv-root input:focus,
+.wv-root input:focus-visible {
+  box-shadow: none;
+  border-color: #1c1714;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .wv-rise { animation: none; opacity: 1; }
   .wv-quickadd { transition: opacity 0.2s ease; transform: none; }
