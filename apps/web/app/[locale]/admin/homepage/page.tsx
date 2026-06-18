@@ -1,10 +1,11 @@
 'use client';
 
 import {useState, useEffect, useCallback} from 'react';
-import {useTranslations} from 'next-intl';
+import {useTranslations, useLocale} from 'next-intl';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import BrandLoader from '../../../../components/BrandLoader';
 import {apiFetch} from '../../../../lib/api';
+import {formatPrice} from '../../../../lib/formatPrice';
 
 type Product = {
   id: string;
@@ -24,6 +25,7 @@ const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 
 export default function AdminHomepagePage() {
   const t = useTranslations('admin');
+  const locale = useLocale();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -216,7 +218,7 @@ export default function AdminHomepagePage() {
                       className="accent-[var(--accent)] h-4 w-4"
                     />
                     <span className="text-sm text-[var(--ink)]">{product.title}</span>
-                    <span className="text-xs text-[var(--ink-soft)]">&euro;{product.price}</span>
+                    <span className="text-xs text-[var(--ink-soft)]">{formatPrice(locale, product.price)}</span>
                     {!product.active && (
                       <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-400">
                         {t('inactive')}
