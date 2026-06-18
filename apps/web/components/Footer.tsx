@@ -19,7 +19,7 @@ export default async function Footer({locale}: FooterProps) {
   ];
 
   return (
-    <footer className="relative z-50 border-t border-[#D4A574]/10 bg-[#1a0f0a]">
+    <footer className="relative z-50 border-t border-accent/10 bg-[#1a0f0a]">
       {/* ── Desktop ── */}
       <div className="hidden sm:block">
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
@@ -42,21 +42,21 @@ export default async function Footer({locale}: FooterProps) {
                   draggable="false"
                 />
               </div>
-              <p className="max-w-[260px] text-[15px] leading-relaxed text-[#F2E6D8]/65">
+              <p className="max-w-[260px] text-[15px] leading-relaxed text-inkSoft/65">
                 {t('tagline')}
               </p>
             </div>
 
             {/* Center: Navigation */}
             <nav className="flex flex-col items-center gap-3 pt-1">
-              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-[#D4A574]/40">
+              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-accent/40">
                 {t('navigate')}
               </span>
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="font-display text-[16px] uppercase tracking-[0.12em] text-[#F2E6D8]/60 transition-colors duration-200 hover:text-[#D4A574]"
+                  className="font-display text-[16px] uppercase tracking-[0.12em] text-inkSoft/60 transition-colors duration-200 hover:text-accent"
                   prefetch
                 >
                   {item.label}
@@ -66,12 +66,12 @@ export default async function Footer({locale}: FooterProps) {
 
             {/* Right: Contact + social */}
             <div className="flex flex-col items-end gap-3 pt-1">
-              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-[#D4A574]/40">
+              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-accent/40">
                 {t('connect')}
               </span>
               <Link
                 href={`mailto:${t('email')}`}
-                className="text-[16px] text-[#F2E6D8]/60 transition-colors duration-200 hover:text-[#D4A574]"
+                className="text-[16px] text-inkSoft/60 transition-colors duration-200 hover:text-accent"
               >
                 {t('email')}
               </Link>
@@ -84,22 +84,22 @@ export default async function Footer({locale}: FooterProps) {
           </div>
 
           {/* Bottom bar */}
-          <div className="flex items-center justify-between border-t border-[#F2E6D8]/[0.06] py-5">
-            <p className="text-[13px] text-[#F2E6D8]/65">{t('rights')}</p>
-            <div className="flex items-center gap-5 text-[13px] text-[#F2E6D8]/65">
-              <Link href={`/${locale}/delivery`} className="transition-colors hover:text-[#F2E6D8]/90" prefetch>
+          <div className="flex items-center justify-between border-t border-inkSoft/[0.06] py-5">
+            <p className="text-[13px] text-inkSoft/65">{t('rights')}</p>
+            <div className="flex items-center gap-5 text-[13px] text-inkSoft/65">
+              <Link href={`/${locale}/delivery`} className="transition-colors hover:text-inkSoft/90" prefetch>
                 {t('delivery')}
               </Link>
-              <span className="text-[#F2E6D8]/30">·</span>
-              <Link href={`/${locale}/offer`} className="transition-colors hover:text-[#F2E6D8]/90" prefetch>
+              <span className="text-inkSoft/30">·</span>
+              <Link href={`/${locale}/offer`} className="transition-colors hover:text-inkSoft/90" prefetch>
                 {t('offer')}
               </Link>
-              <span className="text-[#F2E6D8]/30">·</span>
-              <Link href={`/${locale}/privacy`} className="transition-colors hover:text-[#F2E6D8]/90" prefetch>
+              <span className="text-inkSoft/30">·</span>
+              <Link href={`/${locale}/privacy`} className="transition-colors hover:text-inkSoft/90" prefetch>
                 {t('privacy')}
               </Link>
-              <span className="text-[#F2E6D8]/30">·</span>
-              <Link href={`/${locale}/terms`} className="transition-colors hover:text-[#F2E6D8]/90" prefetch>
+              <span className="text-inkSoft/30">·</span>
+              <Link href={`/${locale}/terms`} className="transition-colors hover:text-inkSoft/90" prefetch>
                 {t('terms')}
               </Link>
             </div>
@@ -127,21 +127,21 @@ export default async function Footer({locale}: FooterProps) {
             />
           </div>
 
-          <p className="text-[14px] leading-relaxed text-[#F2E6D8]/65">
+          <p className="text-[14px] leading-relaxed text-inkSoft/65">
             {t('tagline')}
           </p>
 
           {/* Nav + Contact side by side */}
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2.5">
-              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-[#D4A574]/40">
+              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-accent/40">
                 {t('navigate')}
               </span>
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="block text-[15px] text-[#F2E6D8]/55 transition hover:text-[#D4A574]"
+                  className="block text-[15px] text-inkSoft/55 transition hover:text-accent"
                   prefetch
                 >
                   {item.label}
@@ -149,12 +149,12 @@ export default async function Footer({locale}: FooterProps) {
               ))}
             </div>
             <div className="space-y-2.5">
-              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-[#D4A574]/40">
+              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-accent/40">
                 {t('connect')}
               </span>
               <Link
                 href={`mailto:${t('email')}`}
-                className="block text-[15px] text-[#F2E6D8]/55 transition hover:text-[#D4A574]"
+                className="block text-[15px] text-inkSoft/55 transition hover:text-accent"
               >
                 {t('email')}
               </Link>
@@ -163,28 +163,28 @@ export default async function Footer({locale}: FooterProps) {
           </div>
 
           {/* Language + legal */}
-          <div className="flex items-center justify-between pt-2 border-t border-[#F2E6D8]/[0.06]">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-[#F2E6D8]/65">
-              <Link href={`/${locale}/delivery`} className="transition hover:text-[#F2E6D8]/90" prefetch>
+          <div className="flex items-center justify-between pt-2 border-t border-inkSoft/[0.06]">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-inkSoft/65">
+              <Link href={`/${locale}/delivery`} className="transition hover:text-inkSoft/90" prefetch>
                 {t('delivery')}
               </Link>
-              <span className="text-[#F2E6D8]/30">·</span>
-              <Link href={`/${locale}/offer`} className="transition hover:text-[#F2E6D8]/90" prefetch>
+              <span className="text-inkSoft/30">·</span>
+              <Link href={`/${locale}/offer`} className="transition hover:text-inkSoft/90" prefetch>
                 {t('offer')}
               </Link>
-              <span className="text-[#F2E6D8]/30">·</span>
-              <Link href={`/${locale}/privacy`} className="transition hover:text-[#F2E6D8]/90" prefetch>
+              <span className="text-inkSoft/30">·</span>
+              <Link href={`/${locale}/privacy`} className="transition hover:text-inkSoft/90" prefetch>
                 {t('privacy')}
               </Link>
-              <span className="text-[#F2E6D8]/30">·</span>
-              <Link href={`/${locale}/terms`} className="transition hover:text-[#F2E6D8]/90" prefetch>
+              <span className="text-inkSoft/30">·</span>
+              <Link href={`/${locale}/terms`} className="transition hover:text-inkSoft/90" prefetch>
                 {t('terms')}
               </Link>
             </div>
             <FooterLanguageSelect currentLocale={locale} />
           </div>
 
-          <p className="text-[12px] text-[#F2E6D8]/65">{t('rights')}</p>
+          <p className="text-[12px] text-inkSoft/65">{t('rights')}</p>
         </div>
       </div>
 
