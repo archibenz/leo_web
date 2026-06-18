@@ -54,10 +54,10 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-5 sm:px-10">
           <nav className="hidden flex-1 items-center gap-7 text-[12px] uppercase tracking-[0.18em] md:flex" style={{color: MUTED}}>
             {nav.map((n) => (
-              <span key={n} className="cursor-pointer transition-opacity hover:opacity-60">{n}</span>
+              <a key={n} href={`/${locale}/white/shop`} className="cursor-pointer transition-opacity hover:opacity-60">{n}</a>
             ))}
           </nav>
-          <a href={`/${locale}`} className="font-display text-[22px] font-medium tracking-[0.42em] sm:text-[26px]" style={{color: INK}}>
+          <a href={`/${locale}/white`} className="font-display text-[22px] font-medium tracking-[0.42em] sm:text-[26px]" style={{color: INK}}>
             REINASLEO
           </a>
           <div className="flex flex-1 items-center justify-end gap-6 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
@@ -85,7 +85,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
                 'Скульптурные силуэты в сдержанной палитре. Создано, чтобы носить, а не бросаться в глаза.',
               )}
             </p>
-            <a href={`/${locale}/shop`} className="wv-btn mt-11 inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
+            <a href={`/${locale}/white/shop`} className="wv-btn mt-11 inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
               {t('Shop the collection', 'Смотреть коллекцию')}
             </a>
           </div>
@@ -107,7 +107,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       <section className="mx-auto max-w-[1400px] px-6 pb-24 sm:px-10">
         <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 lg:grid-cols-3">
           {PRODUCTS.map((p, i) => (
-            <a key={p.key} href={`/${locale}/shop`} className={`wv-card wv-rise group block wv-delay-${(i % 3) + 1}`}>
+            <a key={p.key} href={`/${locale}/white/product`} className={`wv-card wv-rise group block wv-delay-${(i % 3) + 1}`}>
               <div className="relative aspect-[2/3] w-full overflow-hidden" style={{background: 'linear-gradient(160deg,#f5f2ed,#e8e2d9)'}}>
                 {p.sale && (
                   <span className="absolute left-3 top-3 text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>
