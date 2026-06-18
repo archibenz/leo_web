@@ -6,6 +6,7 @@
   color-scheme: dark;
   --paper-base: #1e120d;
   --paper-muted: #2b1711;
+  --paper: var(--paper-base); /* canonical paper surface — mirrors the tailwind `paper` token */
   --ink: #f3e9da;
   --ink-soft: #f2e6d8;
   --accent: #D4A574;
