@@ -54,9 +54,11 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         style={{borderBottom: `1px solid ${HAIR}`}}
       >
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-5 sm:px-10">
-          <nav className="hidden flex-1 items-center gap-7 text-[12px] uppercase tracking-[0.18em] md:flex" style={{color: MUTED}}>
+          <nav className="flex flex-1 items-center gap-7 text-[12px] uppercase tracking-[0.18em] md:gap-7" style={{color: MUTED}}>
+            {/* Mobile gets a single shop entry; desktop shows the full nav (parity) */}
+            <a href={`/${locale}/white/shop`} className="transition-opacity hover:opacity-60 md:hidden">{t('Shop', 'Магазин')}</a>
             {nav.map((n) => (
-              <a key={n} href={`/${locale}/white/shop`} className="cursor-pointer transition-opacity hover:opacity-60">{n}</a>
+              <a key={n} href={`/${locale}/white/shop`} className="hidden transition-opacity hover:opacity-60 md:inline">{n}</a>
             ))}
           </nav>
           <a href={`/${locale}/white`} className="font-display text-[22px] font-medium tracking-[0.42em] sm:text-[26px]" style={{color: INK}}>
