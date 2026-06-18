@@ -20,8 +20,12 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
   const [isAnimating, setIsAnimating] = useState(false)
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [isMobile, setIsMobile] = useState(false)
+  const [activeIndex, setActiveIndex] = useState(-1)
 
   const allSuggestions = externalSuggestions || []
+  const listboxId = "search-bar-listbox"
+  const optionId = (i: number) => `${listboxId}-option-${i}`
+  const open = isFocused && suggestions.length > 0
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)")
@@ -34,11 +38,19 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSearchQuery(value)
+    setActiveIndex(-1)
     if (value.trim()) {
       setSuggestions(allSuggestions.filter((s) => s.toLowerCase().includes(value.toLowerCase())))
     } else {
       setSuggestions([])
     }
+  }
+
+  const selectSuggestion = (value: string) => {
+    setSearchQuery(value)
+    if (onSearch) onSearch(value)
+    setIsFocused(false)
+    setActiveIndex(-1)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -50,6 +62,26 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Escape") {
+      setIsFocused(false)
+      setActiveIndex(-1)
+      return
+    }
+    if (suggestions.length === 0) return
+    if (e.key === "ArrowDown") {
+      e.preventDefault()
+      setActiveIndex((i) => (i + 1) % suggestions.length)
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault()
+      setActiveIndex((i) => (i - 1 + suggestions.length) % suggestions.length)
+    } else if (e.key === "Enter" && activeIndex >= 0) {
+      e.preventDefault()
+      const choice = suggestions[activeIndex]
+      if (choice) selectSuggestion(choice)
+    }
+  }
+
   useEffect(() => {
     if (isFocused && inputRef.current) inputRef.current.focus()
   }, [isFocused])
@@ -58,6 +90,7 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsFocused(false)
+        setActiveIndex(-1)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
@@ -137,11 +170,14 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
             type="search"
             role="combobox"
             aria-autocomplete="list"
-            aria-expanded={isFocused && suggestions.length > 0}
+            aria-expanded={open}
+            aria-controls={open ? listboxId : undefined}
+            aria-activedescendant={activeIndex >= 0 ? optionId(activeIndex) : undefined}
             aria-label={placeholder}
             placeholder={placeholder}
             value={searchQuery}
             onChange={handleSearch}
+            onKeyDown={handleKeyDown}
             onFocus={() => setIsFocused(true)}
             className={cn(
               "focus-bare appearance-none w-full py-2 pr-3 bg-transparent border-none outline-none placeholder:text-ink/55 text-[13px] text-ink/80 tracking-wide [&::-webkit-search-decoration]:hidden [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden",
@@ -154,7 +190,7 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
 
       {/* Suggestions */}
       <AnimatePresence>
-        {isFocused && suggestions.length > 0 && (
+        {open && (
           <motion.div
             initial={{ opacity: 0, y: 8, height: 0 }}
             animate={{ opacity: 1, y: 0, height: "auto" }}
@@ -170,18 +206,23 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
               minWidth: "200px",
             }}
           >
-            <div className="p-1.5" role="listbox">
+            <div className="p-1.5" role="listbox" id={listboxId} aria-label={placeholder}>
               {suggestions.map((suggestion, i) => (
                 <motion.div
                   key={suggestion}
+                  id={optionId(i)}
                   role="option"
-                  aria-selected={false}
+                  aria-selected={i === activeIndex}
                   initial={{ opacity: 0, y: -8, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -4, scale: 0.9 }}
                   transition={{ type: "spring", stiffness: 300, damping: 15, delay: i * 0.05 }}
-                  onClick={() => { setSearchQuery(suggestion); if (onSearch) onSearch(suggestion); setIsFocused(false) }}
-                  className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg text-[13px] text-ink/50 transition-colors hover:bg-ink/[0.06] hover:text-accent"
+                  onClick={() => selectSuggestion(suggestion)}
+                  onMouseEnter={() => setActiveIndex(i)}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg text-[13px] transition-colors hover:bg-ink/[0.06] hover:text-accent",
+                    i === activeIndex ? "bg-ink/[0.06] text-accent" : "text-ink/50"
+                  )}
                 >
                   <Search size={12} className="text-ink/20 flex-shrink-0" />
                   <span>{suggestion}</span>
