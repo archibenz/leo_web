@@ -256,13 +256,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 8, pointerEvents: "none" as never }}
                     transition={{ type: 'spring', mass: 0.5, damping: 11.5, stiffness: 100, restDelta: 0.001 }}
-                    className="absolute right-0 top-full mt-3 w-56 rounded-2xl border border-[#D4A574]/[0.08] overflow-hidden z-[100]"
-                    style={{
-                      background: 'linear-gradient(165deg, rgba(26,16,12,0.98) 0%, rgba(36,21,16,0.97) 50%, rgba(30,18,13,0.98) 100%)',
-                      backdropFilter: 'blur(40px) saturate(1.2)',
-                      WebkitBackdropFilter: 'blur(40px) saturate(1.2)',
-                      boxShadow: '0 0 0 1px rgba(212,165,116,0.05), 0 25px 60px rgba(0,0,0,0.5), 0 8px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(242,230,216,0.04)',
-                    }}
+                    className="dropdown-glass absolute right-0 top-full mt-3 w-56 rounded-2xl border border-[#D4A574]/[0.08] overflow-hidden z-[100]"
                   >
                     {isAuthenticated && user ? (
                       <>

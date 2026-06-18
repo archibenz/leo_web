@@ -70,15 +70,7 @@ export const MenuItem = ({
               <motion.div
                 transition={transition}
                 layoutId="active"
-                className="rounded-2xl overflow-hidden border border-[#D4A574]/[0.08]"
-                style={{
-                  background:
-                    "linear-gradient(165deg, rgba(26, 16, 12, 0.98) 0%, rgba(36, 21, 16, 0.97) 50%, rgba(30, 18, 13, 0.98) 100%)",
-                  backdropFilter: "blur(40px) saturate(1.2)",
-                  WebkitBackdropFilter: "blur(40px) saturate(1.2)",
-                  boxShadow:
-                    "0 0 0 1px rgba(212, 165, 116, 0.05), 0 25px 60px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(242, 230, 216, 0.04)",
-                }}
+                className="dropdown-glass rounded-2xl overflow-hidden border border-[#D4A574]/[0.08]"
               >
                 <motion.div layout className="w-max h-full">
                   {children}
