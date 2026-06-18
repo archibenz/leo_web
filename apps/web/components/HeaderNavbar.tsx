@@ -190,7 +190,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
                   </div>
                   <div className="mx-4 mt-2 mb-3 h-px bg-gradient-to-r from-[#D4A574]/10 via-[#D4A574]/5 to-transparent" />
                   <div className="px-4 pb-3">
-                    <Link href={`/${locale}/shop`} className="group/all inline-flex items-center gap-2 font-display text-[15px] uppercase tracking-[0.12em] text-ink/40 transition-colors hover:text-[#D4A574]">
+                    <Link href={`/${locale}/shop`} className="group/all inline-flex items-center gap-2 font-display text-[15px] uppercase tracking-[0.12em] text-ink/55 transition-colors hover:text-[#D4A574]">
                       {locale === 'ru' ? 'Весь каталог' : 'View all'}
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="transition-transform duration-300 group-hover/all:translate-x-1"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
                     </Link>

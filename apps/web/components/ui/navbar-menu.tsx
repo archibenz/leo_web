@@ -189,7 +189,7 @@ export const CollectionCard = ({
               {title}
             </p>
             {subtitle && (
-              <p className="mt-0.5 text-[15px] uppercase tracking-[0.08em] text-ink/40">{subtitle}</p>
+              <p className="mt-0.5 text-[15px] uppercase tracking-[0.08em] text-ink/55">{subtitle}</p>
             )}
           </div>
         </div>
@@ -199,7 +199,7 @@ export const CollectionCard = ({
           <Link
             key={item.label}
             href={item.href}
-            className="group/item flex items-center gap-2 py-1 text-[17px] font-display text-ink/40 transition-colors duration-200 hover:text-[#D4A574]"
+            className="group/item flex items-center gap-2 py-1 text-[17px] font-display text-ink/55 transition-colors duration-200 hover:text-[#D4A574]"
           >
             <span className="inline-block h-px w-0 bg-[#D4A574]/50 transition-all duration-300 group-hover/item:w-3" />
             {item.label}

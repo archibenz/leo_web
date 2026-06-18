@@ -123,7 +123,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
         </div>
       ) : guides.length === 0 ? (
         <BlurReveal>
-          <p className="text-center text-ink/40 py-20">{t('empty')}</p>
+          <p className="text-center text-ink/55 py-20">{t('empty')}</p>
         </BlurReveal>
       ) : (
         <section className="max-w-6xl mx-auto px-6">
@@ -170,7 +170,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
                       <p className="text-[12px] uppercase tracking-[0.15em] text-[#D4A574]/50 mb-2 font-medium">
                         {t('tips')}
                       </p>
-                      <p className="text-ink/40 text-[14px] leading-relaxed whitespace-pre-line">
+                      <p className="text-ink/55 text-[14px] leading-relaxed whitespace-pre-line">
                         {guide.tips}
                       </p>
                     </div>
@@ -185,7 +185,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
       {/* CTA */}
       <section className="max-w-4xl mx-auto px-6 text-center mt-20">
         <div className="h-px bg-gradient-to-r from-transparent via-[#D4A574]/15 to-transparent mb-12" />
-        <p className="text-ink/40 text-[15px] mb-6">{t('cta')}</p>
+        <p className="text-ink/55 text-[15px] mb-6">{t('cta')}</p>
         <Link
           href={`/${locale}/shop`}
           className="inline-flex items-center gap-2 font-display text-[15px] uppercase tracking-[0.12em] text-[#D4A574] transition-colors hover:text-[#D4A574]/80"

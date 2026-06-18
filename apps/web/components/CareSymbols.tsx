@@ -171,7 +171,7 @@ export function CareSymbol({ symbolKey, locale = 'ru', size = 32, showLabel = fa
         {sym.icon}
       </div>
       {showLabel && (
-        <span className="text-[10px] text-ink/40 text-center leading-tight max-w-[80px]">
+        <span className="text-[10px] text-ink/55 text-center leading-tight max-w-[80px]">
           {locale === 'ru' ? sym.label.ru : sym.label.en}
         </span>
       )}
