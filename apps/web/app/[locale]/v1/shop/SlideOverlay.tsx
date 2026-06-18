@@ -7,6 +7,12 @@ interface SlideOverlayProps {
 }
 
 export default function SlideOverlay({product, locale}: SlideOverlayProps) {
+  const price = new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: 'RUB',
+    maximumFractionDigits: 0,
+  }).format(product.price);
+
   return (
     <>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-48 bg-gradient-to-t from-black/65 via-black/25 to-transparent" />
@@ -22,6 +28,9 @@ export default function SlideOverlay({product, locale}: SlideOverlayProps) {
         <h2 className="text-center font-display text-[14px] uppercase leading-tight tracking-[0.18em] text-ink drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
           {product.title}
         </h2>
+        <p className="mt-1.5 font-accent text-[12px] tracking-[0.14em] text-ink/85 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+          {price}
+        </p>
         <div aria-hidden="true" className="mt-2 h-px w-12 bg-ink/55" />
       </div>
     </>
