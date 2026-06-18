@@ -3,7 +3,8 @@
     "loading": "Loading...",
     "switchTo": "Switch to {locale}",
     "confirm": "Confirm",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "dismissNotification": "Dismiss notification"
   },
   "languageSelect": {
     "label": "Language",

@@ -3,7 +3,8 @@
     "loading": "Загрузка...",
     "switchTo": "Переключить на {locale}",
     "confirm": "Подтвердить",
-    "cancel": "Отмена"
+    "cancel": "Отмена",
+    "dismissNotification": "Закрыть уведомление"
   },
   "languageSelect": {
     "label": "Язык",

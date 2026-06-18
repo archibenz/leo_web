@@ -10,6 +10,9 @@
   --ink: #f3e9da;
   --ink-soft: #f2e6d8;
   --accent: #D4A574;
+  /* status accents — warm-toned to sit inside the dark atelier palette (toasts, inline states) */
+  --status-error: #e0735a;
+  --status-success: #a7b86a;
   --texture-opacity: 0.08;
   --crumple-opacity: 0.06;
 

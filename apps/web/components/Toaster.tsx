@@ -21,24 +21,25 @@ export default function Toaster() {
     >
       {toasts.map(toast => {
         const text = resolveText(t, toast);
-        const kindStyles =
+        const accent =
           toast.kind === 'error'
-            ? 'bg-red-50 border-red-200 text-red-900'
+            ? 'var(--status-error)'
             : toast.kind === 'success'
-            ? 'bg-green-50 border-green-200 text-green-900'
-            : 'bg-neutral-50 border-neutral-200 text-neutral-900';
+            ? 'var(--status-success)'
+            : 'var(--accent)';
         return (
           <div
             key={toast.id}
             role="alert"
-            className={`pointer-events-auto border rounded-md px-4 py-3 shadow-md text-sm flex items-start gap-3 ${kindStyles}`}
+            style={{borderLeftColor: accent}}
+            className="liquid-glass-strong pointer-events-auto flex items-start gap-3 rounded-xl border-l-[3px] px-4 py-3 text-sm text-ink-soft"
           >
             <span className="flex-1 leading-snug">{text}</span>
             <button
               type="button"
               onClick={() => dismissToast(toast.id)}
-              className="opacity-60 hover:opacity-100 transition-opacity text-lg leading-none"
-              aria-label="Закрыть уведомление"
+              className="-mr-1 -mt-0.5 shrink-0 rounded-md p-1 text-lg leading-none text-ink-soft/60 transition-colors hover:text-ink-soft"
+              aria-label={t('common.dismissNotification')}
             >
               ×
             </button>
