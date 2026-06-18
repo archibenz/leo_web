@@ -4,7 +4,8 @@ import {headers} from 'next/headers';
 import {notFound} from 'next/navigation';
 import type {Locale} from '../../../../i18n';
 import ProductDetailClient from '../../../../components/ProductDetailClient';
-import {safeJsonLd} from '../../../../lib/jsonLd';
+import {getTranslations} from 'next-intl/server';
+import {safeJsonLd, buildBreadcrumbJsonLd} from '../../../../lib/jsonLd';
 import {SITE_URL} from '../../../../lib/siteUrl';
 
 import { API_BASE } from '../../../../lib/api';
@@ -77,12 +78,19 @@ export default async function ProductPage({params}: Props) {
   const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   let productJsonLd = null;
+  let breadcrumbJsonLd = null;
   let initialProduct = null;
   try {
     const p = await fetchProduct(id);
     if (p) {
       initialProduct = p;
       const productUrl = `${SITE_URL}/${locale}/product/${id}`;
+      const tNav = await getTranslations({locale, namespace: 'nav'});
+      breadcrumbJsonLd = buildBreadcrumbJsonLd([
+        {name: 'REINASLEO', url: `${SITE_URL}/${locale}`},
+        {name: tNav('shop'), url: `${SITE_URL}/${locale}/shop`},
+        {name: cap(p.title, MAX_JSONLD_LEN), url: productUrl},
+      ]);
       // ~1 year ahead — Google treats a missing priceValidUntil as expiring soon
       const priceValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
         .toISOString()
@@ -116,6 +124,13 @@ export default async function ProductPage({params}: Props) {
           type="application/ld+json"
           nonce={nonce}
           dangerouslySetInnerHTML={{__html: safeJsonLd(productJsonLd)}}
+        />
+      )}
+      {breadcrumbJsonLd && (
+        <script
+          type="application/ld+json"
+          nonce={nonce}
+          dangerouslySetInnerHTML={{__html: safeJsonLd(breadcrumbJsonLd)}}
         />
       )}
       <ProductDetailClient productId={id} initialProduct={initialProduct} />
