@@ -136,6 +136,30 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         </div>
       </section>
 
+      {/* Lookbook — editorial brand statement */}
+      <section className="border-t" style={{borderColor: HAIR}}>
+        <div className="mx-auto grid max-w-[1400px] items-center gap-0 lg:grid-cols-2">
+          <div className="wv-rise aspect-[4/5] w-full lg:aspect-auto lg:h-full lg:min-h-[560px]" style={{background: 'linear-gradient(155deg,#efeae3,#e2dace)'}} aria-hidden="true" />
+          <div className="wv-rise wv-delay-1 px-6 py-16 sm:px-12 lg:px-20 lg:py-28">
+            <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('The atelier', 'Ателье')}</p>
+            <h2 className="font-display text-[30px] font-light leading-[1.1] tracking-tight sm:text-[40px]">
+              {t('Made slowly,', 'Сделано медленно,')}
+              <br />
+              <span className="italic" style={{color: MUTED}}>{t('worn for years', 'носится годами')}</span>
+            </h2>
+            <p className="mt-8 max-w-md text-[15px] leading-relaxed" style={{color: MUTED}}>
+              {t(
+                'Each piece is cut from considered fabric and finished by hand. We design for the long wardrobe — clothes that hold their shape and their meaning season after season.',
+                'Каждая вещь скроена из продуманной ткани и доведена вручную. Мы проектируем для долгого гардероба — одежду, которая держит форму и смысл сезон за сезоном.',
+              )}
+            </p>
+            <a href={`/${locale}/white/shop`} className="wv-btn mt-10 inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
+              {t('Explore the atelier', 'В ателье')}
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t" style={{borderColor: HAIR}}>
         <div className="mx-auto grid max-w-[1400px] gap-10 px-6 py-16 sm:grid-cols-2 sm:px-10 lg:grid-cols-4">
