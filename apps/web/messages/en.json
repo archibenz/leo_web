@@ -680,6 +680,13 @@
     }
   },
   "product": {
+    "gallery": {
+      "close": "Close",
+      "previous": "Previous image",
+      "next": "Next image",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out"
+    },
     "back": "Back",
     "addToBag": "Add to Bag",
     "favourite": "Favourite",
