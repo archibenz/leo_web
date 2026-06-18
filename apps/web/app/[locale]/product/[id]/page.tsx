@@ -82,18 +82,28 @@ export default async function ProductPage({params}: Props) {
     const p = await fetchProduct(id);
     if (p) {
       initialProduct = p;
+      const productUrl = `${siteUrl}/${locale}/product/${id}`;
+      // ~1 year ahead — Google treats a missing priceValidUntil as expiring soon
+      const priceValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10);
       productJsonLd = {
         '@context': 'https://schema.org',
         '@type': 'Product',
         name: cap(p.title, MAX_JSONLD_LEN),
         description: cap(p.description ?? p.subtitle ?? '', MAX_JSONLD_LEN),
         image: p.images?.[0] ?? p.image,
-        url: `${siteUrl}/${locale}/product/${id}`,
+        url: productUrl,
+        sku: p.sku ?? id,
+        brand: {'@type': 'Brand', name: 'REINASLEO'},
         offers: {
           '@type': 'Offer',
           price: p.price,
           priceCurrency: 'RUB',
           availability: p.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          itemCondition: 'https://schema.org/NewCondition',
+          priceValidUntil,
+          url: productUrl,
         },
       };
     }
