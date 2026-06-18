@@ -184,10 +184,25 @@ export default function WhiteShowcase({locale}: {locale: string}) {
           ))}
           <div>
             <p className="mb-4 text-[11px] uppercase tracking-[0.2em]" style={{color: INK}}>{t('Newsletter', 'Рассылка')}</p>
-            <div className="flex items-center border-b pb-1.5" style={{borderColor: MUTED}}>
-              <input type="email" placeholder={t('Email', 'Email')} className="w-full bg-transparent text-[13px] outline-none placeholder:text-[#b5ada3]" style={{color: INK}} />
-              <span className="cursor-pointer text-[12px] uppercase tracking-[0.16em]" style={{color: INK}}>→</span>
-            </div>
+            <form onSubmit={(e) => e.preventDefault()} className="flex items-center border-b pb-1.5" style={{borderColor: MUTED}}>
+              <label htmlFor="wv-newsletter" className="sr-only">{t('Email address', 'Email-адрес')}</label>
+              <input
+                id="wv-newsletter"
+                type="email"
+                autoComplete="email"
+                placeholder={t('Email', 'Email')}
+                className="w-full bg-transparent text-[13px] outline-none placeholder:text-[#7a7167]"
+                style={{color: INK}}
+              />
+              <button
+                type="submit"
+                aria-label={t('Subscribe', 'Подписаться')}
+                className="shrink-0 px-1 text-[12px] uppercase tracking-[0.16em] transition-opacity hover:opacity-60"
+                style={{color: INK}}
+              >
+                →
+              </button>
+            </form>
           </div>
         </div>
         <div className="mx-auto max-w-[1400px] px-6 pb-10 text-[11px] uppercase tracking-[0.14em] sm:px-10" style={{color: MUTED}}>
