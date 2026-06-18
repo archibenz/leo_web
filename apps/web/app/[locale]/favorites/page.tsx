@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
-import {useFavorites, useCart} from '../../../contexts';
+import {useFavorites} from '../../../contexts';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import LoaderSplash from '../../../components/LoaderSplash';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
@@ -18,7 +18,6 @@ type Props = {
 export default function FavoritesPage({params}: Props) {
   const t = useTranslations('favorites');
   const {items, isLoading, removeItem, clearFavorites} = useFavorites();
-  const {addItem: addToCart} = useCart();
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
 
   /* ── Extract locale from pathname ── */
@@ -120,12 +119,14 @@ export default function FavoritesPage({params}: Props) {
                   {/* Hover overlay with action */}
                   <div className="absolute inset-x-0 bottom-0 z-20 translate-y-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                     <div className="bg-gradient-to-t from-paper/95 via-paper/80 to-transparent px-4 pb-4 pt-10">
-                      <button
-                        onClick={() => addToCart({id: item.id, title: item.title, image: item.image})}
-                        className="w-full rounded-full bg-button py-3 text-xs font-medium uppercase tracking-wider text-ink transition hover:bg-button/90"
+                      {/* Favourites carry no size; the cart keys items by productId__size,
+                          so route to the PDP to pick a size instead of adding a size-less item. */}
+                      <Link
+                        href={`/${locale}/product/${item.id}`}
+                        className="block w-full rounded-full bg-button py-3 text-center text-xs font-medium uppercase tracking-wider text-ink transition hover:bg-button/90"
                       >
                         {t('addToBag')}
-                      </button>
+                      </Link>
                     </div>
                   </div>
                 </div>
