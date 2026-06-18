@@ -2,6 +2,7 @@ import type {Metadata, Viewport} from 'next';
 import {cookies} from 'next/headers';
 import {Cormorant_Garamond, Jost, Cormorant} from 'next/font/google';
 import {defaultLocale, locales, type Locale} from '../i18n';
+import {SITE_URL as siteUrl} from '../lib/siteUrl';
 import './globals.css';
 
 const display = Cormorant_Garamond({
@@ -35,10 +36,6 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: 'cover',
 };
-
-// new URL('') throws — fall back to the production origin so static metadata
-// stays valid in environments where NEXT_PUBLIC_SITE_URL is unset (CI, local).
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://reinasleo.com';
 
 export const metadata: Metadata = {
   // Root-level title — fallback for non-locale routes (404, errors).

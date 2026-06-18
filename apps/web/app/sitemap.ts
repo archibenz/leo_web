@@ -1,7 +1,7 @@
 import type {MetadataRoute} from 'next';
 import {API_BASE} from '../lib/api';
+import {SITE_URL} from '../lib/siteUrl';
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
 const locales = ['en', 'ru'] as const;
 
 const staticRoutes = [
@@ -20,7 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const locale of locales) {
     for (const route of staticRoutes) {
       entries.push({
-        url: `${siteUrl}/${locale}${route}`,
+        url: `${SITE_URL}/${locale}${route}`,
         lastModified: new Date(),
         changeFrequency: route === '' ? 'daily' : 'weekly',
         priority: route === '' ? 1.0 : 0.8,
@@ -38,7 +38,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       for (const product of products) {
         for (const locale of locales) {
           entries.push({
-            url: `${siteUrl}/${locale}/product/${product.id}`,
+            url: `${SITE_URL}/${locale}/product/${product.id}`,
             lastModified: new Date(),
             changeFrequency: 'weekly',
             priority: 0.6,

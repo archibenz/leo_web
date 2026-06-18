@@ -9,6 +9,7 @@ import Footer from '../../components/Footer';
 import Providers from '../../components/Providers';
 import Metrika from '../../components/Metrika';
 import {safeJsonLd} from '../../lib/jsonLd';
+import {SITE_URL as siteUrl} from '../../lib/siteUrl';
 
 import {locales, type Locale} from '../../i18n';
 
@@ -48,7 +49,6 @@ export default async function LocaleLayout({
   // in dev / unit-test contexts where the middleware isn't wired up.
   const nonce = (await headers()).get('x-nonce') ?? undefined;
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() || 'https://reinasleo.com';
   const orgJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',

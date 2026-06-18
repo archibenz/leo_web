@@ -5,6 +5,7 @@ import {notFound} from 'next/navigation';
 import type {Locale} from '../../../../i18n';
 import ProductDetailClient from '../../../../components/ProductDetailClient';
 import {safeJsonLd} from '../../../../lib/jsonLd';
+import {SITE_URL} from '../../../../lib/siteUrl';
 
 import { API_BASE } from '../../../../lib/api';
 type Props = {
@@ -73,7 +74,6 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 export default async function ProductPage({params}: Props) {
   const {locale, id} = await params;
   if (!ID_RE.test(id)) notFound();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? '';
   const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   let productJsonLd = null;
@@ -82,7 +82,7 @@ export default async function ProductPage({params}: Props) {
     const p = await fetchProduct(id);
     if (p) {
       initialProduct = p;
-      const productUrl = `${siteUrl}/${locale}/product/${id}`;
+      const productUrl = `${SITE_URL}/${locale}/product/${id}`;
       // ~1 year ahead — Google treats a missing priceValidUntil as expiring soon
       const priceValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
         .toISOString()
