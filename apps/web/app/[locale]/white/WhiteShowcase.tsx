@@ -170,14 +170,18 @@ export default function WhiteShowcase({locale}: {locale: string}) {
             <p className="mt-3 text-[12px] leading-relaxed" style={{color: MUTED}}>{t('Premium womenswear', 'Премиальная женская одежда')}</p>
           </div>
           {[
-            {h: t('Shop', 'Магазин'), items: [t('New', 'Новинки'), t('Dresses', 'Платья'), t('Outerwear', 'Верхняя одежда')]},
-            {h: t('Brand', 'Бренд'), items: [t('About', 'О бренде'), t('Care', 'Уход'), t('Contact', 'Контакты')]},
+            // Prototype destinations stay inside /white (no leak to the gradient site):
+            // shop categories → the white shop, brand links → the white landing.
+            {h: t('Shop', 'Магазин'), href: `/${locale}/white/shop`, items: [t('New', 'Новинки'), t('Dresses', 'Платья'), t('Outerwear', 'Верхняя одежда')]},
+            {h: t('Brand', 'Бренд'), href: `/${locale}/white`, items: [t('About', 'О бренде'), t('Care', 'Уход'), t('Contact', 'Контакты')]},
           ].map((col) => (
             <div key={col.h}>
               <p className="mb-4 text-[11px] uppercase tracking-[0.2em]" style={{color: INK}}>{col.h}</p>
               <ul className="space-y-2.5 text-[13px]" style={{color: MUTED}}>
                 {col.items.map((it) => (
-                  <li key={it} className="cursor-pointer transition-opacity hover:opacity-60">{it}</li>
+                  <li key={it}>
+                    <a href={col.href} className="inline-block transition-opacity hover:opacity-60">{it}</a>
+                  </li>
                 ))}
               </ul>
             </div>
