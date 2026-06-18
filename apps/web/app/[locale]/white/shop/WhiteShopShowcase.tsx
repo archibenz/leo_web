@@ -8,7 +8,8 @@ import {createPortal} from 'react-dom';
 // to demonstrate the browse experience. Placeholder imagery (Higgsfield later).
 
 const INK = '#1c1714';
-const MUTED = '#8c837a';
+// Warm secondary grey at 5.0:1 on #fff (WCAG AA); see WhiteShowcase note.
+const MUTED = '#776e64';
 const HAIR = '#e7e2db';
 const SIGNAL = '#b4452f';
 

@@ -10,7 +10,9 @@ import {createPortal} from 'react-dom';
 // shots arrive via the loop / Higgsfield). CSS-only motion (reduced-motion safe).
 
 const INK = '#1c1714';
-const MUTED = '#8c837a';
+// Warm secondary grey. Tuned to 5.0:1 on #fff (WCAG AA for body text);
+// the prior #8c837a was 3.72:1 and failed on descriptions/nav/prices/footer.
+const MUTED = '#776e64';
 const HAIR = '#e7e2db';
 const SIGNAL = '#b4452f';
 
