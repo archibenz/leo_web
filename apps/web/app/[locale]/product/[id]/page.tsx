@@ -21,6 +21,14 @@ const ID_RE = /^[a-zA-Z0-9_-]{1,64}$/;
 // HTML with megabyte-sized fields.
 const MAX_JSONLD_LEN = 500;
 
+// The locale layout renders <title> through the template "REINASLEO · %s".
+// Keep the rendered title within Google's ~60-char SERP cap by trimming the
+// product portion for the brand prefix (the old 160 cap mirrored description
+// length and produced ~170-char titles that truncate in search results).
+const BRAND_PREFIX = 'REINASLEO · ';
+const META_TITLE_MAX = 60;
+const PRODUCT_TITLE_MAX = META_TITLE_MAX - BRAND_PREFIX.length;
+
 // React.cache dedupes the fetch within one request: generateMetadata and the
 // page function each call fetchProduct once but the network request happens
 // only once. revalidate:60 lets the response sit in the Data Cache for a minute
@@ -54,7 +62,7 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
     if (!product) {
       return {title: fallbackTitle, description: fallbackDescription, alternates: baseAlternates};
     }
-    const title = cap(product.title, 160) || fallbackTitle;
+    const title = cap(product.title, PRODUCT_TITLE_MAX) || fallbackTitle;
     const description = cap(product.description ?? product.subtitle ?? fallbackDescription, 160);
     const image = product.images?.[0];
     return {
@@ -62,7 +70,7 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
       description,
       alternates: baseAlternates,
       openGraph: {
-        title: `REINASLEO · ${title}`,
+        title: `${BRAND_PREFIX}${title}`,
         description,
         ...(image && {images: [{url: image, alt: title}]}),
       },
