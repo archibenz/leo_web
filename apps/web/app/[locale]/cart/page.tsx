@@ -8,6 +8,7 @@ import {useTranslations} from 'next-intl';
 import {useCart} from '../../../contexts/CartContext';
 import {useAuth} from '../../../contexts/AuthContext';
 import {track} from '../../../lib/analytics';
+import {formatPrice} from '../../../lib/formatPrice';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import LoaderSplash from '../../../components/LoaderSplash';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
@@ -136,7 +137,7 @@ export default function CartPage() {
                           <span className="text-sm text-ink-soft">{item.size}</span>
                         )}
                         {item.price !== undefined && (
-                          <p className="text-sm text-ink-soft">&euro;{item.price.toFixed(2)}</p>
+                          <p className="text-sm text-ink-soft">{formatPrice(locale, item.price)}</p>
                         )}
                       </div>
                     </div>
@@ -184,14 +185,14 @@ export default function CartPage() {
 
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-ink-soft">{t('subtotal')}</span>
-                      <span className="text-ink">&euro;{subtotal.toFixed(2)}</span>
+                      <span className="text-ink">{formatPrice(locale, subtotal)}</span>
                     </div>
 
                     <div className="h-px bg-ink/12" />
 
                     <div className="flex items-center justify-between">
                       <span className="text-base font-semibold text-ink">{t('total')}</span>
-                      <span className="font-display text-2xl text-ink">&euro;{subtotal.toFixed(2)}</span>
+                      <span className="font-display text-2xl text-ink">{formatPrice(locale, subtotal)}</span>
                     </div>
 
                     <Link
@@ -212,14 +213,14 @@ export default function CartPage() {
 
               <div className="flex items-center justify-between text-sm">
                 <span className="text-ink-soft">{t('subtotal')}</span>
-                <span className="text-ink">&euro;{subtotal.toFixed(2)}</span>
+                <span className="text-ink">{formatPrice(locale, subtotal)}</span>
               </div>
 
               <div className="h-px bg-ink/12" />
 
               <div className="flex items-center justify-between">
                 <span className="text-base font-semibold text-ink">{t('total')}</span>
-                <span className="font-display text-2xl text-ink">&euro;{subtotal.toFixed(2)}</span>
+                <span className="font-display text-2xl text-ink">{formatPrice(locale, subtotal)}</span>
               </div>
 
               <Link

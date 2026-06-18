@@ -1,4 +1,5 @@
 import CollectionBadge from './CollectionBadge';
+import {formatPrice} from '../../../../lib/formatPrice';
 import type {MobileShopItem} from './types';
 
 interface SlideOverlayProps {
@@ -7,11 +8,7 @@ interface SlideOverlayProps {
 }
 
 export default function SlideOverlay({product, locale}: SlideOverlayProps) {
-  const price = new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: 'RUB',
-    maximumFractionDigits: 0,
-  }).format(product.price);
+  const price = formatPrice(locale, product.price);
 
   return (
     <>

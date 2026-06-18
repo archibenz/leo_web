@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import { API_BASE } from '../lib/api';
+import { formatPrice } from '../lib/formatPrice';
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
@@ -194,7 +195,7 @@ function HeroCard({item, idx, locale, t, tLook}: HeroCardProps) {
         </h2>
         <div className="flex items-end justify-between gap-4">
           <span className="font-accent text-[16px] italic text-[var(--ink-soft)] sm:text-[18px]">
-            €{item.price.toLocaleString()}
+            {formatPrice(locale, item.price)}
           </span>
           <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-[var(--ink-soft)] transition-colors duration-200 group-hover:text-[var(--accent)] sm:text-[11px]">
             {tLook('openLook')}
@@ -305,7 +306,7 @@ function ListCard({item, idx, locale, t}: ListCardProps) {
           {item.title}
         </h3>
         <span className="whitespace-nowrap font-accent text-[16px] italic text-[var(--ink-soft)] sm:text-[18px]">
-          €{item.price.toLocaleString()}
+          {formatPrice(locale, item.price)}
         </span>
       </div>
     </Link>

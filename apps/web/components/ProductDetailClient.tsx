@@ -10,6 +10,7 @@ import {useFavorites} from '../contexts/FavoritesContext';
 import {useAuth} from '../contexts/AuthContext';
 import {track} from '../lib/analytics';
 import {apiFetch} from '../lib/api';
+import {formatPrice} from '../lib/formatPrice';
 import ProductGallery from './ProductGallery';
 import type {ProductImage} from './ProductGallery';
 import SizeSelector from './SizeSelector';
@@ -277,7 +278,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
               {product.title}
             </h1>
             <p className="mt-1 text-xl font-accent text-[var(--ink)]">
-              &euro;{product.price.toLocaleString()}
+              {formatPrice(locale, product.price)}
             </p>
           </div>
 
@@ -427,7 +428,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
                 </div>
                 <div className="mt-2">
                   <p className="text-sm text-[var(--ink)] truncate">{rec.title}</p>
-                  <p className="text-sm text-[var(--ink)]/50">{new Intl.NumberFormat(locale, {style: 'currency', currency: 'RUB', maximumFractionDigits: 0}).format(rec.price)}</p>
+                  <p className="text-sm text-[var(--ink)]/50">{formatPrice(locale, rec.price)}</p>
                 </div>
               </Link>
             ))}
