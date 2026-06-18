@@ -1,10 +1,11 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {motion, AnimatePresence} from 'framer-motion';
 import {useTranslations} from 'next-intl';
 import BrandLoader from './BrandLoader';
+import {useFocusTrap} from '../lib/useFocusTrap';
 
 type Props = {
   open: boolean;
@@ -25,6 +26,9 @@ export default function DeleteAccountModal({open, onClose, onConfirm, onRequestC
   const [requesting, setRequesting] = useState(false);
 
   const usesChallenge = !hasPassword && !!onRequestChallenge;
+
+  const formRef = useRef<HTMLFormElement>(null);
+  useFocusTrap(formRef, open);
 
   useEffect(() => {
     if (!open) {
@@ -106,6 +110,7 @@ export default function DeleteAccountModal({open, onClose, onConfirm, onRequestC
             aria-labelledby="delete-account-title"
           >
             <form
+              ref={formRef}
               onSubmit={handleSubmit}
               className="paper-card w-full max-w-md p-7 space-y-5"
               onClick={(e) => e.stopPropagation()}
@@ -195,7 +200,7 @@ export default function DeleteAccountModal({open, onClose, onConfirm, onRequestC
                 </div>
               </div>
 
-              {error && <p className="rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-400">{error}</p>}
+              {error && <p role="alert" className="rounded-lg bg-red-500/10 px-4 py-2 text-sm text-red-400">{error}</p>}
 
               <div className="flex gap-3 pt-1">
                 <button
