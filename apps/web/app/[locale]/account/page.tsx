@@ -765,7 +765,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                             </div>
                           )}
                           <button onClick={(e) => { e.preventDefault(); removeFavorite(item.id); }}
-                            className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-paper/80 text-ink-soft backdrop-blur-sm transition-all hover:bg-paper hover:text-ink" aria-label={favT('remove')}>
+                            className="absolute right-2 top-2 flex h-11 w-11 items-center justify-center rounded-full bg-paper/80 text-ink-soft backdrop-blur-sm transition-all hover:bg-paper hover:text-ink" aria-label={favT('remove')}>
                             <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                           </button>
                         </div>

@@ -110,7 +110,7 @@ export default function FavoritesPage({params}: Props) {
                   {/* Remove button - top right */}
                   <button
                     onClick={() => removeItem(item.id)}
-                    className="absolute right-3 top-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-paper/80 text-ink-soft backdrop-blur-sm transition-all hover:bg-paper hover:text-ink"
+                    className="absolute right-3 top-3 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-paper/80 text-ink-soft backdrop-blur-sm transition-all hover:bg-paper hover:text-ink"
                     aria-label={t('remove')}
                   >
                     <BrandHeart filled size={16} />
