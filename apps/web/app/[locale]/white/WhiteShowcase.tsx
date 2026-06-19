@@ -47,7 +47,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         right={
           <div className="flex items-center gap-6 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
             <span className="hidden cursor-pointer transition-opacity hover:opacity-60 sm:inline">{t('Search', 'Поиск')}</span>
-            <span className="cursor-pointer transition-opacity hover:opacity-60">{t('Bag (0)', 'Корзина (0)')}</span>
+            <a href={`/${locale}/white/bag`} aria-label={t('Bag, 0 items', 'Корзина, 0 товаров')} className="transition-opacity hover:opacity-60">{t('Bag (0)', 'Корзина (0)')}</a>
           </div>
         }
       />

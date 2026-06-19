@@ -61,7 +61,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             ← {t('Back', 'Назад')}
           </a>
         }
-        right={<span className="text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>{t('Bag (0)', 'Корзина (0)')}</span>}
+        right={<a href={`/${locale}/white/bag`} aria-label={t('Bag, 0 items', 'Корзина, 0 товаров')} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>{t('Bag (0)', 'Корзина (0)')}</a>}
       />
 
       <div className="mx-auto max-w-[1400px] px-6 sm:px-10">
