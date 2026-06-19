@@ -17,12 +17,12 @@ import {WHITE_PRODUCTS as ITEMS, type WhiteProduct as Item, type WhiteCat as Cat
 
 type Sort = 'new' | 'asc' | 'desc';
 
-export default function WhiteShopShowcase({locale, initialCat = 'all', initialQuery = '', focusSearch = false}: {locale: string; initialCat?: Cat | 'all'; initialQuery?: string; focusSearch?: boolean}) {
+export default function WhiteShopShowcase({locale, initialCat = 'all', initialQuery = '', initialSort = 'new', focusSearch = false}: {locale: string; initialCat?: Cat | 'all'; initialQuery?: string; initialSort?: Sort; focusSearch?: boolean}) {
   const mounted = useWhitePortal();
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const [cat, setCat] = useState<Cat | 'all'>(initialCat);
-  const [sort, setSort] = useState<Sort>('new');
+  const [sort, setSort] = useState<Sort>(initialSort);
   const [query, setQuery] = useState(initialQuery);
   const searchRef = useRef<HTMLInputElement>(null);
   const ru = locale === 'ru';
@@ -50,6 +50,11 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
   const pickQuery = (q: string) => {
     setQuery(q);
     syncParam('q', q.trim() || null);
+  };
+  const pickSort = (s: Sort) => {
+    setSort(s);
+    // 'new' is the default — keep it out of the URL so shared links stay clean.
+    syncParam('sort', s === 'new' ? null : s);
   };
 
   const catLabels: Record<Cat | 'all', string> = {
@@ -167,7 +172,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
             {t('Sort', 'Сортировка')}
             <select
               value={sort}
-              onChange={(e) => setSort(e.target.value as Sort)}
+              onChange={(e) => pickSort(e.target.value as Sort)}
               className="cursor-pointer border-b bg-transparent py-1 text-[12px] uppercase tracking-[0.14em] outline-none"
               style={{color: INK, borderColor: MUTED}}
             >

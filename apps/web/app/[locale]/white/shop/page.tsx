@@ -14,17 +14,20 @@ export const metadata: Metadata = {
 
 type Props = {
   params: Promise<{locale: string}>;
-  searchParams: Promise<{cat?: string; q?: string; focus?: string}>;
+  searchParams: Promise<{cat?: string; q?: string; focus?: string; sort?: string}>;
 };
 
 export default async function WhiteShopPage({params, searchParams}: Props) {
   const {locale} = await params;
-  const {cat, q, focus} = await searchParams;
+  const {cat, q, focus, sort} = await searchParams;
+  // Sort is shareable/bookmarkable like cat & q; anything unknown falls to 'new'.
+  const initialSort = sort === 'asc' || sort === 'desc' ? sort : 'new';
   return (
     <WhiteShopShowcase
       locale={locale}
       initialCat={normalizeWhiteCat(cat)}
       initialQuery={typeof q === 'string' ? q : ''}
+      initialSort={initialSort}
       focusSearch={focus === 'search'}
     />
   );
