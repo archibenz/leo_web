@@ -3,6 +3,7 @@
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../hooks/useWhiteBag';
+import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import WhiteHeader from './WhiteHeader';
 import WhiteFooter from './WhiteFooter';
 import WhiteProductCard from './WhiteProductCard';
@@ -22,6 +23,7 @@ const FEATURED = [2, 1, 3, 4, 5, 6].map((k) => WHITE_PRODUCTS.find((p) => p.key 
 export default function WhiteShowcase({locale}: {locale: string}) {
   const mounted = useWhitePortal();
   const {count} = useWhiteBag();
+  const {count: favCount} = useWhiteFavourites();
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
 
@@ -49,6 +51,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         right={
           <div className="flex items-center gap-6 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
             <a href={`/${locale}/white/shop`} aria-label={t('Search the collection', 'Поиск по коллекции')} className="hidden transition-opacity hover:opacity-60 sm:inline">{t('Search', 'Поиск')}</a>
+            <a href={`/${locale}/white/favourites`} aria-label={t(`Saved, ${favCount} items`, `Избранное, ${favCount} товаров`)} className="transition-opacity hover:opacity-60">{t('Saved', 'Избранное')} ({favCount})</a>
             <a href={`/${locale}/white/bag`} aria-label={t(`Bag, ${count} items`, `Корзина, ${count} товаров`)} className="transition-opacity hover:opacity-60">{t('Bag', 'Корзина')} ({count})</a>
           </div>
         }

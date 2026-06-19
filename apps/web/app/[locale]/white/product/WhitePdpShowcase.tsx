@@ -4,6 +4,7 @@ import {useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
+import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
@@ -40,14 +41,15 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState(productColors[0]!.key);
   const [guideOpen, setGuideOpen] = useState(false);
-  const [favourited, setFavourited] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const {add, count} = useWhiteBag();
+  const {has: isFavourite, toggle: toggleFavourite, count: favCount} = useWhiteFavourites();
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
   const selectedColor = productColors.find((c) => c.key === color) ?? productColors[0]!;
-  // Concrete product for the bag — fall back to the default demo dress (key 1).
+  // Concrete product for the bag/wishlist — fall back to the demo dress (key 1).
   const bagProduct = product ?? WHITE_PRODUCTS[0]!;
+  const favourited = isFavourite(bagProduct.key);
   const handleAdd = () => {
     if (!size) return;
     add({key: bagProduct.key, en: bagProduct.en, ru: bagProduct.ru, price: bagProduct.price, size});
@@ -80,7 +82,12 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             ← {t('Back', 'Назад')}
           </a>
         }
-        right={<a href={`/${locale}/white/bag`} aria-label={t(`Bag, ${count} items`, `Корзина, ${count} товаров`)} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>{t('Bag', 'Корзина')} ({count})</a>}
+        right={
+          <div className="flex items-center gap-6 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
+            <a href={`/${locale}/white/favourites`} aria-label={t(`Saved, ${favCount} items`, `Избранное, ${favCount} товаров`)} className="transition-opacity hover:opacity-60">{t('Saved', 'Избранное')} ({favCount})</a>
+            <a href={`/${locale}/white/bag`} aria-label={t(`Bag, ${count} items`, `Корзина, ${count} товаров`)} className="transition-opacity hover:opacity-60">{t('Bag', 'Корзина')} ({count})</a>
+          </div>
+        }
       />
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}}>
@@ -218,7 +225,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               </button>
               <button
                 type="button"
-                onClick={() => setFavourited((f) => !f)}
+                onClick={() => toggleFavourite(bagProduct.key)}
                 aria-pressed={favourited}
                 aria-label={favourited ? t('Remove from favourites', 'Убрать из избранного') : t('Add to favourites', 'В избранное')}
                 className="flex h-[52px] w-[52px] items-center justify-center transition-colors hover:bg-[#f5f2ed]"

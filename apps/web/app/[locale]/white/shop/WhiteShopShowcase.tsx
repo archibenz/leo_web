@@ -4,6 +4,7 @@ import {useMemo, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
+import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
@@ -19,6 +20,7 @@ type Sort = 'new' | 'asc' | 'desc';
 export default function WhiteShopShowcase({locale, initialCat = 'all', initialQuery = ''}: {locale: string; initialCat?: Cat | 'all'; initialQuery?: string}) {
   const mounted = useWhitePortal();
   const {count} = useWhiteBag();
+  const {count: favCount} = useWhiteFavourites();
   const [cat, setCat] = useState<Cat | 'all'>(initialCat);
   const [sort, setSort] = useState<Sort>('new');
   const [query, setQuery] = useState(initialQuery);
@@ -86,7 +88,12 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
             ← {t('Home', 'Главная')}
           </a>
         }
-        right={<a href={`/${locale}/white/bag`} aria-label={t(`Bag, ${count} items`, `Корзина, ${count} товаров`)} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>{t('Bag', 'Корзина')} ({count})</a>}
+        right={
+          <div className="flex items-center gap-6 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
+            <a href={`/${locale}/white/favourites`} aria-label={t(`Saved, ${favCount} items`, `Избранное, ${favCount} товаров`)} className="transition-opacity hover:opacity-60">{t('Saved', 'Избранное')} ({favCount})</a>
+            <a href={`/${locale}/white/bag`} aria-label={t(`Bag, ${count} items`, `Корзина, ${count} товаров`)} className="transition-opacity hover:opacity-60">{t('Bag', 'Корзина')} ({count})</a>
+          </div>
+        }
       />
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto max-w-[1400px] px-6 sm:px-10">
