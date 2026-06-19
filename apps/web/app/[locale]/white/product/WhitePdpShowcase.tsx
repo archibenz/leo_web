@@ -230,8 +230,8 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             {/* Details */}
             <dl className="mt-10 divide-y" style={{borderColor: HAIR}}>
               {[
-                [t('Composition', 'Состав'), t('100% mulberry silk', '100% тутовый шёлк')],
-                [t('Care', 'Уход'), t('Dry clean only', 'Только химчистка')],
+                [t('Composition', 'Состав'), product ? t(product.compositionEn, product.compositionRu) : t('100% mulberry silk', '100% тутовый шёлк')],
+                [t('Care', 'Уход'), product ? t(product.careEn, product.careRu) : t('Dry clean only', 'Только химчистка')],
                 [t('Delivery', 'Доставка'), t('2–5 business days', '2–5 рабочих дней')],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between py-3.5 text-[13px]" style={{borderColor: HAIR}}>
