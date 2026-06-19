@@ -67,7 +67,7 @@ export async function apiFetch<T>(
       unauthorizedHandler?.();
     }
     const body = await res.json().catch((e) => {
-      console.warn('apiFetch: failed to parse JSON response', {status: res.status, error: e});
+      console.error('apiFetch: failed to parse JSON response', {status: res.status, error: e});
       return {} as Record<string, unknown>;
     });
     const err = new Error(body.message ?? `API error ${res.status}`) as Error & {

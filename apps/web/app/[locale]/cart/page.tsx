@@ -28,8 +28,6 @@ export default function CartPage() {
   const cartEmpty = items.length === 0;
   const subtotal = total;
   const hasTestItems = items.some(item => item.isTest);
-  const allTest = items.length > 0 && items.every(item => item.isTest);
-  const realTotal = items.filter(i => !i.isTest).reduce((sum, i) => sum + (i.price ?? 0) * i.quantity, 0);
 
   if (isLoading) {
     return <LoaderSplash />;
