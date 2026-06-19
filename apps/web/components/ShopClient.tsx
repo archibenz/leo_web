@@ -515,7 +515,10 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
 
           {/* sort button */}
           <button
+            type="button"
             onClick={() => setSortPanelOpen(prev => !prev)}
+            aria-expanded={sortPanelOpen}
+            aria-controls="shop-sort-panel"
             className="lux-control flex items-center gap-2 px-4 py-2 text-sm tracking-wide text-[var(--ink)]"
           >
             {t('sortBy')}: {t(`sort.${sortKey}`)}
@@ -526,7 +529,10 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
 
           {/* filter toggle */}
           <button
+            type="button"
             onClick={() => setFiltersOpen(prev => !prev)}
+            aria-expanded={filtersOpen}
+            aria-controls="shop-filter-panel"
             className="lux-btn-secondary !py-2 !px-4 !text-xs"
           >
             {filtersOpen ? t('hideFilters') : t('showFilters')}
@@ -541,6 +547,8 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
 
       {/* ---- sort panel overlay ---- */}
       <div
+        id="shop-sort-panel"
+        inert={!sortPanelOpen}
         className={`overflow-hidden transition-all duration-300 ease-out ${
           sortPanelOpen ? 'max-h-48 opacity-100 mt-4 mb-2' : 'max-h-0 opacity-0 mt-0 mb-0'
         }`}
@@ -549,7 +557,9 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
           {SORT_OPTIONS.map(opt => (
             <button
               key={opt}
+              type="button"
               onClick={() => handleSortSelect(opt)}
+              aria-pressed={sortKey === opt}
               className={`rounded-full px-5 py-2.5 text-sm tracking-wide transition-all duration-200 ${
                 sortKey === opt
                   ? 'bg-[var(--accent)] text-[var(--paper-base)]'
@@ -566,7 +576,7 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
       <div className="mt-6 flex flex-col gap-8 sm:flex-row">
         {/* ---- filter sidebar (independent scroll) ---- */}
         {filtersOpen && (
-          <aside className="w-full shrink-0 sm:w-64 lg:w-80 sm:sticky sm:top-24 sm:self-start">
+          <aside id="shop-filter-panel" className="w-full shrink-0 sm:w-64 lg:w-80 sm:sticky sm:top-24 sm:self-start">
             <div className="lux-control flex flex-col gap-1.5 p-4">
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-widest text-[var(--ink-soft)]">
