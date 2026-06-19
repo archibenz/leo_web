@@ -91,7 +91,7 @@ export default function WhiteShopShowcase({locale}: {locale: string}) {
                 type="button"
                 onClick={() => setCat(c)}
                 aria-pressed={cat === c}
-                className="shrink-0 px-3.5 py-2 text-[12px] uppercase tracking-[0.14em] transition-colors"
+                className="inline-flex min-h-11 shrink-0 items-center px-3.5 text-[12px] uppercase tracking-[0.14em] transition-colors"
                 style={{
                   color: cat === c ? '#fff' : INK,
                   background: cat === c ? INK : 'transparent',
