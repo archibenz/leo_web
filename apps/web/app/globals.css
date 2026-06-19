@@ -1227,6 +1227,22 @@ h2.font-display,
   animation: fade-in-up 1s ease-out;
 }
 
+/* reduced-motion: the entrance utilities (.fade-in, .animate-fade-in-up) start
+   hidden and animate in — reveal them in their final state instead. The
+   scroll-hint bounce is infinite (WCAG 2.2.2), so stop it entirely. */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in,
+  .animate-fade-in-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  .animate-scroll-bounce {
+    animation: none;
+  }
+}
+
 /* ============================================
    Error pages — efferd not-found-2 minimal (404 / 500 / 403 / offline)
    Big bold sans numeral, strong fade-to-transparent, icon buttons.
