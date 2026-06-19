@@ -7,7 +7,7 @@ import BrandLoader from '../BrandLoader';
 import {useTranslations} from 'next-intl';
 
 export default function AdminGuard({children}: {children: React.ReactNode}) {
-  const {user, isAuthenticated, isLoading, isAdmin} = useAuth();
+  const {isAuthenticated, isLoading, isAdmin} = useAuth();
   const router = useRouter();
   const pathname = usePathname() || '/';
   const locale = pathname.split('/')[1] || 'ru';

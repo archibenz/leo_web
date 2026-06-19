@@ -22,7 +22,6 @@ type RegStep = 'email' | 'code' | 'details';
 export default function AccountPage() {
   const t = useTranslations('account');
   const locale = useLocale();
-  const router = useRouter();
   const {user, isAuthenticated, isLoading, isAdmin, login, sendCode, register, initTelegramAuth, loginWithToken, logout, validateEmail} = useAuth();
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [email, setEmail] = useState('');
