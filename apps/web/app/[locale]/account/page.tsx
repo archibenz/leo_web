@@ -435,7 +435,7 @@ export default function AccountPage() {
                           type="checkbox"
                           required
                           aria-required="true"
-                          className="accent-[#D4A574] h-4 w-4 mt-0.5 shrink-0"
+                          className="accent-accent h-4 w-4 mt-0.5 shrink-0"
                         />
                         <label htmlFor="consent-register">
                           {t('form.dataConsent')}{' '}
@@ -789,11 +789,11 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                 {emailLinked && !linkSuccess ? (
                   <div className="flex items-center gap-2">
                     <span className="text-[14px] text-ink/70">{user.email}</span>
-                    <span className="inline-flex items-center rounded-full bg-[#D4A574]/10 px-2.5 py-0.5 text-[11px] font-medium text-[#D4A574]">{t('profile.emailVerified')}</span>
+                    <span className="inline-flex items-center rounded-full bg-accent/10 px-2.5 py-0.5 text-[11px] font-medium text-accent">{t('profile.emailVerified')}</span>
                   </div>
                 ) : linkSuccess ? (
-                  <div className="rounded-xl bg-[#D4A574]/10 border border-[#D4A574]/20 px-4 py-3">
-                    <p className="text-[14px] text-[#D4A574] font-medium">{t('settings.linkEmail.success')}</p>
+                  <div className="rounded-xl bg-accent/10 border border-accent/20 px-4 py-3">
+                    <p className="text-[14px] text-accent font-medium">{t('settings.linkEmail.success')}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -824,7 +824,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                           {settingsCooldown > 0 ? (
                             <span className="text-ink/65">{t('settings.linkEmail.resendIn', {seconds: settingsCooldown})}</span>
                           ) : (
-                            <button onClick={handleSettingsResend} disabled={sending} className="text-[#D4A574] hover:text-[#D4A574]/80 transition-colors">{t('settings.linkEmail.resend')}</button>
+                            <button onClick={handleSettingsResend} disabled={sending} className="text-accent hover:text-accent/80 transition-colors">{t('settings.linkEmail.resend')}</button>
                           )}
                         </div>
                       </div>
@@ -973,7 +973,7 @@ function SettingsToggleRow({label, hint, checked, disabled, onChange}: {
         <p className="text-[12px] text-ink/65 mt-0.5">{hint}</p>
       </div>
       <button type="button" role="switch" aria-checked={checked} disabled={disabled} onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${checked ? 'bg-[#D4A574]' : 'bg-ink/15'} ${disabled ? 'opacity-50' : 'cursor-pointer'}`}>
+        className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full transition-colors duration-200 ${checked ? 'bg-accent' : 'bg-ink/15'} ${disabled ? 'opacity-50' : 'cursor-pointer'}`}>
         <span className={`inline-block h-5 w-5 rounded-full bg-white shadow-sm transform transition-transform duration-200 mt-0.5 ${checked ? 'translate-x-[22px]' : 'translate-x-0.5'}`} />
       </button>
     </div>
@@ -985,7 +985,7 @@ function ToggleRow({label, checked, onChange}: {label: string; checked: boolean;
     <div className="flex items-center justify-between gap-3">
       <span className="text-[13px] text-ink/70">{label}</span>
       <button type="button" role="switch" aria-checked={checked} onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full transition-colors duration-200 cursor-pointer ${checked ? 'bg-[#D4A574]' : 'bg-ink/15'}`}>
+        className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full transition-colors duration-200 cursor-pointer ${checked ? 'bg-accent' : 'bg-ink/15'}`}>
         <span className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transform transition-transform duration-200 mt-0.5 ${checked ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
       </button>
     </div>
