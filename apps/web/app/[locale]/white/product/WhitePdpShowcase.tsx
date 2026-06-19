@@ -46,9 +46,12 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
 
       <div className="mx-auto max-w-[1400px] px-6 sm:px-10">
         {/* Breadcrumb */}
-        <nav className="py-5 text-[11px] uppercase tracking-[0.18em]" style={{color: MUTED}} aria-label="Breadcrumb">
-          REINASLEO <span className="mx-2">/</span> {t('Shop', 'Магазин')} <span className="mx-2">/</span>
-          <span style={{color: INK}}> {t('Silk Column Dress', 'Шёлковое платье-колонна')}</span>
+        <nav className="py-5 text-[11px] uppercase tracking-[0.18em]" style={{color: MUTED}} aria-label={t('Breadcrumb', 'Хлебные крошки')}>
+          <a href={`/${locale}/white`} className="transition-opacity hover:opacity-60">REINASLEO</a>
+          <span className="mx-2">/</span>
+          <a href={`/${locale}/white/shop`} className="transition-opacity hover:opacity-60">{t('Shop', 'Магазин')}</a>
+          <span className="mx-2">/</span>
+          <span style={{color: INK}} aria-current="page">{t('Silk Column Dress', 'Шёлковое платье-колонна')}</span>
         </nav>
 
         <div className="grid gap-10 pb-24 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
