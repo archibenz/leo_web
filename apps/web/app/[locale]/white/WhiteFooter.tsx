@@ -3,6 +3,7 @@
 import {useEffect, useState, type FormEvent} from 'react';
 import {isValidEmail} from '../../../lib/validation';
 import {INK, MUTED, HAIR, SIGNAL} from './wv-palette';
+import WhiteLocaleSwitch from './WhiteLocaleSwitch';
 
 // Variant 2 "White" — shared editorial footer. Rendered on the landing, shop
 // and PDP so every page of the prototype closes on the same brand chrome.
@@ -138,8 +139,9 @@ export default function WhiteFooter({locale}: {locale: string}) {
           </p>
         </div>
       </div>
-      <div className="mx-auto max-w-[1400px] px-6 pb-10 text-[11px] uppercase tracking-[0.14em] sm:px-10" style={{color: MUTED}}>
-        © 2026 REINASLEO · {t('White variant — preview', 'Белый вариант — превью')}
+      <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-6 pb-10 text-[11px] uppercase tracking-[0.14em] sm:px-10" style={{color: MUTED}}>
+        <span>© 2026 REINASLEO · {t('White variant — preview', 'Белый вариант — превью')}</span>
+        <WhiteLocaleSwitch locale={locale} />
       </div>
     </footer>
   );
