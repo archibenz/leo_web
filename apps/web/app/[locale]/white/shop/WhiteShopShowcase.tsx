@@ -129,7 +129,7 @@ export default function WhiteShopShowcase({locale}: {locale: string}) {
         <div className="grid grid-cols-2 gap-x-4 gap-y-12 py-12 sm:gap-x-6 lg:grid-cols-3">
           {shown.map((p, i) => (
             <a key={p.key} href={`/${locale}/white/product`} className={`wv-card group block wv-rise wv-delay-${(i % 3) + 1}`}>
-              <div className="relative aspect-[2/3] w-full overflow-hidden" style={{background: 'linear-gradient(160deg,#f5f2ed,#e8e2d9)'}}>
+              <div className="wv-ph relative aspect-[2/3] w-full overflow-hidden">
                 {p.sale && (
                   <span className="absolute left-3 top-3 text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>{t('Sale', 'Скидка')}</span>
                 )}

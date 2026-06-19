@@ -93,7 +93,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
               {t('Shop the collection', 'Смотреть коллекцию')}
             </a>
           </div>
-          <div className="wv-rise wv-delay-1 aspect-[3/4] w-full" style={{background: 'linear-gradient(150deg,#f4f1ec,#e9e3da)'}} aria-hidden="true" />
+          <div className="wv-ph wv-rise wv-delay-1 aspect-[3/4] w-full" aria-hidden="true" />
         </div>
       </section>
 
@@ -112,7 +112,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 lg:grid-cols-3">
           {PRODUCTS.map((p, i) => (
             <a key={p.key} href={`/${locale}/white/product`} className={`wv-card wv-rise group block wv-delay-${(i % 3) + 1}`}>
-              <div className="relative aspect-[2/3] w-full overflow-hidden" style={{background: 'linear-gradient(160deg,#f5f2ed,#e8e2d9)'}}>
+              <div className="wv-ph relative aspect-[2/3] w-full overflow-hidden">
                 {p.sale && (
                   <span className="absolute left-3 top-3 text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>
                     {t('Sale', 'Скидка')}
@@ -143,7 +143,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       {/* Lookbook — editorial brand statement */}
       <section className="border-t" style={{borderColor: HAIR}}>
         <div className="mx-auto grid max-w-[1400px] items-center gap-0 lg:grid-cols-2">
-          <div className="wv-rise aspect-[4/5] w-full lg:aspect-auto lg:h-full lg:min-h-[560px]" style={{background: 'linear-gradient(155deg,#efeae3,#e2dace)'}} aria-hidden="true" />
+          <div className="wv-ph wv-rise aspect-[4/5] w-full lg:aspect-auto lg:h-full lg:min-h-[560px]" aria-hidden="true" />
           <div className="wv-rise wv-delay-1 px-6 py-16 sm:px-12 lg:px-20 lg:py-28">
             <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('The atelier', 'Ателье')}</p>
             <h2 className="font-display text-[30px] font-light leading-[1.1] tracking-tight sm:text-[40px]">

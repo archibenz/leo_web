@@ -70,16 +70,15 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
                   type="button"
                   onClick={() => setActiveImg(i)}
                   aria-label={t(`View image ${i + 1}`, `Фото ${i + 1}`)}
-                  className="aspect-[2/3] w-16 shrink-0 transition-opacity"
+                  className="wv-ph aspect-[2/3] w-16 shrink-0 transition-opacity"
                   style={{
-                    background: 'linear-gradient(160deg,#f5f2ed,#e8e2d9)',
                     outline: i === activeImg ? `1px solid ${INK}` : 'none',
                     opacity: i === activeImg ? 1 : 0.55,
                   }}
                 />
               ))}
             </div>
-            <div className="order-1 aspect-[2/3] w-full sm:order-2" style={{background: 'linear-gradient(150deg,#f4f1ec,#e6dfd5)'}} aria-hidden="true" />
+            <div className="wv-ph order-1 aspect-[2/3] w-full sm:order-2" aria-hidden="true" />
           </div>
 
           {/* Info */}

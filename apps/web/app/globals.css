@@ -1400,6 +1400,13 @@ h2.font-display,
   border-color: #1c1714;
 }
 
+/* Editorial image placeholder. One canonical warm off-white so every empty
+   image slot reads the same; swap these .wv-ph blocks for <Image> once the
+   Higgsfield model-on-white shots land. */
+.wv-ph {
+  background: linear-gradient(160deg, #f5f2ed, #e8e2d9);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .wv-rise { animation: none; opacity: 1; }
   .wv-quickadd { transition: opacity 0.2s ease; transform: none; }
