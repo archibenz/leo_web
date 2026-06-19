@@ -12,11 +12,6 @@ type MenuOverlayProps = {
   locale: string;
 };
 
-const SELECTION_ITEMS: ReadonlyArray<{key: 'new' | 'popular'; filter: 'new' | 'popular'}> = [
-  {key: 'new', filter: 'new'},
-  {key: 'popular', filter: 'popular'},
-];
-
 const CATEGORY_ITEMS = [
   'dresses',
   'outerwear',
@@ -97,67 +92,47 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
           aria-modal="true"
           aria-label={t('label')}
         >
-          <div className="max-h-[calc(100vh-110px)] overflow-y-auto px-4 py-5 sm:px-7 sm:py-7">
-            <p className="mb-3 font-accent text-[11px] uppercase tracking-[0.22em] text-[var(--accent)]/70">
-              {t('sections.selection')}
-            </p>
-            <nav className="grid grid-cols-2 gap-x-3 gap-y-1">
-              {SELECTION_ITEMS.map((item, index) => (
-                <Link
-                  key={item.key}
-                  ref={index === 0 ? firstLinkRef : undefined}
-                  href={`/${locale}/shop?filter=${item.filter}`}
-                  onClick={onClose}
-                  className="group flex items-baseline gap-2 py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-inkSoft transition-colors hover:text-accent focus:text-accent"
-                >
-                  <span className="text-[var(--accent)]/45 transition-colors group-hover:text-[var(--accent)]">·</span>
-                  {t(`categories.${item.key}`)}
-                </Link>
-              ))}
-            </nav>
-
-            <div className="my-5 border-t border-inkSoft/10" />
-
-            <p className="mb-3 font-accent text-[11px] uppercase tracking-[0.22em] text-[var(--accent)]/70">
-              {t('sections.categories')}
-            </p>
-            <nav className="grid grid-cols-2 gap-x-3 gap-y-1 sm:grid-cols-3">
-              {CATEGORY_ITEMS.map((key) => (
-                <Link
-                  key={key}
-                  href={`/${locale}/shop?category=${key}`}
-                  onClick={onClose}
-                  className="block py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-inkSoft transition-colors hover:text-accent focus:text-accent truncate"
-                >
-                  {t(`categories.${key}`)}
-                </Link>
-              ))}
-            </nav>
-
-            <div className="my-5 border-t border-inkSoft/10" />
-
-            <nav className="flex flex-wrap gap-x-5 gap-y-2 pt-1">
-              {[
-                {href: `/${locale}/shop`, label: nav('shop')},
-                {href: `/${locale}/care`, label: t('categories.care')},
-                {href: `/${locale}/about`, label: nav('about')},
-                {href: `/${locale}/contact`, label: nav('contact')},
-              ].map(({href, label}) => {
-                // aria-current marks the page the user is on. Compared on pathname
-                // only — the ?filter/?category shortcuts above aren't a page identity.
-                const current = pathname === href;
+          <div className="max-h-[calc(100vh-110px)] overflow-y-auto px-6 py-7 sm:px-9 sm:py-9">
+            {/* Minimal: one calm vertical column — Shop + categories, large type,
+                hairline dividers, generous air. No multi-column grids. */}
+            <nav className="flex flex-col">
+              {[{key: 'shop', href: `/${locale}/shop`, label: nav('shop')}].concat(
+                CATEGORY_ITEMS.map((key) => ({key, href: `/${locale}/shop?category=${key}`, label: t(`categories.${key}`)})),
+              ).map((item, index) => {
+                const current = pathname === item.href;
                 return (
                   <Link
-                    key={href}
-                    href={href}
+                    key={item.key}
+                    ref={index === 0 ? firstLinkRef : undefined}
+                    href={item.href}
                     onClick={onClose}
                     aria-current={current ? 'page' : undefined}
-                    className={`text-[13px] uppercase tracking-[0.08em] transition-colors hover:text-accent focus:text-accent ${current ? 'text-accent' : 'text-inkSoft/70'}`}
+                    className={`border-b border-inkSoft/10 py-4 font-accent text-[21px] tracking-[0.03em] transition-colors hover:text-accent focus:text-accent ${current ? 'text-accent' : 'text-inkSoft'}`}
                   >
-                    {label}
+                    {item.label}
                   </Link>
                 );
               })}
+            </nav>
+
+            {/* Quiet secondary row — editorial / info links. */}
+            <nav className="mt-7 flex flex-wrap gap-x-5 gap-y-2.5">
+              {[
+                {href: `/${locale}/shop?filter=new`, label: t('categories.new')},
+                {href: `/${locale}/shop?filter=popular`, label: t('categories.popular')},
+                {href: `/${locale}/care`, label: t('categories.care')},
+                {href: `/${locale}/about`, label: nav('about')},
+                {href: `/${locale}/contact`, label: nav('contact')},
+              ].map(({href, label}) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={onClose}
+                  className="text-[12px] uppercase tracking-[0.08em] text-inkSoft/55 transition-colors hover:text-accent focus:text-accent"
+                >
+                  {label}
+                </Link>
+              ))}
             </nav>
           </div>
         </div>
