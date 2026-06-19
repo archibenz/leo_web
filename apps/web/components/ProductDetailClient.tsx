@@ -278,7 +278,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
                 category={product.category}
               />
               {sizeError && (
-                <p className="mt-2 text-sm text-red-400">{t('selectSizeFirst')}</p>
+                <p className="mt-2 text-sm text-[var(--status-error)]">{t('selectSizeFirst')}</p>
               )}
             </div>
           )}

@@ -111,8 +111,8 @@ export default function ContactForm() {
       </button>
 
       <div role={status === 'error' ? 'alert' : 'status'} className="min-h-[1.25rem] text-sm">
-        {status === 'success' && <span className="text-green-400/80">{t('success')}</span>}
-        {status === 'error' && <span className="text-red-400/80">{t('error')}</span>}
+        {status === 'success' && <span className="text-[var(--status-success)]">{t('success')}</span>}
+        {status === 'error' && <span className="text-[var(--status-error)]">{t('error')}</span>}
       </div>
     </form>
   );
