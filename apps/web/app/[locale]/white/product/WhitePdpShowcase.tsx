@@ -91,7 +91,10 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
               <p className="mb-3 text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>
                 {t('Colour', 'Цвет')} — <span style={{color: INK}}>{t(selectedColor.en, selectedColor.ru)}</span>
               </p>
-              <div className="flex gap-3">
+              {/* 44px tap targets (project a11y rule); the 32px inner dot keeps
+                  the visual unchanged — gap-0 since 44-32=12px padding reproduces
+                  the previous gap-3 spacing between dots. */}
+              <div className="flex">
                 {COLORS.map((c) => (
                   <button
                     key={c.key}
@@ -99,9 +102,14 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
                     onClick={() => setColor(c.key)}
                     aria-label={t(c.en, c.ru)}
                     aria-pressed={color === c.key}
-                    className="h-8 w-8 rounded-full transition-transform motion-safe:hover:scale-105"
-                    style={{background: c.hex, outline: color === c.key ? `1px solid ${INK}` : `1px solid ${HAIR}`, outlineOffset: '2px'}}
-                  />
+                    className="group flex h-11 w-11 items-center justify-center"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="h-8 w-8 rounded-full transition-transform motion-safe:group-hover:scale-105"
+                      style={{background: c.hex, outline: color === c.key ? `1px solid ${INK}` : `1px solid ${HAIR}`, outlineOffset: '2px'}}
+                    />
+                  </button>
                 ))}
               </div>
             </div>
