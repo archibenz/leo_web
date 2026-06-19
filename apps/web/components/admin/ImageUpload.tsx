@@ -2,7 +2,7 @@
 
 import {useState, useRef, useCallback} from 'react';
 import {useTranslations} from 'next-intl';
-import {API_BASE, apiFetch, getToken} from '../../lib/api';
+import {API_BASE, getToken} from '../../lib/api';
 import BrandLoader from '../BrandLoader';
 
 interface ImageUploadProps {
