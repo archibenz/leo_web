@@ -1,7 +1,8 @@
 'use client';
 
-import {useEffect, useMemo, useState} from 'react';
+import {useMemo, useState} from 'react';
 import {createPortal} from 'react-dom';
+import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 
 // Variant 2 "White" — shop / catalog grid with filters + sort. Same portal
 // technique as the landing/PDP. Client-side filter + sort over a mock catalog
@@ -31,20 +32,11 @@ const ITEMS: Item[] = [
 type Sort = 'new' | 'asc' | 'desc';
 
 export default function WhiteShopShowcase({locale}: {locale: string}) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useWhitePortal();
   const [cat, setCat] = useState<Cat | 'all'>('all');
   const [sort, setSort] = useState<Sort>('new');
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
-
-  useEffect(() => {
-    setMounted(true);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
 
   const catLabels: Record<Cat | 'all', string> = {
     all: t('All', 'Все'),

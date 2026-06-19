@@ -1,7 +1,8 @@
 'use client';
 
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 import {createPortal} from 'react-dom';
+import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
 // the landing: a full-bleed white surface over the gradient chrome so the
@@ -22,21 +23,12 @@ const COLORS = [
 const THUMBS = [0, 1, 2, 3];
 
 export default function WhitePdpShowcase({locale}: {locale: string}) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useWhitePortal();
   const [activeImg, setActiveImg] = useState(0);
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState(COLORS[0]!.key);
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
-
-  useEffect(() => {
-    setMounted(true);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
 
   if (!mounted) return null;
 

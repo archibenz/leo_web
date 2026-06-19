@@ -1,7 +1,7 @@
 'use client';
 
-import {useEffect, useState} from 'react';
 import {createPortal} from 'react-dom';
+import {useWhitePortal} from '../../../hooks/useWhitePortal';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
 // fixed full-bleed surface escapes the gradient layout's `main.z-40` stacking
@@ -26,18 +26,9 @@ const PRODUCTS = [
 ];
 
 export default function WhiteShowcase({locale}: {locale: string}) {
-  const [mounted, setMounted] = useState(false);
+  const mounted = useWhitePortal();
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
-
-  useEffect(() => {
-    setMounted(true);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
 
   if (!mounted) return null;
 
