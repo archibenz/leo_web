@@ -104,7 +104,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
                 <Link
                   key={item.key}
                   ref={index === 0 ? firstLinkRef : undefined}
-                  href={`/${locale}/v1/shop?filter=${item.filter}`}
+                  href={`/${locale}/shop?filter=${item.filter}`}
                   onClick={onClose}
                   className="group flex items-baseline gap-2 py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-[#F2E6D8] transition-colors hover:text-accent focus:text-accent"
                 >
@@ -123,7 +123,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
               {CATEGORY_ITEMS.map((key) => (
                 <Link
                   key={key}
-                  href={`/${locale}/v1/shop?category=${key}`}
+                  href={`/${locale}/shop?category=${key}`}
                   onClick={onClose}
                   className="block py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-[#F2E6D8] transition-colors hover:text-accent focus:text-accent truncate"
                 >
@@ -136,7 +136,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
 
             <nav className="flex flex-wrap gap-x-5 gap-y-2 pt-1">
               <Link
-                href={`/${locale}/v1/shop`}
+                href={`/${locale}/shop`}
                 onClick={onClose}
                 className="text-[13px] uppercase tracking-[0.08em] text-[#F2E6D8]/70 transition-colors hover:text-accent focus:text-accent"
               >
