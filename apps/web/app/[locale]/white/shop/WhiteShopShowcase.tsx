@@ -6,25 +6,11 @@ import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
+import {WHITE_PRODUCTS as ITEMS, type WhiteProduct as Item, type WhiteCat as Cat} from '../products';
 
 // Variant 2 "White" — shop / catalog grid with filters + sort. Same portal
-// technique as the landing/PDP. Client-side filter + sort over a mock catalog
-// to demonstrate the browse experience. Placeholder imagery (Higgsfield later).
-
-type Cat = 'dresses' | 'outerwear' | 'knitwear' | 'tailoring' | 'skirts';
-type Item = {key: number; en: string; ru: string; cat: Cat; price: number; sale?: number};
-
-const ITEMS: Item[] = [
-  {key: 1, en: 'Silk Column Dress', ru: 'Шёлковое платье-колонна', cat: 'dresses', price: 24500},
-  {key: 2, en: 'Sculpted Wool Coat', ru: 'Шерстяное пальто', cat: 'outerwear', price: 32900},
-  {key: 3, en: 'Tailored Trousers', ru: 'Брюки прямого кроя', cat: 'tailoring', price: 14900, sale: 11900},
-  {key: 4, en: 'Cashmere Knit', ru: 'Кашемировый джемпер', cat: 'knitwear', price: 19800},
-  {key: 5, en: 'Pleated Midi Skirt', ru: 'Плиссированная юбка миди', cat: 'skirts', price: 16400},
-  {key: 6, en: 'Structured Blazer', ru: 'Структурный блейзер', cat: 'tailoring', price: 27200},
-  {key: 7, en: 'Bias Slip Dress', ru: 'Платье-комбинация', cat: 'dresses', price: 18900},
-  {key: 8, en: 'Belted Trench', ru: 'Тренч с поясом', cat: 'outerwear', price: 34500},
-  {key: 9, en: 'Ribbed Cardigan', ru: 'Кардиган в рубчик', cat: 'knitwear', price: 17600, sale: 13200},
-];
+// technique as the landing/PDP. Catalog lives in ../products (shared with the
+// PDP so a card opens that product). Placeholder imagery (Higgsfield later).
 
 type Sort = 'new' | 'asc' | 'desc';
 
@@ -126,7 +112,7 @@ export default function WhiteShopShowcase({locale}: {locale: string}) {
         {/* Grid */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-12 py-12 sm:gap-x-6 lg:grid-cols-3">
           {shown.map((p, i) => (
-            <a key={p.key} href={`/${locale}/white/product`} className={`wv-card group block wv-rise wv-delay-${(i % 3) + 1}`}>
+            <a key={p.key} href={`/${locale}/white/product?p=${p.key}`} className={`wv-card group block wv-rise wv-delay-${(i % 3) + 1}`}>
               <div className="wv-ph relative aspect-[2/3] w-full overflow-hidden">
                 {p.sale && (
                   <span className="absolute left-3 top-3 text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>{t('Sale', 'Скидка')}</span>

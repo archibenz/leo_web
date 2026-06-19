@@ -6,6 +6,7 @@ import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
+import type {WhiteProduct} from '../products';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
 // the landing: a full-bleed white surface over the gradient chrome so the
@@ -28,7 +29,7 @@ const SIZE_GUIDE = [
   {size: 'XL', bust: 102, waist: 82, hips: 108},
 ];
 
-export default function WhitePdpShowcase({locale}: {locale: string}) {
+export default function WhitePdpShowcase({locale, product}: {locale: string; product?: WhiteProduct | null}) {
   const mounted = useWhitePortal();
   const [activeImg, setActiveImg] = useState(0);
   const [size, setSize] = useState<string | null>(null);
@@ -38,6 +39,9 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
   const selectedColor = COLORS.find((c) => c.key === color) ?? COLORS[0]!;
+  // ?p selects the catalog product; fall back to the default demo dress.
+  const name = product ? t(product.en, product.ru) : t('Silk Column Dress', 'Шёлковое платье-колонна');
+  const priceStr = product ? `${product.price.toLocaleString('ru-RU')} ₽` : '24 500 ₽';
 
   if (!mounted) return null;
 
@@ -61,7 +65,7 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
           <span className="mx-2">/</span>
           <a href={`/${locale}/white/shop`} className="transition-opacity hover:opacity-60">{t('Shop', 'Магазин')}</a>
           <span className="mx-2">/</span>
-          <span style={{color: INK}} aria-current="page">{t('Silk Column Dress', 'Шёлковое платье-колонна')}</span>
+          <span style={{color: INK}} aria-current="page">{name}</span>
         </nav>
 
         <div className="grid gap-10 pb-24 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
@@ -89,8 +93,8 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
           {/* Info */}
           <div className="wv-rise wv-delay-1 lg:pt-6">
             <p className="text-[11px] uppercase tracking-[0.3em]" style={{color: MUTED}}>{t('Autumn / Winter 2026', 'Осень / Зима 2026')}</p>
-            <h1 className="mt-4 font-display text-[34px] font-light leading-tight sm:text-[42px]">{t('Silk Column Dress', 'Шёлковое платье-колонна')}</h1>
-            <p className="mt-3 text-[18px]" style={{color: INK}}>24 500 ₽</p>
+            <h1 className="mt-4 font-display text-[34px] font-light leading-tight sm:text-[42px]">{name}</h1>
+            <p className="mt-3 text-[18px]" style={{color: INK}}>{priceStr}</p>
             <p className="mt-6 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>
               {t(
                 'A fluid floor-length silhouette in matte silk. Bias-cut, unlined, with a concealed side zip. Designed to move quietly.',
