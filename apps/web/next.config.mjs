@@ -13,6 +13,13 @@ const nextConfig = {
     // only — warnings in legacy files shouldn't block production bundling.
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    // Type-checking runs separately (`tsc --noEmit`, kept at 0 errors). Running
+    // it again inline during `next build` is one of the heaviest memory phases —
+    // it OOM-killed the full build (gradient + White) on the 2GB prod box. Skip
+    // it at build time; correctness is still gated by the standalone tsc step.
+    ignoreBuildErrors: true,
+  },
   images: {
     remotePatterns: [
       {protocol: 'https', hostname: 'images.unsplash.com'},
