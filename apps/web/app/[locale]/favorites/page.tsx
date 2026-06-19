@@ -11,11 +11,7 @@ import LoaderSplash from '../../../components/LoaderSplash';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 import {BrandHeart} from '../../../components/icons';
 
-type Props = {
-  params: Promise<{locale: string}>;
-};
-
-export default function FavoritesPage({params}: Props) {
+export default function FavoritesPage() {
   const t = useTranslations('favorites');
   const {items, isLoading, removeItem, clearFavorites} = useFavorites();
   const [confirmClearOpen, setConfirmClearOpen] = useState(false);
