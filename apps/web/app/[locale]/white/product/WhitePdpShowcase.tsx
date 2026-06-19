@@ -61,6 +61,7 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
                   type="button"
                   onClick={() => setActiveImg(i)}
                   aria-label={t(`View image ${i + 1}`, `Фото ${i + 1}`)}
+                  aria-pressed={i === activeImg}
                   className="wv-ph aspect-[2/3] w-16 shrink-0 transition-opacity"
                   style={{
                     outline: i === activeImg ? `1px solid ${INK}` : 'none',
