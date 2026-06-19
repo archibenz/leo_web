@@ -19,6 +19,7 @@ import SizeChart from './SizeChart';
 import Accordion from './ui/Accordion';
 import {CareSymbolsRow} from './CareSymbols';
 import WildberriesButton from './WildberriesButton';
+import {WILDBERRIES_SELLER_URL} from '../lib/wildberries';
 import {BrandHeart} from './icons';
 
 import { API_BASE } from '../lib/api';
@@ -308,7 +309,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
                 )}
               </div>
             )}
-            <WildberriesButton href="https://www.wildberries.ru/seller/609562">
+            <WildberriesButton href={WILDBERRIES_SELLER_URL}>
               {t('buyWildberries')}
             </WildberriesButton>
 
