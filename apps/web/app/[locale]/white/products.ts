@@ -64,3 +64,18 @@ export type WhiteSize = (typeof WHITE_SIZES)[number];
 export function normalizeWhiteCat(value?: string | null): WhiteCat | 'all' {
   return value != null && (WHITE_CATS as string[]).includes(value) ? (value as WhiteCat) : 'all';
 }
+
+// Single source of category labels (en/ru), shared by the shop filter chips and
+// the server-side <title>, so the two never drift. 'all' is contextual (chip
+// reads "All", title reads "Shop"), so each caller supplies that label itself.
+const WHITE_CAT_LABELS: Record<WhiteCat, [en: string, ru: string]> = {
+  dresses: ['Dresses', 'Платья'],
+  outerwear: ['Outerwear', 'Верхняя одежда'],
+  knitwear: ['Knitwear', 'Трикотаж'],
+  tailoring: ['Tailoring', 'Костюмы'],
+  skirts: ['Skirts', 'Юбки'],
+};
+export function whiteCatLabel(cat: WhiteCat, locale: string): string {
+  const [en, ru] = WHITE_CAT_LABELS[cat];
+  return locale === 'ru' ? ru : en;
+}

@@ -9,7 +9,7 @@ import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR} from '../wv-palette';
-import {WHITE_PRODUCTS as ITEMS, type WhiteProduct as Item, type WhiteCat as Cat} from '../products';
+import {WHITE_PRODUCTS as ITEMS, whiteCatLabel, type WhiteProduct as Item, type WhiteCat as Cat} from '../products';
 
 // Variant 2 "White" — shop / catalog grid with filters + sort. Same portal
 // technique as the landing/PDP. Catalog lives in ../products (shared with the
@@ -57,14 +57,9 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
     syncParam('sort', s === 'new' ? null : s);
   };
 
-  const catLabels: Record<Cat | 'all', string> = {
-    all: t('All', 'Все'),
-    dresses: t('Dresses', 'Платья'),
-    outerwear: t('Outerwear', 'Верхняя одежда'),
-    knitwear: t('Knitwear', 'Трикотаж'),
-    tailoring: t('Tailoring', 'Костюмы'),
-    skirts: t('Skirts', 'Юбки'),
-  };
+  // 'all' chip reads "All/Все"; real categories use the shared whiteCatLabel
+  // (same source as the server-side title — no drift).
+  const catLabel = (c: Cat | 'all') => (c === 'all' ? t('All', 'Все') : whiteCatLabel(c, locale));
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -164,7 +159,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
                   border: `1px solid ${cat === c ? INK : HAIR}`,
                 }}
               >
-                {catLabels[c]}
+                {catLabel(c)}
               </button>
             ))}
           </div>
