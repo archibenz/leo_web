@@ -61,6 +61,29 @@ function persist(): void {
   for (const listener of listeners) listener(snapshot);
 }
 
+// Re-read the bag from localStorage and broadcast — used when another tab
+// mutated it (the `storage` event fires only in other tabs).
+function syncFromStorage(): void {
+  try {
+    const raw = localStorage.getItem(KEY);
+    items = raw ? normalise(JSON.parse(raw)) : [];
+  } catch {
+    items = [];
+  }
+  const snapshot = [...items];
+  for (const listener of listeners) listener(snapshot);
+}
+
+// Bind the cross-tab listener once for the page lifetime (key===null on clear).
+let storageBound = false;
+function ensureStorageSync(): void {
+  if (storageBound || typeof window === 'undefined') return;
+  storageBound = true;
+  window.addEventListener('storage', (e) => {
+    if (e.key === KEY || e.key === null) syncFromStorage();
+  });
+}
+
 export function addToWhiteBag(item: Omit<WhiteBagItem, 'id' | 'qty'>): void {
   const id = lineId(item.key, item.size);
   const existing = items.find((i) => i.id === id);
@@ -95,6 +118,7 @@ export function useWhiteBag() {
 
   useEffect(() => {
     load();
+    ensureStorageSync();
     setSnapshot([...items]);
     const listener = (next: readonly WhiteBagItem[]) => setSnapshot(next);
     listeners.add(listener);

@@ -1,5 +1,6 @@
 import {afterEach, describe, it, expect} from 'vitest';
-import {addToWhiteBag, setWhiteBagQty, removeFromWhiteBag, type WhiteBagItem} from './useWhiteBag';
+import {renderHook, act} from '@testing-library/react';
+import {addToWhiteBag, setWhiteBagQty, removeFromWhiteBag, useWhiteBag, type WhiteBagItem} from './useWhiteBag';
 
 // jsdom here doesn't provide localStorage (and Node's experimental one is off),
 // so install an in-memory mock — same pattern as lib/__tests__/useSyncedList.
@@ -103,5 +104,21 @@ describe('useWhiteBag store', () => {
     const raw = localStorage.getItem('wv-bag');
     expect(raw).toContain('"qty":1');
     expect(raw).toContain('"id":"1-M"');
+  });
+});
+
+describe('useWhiteBag cross-tab sync', () => {
+  it('re-reads and broadcasts when another tab writes (storage event)', () => {
+    const {result} = renderHook(() => useWhiteBag());
+    expect(result.current.count).toBe(0);
+
+    // Simulate another tab writing the bag, then the storage event it fires.
+    act(() => {
+      localStorage.setItem('wv-bag', JSON.stringify([sample({key: 2, size: 'L'})].map((s) => ({...s, id: '2-L', qty: 2}))));
+      window.dispatchEvent(new StorageEvent('storage', {key: 'wv-bag'}));
+    });
+
+    expect(result.current.count).toBe(2);
+    expect(result.current.items[0]).toMatchObject({key: 2, size: 'L', qty: 2});
   });
 });

@@ -49,6 +49,29 @@ function persist(): void {
   for (const listener of listeners) listener(snapshot);
 }
 
+// Re-read favourites from localStorage and broadcast — used when another tab
+// mutated them (the `storage` event fires only in other tabs).
+function syncFromStorage(): void {
+  try {
+    const raw = localStorage.getItem(KEY);
+    keys = raw ? normalise(JSON.parse(raw)) : [];
+  } catch {
+    keys = [];
+  }
+  const snapshot = [...keys];
+  for (const listener of listeners) listener(snapshot);
+}
+
+// Bind the cross-tab listener once for the page lifetime (key===null on clear).
+let storageBound = false;
+function ensureStorageSync(): void {
+  if (storageBound || typeof window === 'undefined') return;
+  storageBound = true;
+  window.addEventListener('storage', (e) => {
+    if (e.key === KEY || e.key === null) syncFromStorage();
+  });
+}
+
 export function isWhiteFavourite(key: number): boolean {
   load();
   return keys.includes(key);
@@ -71,6 +94,7 @@ export function useWhiteFavourites() {
 
   useEffect(() => {
     load();
+    ensureStorageSync();
     setSnapshot([...keys]);
     const listener = (next: readonly number[]) => setSnapshot(next);
     listeners.add(listener);
