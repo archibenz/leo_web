@@ -293,7 +293,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
                         <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-ink/8 bg-ink/[0.04]">
                           <ProfileIcon />
                         </div>
-                        <p className="text-[15px] text-ink/45">{t('dropdown.loginPrompt')}</p>
+                        <p className="text-[15px] text-ink/60">{t('dropdown.loginPrompt')}</p>
                         <Link
                           href={`/${locale}/account`}
                           onClick={() => setIsProfileOpen(false)}
