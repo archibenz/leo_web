@@ -5,7 +5,7 @@ import {notFound} from 'next/navigation';
 import type {Locale} from '../../../../i18n';
 import ProductDetailClient from '../../../../components/ProductDetailClient';
 import {getTranslations} from 'next-intl/server';
-import {safeJsonLd, buildBreadcrumbJsonLd} from '../../../../lib/jsonLd';
+import {safeJsonLd, buildBreadcrumbJsonLd, buildProductJsonLd} from '../../../../lib/jsonLd';
 import {SITE_URL} from '../../../../lib/siteUrl';
 
 import { API_BASE } from '../../../../lib/api';
@@ -103,25 +103,18 @@ export default async function ProductPage({params}: Props) {
       const priceValidUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
         .toISOString()
         .slice(0, 10);
-      productJsonLd = {
-        '@context': 'https://schema.org',
-        '@type': 'Product',
+      const imageList = p.images ?? (p.image ? [p.image] : []);
+      productJsonLd = buildProductJsonLd({
         name: cap(p.title, MAX_JSONLD_LEN),
         description: cap(p.description ?? p.subtitle ?? '', MAX_JSONLD_LEN),
-        image: p.images?.[0] ?? p.image,
         url: productUrl,
         sku: p.sku ?? id,
-        brand: {'@type': 'Brand', name: 'REINASLEO'},
-        offers: {
-          '@type': 'Offer',
-          price: p.price,
-          priceCurrency: 'RUB',
-          availability: p.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-          itemCondition: 'https://schema.org/NewCondition',
-          priceValidUntil,
-          url: productUrl,
-        },
-      };
+        price: p.price,
+        inStock: Boolean(p.inStock),
+        priceValidUntil,
+        images: imageList,
+        siteUrl: SITE_URL,
+      });
     }
   } catch { /* API unavailable */ }
 

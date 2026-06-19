@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {safeJsonLd, buildBreadcrumbJsonLd} from '../jsonLd';
+import {safeJsonLd, buildBreadcrumbJsonLd, buildProductJsonLd} from '../jsonLd';
 
 const LINE_SEP = String.fromCharCode(0x2028);
 const PARA_SEP = String.fromCharCode(0x2029);
@@ -49,5 +49,69 @@ describe('buildBreadcrumbJsonLd', () => {
 
   it('returns an empty itemListElement for no crumbs', () => {
     expect(buildBreadcrumbJsonLd([]).itemListElement).toEqual([]);
+  });
+});
+
+describe('buildProductJsonLd', () => {
+  const base = {
+    name: 'Шёлковое платье',
+    description: 'Косой крой, матовый шёлк.',
+    url: 'https://reinasleo.com/ru/product/p1',
+    sku: 'SKU-1',
+    price: 24500,
+    inStock: true,
+    priceValidUntil: '2027-06-19',
+    siteUrl: 'https://reinasleo.com',
+  };
+
+  it('builds a Product with brand and the required Offer fields', () => {
+    const out = buildProductJsonLd(base);
+    expect(out['@context']).toBe('https://schema.org');
+    expect(out['@type']).toBe('Product');
+    expect(out.name).toBe('Шёлковое платье');
+    expect(out.sku).toBe('SKU-1');
+    expect(out.brand).toEqual({'@type': 'Brand', name: 'REINASLEO'});
+    expect(out.offers).toMatchObject({
+      '@type': 'Offer',
+      price: 24500,
+      priceCurrency: 'RUB',
+      availability: 'https://schema.org/InStock',
+      itemCondition: 'https://schema.org/NewCondition',
+      priceValidUntil: '2027-06-19',
+      url: 'https://reinasleo.com/ru/product/p1',
+      seller: {'@type': 'Organization', name: 'REINASLEO'},
+    });
+  });
+
+  it('marks OutOfStock when not in stock', () => {
+    expect(buildProductJsonLd({...base, inStock: false}).offers.availability).toBe(
+      'https://schema.org/OutOfStock',
+    );
+  });
+
+  it('emits the full image gallery, resolving relative paths against siteUrl', () => {
+    const out = buildProductJsonLd({
+      ...base,
+      images: ['/uploads/a.jpg', 'https://cdn.example.com/b.jpg'],
+    });
+    expect(out.image).toEqual([
+      'https://reinasleo.com/uploads/a.jpg',
+      'https://cdn.example.com/b.jpg',
+    ]);
+  });
+
+  it('filters out empty/null image entries', () => {
+    const out = buildProductJsonLd({...base, images: ['', null, undefined, '/x.jpg']});
+    expect(out.image).toEqual(['https://reinasleo.com/x.jpg']);
+  });
+
+  it('omits the image key entirely when there are no images', () => {
+    expect('image' in buildProductJsonLd({...base, images: []})).toBe(false);
+    expect('image' in buildProductJsonLd(base)).toBe(false);
+  });
+
+  it('does not double a trailing slash on siteUrl when resolving images', () => {
+    const out = buildProductJsonLd({...base, siteUrl: 'https://reinasleo.com/', images: ['/a.jpg']});
+    expect(out.image).toEqual(['https://reinasleo.com/a.jpg']);
   });
 });
