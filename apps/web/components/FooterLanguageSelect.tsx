@@ -70,7 +70,7 @@ export default function FooterLanguageSelect({currentLocale}: FooterLanguageSele
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 text-[13px] text-[#F2E6D8]/40 transition-colors hover:text-[#F2E6D8]/70"
+        className="flex items-center gap-1.5 text-[13px] text-inkSoft/40 transition-colors hover:text-inkSoft/70"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
@@ -87,7 +87,7 @@ export default function FooterLanguageSelect({currentLocale}: FooterLanguageSele
       {isOpen && (
         <ul
           role="listbox"
-          className="absolute bottom-full right-0 z-[110] mb-2 min-w-[160px] rounded-xl border border-[#F2E6D8]/[0.08] bg-[#1a0f0a] py-1.5 shadow-xl"
+          className="absolute bottom-full right-0 z-[110] mb-2 min-w-[160px] rounded-xl border border-inkSoft/[0.08] bg-[#1a0f0a] py-1.5 shadow-xl"
           style={{
             boxShadow: '0 -10px 40px rgba(0,0,0,0.4)',
           }}
@@ -98,14 +98,14 @@ export default function FooterLanguageSelect({currentLocale}: FooterLanguageSele
                 type="button"
                 onClick={() => handleSelect(lang)}
                 className={`flex w-full items-center justify-between px-3.5 py-2 text-[13px] transition hover:bg-white/5 ${
-                  selected === lang.code ? 'text-[#D4A574]' : 'text-[#F2E6D8]/60'
+                  selected === lang.code ? 'text-accent' : 'text-inkSoft/60'
                 }`}
                 role="option"
                 aria-selected={selected === lang.code}
               >
                 <span>{lang.fullLabel}</span>
                 {!lang.supported && (
-                  <span className="text-[10px] text-[#F2E6D8]/20 ml-2">{t('soon')}</span>
+                  <span className="text-[10px] text-inkSoft/20 ml-2">{t('soon')}</span>
                 )}
               </button>
             </li>
