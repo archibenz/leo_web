@@ -1,13 +1,11 @@
 'use client';
 
 import type {ReactNode} from 'react';
+import {INK, HAIR} from './wv-palette';
 
 // Variant 2 "White" — shared sticky header. Owns the chrome (blur, hairline,
 // padding) and the flex-1 left/right slots that keep the REINASLEO wordmark
 // dead-centre on every page; each page passes its own left/right content.
-
-const INK = '#1c1714';
-const HAIR = '#e7e2db';
 
 export default function WhiteHeader({locale, left, right}: {locale: string; left: ReactNode; right: ReactNode}) {
   return (

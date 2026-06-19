@@ -1,12 +1,10 @@
 'use client';
 
+import {INK, MUTED, HAIR} from './wv-palette';
+
 // Variant 2 "White" — shared editorial footer. Rendered on the landing, shop
 // and PDP so every page of the prototype closes on the same brand chrome.
 // Prototype destinations stay inside /white (no leak to the gradient site).
-
-const INK = '#1c1714';
-const MUTED = '#776e64';
-const HAIR = '#e7e2db';
 
 export default function WhiteFooter({locale}: {locale: string}) {
   const ru = locale === 'ru';

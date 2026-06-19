@@ -5,16 +5,11 @@ import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
+import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 
 // Variant 2 "White" — shop / catalog grid with filters + sort. Same portal
 // technique as the landing/PDP. Client-side filter + sort over a mock catalog
 // to demonstrate the browse experience. Placeholder imagery (Higgsfield later).
-
-const INK = '#1c1714';
-// Warm secondary grey at 5.0:1 on #fff (WCAG AA); see WhiteShowcase note.
-const MUTED = '#776e64';
-const HAIR = '#e7e2db';
-const SIGNAL = '#b4452f';
 
 type Cat = 'dresses' | 'outerwear' | 'knitwear' | 'tailoring' | 'skirts';
 type Item = {key: number; en: string; ru: string; cat: Cat; price: number; sale?: number};

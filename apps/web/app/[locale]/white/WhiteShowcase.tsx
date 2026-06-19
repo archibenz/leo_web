@@ -4,19 +4,13 @@ import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../hooks/useWhitePortal';
 import WhiteHeader from './WhiteHeader';
 import WhiteFooter from './WhiteFooter';
+import {INK, MUTED, HAIR, SIGNAL} from './wv-palette';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
 // fixed full-bleed surface escapes the gradient layout's `main.z-40` stacking
 // context and fully covers the dark chrome — letting both design directions be
 // compared on one deploy at /<locale>/white. Imagery is placeholder (editorial
 // shots arrive via the loop / Higgsfield). CSS-only motion (reduced-motion safe).
-
-const INK = '#1c1714';
-// Warm secondary grey. Tuned to 5.0:1 on #fff (WCAG AA for body text);
-// the prior #8c837a was 3.72:1 and failed on descriptions/nav/prices/footer.
-const MUTED = '#776e64';
-const HAIR = '#e7e2db';
-const SIGNAL = '#b4452f';
 
 const PRODUCTS = [
   {key: 1, en: 'Sculpted Wool Coat', ru: 'Шерстяное пальто', price: '32 900 ₽'},

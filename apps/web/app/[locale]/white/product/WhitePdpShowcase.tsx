@@ -5,16 +5,12 @@ import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
+import {INK, MUTED, HAIR} from '../wv-palette';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
 // the landing: a full-bleed white surface over the gradient chrome so the
 // minimalist direction can be reviewed at /<locale>/white/product. Placeholder
 // imagery (editorial shots via Higgsfield later). CSS-only, reduced-motion safe.
-
-const INK = '#1c1714';
-// Warm secondary grey at 5.0:1 on #fff (WCAG AA); see WhiteShowcase note.
-const MUTED = '#776e64';
-const HAIR = '#e7e2db';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL'] as const;
 const COLORS = [
