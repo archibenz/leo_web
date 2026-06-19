@@ -5,6 +5,7 @@ import {useWhitePortal} from '../../../hooks/useWhitePortal';
 import WhiteHeader from './WhiteHeader';
 import WhiteFooter from './WhiteFooter';
 import {INK, MUTED, HAIR, SIGNAL} from './wv-palette';
+import {WHITE_PRODUCTS} from './products';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
 // fixed full-bleed surface escapes the gradient layout's `main.z-40` stacking
@@ -12,19 +13,15 @@ import {INK, MUTED, HAIR, SIGNAL} from './wv-palette';
 // compared on one deploy at /<locale>/white. Imagery is placeholder (editorial
 // shots arrive via the loop / Higgsfield). CSS-only motion (reduced-motion safe).
 
-const PRODUCTS = [
-  {key: 1, en: 'Sculpted Wool Coat', ru: 'Шерстяное пальто', price: '32 900 ₽'},
-  {key: 2, en: 'Silk Column Dress', ru: 'Шёлковое платье-колонна', price: '24 500 ₽'},
-  {key: 3, en: 'Tailored Trousers', ru: 'Брюки прямого кроя', price: '14 900 ₽', sale: '11 900 ₽'},
-  {key: 4, en: 'Cashmere Knit', ru: 'Кашемировый джемпер', price: '19 800 ₽'},
-  {key: 5, en: 'Pleated Midi Skirt', ru: 'Плиссированная юбка миди', price: '16 400 ₽'},
-  {key: 6, en: 'Structured Blazer', ru: 'Структурный блейзер', price: '27 200 ₽'},
-];
+// "The edit" — a curated six from the shared catalog (in the landing's order),
+// so each card opens the matching product PDP via ?p.
+const FEATURED = [2, 1, 3, 4, 5, 6].map((k) => WHITE_PRODUCTS.find((p) => p.key === k)!);
 
 export default function WhiteShowcase({locale}: {locale: string}) {
   const mounted = useWhitePortal();
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
+  const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
 
   if (!mounted) return null;
 
@@ -94,8 +91,8 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       {/* Product grid — 2/3 portrait cards */}
       <section className="mx-auto max-w-[1400px] px-6 pb-24 sm:px-10">
         <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 lg:grid-cols-3">
-          {PRODUCTS.map((p, i) => (
-            <a key={p.key} href={`/${locale}/white/product`} className={`wv-card wv-rise group block wv-delay-${(i % 3) + 1}`}>
+          {FEATURED.map((p, i) => (
+            <a key={p.key} href={`/${locale}/white/product?p=${p.key}`} className={`wv-card wv-rise group block wv-delay-${(i % 3) + 1}`}>
               <div className="wv-ph relative aspect-[2/3] w-full overflow-hidden">
                 {p.sale && (
                   <span className="absolute left-3 top-3 text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>
@@ -112,14 +109,14 @@ export default function WhiteShowcase({locale}: {locale: string}) {
                   {p.sale ? (
                     <>
                       <s className="mr-2 line-through" style={{color: MUTED}}>
-                        <span className="sr-only">{t('Regular price', 'Обычная цена')}: </span>{p.price}
+                        <span className="sr-only">{t('Regular price', 'Обычная цена')}: </span>{fmt(p.price)}
                       </s>
                       <span>
-                        <span className="sr-only">{t('Sale price', 'Цена со скидкой')}: </span>{p.sale}
+                        <span className="sr-only">{t('Sale price', 'Цена со скидкой')}: </span>{fmt(p.sale)}
                       </span>
                     </>
                   ) : (
-                    p.price
+                    fmt(p.price)
                   )}
                 </p>
               </div>
