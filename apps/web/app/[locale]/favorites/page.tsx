@@ -121,7 +121,7 @@ export default function FavoritesPage() {
                         href={`/${locale}/product/${item.id}`}
                         className="block w-full rounded-full bg-button py-3 text-center text-xs font-medium uppercase tracking-wider text-ink transition hover:bg-button/90"
                       >
-                        {t('addToBag')}
+                        {t('selectSize')}
                       </Link>
                     </div>
                   </div>

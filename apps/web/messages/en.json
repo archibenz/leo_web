@@ -466,6 +466,7 @@
     },
     "clearAll": "Clear all",
     "addToBag": "Add to bag",
+    "selectSize": "Select size",
     "remove": "Remove from favorites",
     "clearConfirmTitle": "Clear favorites?",
     "clearConfirmMessage": "All saved items will be removed from your wishlist. This cannot be undone."
