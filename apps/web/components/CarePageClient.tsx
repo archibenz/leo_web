@@ -60,7 +60,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
       {/* Hero */}
       <BlurReveal>
         <section className="max-w-4xl mx-auto px-6 text-center mb-16">
-          <p className="font-accent text-[13px] uppercase tracking-[0.25em] text-[#D4A574]/60 mb-4">
+          <p className="font-accent text-[13px] uppercase tracking-[0.25em] text-accent/60 mb-4">
             {t('subtitle')}
           </p>
           <h1 className="font-display text-4xl md:text-5xl tracking-tight text-ink mb-6">
@@ -91,7 +91,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
                 <article
                   key={key}
                   id={anchorId}
-                  className="rounded-2xl border border-[#D4A574]/[0.08] bg-gradient-to-b from-[#1a100c]/30 to-transparent p-6 md:p-7 scroll-mt-28"
+                  className="rounded-2xl border border-accent/[0.08] bg-gradient-to-b from-[#1a100c]/30 to-transparent p-6 md:p-7 scroll-mt-28"
                 >
                   <h3 className="font-display text-xl tracking-tight text-ink mb-3">
                     {t(`sections.${key}.title`)}
@@ -107,7 +107,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
           <div id="contact" className="mt-10 text-center scroll-mt-28">
             <Link
               href={`/${locale}/contact`}
-              className="inline-flex items-center gap-2 font-display text-[14px] uppercase tracking-[0.18em] text-[#D4A574] transition-colors hover:text-[#D4A574]/80"
+              className="inline-flex items-center gap-2 font-display text-[14px] uppercase tracking-[0.18em] text-accent transition-colors hover:text-accent/80"
             >
               {t('contactCta')}
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
@@ -119,7 +119,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
       {/* Guides grid */}
       {loading ? (
         <div className="flex justify-center py-20">
-          <div className="w-8 h-8 border-2 border-[#D4A574]/30 border-t-[#D4A574] rounded-full animate-spin" />
+          <div className="w-8 h-8 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
         </div>
       ) : guides.length === 0 ? (
         <BlurReveal>
@@ -130,7 +130,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {guides.map((guide, i) => (
               <BlurReveal key={guide.id} delay={i * 80}>
-                <article className="group relative rounded-2xl border border-[#D4A574]/[0.08] bg-gradient-to-b from-[#1a100c]/40 to-transparent p-8 transition-all duration-500 hover:border-[#D4A574]/20 hover:shadow-[0_8px_40px_rgba(212,165,116,0.06)]">
+                <article className="group relative rounded-2xl border border-accent/[0.08] bg-gradient-to-b from-[#1a100c]/40 to-transparent p-8 transition-all duration-500 hover:border-accent/20 hover:shadow-[0_8px_40px_rgba(212,165,116,0.06)]">
                   {guide.image && (
                     <div className="relative mb-6 aspect-[16/9] rounded-xl overflow-hidden">
                       <Image
@@ -155,7 +155,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
 
                   {/* Care symbols */}
                   {parseSymbols(guide.careSymbols).length > 0 && (
-                    <div className="mb-5 py-4 border-t border-b border-[#D4A574]/[0.06]">
+                    <div className="mb-5 py-4 border-t border-b border-accent/[0.06]">
                       <CareSymbolsRow
                         symbols={parseSymbols(guide.careSymbols)}
                         locale={locale}
@@ -167,7 +167,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
 
                   {guide.tips && (
                     <div className="mt-4">
-                      <p className="text-[12px] uppercase tracking-[0.15em] text-[#D4A574]/50 mb-2 font-medium">
+                      <p className="text-[12px] uppercase tracking-[0.15em] text-accent/50 mb-2 font-medium">
                         {t('tips')}
                       </p>
                       <p className="text-ink/55 text-[14px] leading-relaxed whitespace-pre-line">
@@ -184,11 +184,11 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
 
       {/* CTA */}
       <section className="max-w-4xl mx-auto px-6 text-center mt-20">
-        <div className="h-px bg-gradient-to-r from-transparent via-[#D4A574]/15 to-transparent mb-12" />
+        <div className="h-px bg-gradient-to-r from-transparent via-accent/15 to-transparent mb-12" />
         <p className="text-ink/55 text-[15px] mb-6">{t('cta')}</p>
         <Link
           href={`/${locale}/shop`}
-          className="inline-flex items-center gap-2 font-display text-[15px] uppercase tracking-[0.12em] text-[#D4A574] transition-colors hover:text-[#D4A574]/80"
+          className="inline-flex items-center gap-2 font-display text-[15px] uppercase tracking-[0.12em] text-accent transition-colors hover:text-accent/80"
         >
           {t('shopLink')}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M5 12h14" /><path d="M12 5l7 7-7 7" /></svg>
