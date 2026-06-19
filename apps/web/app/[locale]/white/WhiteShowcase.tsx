@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import {useEffect} from 'react';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../hooks/useWhitePortal';
@@ -9,7 +10,7 @@ import WhiteHeader from './WhiteHeader';
 import WhiteFooter from './WhiteFooter';
 import WhiteProductCard from './WhiteProductCard';
 import {INK, MUTED, HAIR} from './wv-palette';
-import {WHITE_PRODUCTS} from './products';
+import {WHITE_PRODUCTS, WHITE_HERO_IMAGE, WHITE_ATELIER_IMAGE} from './products';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
 // fixed full-bleed surface escapes the gradient layout's `main.z-40` stacking
@@ -105,7 +106,9 @@ export default function WhiteShowcase({locale}: {locale: string}) {
               {t('Shop the collection', 'Смотреть коллекцию')}
             </a>
           </div>
-          <div className="wv-ph wv-rise wv-delay-1 aspect-[3/4] w-full" aria-hidden="true" />
+          <div className="wv-ph wv-rise wv-delay-1 relative aspect-[3/4] w-full overflow-hidden">
+            <Image src={WHITE_HERO_IMAGE} alt="" fill priority sizes="(max-width: 1024px) 100vw, 45vw" className="object-cover" />
+          </div>
         </div>
       </section>
 
@@ -131,7 +134,9 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       {/* Lookbook — editorial brand statement */}
       <section id="wv-atelier" className="scroll-mt-24 border-t" style={{borderColor: HAIR}}>
         <div className="mx-auto grid max-w-[1400px] items-center gap-0 lg:grid-cols-2">
-          <div className="wv-ph wv-rise aspect-[4/5] w-full lg:aspect-auto lg:h-full lg:min-h-[560px]" aria-hidden="true" />
+          <div className="wv-ph wv-rise relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto lg:h-full lg:min-h-[560px]">
+            <Image src={WHITE_ATELIER_IMAGE} alt="" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+          </div>
           <div className="wv-rise wv-delay-1 px-6 py-16 sm:px-12 lg:px-20 lg:py-28">
             <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('The atelier', 'Ателье')}</p>
             <h2 className="font-display text-[30px] font-light leading-[1.1] tracking-tight sm:text-[40px]">

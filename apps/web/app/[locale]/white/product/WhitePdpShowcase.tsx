@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import {useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
@@ -9,7 +10,7 @@ import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
-import {WHITE_PRODUCTS, WHITE_SIZES, type WhiteProduct} from '../products';
+import {WHITE_PRODUCTS, WHITE_SIZES, WHITE_EDITORIAL, type WhiteProduct} from '../products';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
 // the landing: a full-bleed white surface over the gradient chrome so the
@@ -24,16 +25,9 @@ const DEFAULT_COLORS = [
   {key: 'black', hex: '#2b2722', en: 'Black', ru: 'Чёрный'},
   {key: 'bordeaux', hex: '#6e2a2a', en: 'Bordeaux', ru: 'Бордовый'},
 ];
+// Gallery = the product photo first, then shared editorial views (gradient asset
+// base). Selecting a thumbnail swaps the main image. Built per-product below.
 const THUMBS = [0, 1, 2, 3];
-// Distinct on-DNA warm-neutral placeholders per gallery view, so selecting a
-// thumbnail visibly swaps the main image (no real photos yet). Forward-compatible:
-// swap these for <Image src={images[activeImg]}> once Higgsfield shots land.
-const PH_GRADIENTS = [
-  'linear-gradient(160deg, #f5f2ed, #e8e2d9)',
-  'linear-gradient(205deg, #f1ece3, #e3dccd)',
-  'linear-gradient(135deg, #efe9df, #e6dcca)',
-  'linear-gradient(180deg, #f3eee6, #e1d8c7)',
-];
 // Demo measurements (cm) for the size-guide disclosure.
 const SIZE_GUIDE = [
   {size: 'XS', bust: 82, waist: 62, hips: 88},
@@ -58,6 +52,8 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const selectedColor = productColors.find((c) => c.key === color) ?? productColors[0]!;
   // Concrete product for the bag/wishlist — fall back to the demo dress (key 1).
   const bagProduct = product ?? WHITE_PRODUCTS[0]!;
+  // Product photo first, then shared editorial views — 4 gallery slots (THUMBS).
+  const gallery = [bagProduct.image, ...WHITE_EDITORIAL];
   const favourited = isFavourite(bagProduct.key);
   const handleAdd = () => {
     if (!size) return;
@@ -122,16 +118,19 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   onClick={() => setActiveImg(i)}
                   aria-label={t(`View image ${i + 1}`, `Фото ${i + 1}`)}
                   aria-pressed={i === activeImg}
-                  className="aspect-[2/3] w-16 shrink-0 transition-opacity"
+                  className="relative aspect-[2/3] w-16 shrink-0 overflow-hidden transition-opacity"
                   style={{
-                    background: PH_GRADIENTS[i],
                     outline: i === activeImg ? `1px solid ${INK}` : 'none',
                     opacity: i === activeImg ? 1 : 0.55,
                   }}
-                />
+                >
+                  <Image src={gallery[i] ?? gallery[0]!} alt="" fill sizes="64px" className="object-cover" />
+                </button>
               ))}
             </div>
-            <div className="order-1 aspect-[2/3] w-full sm:order-2" aria-hidden="true" style={{background: PH_GRADIENTS[activeImg] ?? PH_GRADIENTS[0]}} />
+            <div className="relative order-1 aspect-[2/3] w-full overflow-hidden sm:order-2">
+              <Image src={gallery[activeImg] ?? gallery[0]!} alt={name} fill priority sizes="(max-width: 1024px) 100vw, 560px" className="object-cover" />
+            </div>
           </div>
 
           {/* Info */}

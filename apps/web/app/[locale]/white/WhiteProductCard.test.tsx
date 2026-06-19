@@ -41,6 +41,7 @@ const PRODUCT: WhiteProduct = {
   careEn: '',
   careRu: '',
   colors: [{key: 'black', hex: '#000', en: 'Black', ru: 'Чёрный'}],
+  image: '/images/shop/editorial-clean.jpg',
 };
 
 const t = (en: string) => en;

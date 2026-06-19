@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import {useEffect, useRef, useState} from 'react';
 import {useWhiteBag} from '../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
@@ -93,8 +94,18 @@ export default function WhiteProductCard({
         {added ? t(`${name} added to bag`, `${name} — добавлено в корзину`) : ''}
       </span>
       <div className="wv-ph relative aspect-[2/3] w-full overflow-hidden">
+        {/* Real photo (gradient asset base). Slow zoom on hover for editorial
+            feel — disabled under reduced-motion. pointer-events-none so the
+            link layer above stays the click target. */}
+        <Image
+          src={product.image}
+          alt={name}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 460px"
+          className="pointer-events-none object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+        />
         {/* Image is its own link so Quick Add can sit outside the anchor. */}
-        <a href={href} aria-label={name} className="absolute inset-0 z-0" />
+        <a href={href} aria-label={name} className="absolute inset-0 z-[1]" />
 
         {product.sale && (
           <span className="pointer-events-none absolute left-3 top-3 z-10 text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>
