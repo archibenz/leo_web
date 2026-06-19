@@ -122,7 +122,7 @@ export default function WhiteShopShowcase({locale}: {locale: string}) {
                 {p.sale && (
                   <span className="absolute left-3 top-3 text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>{t('Sale', 'Скидка')}</span>
                 )}
-                <span className="wv-quickadd absolute inset-x-0 bottom-0 flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm">
+                <span aria-hidden="true" className="wv-quickadd absolute inset-x-0 bottom-0 flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm">
                   {t('Quick add', 'В корзину')}
                 </span>
               </div>

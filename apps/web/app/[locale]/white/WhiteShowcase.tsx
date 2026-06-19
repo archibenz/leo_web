@@ -102,7 +102,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
                     {t('Sale', 'Скидка')}
                   </span>
                 )}
-                <span className="wv-quickadd absolute inset-x-0 bottom-0 flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm">
+                <span aria-hidden="true" className="wv-quickadd absolute inset-x-0 bottom-0 flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm">
                   {t('Quick add', 'В корзину')}
                 </span>
               </div>
