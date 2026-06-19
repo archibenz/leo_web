@@ -8,14 +8,19 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: [
-          '/admin/',
-          '/auth/',
-          '/account/',
-          '/api/',
-          '/cart/',
+          // Routes are locale-prefixed (localePrefix: 'always'), so the real
+          // paths are /<locale>/admin etc. — a bare `/admin/` matches from root
+          // and never blocks `/ru/admin/`. Use the `/*/` locale wildcard.
+          '/*/admin/',
+          '/*/auth/',
+          '/*/account/',
+          '/*/cart/',
+          '/*/favorites/',
           '/*/splash-preview',
           '/*/loader-preview',
           '/*/v1/',
+          // API routes are NOT locale-prefixed.
+          '/api/',
         ],
       },
     ],
