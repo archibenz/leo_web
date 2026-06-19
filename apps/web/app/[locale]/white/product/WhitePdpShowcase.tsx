@@ -42,6 +42,12 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   // ?p selects the catalog product; fall back to the default demo dress.
   const name = product ? t(product.en, product.ru) : t('Silk Column Dress', 'Шёлковое платье-колонна');
   const priceStr = product ? `${product.price.toLocaleString('ru-RU')} ₽` : '24 500 ₽';
+  const desc = product
+    ? t(product.descEn, product.descRu)
+    : t(
+        'A fluid floor-length silhouette in matte silk. Bias-cut, unlined, with a concealed side zip. Designed to move quietly.',
+        'Текучий силуэт в пол из матового шёлка. Косой крой, без подклада, скрытая боковая молния. Создано двигаться тихо.',
+      );
 
   if (!mounted) return null;
 
@@ -95,12 +101,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             <p className="text-[11px] uppercase tracking-[0.3em]" style={{color: MUTED}}>{t('Autumn / Winter 2026', 'Осень / Зима 2026')}</p>
             <h1 className="mt-4 font-display text-[34px] font-light leading-tight sm:text-[42px]">{name}</h1>
             <p className="mt-3 text-[18px]" style={{color: INK}}>{priceStr}</p>
-            <p className="mt-6 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>
-              {t(
-                'A fluid floor-length silhouette in matte silk. Bias-cut, unlined, with a concealed side zip. Designed to move quietly.',
-                'Текучий силуэт в пол из матового шёлка. Косой крой, без подклада, скрытая боковая молния. Создано двигаться тихо.',
-              )}
-            </p>
+            <p className="mt-6 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>{desc}</p>
 
             {/* Color */}
             <div className="mt-8">
