@@ -3,6 +3,7 @@
 import {useMemo, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
+import WhiteFooter from '../WhiteFooter';
 
 // Variant 2 "White" — shop / catalog grid with filters + sort. Same portal
 // technique as the landing/PDP. Client-side filter + sort over a mock catalog
@@ -149,13 +150,9 @@ export default function WhiteShopShowcase({locale}: {locale: string}) {
         {shown.length === 0 && (
           <p className="py-24 text-center text-[14px]" style={{color: MUTED}}>{t('Nothing here yet.', 'Здесь пока пусто.')}</p>
         )}
-
-        <div className="pb-16 text-center">
-          <a href={`/${locale}/white`} className="text-[12px] uppercase tracking-[0.18em] underline-offset-4 hover:underline" style={{color: MUTED}}>
-            ← {t('Back to home', 'На главную')}
-          </a>
-        </div>
       </div>
+
+      <WhiteFooter locale={locale} />
     </div>,
     document.body,
   );

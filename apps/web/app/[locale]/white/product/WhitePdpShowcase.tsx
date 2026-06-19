@@ -3,6 +3,7 @@
 import {useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
+import WhiteFooter from '../WhiteFooter';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
 // the landing: a full-bleed white surface over the gradient chrome so the
@@ -173,6 +174,8 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
           </div>
         </div>
       </div>
+
+      <WhiteFooter locale={locale} />
     </div>,
     document.body,
   );
