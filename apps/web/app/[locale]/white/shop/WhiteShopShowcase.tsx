@@ -83,7 +83,7 @@ export default function WhiteShopShowcase({locale}: {locale: string}) {
         {/* Title */}
         <div className="flex items-baseline justify-between pt-12 pb-6">
           <h1 className="font-display text-[34px] font-light tracking-tight sm:text-[44px]">{t('Shop', 'Магазин')}</h1>
-          <span className="text-[12px] uppercase tracking-[0.16em] tabular-nums" style={{color: MUTED}}>
+          <span aria-live="polite" aria-atomic="true" className="text-[12px] uppercase tracking-[0.16em] tabular-nums" style={{color: MUTED}}>
             {shown.length} {itemsLabel(shown.length)}
           </span>
         </div>
