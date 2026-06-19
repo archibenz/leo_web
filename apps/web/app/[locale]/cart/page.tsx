@@ -206,10 +206,11 @@ export default function CartPage() {
                       href={WILDBERRIES_SELLER_URL}
                       target="_blank"
                       rel="noopener noreferrer"
+                      aria-label={t('checkoutWildberriesAria')}
                       onClick={() => track('begin_checkout', {value: subtotal, items: count})}
                       className="block w-full rounded-full bg-button py-4 text-center text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85 hover:shadow-lg hover:shadow-button/25"
                     >
-                      {t('checkoutWildberries')}
+                      {t('checkoutWildberries')}<span aria-hidden="true" className="ml-1.5">↗</span>
                     </a>
                   </div>
                 </div>
@@ -236,10 +237,11 @@ export default function CartPage() {
                 href={WILDBERRIES_SELLER_URL}
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label={t('checkoutWildberriesAria')}
                 onClick={() => track('begin_checkout', {value: subtotal, items: count})}
                 className="block w-full rounded-full bg-button py-4 text-center text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85 hover:shadow-lg hover:shadow-button/25"
               >
-                {t('checkoutWildberries')}
+                {t('checkoutWildberries')}<span aria-hidden="true" className="ml-1.5">↗</span>
               </a>
             </div>
           </>

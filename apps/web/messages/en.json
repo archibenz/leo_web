@@ -486,6 +486,7 @@
     "summary": "Summary",
     "checkout": "Proceed to checkout",
     "checkoutWildberries": "Checkout on Wildberries",
+    "checkoutWildberriesAria": "Checkout on Wildberries — opens in a new tab",
     "remove": "Remove from cart",
     "decrease": "Decrease quantity",
     "increase": "Increase quantity",
