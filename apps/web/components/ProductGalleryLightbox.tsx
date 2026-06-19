@@ -2,6 +2,7 @@
 
 import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
+import {useTranslations} from 'next-intl';
 import 'yet-another-react-lightbox/styles.css';
 
 import type {ProductImage} from './ProductGallery';
@@ -22,6 +23,7 @@ export default function ProductGalleryLightbox({
   onIndexChange,
 }: ProductGalleryLightboxProps) {
   const hasMultiple = images.length > 1;
+  const t = useTranslations('product.gallery');
 
   return (
     <Lightbox
@@ -29,6 +31,13 @@ export default function ProductGalleryLightbox({
       close={onClose}
       slides={images.map((img) => ({src: img.src, alt: img.alt}))}
       index={activeIndex}
+      labels={{
+        Close: t('close'),
+        Previous: t('previous'),
+        Next: t('next'),
+        'Zoom in': t('zoomIn'),
+        'Zoom out': t('zoomOut'),
+      }}
       on={{view: ({index: i}) => onIndexChange(i)}}
       plugins={[Zoom]}
       zoom={{
@@ -99,7 +108,7 @@ export default function ProductGalleryLightbox({
                 <div
                   key={i}
                   className={`h-[2px] flex-1 rounded-full transition-all duration-500 ${
-                    i === activeIndex ? 'bg-[#D4A574]' : 'bg-[#f3e9da]/20'
+                    i === activeIndex ? 'bg-accent' : 'bg-[#f3e9da]/20'
                   }`}
                 />
               ))}
@@ -111,7 +120,7 @@ export default function ProductGalleryLightbox({
               <span className="tabular-nums">
                 {String(activeIndex + 1).padStart(2, '0')}
               </span>
-              <span className="mx-3 text-[#D4A574]">—</span>
+              <span className="mx-3 text-accent">—</span>
               <span className="tabular-nums">
                 {String(images.length).padStart(2, '0')}
               </span>

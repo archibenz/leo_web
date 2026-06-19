@@ -54,7 +54,7 @@ export default function SocialIcons({className = ''}: SocialIconsProps) {
           target="_blank"
           rel="noreferrer"
           aria-label={icon.label}
-          className="text-[#F2E6D8]/40 transition-colors duration-200 hover:text-[#D4A574]"
+          className="text-inkSoft/40 transition-colors duration-200 hover:text-accent"
         >
           {icon.svg}
         </a>

@@ -51,7 +51,7 @@ export default async function ContactPage({params}: Props) {
 
   return (
     <main className="flex min-h-screen items-center justify-center px-6 py-28">
-      <div className="grid w-full max-w-4xl overflow-hidden rounded-2xl border border-[#D4A574]/15 bg-[#1c100b]/55 shadow-[0_40px_80px_rgba(0,0,0,0.45)] md:grid-cols-[1fr_0.70fr]">
+      <div className="grid w-full max-w-4xl overflow-hidden rounded-2xl border border-accent/15 bg-[#1c100b]/55 shadow-[0_40px_80px_rgba(0,0,0,0.45)] md:grid-cols-[1fr_0.70fr]">
         {/* Left — context + channels */}
         <div className="flex flex-col gap-4 p-8 lg:p-11">
           <h1 className="font-display text-3xl tracking-wide text-ink md:text-4xl">
@@ -60,7 +60,7 @@ export default async function ContactPage({params}: Props) {
           <p className="max-w-md text-[14px] leading-relaxed text-ink/55 md:text-[15px]">
             {t('subtitle')}
           </p>
-          <p className="max-w-md text-[12px] leading-relaxed text-ink/50 md:text-[13px]">
+          <p className="max-w-md text-[12px] leading-relaxed text-ink/65 md:text-[13px]">
             {t('responseTime')}
           </p>
 
@@ -75,12 +75,12 @@ export default async function ContactPage({params}: Props) {
                   rel={external ? 'noopener noreferrer' : undefined}
                   className="group flex items-center gap-3 py-2.5"
                 >
-                  <span className="flex items-center justify-center rounded-lg border border-[#D4A574]/15 bg-[#140c08]/50 p-3 text-[#D4A574]/80 transition-colors duration-300 group-hover:border-[#D4A574]/30 group-hover:text-[#D4A574]">
+                  <span className="flex items-center justify-center rounded-lg border border-accent/15 bg-[#140c08]/50 p-3 text-accent/80 transition-colors duration-300 group-hover:border-accent/30 group-hover:text-accent">
                     {channel.icon}
                   </span>
                   <span className="min-w-0">
                     <span className="block text-[14px] font-medium text-ink">{channel.label}</span>
-                    <span className="block text-[12px] text-ink/55 transition-colors duration-300 group-hover:text-[#D4A574]/80">
+                    <span className="block text-[12px] text-ink/55 transition-colors duration-300 group-hover:text-accent/80">
                       {channel.value}
                     </span>
                   </span>
@@ -91,7 +91,7 @@ export default async function ContactPage({params}: Props) {
         </div>
 
         {/* Right — form, vertically centred (efferd contact-4) */}
-        <div className="flex items-center border-t border-[#D4A574]/[0.12] bg-[#140c08]/35 p-8 md:border-l md:border-t-0 lg:p-11">
+        <div className="flex items-center border-t border-accent/[0.12] bg-[#140c08]/35 p-8 md:border-l md:border-t-0 lg:p-11">
           <div className="w-full">
             <ContactForm />
           </div>

@@ -4,7 +4,16 @@
     "switchTo": "Switch to {locale}",
     "confirm": "Confirm",
     "cancel": "Cancel",
-    "dismissNotification": "Dismiss notification"
+    "dismissNotification": "Dismiss notification",
+    "notifications": "Notifications",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right",
+    "previousImage": "Previous image",
+    "nextImage": "Next image",
+    "carouselNavigation": "Carousel navigation",
+    "slideXofY": "Slide {n} of {total}",
+    "previousSlide": "Previous slide",
+    "nextSlide": "Next slide"
   },
   "languageSelect": {
     "label": "Language",
@@ -142,8 +151,7 @@
     "collectionLinks": {
       "spring26": "Spring 2026",
       "resort": "Resort",
-      "archive": "Archive",
-      "lookbook": "Lookbook"
+      "archive": "Archive"
     },
     "care": {
       "shipping": "Shipping",
@@ -466,6 +474,7 @@
     },
     "clearAll": "Clear all",
     "addToBag": "Add to bag",
+    "selectSize": "Select size",
     "remove": "Remove from favorites",
     "clearConfirmTitle": "Clear favorites?",
     "clearConfirmMessage": "All saved items will be removed from your wishlist. This cannot be undone."
@@ -484,6 +493,8 @@
     "subtotal": "Subtotal",
     "summary": "Summary",
     "checkout": "Proceed to checkout",
+    "checkoutWildberries": "Checkout on Wildberries",
+    "checkoutWildberriesAria": "Checkout on Wildberries — opens in a new tab",
     "remove": "Remove from cart",
     "decrease": "Decrease quantity",
     "increase": "Increase quantity",
@@ -680,6 +691,13 @@
     }
   },
   "product": {
+    "gallery": {
+      "close": "Close",
+      "previous": "Previous image",
+      "next": "Next image",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out"
+    },
     "back": "Back",
     "addToBag": "Add to Bag",
     "favourite": "Favourite",
@@ -729,7 +747,8 @@
     "buyWildberries": "Buy on Wildberries",
     "collection": "Collection",
     "careInstructions": "Garment care",
-    "completeLook": "Complete the look"
+    "completeLook": "Complete the look",
+    "demoBadge": "Demo product"
   },
   "look": {
     "openLook": "OPEN LOOK",

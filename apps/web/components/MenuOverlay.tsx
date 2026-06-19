@@ -3,6 +3,7 @@
 import {useEffect, useRef, useState, useCallback} from 'react';
 import {useTranslations} from 'next-intl';
 import Link from 'next/link';
+import {usePathname} from 'next/navigation';
 import {useFocusTrap} from '../lib/useFocusTrap';
 
 type MenuOverlayProps = {
@@ -29,6 +30,7 @@ const CATEGORY_ITEMS = [
 export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps) {
   const t = useTranslations('menu');
   const nav = useTranslations('nav');
+  const pathname = usePathname();
 
   const menuRef = useRef<HTMLDivElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
@@ -104,9 +106,9 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
                 <Link
                   key={item.key}
                   ref={index === 0 ? firstLinkRef : undefined}
-                  href={`/${locale}/v1/shop?filter=${item.filter}`}
+                  href={`/${locale}/shop?filter=${item.filter}`}
                   onClick={onClose}
-                  className="group flex items-baseline gap-2 py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-[#F2E6D8] transition-colors hover:text-accent focus:text-accent"
+                  className="group flex items-baseline gap-2 py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-inkSoft transition-colors hover:text-accent focus:text-accent"
                 >
                   <span className="text-[var(--accent)]/45 transition-colors group-hover:text-[var(--accent)]">·</span>
                   {t(`categories.${item.key}`)}
@@ -114,7 +116,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
               ))}
             </nav>
 
-            <div className="my-5 border-t border-[#F2E6D8]/10" />
+            <div className="my-5 border-t border-inkSoft/10" />
 
             <p className="mb-3 font-accent text-[11px] uppercase tracking-[0.22em] text-[var(--accent)]/70">
               {t('sections.categories')}
@@ -123,46 +125,39 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
               {CATEGORY_ITEMS.map((key) => (
                 <Link
                   key={key}
-                  href={`/${locale}/v1/shop?category=${key}`}
+                  href={`/${locale}/shop?category=${key}`}
                   onClick={onClose}
-                  className="block py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-[#F2E6D8] transition-colors hover:text-accent focus:text-accent truncate"
+                  className="block py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-inkSoft transition-colors hover:text-accent focus:text-accent truncate"
                 >
                   {t(`categories.${key}`)}
                 </Link>
               ))}
             </nav>
 
-            <div className="my-5 border-t border-[#F2E6D8]/10" />
+            <div className="my-5 border-t border-inkSoft/10" />
 
             <nav className="flex flex-wrap gap-x-5 gap-y-2 pt-1">
-              <Link
-                href={`/${locale}/v1/shop`}
-                onClick={onClose}
-                className="text-[13px] uppercase tracking-[0.08em] text-[#F2E6D8]/70 transition-colors hover:text-accent focus:text-accent"
-              >
-                {nav('shop')}
-              </Link>
-              <Link
-                href={`/${locale}/care`}
-                onClick={onClose}
-                className="text-[13px] uppercase tracking-[0.08em] text-[#F2E6D8]/70 transition-colors hover:text-accent focus:text-accent"
-              >
-                {t('categories.care')}
-              </Link>
-              <Link
-                href={`/${locale}/about`}
-                onClick={onClose}
-                className="text-[13px] uppercase tracking-[0.08em] text-[#F2E6D8]/70 transition-colors hover:text-accent focus:text-accent"
-              >
-                {nav('about')}
-              </Link>
-              <Link
-                href={`/${locale}/contact`}
-                onClick={onClose}
-                className="text-[13px] uppercase tracking-[0.08em] text-[#F2E6D8]/70 transition-colors hover:text-accent focus:text-accent"
-              >
-                {nav('contact')}
-              </Link>
+              {[
+                {href: `/${locale}/shop`, label: nav('shop')},
+                {href: `/${locale}/care`, label: t('categories.care')},
+                {href: `/${locale}/about`, label: nav('about')},
+                {href: `/${locale}/contact`, label: nav('contact')},
+              ].map(({href, label}) => {
+                // aria-current marks the page the user is on. Compared on pathname
+                // only — the ?filter/?category shortcuts above aren't a page identity.
+                const current = pathname === href;
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={onClose}
+                    aria-current={current ? 'page' : undefined}
+                    className={`text-[13px] uppercase tracking-[0.08em] transition-colors hover:text-accent focus:text-accent ${current ? 'text-accent' : 'text-inkSoft/70'}`}
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
             </nav>
           </div>
         </div>

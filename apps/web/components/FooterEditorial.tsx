@@ -44,7 +44,6 @@ export default async function FooterEditorial({
     {key: 'spring26', href: `/${locale}/collections#spring`},
     {key: 'resort', href: `/${locale}/collections#summer`},
     {key: 'archive', href: `/${locale}/collections`},
-    {key: 'lookbook', href: `/${locale}/lookbook`},
   ];
 
   const careLinks: FooterLink[] = [
@@ -57,12 +56,14 @@ export default async function FooterEditorial({
   ];
 
   return (
-    <footer className="relative z-30 border-t border-[#D4A574]/10 bg-[#1a0f0a]">
+    <footer className="relative z-30 border-t border-accent/10 bg-[#1a0f0a]">
       <div className="mx-auto max-w-[1240px] px-6 lg:px-10">
         {/* ─────────── Brand band ─────────── */}
-        <div className="border-b border-[#F2E6D8]/[0.06] py-8 lg:py-10">
+        <div className="border-b border-inkSoft/[0.06] py-8 lg:py-10">
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="flex items-center gap-2.5">
+              {/* SVG brand marks — next/image is for raster only (see apps/web/CLAUDE.md). */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logos/icon-white.svg"
                 alt=""
@@ -70,6 +71,7 @@ export default async function FooterEditorial({
                 className="brand-asset h-7 w-7"
                 draggable="false"
               />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logos/name-white.svg"
                 alt="REINASLEO"
@@ -77,7 +79,7 @@ export default async function FooterEditorial({
                 draggable="false"
               />
             </div>
-            <p className="max-w-[460px] text-[13px] leading-relaxed text-[#F2E6D8]/65">
+            <p className="max-w-[460px] text-[13px] leading-relaxed text-inkSoft/65">
               {t('tagline')}
             </p>
           </div>
@@ -90,16 +92,16 @@ export default async function FooterEditorial({
             <div className="col-span-3">
               <FooterColTitle>{t('brand.title')}</FooterColTitle>
               {!compact && (
-                <p className="mt-4 text-[13px] leading-[1.7] text-[#F2E6D8]/55">
+                <p className="mt-4 text-[13px] leading-[1.7] text-inkSoft/55">
                   {t('brand.essay')}
                 </p>
               )}
-              <p className="mt-5 font-accent text-[10px] uppercase tracking-[0.25em] text-[#F2E6D8]/65">
+              <p className="mt-5 font-accent text-[10px] uppercase tracking-[0.25em] text-inkSoft/65">
                 {t('brand.tag')}
               </p>
               <Link
                 href={`/${locale}/about`}
-                className="mt-3 inline-flex items-center gap-1.5 font-accent text-[11px] uppercase tracking-[0.25em] text-[#D4A574] transition-colors duration-200 hover:text-[#F2E6D8]"
+                className="mt-3 inline-flex items-center gap-1.5 font-accent text-[11px] uppercase tracking-[0.25em] text-accent transition-colors duration-200 hover:text-inkSoft"
                 prefetch
               >
                 {t('brand.cta')}
@@ -132,17 +134,17 @@ export default async function FooterEditorial({
             {/* Newsletter — 3/12 */}
             <div className="col-span-3">
               <FooterColTitle>{t('columns.newsletter')}</FooterColTitle>
-              <p className="mt-4 text-[13px] leading-[1.6] text-[#F2E6D8]/55">
+              <p className="mt-4 text-[13px] leading-[1.6] text-inkSoft/55">
                 {t('newsletter.description')}
               </p>
               <div className="mt-5">
                 <FooterNewsletter locale={locale} />
               </div>
-              <p className="mt-3 text-[11px] leading-relaxed text-[#F2E6D8]/55">
+              <p className="mt-3 text-[11px] leading-relaxed text-inkSoft/55">
                 {t('newsletter.disclaimer')}{' '}
                 <Link
                   href={`/${locale}/privacy`}
-                  className="text-[#F2E6D8]/65 underline-offset-4 hover:underline"
+                  className="text-inkSoft/65 underline-offset-4 hover:underline"
                   prefetch
                 >
                   {t('newsletter.privacyLink')}
@@ -161,19 +163,19 @@ export default async function FooterEditorial({
         {/* ─────────── Mobile: stacked + accordions ─────────── */}
         <div className="space-y-4 py-6 lg:hidden">
           {/* Atelier — always visible */}
-          <div className="border-b border-[#F2E6D8]/[0.06] pb-5">
+          <div className="border-b border-inkSoft/[0.06] pb-5">
             <FooterColTitle>{t('brand.title')}</FooterColTitle>
             {!compact && (
-              <p className="mt-3 text-[13px] leading-[1.7] text-[#F2E6D8]/55">
+              <p className="mt-3 text-[13px] leading-[1.7] text-inkSoft/55">
                 {t('brand.essay')}
               </p>
             )}
-            <p className="mt-3 font-accent text-[10px] uppercase tracking-[0.25em] text-[#F2E6D8]/65">
+            <p className="mt-3 font-accent text-[10px] uppercase tracking-[0.25em] text-inkSoft/65">
               {t('brand.tag')}
             </p>
             <Link
               href={`/${locale}/about`}
-              className="mt-3 inline-flex items-center gap-1.5 font-accent text-[11px] uppercase tracking-[0.25em] text-[#D4A574]"
+              className="mt-3 inline-flex items-center gap-1.5 font-accent text-[11px] uppercase tracking-[0.25em] text-accent"
               prefetch
             >
               {t('brand.cta')} <span aria-hidden>→</span>
@@ -181,9 +183,9 @@ export default async function FooterEditorial({
           </div>
 
           {/* Newsletter — always expanded on mobile (главный CTA) */}
-          <div className="border-b border-[#F2E6D8]/[0.06] pb-5">
+          <div className="border-b border-inkSoft/[0.06] pb-5">
             <FooterColTitle>{t('columns.newsletter')}</FooterColTitle>
-            <p className="mt-3 text-[13px] leading-[1.6] text-[#F2E6D8]/55">
+            <p className="mt-3 text-[13px] leading-[1.6] text-inkSoft/55">
               {t('newsletter.description')}
             </p>
             <div className="mt-4">
@@ -214,32 +216,32 @@ export default async function FooterEditorial({
         </div>
 
         {/* ─────────── Bottom band ─────────── */}
-        <div className="border-t border-[#F2E6D8]/[0.06] py-6">
+        <div className="border-t border-inkSoft/[0.06] py-6">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-col gap-1 text-[#F2E6D8]/65 lg:flex-row lg:items-center lg:gap-3">
+            <div className="flex flex-col gap-1 text-inkSoft/65 lg:flex-row lg:items-center lg:gap-3">
               <p className="text-[12px]">{t('rights')}</p>
-              <span className="hidden text-[#F2E6D8]/15 lg:inline">·</span>
-              <p className="text-[11px] text-[#F2E6D8]/55">{t('legalEntity')}</p>
+              <span className="hidden text-inkSoft/15 lg:inline">·</span>
+              <p className="text-[11px] text-inkSoft/55">{t('legalEntity')}</p>
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-              <span className="font-accent text-[10px] uppercase tracking-[0.25em] text-[#F2E6D8]/65">
+              <span className="font-accent text-[10px] uppercase tracking-[0.25em] text-inkSoft/65">
                 {t('payments.title')}
               </span>
-              <span className="text-[11px] text-[#F2E6D8]/70">
+              <span className="text-[11px] text-inkSoft/70">
                 {t('payments.methods')}
               </span>
-              <span className="text-[#F2E6D8]/15">·</span>
+              <span className="text-inkSoft/15">·</span>
               <Link
                 href={`/${locale}/privacy`}
-                className="text-[12px] text-[#F2E6D8]/65 transition-colors hover:text-[#F2E6D8]/80"
+                className="text-[12px] text-inkSoft/65 transition-colors hover:text-inkSoft/80"
                 prefetch
               >
                 {t('privacy')}
               </Link>
-              <span className="text-[#F2E6D8]/15">·</span>
+              <span className="text-inkSoft/15">·</span>
               <Link
                 href={`/${locale}/terms`}
-                className="text-[12px] text-[#F2E6D8]/65 transition-colors hover:text-[#F2E6D8]/80"
+                className="text-[12px] text-inkSoft/65 transition-colors hover:text-inkSoft/80"
                 prefetch
               >
                 {t('terms')}
@@ -256,7 +258,7 @@ export default async function FooterEditorial({
 
 function FooterColTitle({children}: {children: ReactNode}) {
   return (
-    <h3 className="block font-accent text-[11px] uppercase tracking-[0.3em] text-[#D4A574]">
+    <h3 className="block font-accent text-[11px] uppercase tracking-[0.3em] text-accent">
       {children}
     </h3>
   );
@@ -275,7 +277,7 @@ function FooterLinkList({items, translateKey, t}: FooterLinkListProps) {
         <li key={key}>
           <Link
             href={href}
-            className="block text-[13px] text-[#F2E6D8]/55 transition-colors duration-200 hover:text-[#D4A574]"
+            className="block text-[13px] text-inkSoft/55 transition-colors duration-200 hover:text-accent"
             prefetch
           >
             {t(`${translateKey}.${key}`)}

@@ -52,7 +52,7 @@ export const MenuItem = ({
           `group` classes on CategoryCard / CollectionCard inside the dropdown. */}
       <span
         aria-hidden
-        className={`pointer-events-none absolute -bottom-1.5 left-0 right-0 block h-px bg-[#D4A574] transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+        className={`pointer-events-none absolute -bottom-1.5 left-0 right-0 block h-px bg-accent transition-transform duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
           isActive
             ? "origin-left scale-x-100"
             : "origin-right scale-x-0 group-hover/menuitem:origin-left group-hover/menuitem:scale-x-100"
@@ -70,15 +70,7 @@ export const MenuItem = ({
               <motion.div
                 transition={transition}
                 layoutId="active"
-                className="rounded-2xl overflow-hidden border border-[#D4A574]/[0.08]"
-                style={{
-                  background:
-                    "linear-gradient(165deg, rgba(26, 16, 12, 0.98) 0%, rgba(36, 21, 16, 0.97) 50%, rgba(30, 18, 13, 0.98) 100%)",
-                  backdropFilter: "blur(40px) saturate(1.2)",
-                  WebkitBackdropFilter: "blur(40px) saturate(1.2)",
-                  boxShadow:
-                    "0 0 0 1px rgba(212, 165, 116, 0.05), 0 25px 60px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(242, 230, 216, 0.04)",
-                }}
+                className="dropdown-glass rounded-2xl overflow-hidden border border-accent/[0.08]"
               >
                 <motion.div layout className="w-max h-full">
                   {children}
@@ -116,7 +108,7 @@ export const HoveredLink = ({
   return (
     <Link
       {...rest}
-      className="block text-[17px] leading-relaxed text-ink/50 transition-colors duration-200 hover:text-accent"
+      className="block text-[17px] leading-relaxed text-ink/65 transition-colors duration-200 hover:text-accent"
     >
       {children}
     </Link>
@@ -135,12 +127,12 @@ export const CategoryCard = ({
   return (
     <Link
       href={href}
-      className="group relative flex flex-col gap-1 rounded-xl px-5 py-4 transition-all duration-300 hover:bg-[#D4A574]/[0.06]"
+      className="group relative flex flex-col gap-1 rounded-xl px-5 py-4 transition-all duration-300 hover:bg-accent/[0.06]"
     >
       {/* Hover accent line */}
-      <div className="absolute left-0 top-1/2 -translate-y-1/2 h-0 w-[2px] rounded-full bg-[#D4A574]/40 transition-all duration-300 group-hover:h-[60%]" />
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 h-0 w-[2px] rounded-full bg-accent/40 transition-all duration-300 group-hover:h-[60%]" />
 
-      <span className="font-display text-[18px] font-semibold tracking-[0.02em] text-ink/80 transition-colors duration-200 group-hover:text-[#D4A574]">
+      <span className="font-display text-[18px] font-semibold tracking-[0.02em] text-ink/80 transition-colors duration-200 group-hover:text-accent">
         {label}
       </span>
       {description && (
@@ -182,10 +174,10 @@ export const CollectionCard = ({
           <div className="absolute inset-0 bg-gradient-to-t from-[#110a07]/90 via-[#110a07]/20 to-transparent transition-opacity duration-500" />
 
           {/* Accent border glow on hover */}
-          <div className="absolute inset-0 rounded-xl border border-transparent transition-all duration-500 group-hover:border-[#D4A574]/20 group-hover:shadow-[inset_0_0_20px_rgba(212,165,116,0.06)]" />
+          <div className="absolute inset-0 rounded-xl border border-transparent transition-all duration-500 group-hover:border-accent/20 group-hover:shadow-[inset_0_0_20px_rgba(212,165,116,0.06)]" />
 
           <div className="absolute bottom-0 left-0 right-0 p-4">
-            <p className="font-display text-[19px] font-semibold uppercase tracking-[0.08em] text-ink/90 transition-colors duration-300 group-hover:text-[#D4A574]">
+            <p className="font-display text-[19px] font-semibold uppercase tracking-[0.08em] text-ink/90 transition-colors duration-300 group-hover:text-accent">
               {title}
             </p>
             {subtitle && (
@@ -199,9 +191,9 @@ export const CollectionCard = ({
           <Link
             key={item.label}
             href={item.href}
-            className="group/item flex items-center gap-2 py-1 text-[17px] font-display text-ink/55 transition-colors duration-200 hover:text-[#D4A574]"
+            className="group/item flex items-center gap-2 py-1 text-[17px] font-display text-ink/55 transition-colors duration-200 hover:text-accent"
           >
-            <span className="inline-block h-px w-0 bg-[#D4A574]/50 transition-all duration-300 group-hover/item:w-3" />
+            <span className="inline-block h-px w-0 bg-accent/50 transition-all duration-300 group-hover/item:w-3" />
             {item.label}
           </Link>
         ))}

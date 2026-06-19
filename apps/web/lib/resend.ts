@@ -18,7 +18,7 @@ export async function subscribeToNewsletter(
 
   if (!apiKey || !audienceId) {
     if (process.env.NODE_ENV !== 'test') {
-      console.warn('[newsletter] Resend not configured', {
+      console.error('[newsletter] Resend not configured', {
         hasKey: Boolean(apiKey),
         hasAudience: Boolean(audienceId),
       });

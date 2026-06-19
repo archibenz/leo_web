@@ -1,7 +1,14 @@
+'use client';
+
+import {useTranslations} from 'next-intl';
+
 type BrandLoaderProps = {
   size?: number;
   speed?: 'fast' | 'slow';
   className?: string;
+  // When nested inside another status region (e.g. LoaderSplash), drop this
+  // loader's own role/label so the screen reader doesn't announce twice.
+  decorative?: boolean;
 };
 
 const SQUARE_PATH =
@@ -17,13 +24,16 @@ export default function BrandLoader({
   size = 48,
   speed = 'slow',
   className = '',
+  decorative = false,
 }: BrandLoaderProps) {
+  const t = useTranslations('common');
   const cycle = speed === 'fast' ? '1.1s' : '1.5s';
 
   return (
     <span
-      role="status"
-      aria-label="Loading"
+      role={decorative ? undefined : 'status'}
+      aria-label={decorative ? undefined : t('loading')}
+      aria-hidden={decorative ? true : undefined}
       className={`brand-loader ${className}`}
       style={{
         width: size,

@@ -10,6 +10,7 @@ import {useFavorites} from '../contexts/FavoritesContext';
 import {useAuth} from '../contexts/AuthContext';
 import {track} from '../lib/analytics';
 import {apiFetch} from '../lib/api';
+import {formatPrice} from '../lib/formatPrice';
 import ProductGallery from './ProductGallery';
 import type {ProductImage} from './ProductGallery';
 import SizeSelector from './SizeSelector';
@@ -18,6 +19,7 @@ import SizeChart from './SizeChart';
 import Accordion from './ui/Accordion';
 import {CareSymbolsRow} from './CareSymbols';
 import WildberriesButton from './WildberriesButton';
+import {WILDBERRIES_SELLER_URL} from '../lib/wildberries';
 import {BrandHeart} from './icons';
 
 import { API_BASE } from '../lib/api';
@@ -42,29 +44,6 @@ interface ApiProduct {
   collectionName: string | null;
   inStock: boolean;
   careInstructions: string | null;
-}
-
-/* ── Stars component ── */
-
-function Stars({rating}: {rating: number}) {
-  return (
-    <div className="flex gap-0.5" aria-label={`${rating} out of 5 stars`}>
-      {[1, 2, 3, 4, 5].map((star) => (
-        <svg
-          key={star}
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill={star <= Math.round(rating) ? 'currentColor' : 'none'}
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className={star <= Math.round(rating) ? 'text-[var(--accent)]' : 'text-[var(--ink)]/25'}
-        >
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-        </svg>
-      ))}
-    </div>
-  );
 }
 
 /* ── Cart item ID helper ── */
@@ -182,7 +161,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
   const isFav = isFavorite(product.id);
 
   const handleAddToBag = () => {
-    if (!selectedSize) {
+    if (sizeOptions.length > 0 && !selectedSize) {
       setSizeError(true);
       return;
     }
@@ -192,7 +171,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
       id,
       title: product.title,
       price: product.price,
-      size: selectedSize,
+      size: selectedSize ?? undefined,
       isTest: product.isTest,
     });
   };
@@ -259,7 +238,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
             {product.isTest && (
               <span
                 className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--accent)]/40 bg-[var(--accent)]/[0.08] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]"
-                aria-label="Demo product"
+                aria-label={t('demoBadge')}
               >
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75 motion-safe:animate-ping" />
@@ -277,7 +256,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
               {product.title}
             </h1>
             <p className="mt-1 text-xl font-accent text-[var(--ink)]">
-              &euro;{product.price.toLocaleString()}
+              {formatPrice(locale, product.price)}
             </p>
           </div>
 
@@ -299,7 +278,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
                 category={product.category}
               />
               {sizeError && (
-                <p className="mt-2 text-sm text-red-400">{t('selectSizeFirst')}</p>
+                <p className="mt-2 text-sm text-[var(--status-error)]">{t('selectSizeFirst')}</p>
               )}
             </div>
           )}
@@ -330,7 +309,15 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
                 )}
               </div>
             )}
-            <WildberriesButton href="https://www.wildberries.ru/seller/609562">
+            {product.inStock && (
+              <button
+                onClick={handleAddToBag}
+                className="flex h-14 w-full items-center justify-center rounded-full bg-button text-base font-medium text-ink transition-all duration-200 hover:bg-button/90 active:scale-[0.98]"
+              >
+                {t('addToBag')}
+              </button>
+            )}
+            <WildberriesButton href={WILDBERRIES_SELLER_URL}>
               {t('buyWildberries')}
             </WildberriesButton>
 
@@ -427,7 +414,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
                 </div>
                 <div className="mt-2">
                   <p className="text-sm text-[var(--ink)] truncate">{rec.title}</p>
-                  <p className="text-sm text-[var(--ink)]/50">{new Intl.NumberFormat(locale, {style: 'currency', currency: 'RUB', maximumFractionDigits: 0}).format(rec.price)}</p>
+                  <p className="text-sm text-[var(--ink)]/50">{formatPrice(locale, rec.price)}</p>
                 </div>
               </Link>
             ))}

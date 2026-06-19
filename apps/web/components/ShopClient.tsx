@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import { API_BASE } from '../lib/api';
+import { formatPrice } from '../lib/formatPrice';
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
@@ -194,7 +195,7 @@ function HeroCard({item, idx, locale, t, tLook}: HeroCardProps) {
         </h2>
         <div className="flex items-end justify-between gap-4">
           <span className="font-accent text-[16px] italic text-[var(--ink-soft)] sm:text-[18px]">
-            €{item.price.toLocaleString()}
+            {formatPrice(locale, item.price)}
           </span>
           <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-[var(--ink-soft)] transition-colors duration-200 group-hover:text-[var(--accent)] sm:text-[11px]">
             {tLook('openLook')}
@@ -305,7 +306,7 @@ function ListCard({item, idx, locale, t}: ListCardProps) {
           {item.title}
         </h3>
         <span className="whitespace-nowrap font-accent text-[16px] italic text-[var(--ink-soft)] sm:text-[18px]">
-          €{item.price.toLocaleString()}
+          {formatPrice(locale, item.price)}
         </span>
       </div>
     </Link>
@@ -344,19 +345,6 @@ function BrandFallback({title, occasion}: {title: string; occasion: string | nul
       </div>
     </div>
   );
-}
-
-interface ProductCardProps {
-  item: ShopItem;
-  idx: number;
-  locale: string;
-  t: Translator;
-  tLook: Translator;
-}
-
-function ProductCard({item, idx, locale, t, tLook}: ProductCardProps) {
-  if (idx === 0) return <HeroCard item={item} idx={idx} locale={locale} t={t} tLook={tLook} />;
-  return <ListCard item={item} idx={idx} locale={locale} t={t} />;
 }
 
 /* ------------------------------------------------------------------ */
@@ -412,8 +400,8 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
     return () => controller.abort();
   }, [initialProducts]);
 
-  /* ---- season from URL ---- */
-  const [seasonFilter, setSeasonFilter] = useState<string | null>(null);
+  /* ---- season from URL (write-only: applied to `filters`, not read directly) ---- */
+  const [, setSeasonFilter] = useState<string | null>(null);
 
   /* ---- apply URL params on mount ---- */
   // Фильтры применяются, но панель остаётся свёрнутой и на мобилке, и на ПК —
@@ -453,8 +441,12 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
   }, []);
 
   /* ---- derived data ---- */
+  // Free-text query from ?q (header search). Read here too — not just the
+  // server page — so soft navigations (search submitted from /shop) re-filter.
+  const query = (searchParams.get('q') ?? '').trim().toLowerCase();
   const filteredAndSorted = useMemo(() => {
     let result = items.filter(item => {
+      if (query && !item.title?.toLowerCase().includes(query)) return false;
       if (filters.occasion.length  > 0 && (!item.occasion || !filters.occasion.includes(item.occasion)))       return false;
       if (filters.category.length  > 0 && (!item.category || !filters.category.includes(item.category)))       return false;
       if (filters.color.length     > 0 && (!item.color || !filters.color.includes(item.color)))                return false;
@@ -470,7 +462,7 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
     }
 
     return result;
-  }, [items, filters, sortKey]);
+  }, [items, filters, sortKey, query]);
 
   const grouped = useMemo(() => {
     if (!groupByTheme) return null;
@@ -527,7 +519,10 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
 
           {/* sort button */}
           <button
+            type="button"
             onClick={() => setSortPanelOpen(prev => !prev)}
+            aria-expanded={sortPanelOpen}
+            aria-controls="shop-sort-panel"
             className="lux-control flex items-center gap-2 px-4 py-2 text-sm tracking-wide text-[var(--ink)]"
           >
             {t('sortBy')}: {t(`sort.${sortKey}`)}
@@ -538,7 +533,10 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
 
           {/* filter toggle */}
           <button
+            type="button"
             onClick={() => setFiltersOpen(prev => !prev)}
+            aria-expanded={filtersOpen}
+            aria-controls="shop-filter-panel"
             className="lux-btn-secondary !py-2 !px-4 !text-xs"
           >
             {filtersOpen ? t('hideFilters') : t('showFilters')}
@@ -553,6 +551,8 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
 
       {/* ---- sort panel overlay ---- */}
       <div
+        id="shop-sort-panel"
+        inert={!sortPanelOpen}
         className={`overflow-hidden transition-all duration-300 ease-out ${
           sortPanelOpen ? 'max-h-48 opacity-100 mt-4 mb-2' : 'max-h-0 opacity-0 mt-0 mb-0'
         }`}
@@ -561,7 +561,9 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
           {SORT_OPTIONS.map(opt => (
             <button
               key={opt}
+              type="button"
               onClick={() => handleSortSelect(opt)}
+              aria-pressed={sortKey === opt}
               className={`rounded-full px-5 py-2.5 text-sm tracking-wide transition-all duration-200 ${
                 sortKey === opt
                   ? 'bg-[var(--accent)] text-[var(--paper-base)]'
@@ -578,7 +580,7 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
       <div className="mt-6 flex flex-col gap-8 sm:flex-row">
         {/* ---- filter sidebar (independent scroll) ---- */}
         {filtersOpen && (
-          <aside className="w-full shrink-0 sm:w-64 lg:w-80 sm:sticky sm:top-24 sm:self-start">
+          <aside id="shop-filter-panel" className="w-full shrink-0 sm:w-64 lg:w-80 sm:sticky sm:top-24 sm:self-start">
             <div className="lux-control flex flex-col gap-1.5 p-4">
               <div className="mb-1 flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase tracking-widest text-[var(--ink-soft)]">

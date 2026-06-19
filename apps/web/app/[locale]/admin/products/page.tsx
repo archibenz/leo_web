@@ -7,6 +7,7 @@ import Link from 'next/link';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import BrandLoader from '../../../../components/BrandLoader';
 import {apiFetch} from '../../../../lib/api';
+import {formatPrice} from '../../../../lib/formatPrice';
 
 type Product = {
   id: string;
@@ -86,7 +87,7 @@ export default function AdminProductsPage() {
                     )}
                   </div>
                   <div className="mt-0.5 flex items-center gap-3 text-xs text-[var(--ink-soft)]">
-                    <span>&euro;{product.price}</span>
+                    <span>{formatPrice(locale, product.price)}</span>
                     {product.category && <span>{product.category}</span>}
                     {product.collectionName && <span>{product.collectionName}</span>}
                   </div>

@@ -4,7 +4,16 @@
     "switchTo": "Переключить на {locale}",
     "confirm": "Подтвердить",
     "cancel": "Отмена",
-    "dismissNotification": "Закрыть уведомление"
+    "dismissNotification": "Закрыть уведомление",
+    "notifications": "Уведомления",
+    "scrollLeft": "Прокрутить влево",
+    "scrollRight": "Прокрутить вправо",
+    "previousImage": "Предыдущее изображение",
+    "nextImage": "Следующее изображение",
+    "carouselNavigation": "Навигация по карусели",
+    "slideXofY": "Слайд {n} из {total}",
+    "previousSlide": "Предыдущий слайд",
+    "nextSlide": "Следующий слайд"
   },
   "languageSelect": {
     "label": "Язык",
@@ -142,8 +151,7 @@
     "collectionLinks": {
       "spring26": "Весна 2026",
       "resort": "Resort",
-      "archive": "Архив",
-      "lookbook": "Lookbook"
+      "archive": "Архив"
     },
     "care": {
       "shipping": "Доставка",
@@ -466,6 +474,7 @@
     },
     "clearAll": "Очистить",
     "addToBag": "В корзину",
+    "selectSize": "Выберите размер",
     "remove": "Удалить из избранного",
     "clearConfirmTitle": "Очистить избранное?",
     "clearConfirmMessage": "Все сохранённые вещи будут удалены из списка желаний. Это действие нельзя отменить."
@@ -484,6 +493,8 @@
     "subtotal": "Сумма",
     "summary": "Итого к оплате",
     "checkout": "Оформить заказ",
+    "checkoutWildberries": "Оформить на Wildberries",
+    "checkoutWildberriesAria": "Оформить на Wildberries — откроется в новой вкладке",
     "remove": "Удалить из корзины",
     "decrease": "Уменьшить количество",
     "increase": "Увеличить количество",
@@ -680,6 +691,13 @@
     }
   },
   "product": {
+    "gallery": {
+      "close": "Закрыть",
+      "previous": "Предыдущее фото",
+      "next": "Следующее фото",
+      "zoomIn": "Приблизить",
+      "zoomOut": "Отдалить"
+    },
     "back": "Назад",
     "addToBag": "В корзину",
     "favourite": "В избранное",
@@ -729,7 +747,8 @@
     "buyWildberries": "Купить на Wildberries",
     "collection": "Коллекция",
     "careInstructions": "Уход за изделием",
-    "completeLook": "Дополните образ"
+    "completeLook": "Дополните образ",
+    "demoBadge": "Демо-товар"
   },
   "look": {
     "openLook": "ОТКРЫТЬ LOOK",

@@ -75,7 +75,7 @@ export default function FooterNewsletter({locale}: FooterNewsletterProps) {
       aria-label={t('description')}
       noValidate
     >
-      <div className="flex items-center gap-2 border-b border-[#F2E6D8]/15 pb-2 transition-colors duration-200 focus-within:border-[#D4A574]/60">
+      <div className="flex items-center gap-2 border-b border-inkSoft/15 pb-2 transition-colors duration-200 focus-within:border-accent/60">
         <input
           id={inputId}
           type="email"
@@ -93,12 +93,12 @@ export default function FooterNewsletter({locale}: FooterNewsletterProps) {
           aria-invalid={status === 'invalid' ? 'true' : undefined}
           aria-describedby={message ? errorId : undefined}
           disabled={isLocked}
-          className="flex-1 bg-transparent py-2 text-[14px] text-[#F2E6D8]/90 placeholder:text-[#F2E6D8]/55 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#D4A574] disabled:opacity-50"
+          className="flex-1 bg-transparent py-2 text-[14px] text-inkSoft/90 placeholder:text-inkSoft/55 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent disabled:opacity-50"
         />
         <button
           type="submit"
           disabled={isLocked}
-          className="font-accent text-[10px] uppercase tracking-[0.3em] text-[#D4A574] transition-colors duration-200 hover:text-[#F2E6D8] disabled:cursor-not-allowed disabled:opacity-40"
+          className="font-accent text-[10px] uppercase tracking-[0.3em] text-accent transition-colors duration-200 hover:text-inkSoft disabled:cursor-not-allowed disabled:opacity-40"
         >
           {status === 'loading' ? t('submitting') : t('submit')}
         </button>
@@ -109,7 +109,7 @@ export default function FooterNewsletter({locale}: FooterNewsletterProps) {
         aria-atomic="true"
         role={isErrorState ? 'alert' : undefined}
         className={`font-accent text-[10px] uppercase tracking-[0.2em] ${
-          isErrorState ? 'text-[#c08a82]' : 'text-[#D4A574]/80'
+          isErrorState ? 'text-[#c08a82]' : 'text-accent/80'
         } min-h-[12px]`}
       >
         {message ?? ''}

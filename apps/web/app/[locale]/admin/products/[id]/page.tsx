@@ -1,11 +1,12 @@
 'use client';
 
 import {use, useState, useEffect, useCallback} from 'react';
-import {useTranslations} from 'next-intl';
+import {useTranslations, useLocale} from 'next-intl';
 import AdminLayout from '../../../../../components/admin/AdminLayout';
 import ProductForm from '../../../../../components/admin/ProductForm';
 import BrandLoader from '../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../lib/api';
+import {formatPrice} from '../../../../../lib/formatPrice';
 
 type Props = {
   params: Promise<{id: string}>;
@@ -43,6 +44,7 @@ export default function EditProductPage({params}: Props) {
 
 function RecommendationsSection({productId}: {productId: string}) {
   const t = useTranslations('admin');
+  const locale = useLocale();
   const [recommendations, setRecommendations] = useState<RecommendedProduct[]>([]);
   const [allProducts, setAllProducts] = useState<ProductOption[]>([]);
   const [loading, setLoading] = useState(true);
@@ -124,7 +126,7 @@ function RecommendationsSection({productId}: {productId: string}) {
             <div key={rec.id} className="flex items-center justify-between gap-4 rounded-lg bg-[var(--ink)]/3 px-4 py-2.5">
               <div>
                 <span className="text-sm font-medium text-[var(--ink)]">{rec.title}</span>
-                <span className="ml-2 text-xs text-[var(--ink-soft)]">&euro;{rec.price}</span>
+                <span className="ml-2 text-xs text-[var(--ink-soft)]">{formatPrice(locale, rec.price)}</span>
               </div>
               <button
                 onClick={() => handleRemove(rec.id)}

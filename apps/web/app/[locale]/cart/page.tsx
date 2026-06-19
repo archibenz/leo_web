@@ -8,6 +8,8 @@ import {useTranslations} from 'next-intl';
 import {useCart} from '../../../contexts/CartContext';
 import {useAuth} from '../../../contexts/AuthContext';
 import {track} from '../../../lib/analytics';
+import {formatPrice} from '../../../lib/formatPrice';
+import {WILDBERRIES_SELLER_URL} from '../../../lib/wildberries';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import LoaderSplash from '../../../components/LoaderSplash';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
@@ -27,8 +29,6 @@ export default function CartPage() {
   const cartEmpty = items.length === 0;
   const subtotal = total;
   const hasTestItems = items.some(item => item.isTest);
-  const allTest = items.length > 0 && items.every(item => item.isTest);
-  const realTotal = items.filter(i => !i.isTest).reduce((sum, i) => sum + (i.price ?? 0) * i.quantity, 0);
 
   if (isLoading) {
     return <LoaderSplash />;
@@ -136,35 +136,43 @@ export default function CartPage() {
                           <span className="text-sm text-ink-soft">{item.size}</span>
                         )}
                         {item.price !== undefined && (
-                          <p className="text-sm text-ink-soft">&euro;{item.price.toFixed(2)}</p>
+                          <p className="text-sm text-ink-soft">{formatPrice(locale, item.price)}</p>
                         )}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-3 sm:gap-5">
-                      <div className="flex items-center gap-2">
+                      {/* 44px tap targets (project a11y rule). Outer button is the
+                          44px hit area; the 32px bordered circle stays the visible
+                          control. gap-0.5 keeps the previous gap-2 spacing
+                          (6px wrapper padding + 2px = 8px). */}
+                      <div className="flex items-center gap-0.5">
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/12 text-ink-soft transition hover:border-ink hover:text-ink"
+                          className="group flex h-11 w-11 items-center justify-center"
                           aria-label={t('decrease')}
                         >
-                          &minus;
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/12 text-ink-soft transition group-hover:border-ink group-hover:text-ink">
+                            &minus;
+                          </span>
                         </button>
                         <span className="w-7 text-center text-sm font-medium text-ink tabular-nums">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/12 text-ink-soft transition hover:border-ink hover:text-ink"
+                          className="group flex h-11 w-11 items-center justify-center"
                           aria-label={t('increase')}
                         >
-                          +
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/12 text-ink-soft transition group-hover:border-ink group-hover:text-ink">
+                            +
+                          </span>
                         </button>
                       </div>
 
                       <button
                         onClick={() => removeItem(item.id)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-ink-soft transition hover:bg-ink/5 hover:text-ink"
+                        className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition hover:bg-ink/5 hover:text-ink"
                         aria-label={t('remove')}
                       >
                         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -184,23 +192,26 @@ export default function CartPage() {
 
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-ink-soft">{t('subtotal')}</span>
-                      <span className="text-ink">&euro;{subtotal.toFixed(2)}</span>
+                      <span className="text-ink">{formatPrice(locale, subtotal)}</span>
                     </div>
 
                     <div className="h-px bg-ink/12" />
 
                     <div className="flex items-center justify-between">
                       <span className="text-base font-semibold text-ink">{t('total')}</span>
-                      <span className="font-display text-2xl text-ink">&euro;{subtotal.toFixed(2)}</span>
+                      <span className="font-display text-2xl text-ink">{formatPrice(locale, subtotal)}</span>
                     </div>
 
-                    <Link
-                      href="/"
+                    <a
+                      href={WILDBERRIES_SELLER_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t('checkoutWildberriesAria')}
                       onClick={() => track('begin_checkout', {value: subtotal, items: count})}
                       className="block w-full rounded-full bg-button py-4 text-center text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85 hover:shadow-lg hover:shadow-button/25"
                     >
-                      {t('checkout')}
-                    </Link>
+                      {t('checkoutWildberries')}<span aria-hidden="true" className="ml-1.5">↗</span>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -212,23 +223,26 @@ export default function CartPage() {
 
               <div className="flex items-center justify-between text-sm">
                 <span className="text-ink-soft">{t('subtotal')}</span>
-                <span className="text-ink">&euro;{subtotal.toFixed(2)}</span>
+                <span className="text-ink">{formatPrice(locale, subtotal)}</span>
               </div>
 
               <div className="h-px bg-ink/12" />
 
               <div className="flex items-center justify-between">
                 <span className="text-base font-semibold text-ink">{t('total')}</span>
-                <span className="font-display text-2xl text-ink">&euro;{subtotal.toFixed(2)}</span>
+                <span className="font-display text-2xl text-ink">{formatPrice(locale, subtotal)}</span>
               </div>
 
-              <Link
-                href="/"
+              <a
+                href={WILDBERRIES_SELLER_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={t('checkoutWildberriesAria')}
                 onClick={() => track('begin_checkout', {value: subtotal, items: count})}
                 className="block w-full rounded-full bg-button py-4 text-center text-base font-medium uppercase tracking-wider text-ink transition-all duration-300 hover:bg-button/85 hover:shadow-lg hover:shadow-button/25"
               >
-                {t('checkout')}
-              </Link>
+                {t('checkoutWildberries')}<span aria-hidden="true" className="ml-1.5">↗</span>
+              </a>
             </div>
           </>
         )}

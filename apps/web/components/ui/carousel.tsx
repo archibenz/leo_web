@@ -2,6 +2,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState, useRef, useEffect, useCallback } from "react";
 
 interface SlideData {
@@ -16,6 +17,7 @@ interface CarouselProps {
 }
 
 export function Carousel({ slides }: CarouselProps) {
+  const t = useTranslations("common");
   const [current, setCurrent] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -187,7 +189,7 @@ export function Carousel({ slides }: CarouselProps) {
       el.removeEventListener("mouseleave", onMouseUp);
       el.removeEventListener("keydown", onKeyDown);
     };
-  }, [goTo]);
+  }, [goTo, router]);
 
   return (
     <div
@@ -252,10 +254,10 @@ export function Carousel({ slides }: CarouselProps) {
                   className="absolute inset-x-0 bottom-0 p-5 sm:p-7 transition-opacity duration-500"
                   style={{ opacity: isActive ? 1 : 0 }}
                 >
-                  <h3 className="font-display text-base sm:text-lg md:text-xl lg:text-2xl uppercase tracking-[0.06em] text-[#F2E6D8] leading-tight">
+                  <h3 className="font-display text-base sm:text-lg md:text-xl lg:text-2xl uppercase tracking-[0.06em] text-inkSoft leading-tight">
                     {slide.title}
                   </h3>
-                  <span className="inline-flex items-center gap-2 mt-3 px-4 py-2 text-[12px] sm:text-[14px] uppercase tracking-[0.1em] text-[#F2E6D8]/90 bg-white/10 backdrop-blur-sm border border-[#D4A574]/30 rounded-full transition-all duration-300 group-hover:bg-white/15 group-hover:border-[#D4A574]/50 group-active:scale-95">
+                  <span className="inline-flex items-center gap-2 mt-3 px-4 py-2 text-[12px] sm:text-[14px] uppercase tracking-[0.1em] text-inkSoft/90 bg-white/10 backdrop-blur-sm border border-accent/30 rounded-full transition-all duration-300 group-hover:bg-white/15 group-hover:border-accent/50 group-active:scale-95">
                     {slide.button}
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-70">
                       <path d="M5 12h14" />
@@ -270,7 +272,7 @@ export function Carousel({ slides }: CarouselProps) {
       </div>
 
       {/* Dots — fixed-width hit areas, animated inner pill, zero layout shift */}
-      <div className="mt-5 flex items-center justify-center gap-0 sm:mt-7" role="tablist" aria-label="Carousel navigation">
+      <div className="mt-5 flex items-center justify-center gap-0 sm:mt-7" role="tablist" aria-label={t('carouselNavigation')}>
         {slides.map((_, i) => {
           const isActive = i === current;
           return (
@@ -279,17 +281,17 @@ export function Carousel({ slides }: CarouselProps) {
               type="button"
               role="tab"
               onClick={() => setCurrent(i)}
-              className="group/dot flex h-10 w-7 cursor-pointer items-center justify-center border-0 bg-transparent p-0 outline-none transition-transform duration-150 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D4A574]/70 focus-visible:rounded-md"
+              className="group/dot flex h-10 w-7 cursor-pointer items-center justify-center border-0 bg-transparent p-0 outline-none transition-transform duration-150 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent/70 focus-visible:rounded-md"
               style={{ WebkitTapHighlightColor: "transparent", appearance: "none" }}
-              aria-label={`Slide ${i + 1} of ${slides.length}`}
+              aria-label={t('slideXofY', {n: i + 1, total: slides.length})}
               aria-selected={isActive}
               aria-current={isActive ? "true" : undefined}
             >
               <span
                 className={`block h-[7px] rounded-full transition-[width,background-color] duration-[350ms] ease-out ${
                   isActive
-                    ? "w-6 bg-[#D4A574] shadow-[0_0_8px_rgba(212,165,116,0.35)]"
-                    : "w-[7px] bg-[#F2E6D8]/30 group-hover/dot:bg-[#F2E6D8]/55"
+                    ? "w-6 bg-accent shadow-[0_0_8px_rgba(212,165,116,0.35)]"
+                    : "w-[7px] bg-inkSoft/30 group-hover/dot:bg-inkSoft/55"
                 }`}
               />
             </button>
@@ -301,18 +303,18 @@ export function Carousel({ slides }: CarouselProps) {
       <button
         type="button"
         onClick={() => goTo(-1)}
-        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/15 bg-black/45 text-[#F2E6D8]/85 backdrop-blur-md transition-all duration-200 hover:bg-black/65 hover:text-[#F2E6D8] active:scale-90 focus-visible:outline-2 focus-visible:outline-[#D4A574]/70"
+        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/15 bg-black/45 text-inkSoft/85 backdrop-blur-md transition-all duration-200 hover:bg-black/65 hover:text-inkSoft active:scale-90 focus-visible:outline-2 focus-visible:outline-accent/70"
         style={{ WebkitTapHighlightColor: "transparent" }}
-        aria-label="Previous slide"
+        aria-label={t('previousSlide')}
       >
         <ChevronLeft className="h-5 w-5 sm:h-[22px] sm:w-[22px]" strokeWidth={2.25} />
       </button>
       <button
         type="button"
         onClick={() => goTo(1)}
-        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/15 bg-black/45 text-[#F2E6D8]/85 backdrop-blur-md transition-all duration-200 hover:bg-black/65 hover:text-[#F2E6D8] active:scale-90 focus-visible:outline-2 focus-visible:outline-[#D4A574]/70"
+        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/15 bg-black/45 text-inkSoft/85 backdrop-blur-md transition-all duration-200 hover:bg-black/65 hover:text-inkSoft active:scale-90 focus-visible:outline-2 focus-visible:outline-accent/70"
         style={{ WebkitTapHighlightColor: "transparent" }}
-        aria-label="Next slide"
+        aria-label={t('nextSlide')}
       >
         <ChevronRight className="h-5 w-5 sm:h-[22px] sm:w-[22px]" strokeWidth={2.25} />
       </button>
