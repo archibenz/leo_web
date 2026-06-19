@@ -30,7 +30,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
         right={<span className="text-[12px] uppercase tracking-[0.18em]" style={{color: INK}} aria-current="page">{t('Bag (0)', 'Корзина (0)')}</span>}
       />
 
-      <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col items-center justify-center px-6 py-24 text-center sm:px-10">
+      <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col items-center justify-center px-6 py-24 text-center sm:px-10">
         {/* Square-geometry bag glyph — hairline outline, ink, decorative. */}
         <span aria-hidden="true" className="mb-10 flex h-16 w-16 items-center justify-center" style={{border: `1px solid ${HAIR}`}}>
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.2" strokeLinecap="square">

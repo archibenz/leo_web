@@ -69,7 +69,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
         right={<a href={`/${locale}/white/bag`} aria-label={t('Bag, 0 items', 'Корзина, 0 товаров')} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>{t('Bag (0)', 'Корзина (0)')}</a>}
       />
 
-      <main>
+      <main id="wv-main" tabIndex={-1} style={{outline: 'none'}}>
       <div className="mx-auto max-w-[1400px] px-6 sm:px-10">
         {/* Breadcrumb */}
         <nav className="py-5 text-[11px] uppercase tracking-[0.18em]" style={{color: MUTED}} aria-label={t('Breadcrumb', 'Хлебные крошки')}>

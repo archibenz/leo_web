@@ -10,6 +10,14 @@ import {INK, HAIR} from './wv-palette';
 export default function WhiteHeader({locale, left, right}: {locale: string; left: ReactNode; right: ReactNode}) {
   return (
     <header className="sticky top-0 z-10 bg-white/85 backdrop-blur-md" style={{borderBottom: `1px solid ${HAIR}`}}>
+      {/* Skip-link: first focusable element so keyboard users bypass the repeated
+          nav straight to <main id="wv-main"> (WCAG 2.4.1). */}
+      <a
+        href="#wv-main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:bg-[#1c1714] focus:px-4 focus:py-2 focus:text-[11px] focus:uppercase focus:tracking-[0.18em] focus:text-white"
+      >
+        {locale === 'ru' ? 'Перейти к содержанию' : 'Skip to content'}
+      </a>
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-5 sm:px-10">
         <div className="flex flex-1 items-center justify-start">{left}</div>
         <a href={`/${locale}/white`} className="font-display text-[22px] font-medium tracking-[0.42em] sm:text-[26px]" style={{color: INK}}>
