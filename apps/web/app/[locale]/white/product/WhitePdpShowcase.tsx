@@ -3,6 +3,7 @@
 import {useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
+import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
@@ -37,15 +38,15 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
   return createPortal(
     <div className="wv-root fixed inset-0 z-[1000] overflow-y-auto bg-white font-sans antialiased" style={{color: INK}}>
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white/85 backdrop-blur-md" style={{borderBottom: `1px solid ${HAIR}`}}>
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-5 sm:px-10">
+      <WhiteHeader
+        locale={locale}
+        left={
           <a href={`/${locale}/white`} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>
             ← {t('Back', 'Назад')}
           </a>
-          <a href={`/${locale}/white`} className="font-display text-[22px] font-medium tracking-[0.42em] sm:text-[26px]">REINASLEO</a>
-          <span className="text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>{t('Bag (0)', 'Корзина (0)')}</span>
-        </div>
-      </header>
+        }
+        right={<span className="text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>{t('Bag (0)', 'Корзина (0)')}</span>}
+      />
 
       <div className="mx-auto max-w-[1400px] px-6 sm:px-10">
         {/* Breadcrumb */}

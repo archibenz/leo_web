@@ -2,6 +2,7 @@
 
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../hooks/useWhitePortal';
+import WhiteHeader from './WhiteHeader';
 import WhiteFooter from './WhiteFooter';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
@@ -41,27 +42,24 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       style={{color: INK}}
     >
       {/* Header — thin, centered wordmark */}
-      <header
-        className="sticky top-0 z-10 bg-white/85 backdrop-blur-md"
-        style={{borderBottom: `1px solid ${HAIR}`}}
-      >
-        <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-5 sm:px-10">
-          <nav className="flex flex-1 items-center gap-7 text-[12px] uppercase tracking-[0.18em] md:gap-7" style={{color: MUTED}}>
+      <WhiteHeader
+        locale={locale}
+        left={
+          <nav className="flex items-center gap-7 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}} aria-label={t('Primary', 'Меню')}>
             {/* Mobile gets a single shop entry; desktop shows the full nav (parity) */}
             <a href={`/${locale}/white/shop`} className="transition-opacity hover:opacity-60 md:hidden">{t('Shop', 'Магазин')}</a>
             {nav.map((n) => (
               <a key={n} href={`/${locale}/white/shop`} className="hidden transition-opacity hover:opacity-60 md:inline">{n}</a>
             ))}
           </nav>
-          <a href={`/${locale}/white`} className="font-display text-[22px] font-medium tracking-[0.42em] sm:text-[26px]" style={{color: INK}}>
-            REINASLEO
-          </a>
-          <div className="flex flex-1 items-center justify-end gap-6 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
+        }
+        right={
+          <div className="flex items-center gap-6 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
             <span className="hidden cursor-pointer transition-opacity hover:opacity-60 sm:inline">{t('Search', 'Поиск')}</span>
             <span className="cursor-pointer transition-opacity hover:opacity-60">{t('Bag (0)', 'Корзина (0)')}</span>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       {/* Hero — type-led editorial */}
       <section className="mx-auto max-w-[1400px] px-6 sm:px-10">
