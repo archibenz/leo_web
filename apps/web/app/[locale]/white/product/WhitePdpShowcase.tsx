@@ -5,7 +5,7 @@ import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
-import {INK, MUTED, HAIR} from '../wv-palette';
+import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
 // the landing: a full-bleed white surface over the gradient chrome so the
@@ -34,6 +34,7 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState(COLORS[0]!.key);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [favourited, setFavourited] = useState(false);
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
   const selectedColor = COLORS.find((c) => c.key === color) ?? COLORS[0]!;
@@ -192,11 +193,13 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
               </button>
               <button
                 type="button"
-                aria-label={t('Add to favourites', 'В избранное')}
+                onClick={() => setFavourited((f) => !f)}
+                aria-pressed={favourited}
+                aria-label={favourited ? t('Remove from favourites', 'Убрать из избранного') : t('Add to favourites', 'В избранное')}
                 className="flex h-[52px] w-[52px] items-center justify-center transition-colors hover:bg-[#f5f2ed]"
-                style={{border: `1px solid ${HAIR}`}}
+                style={{border: `1px solid ${favourited ? SIGNAL : HAIR}`}}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.4">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill={favourited ? SIGNAL : 'none'} stroke={favourited ? SIGNAL : INK} strokeWidth="1.4">
                   <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
                 </svg>
               </button>
