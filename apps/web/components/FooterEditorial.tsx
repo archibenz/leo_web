@@ -44,7 +44,6 @@ export default async function FooterEditorial({
     {key: 'spring26', href: `/${locale}/collections#spring`},
     {key: 'resort', href: `/${locale}/collections#summer`},
     {key: 'archive', href: `/${locale}/collections`},
-    {key: 'lookbook', href: `/${locale}/lookbook`},
   ];
 
   const careLinks: FooterLink[] = [
