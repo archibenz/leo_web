@@ -16,9 +16,9 @@ const HAIR = '#e7e2db';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL'] as const;
 const COLORS = [
-  {key: 'sand', hex: '#d8cdbd'},
-  {key: 'ink', hex: '#2b2722'},
-  {key: 'bordeaux', hex: '#6e2a2a'},
+  {key: 'sand', hex: '#d8cdbd', en: 'Sand', ru: 'Песочный'},
+  {key: 'ink', hex: '#2b2722', en: 'Ink', ru: 'Чернильный'},
+  {key: 'bordeaux', hex: '#6e2a2a', en: 'Bordeaux', ru: 'Бордовый'},
 ];
 const THUMBS = [0, 1, 2, 3];
 
@@ -29,6 +29,7 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
   const [color, setColor] = useState(COLORS[0]!.key);
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
+  const selectedColor = COLORS.find((c) => c.key === color) ?? COLORS[0]!;
 
   if (!mounted) return null;
 
@@ -88,7 +89,7 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
             {/* Color */}
             <div className="mt-8">
               <p className="mb-3 text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>
-                {t('Colour', 'Цвет')} — <span style={{color: INK}}>{color}</span>
+                {t('Colour', 'Цвет')} — <span style={{color: INK}}>{t(selectedColor.en, selectedColor.ru)}</span>
               </p>
               <div className="flex gap-3">
                 {COLORS.map((c) => (
@@ -96,7 +97,7 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
                     key={c.key}
                     type="button"
                     onClick={() => setColor(c.key)}
-                    aria-label={c.key}
+                    aria-label={t(c.en, c.ru)}
                     aria-pressed={color === c.key}
                     className="h-8 w-8 rounded-full transition-transform hover:scale-105"
                     style={{background: c.hex, outline: color === c.key ? `1px solid ${INK}` : `1px solid ${HAIR}`, outlineOffset: '2px'}}
