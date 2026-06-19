@@ -9,24 +9,43 @@ import {useEffect, useState} from 'react';
 const KEY = 'wv-bag';
 
 export type WhiteBagItem = {
-  id: string;
+  id: string; // stable: `${key}-${size}` so the same product+size consolidates
   key: number;
   en: string;
   ru: string;
   price: number;
   size: string;
+  qty: number;
 };
+
+const lineId = (key: number, size: string) => `${key}-${size}`;
 
 let items: WhiteBagItem[] = [];
 let loaded = false;
 const listeners = new Set<(_next: readonly WhiteBagItem[]) => void>();
+
+// Normalise persisted data: legacy rows may lack qty or use old composite ids,
+// and duplicates must merge into a single line keyed by product+size.
+function normalise(raw: unknown): WhiteBagItem[] {
+  if (!Array.isArray(raw)) return [];
+  const byLine = new Map<string, WhiteBagItem>();
+  for (const r of raw as WhiteBagItem[]) {
+    if (r == null || typeof r.key !== 'number' || typeof r.size !== 'string') continue;
+    const id = lineId(r.key, r.size);
+    const qty = Number.isFinite(r.qty) && r.qty > 0 ? Math.floor(r.qty) : 1;
+    const existing = byLine.get(id);
+    if (existing) existing.qty += qty;
+    else byLine.set(id, {id, key: r.key, en: r.en, ru: r.ru, price: r.price, size: r.size, qty});
+  }
+  return [...byLine.values()];
+}
 
 function load(): void {
   if (loaded) return;
   loaded = true;
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) items = JSON.parse(raw) as WhiteBagItem[];
+    if (raw) items = normalise(JSON.parse(raw));
   } catch {
     /* corrupt / unavailable storage — start empty */
   }
@@ -42,9 +61,26 @@ function persist(): void {
   for (const listener of listeners) listener(snapshot);
 }
 
-export function addToWhiteBag(item: Omit<WhiteBagItem, 'id'>): void {
-  items = [...items, {...item, id: `${item.key}-${item.size}-${items.length}-${Date.now()}`}];
+export function addToWhiteBag(item: Omit<WhiteBagItem, 'id' | 'qty'>): void {
+  const id = lineId(item.key, item.size);
+  const existing = items.find((i) => i.id === id);
+  if (existing) {
+    items = items.map((i) => (i.id === id ? {...i, qty: i.qty + 1} : i));
+  } else {
+    items = [...items, {...item, id, qty: 1}];
+  }
   persist();
+}
+
+export function setWhiteBagQty(id: string, qty: number): void {
+  const next = Math.max(1, Math.floor(qty));
+  let changed = false;
+  items = items.map((i) => {
+    if (i.id !== id || i.qty === next) return i;
+    changed = true;
+    return {...i, qty: next};
+  });
+  if (changed) persist();
 }
 
 export function removeFromWhiteBag(id: string): void {
@@ -69,8 +105,9 @@ export function useWhiteBag() {
 
   return {
     items: snapshot,
-    count: snapshot.length,
+    count: snapshot.reduce((sum, i) => sum + i.qty, 0),
     add: addToWhiteBag,
+    setQty: setWhiteBagQty,
     remove: removeFromWhiteBag,
   };
 }

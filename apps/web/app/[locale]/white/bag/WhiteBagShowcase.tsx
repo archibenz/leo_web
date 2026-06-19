@@ -13,11 +13,11 @@ import {INK, MUTED, HAIR} from '../wv-palette';
 
 export default function WhiteBagShowcase({locale}: {locale: string}) {
   const mounted = useWhitePortal();
-  const {items, remove} = useWhiteBag();
+  const {items, count, remove, setQty} = useWhiteBag();
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
   const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
-  const total = items.reduce((sum, i) => sum + i.price, 0);
+  const total = items.reduce((sum, i) => sum + i.price * i.qty, 0);
 
   if (!mounted) return null;
 
@@ -30,7 +30,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
             ← {t('Shop', 'Магазин')}
           </a>
         }
-        right={<span className="text-[12px] uppercase tracking-[0.18em]" style={{color: INK}} aria-current="page">{t('Bag', 'Корзина')} ({items.length})</span>}
+        right={<span className="text-[12px] uppercase tracking-[0.18em]" style={{color: INK}} aria-current="page">{t('Bag', 'Корзина')} ({count})</span>}
       />
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 py-12 sm:px-10">
@@ -60,13 +60,36 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
 
             <ul className="mt-10 border-t" style={{borderColor: HAIR}}>
               {items.map((i) => (
-                <li key={i.id} className="flex items-center gap-5 border-b py-5" style={{borderColor: HAIR}}>
+                <li key={i.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b py-5" style={{borderColor: HAIR}}>
                   <div className="wv-ph aspect-[2/3] w-16 shrink-0" aria-hidden="true" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px]">{t(i.en, i.ru)}</p>
                     <p className="mt-1 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>{t('Size', 'Размер')}: {i.size}</p>
                   </div>
-                  <p className="shrink-0 text-[14px] tabular-nums">{fmt(i.price)}</p>
+                  {/* Quantity stepper — min 1 (× removes); 44px tap targets, square. */}
+                  <div className="flex shrink-0 items-center" role="group" aria-label={t('Quantity', 'Количество')}>
+                    <button
+                      type="button"
+                      onClick={() => setQty(i.id, i.qty - 1)}
+                      disabled={i.qty <= 1}
+                      aria-label={t('Decrease quantity', 'Уменьшить количество')}
+                      className="flex h-11 w-11 items-center justify-center text-[16px] leading-none transition-colors disabled:opacity-30"
+                      style={{border: `1px solid ${HAIR}`, color: INK}}
+                    >
+                      −
+                    </button>
+                    <span aria-live="polite" className="min-w-10 text-center text-[14px] tabular-nums">{i.qty}</span>
+                    <button
+                      type="button"
+                      onClick={() => setQty(i.id, i.qty + 1)}
+                      aria-label={t('Increase quantity', 'Увеличить количество')}
+                      className="flex h-11 w-11 items-center justify-center text-[16px] leading-none transition-colors"
+                      style={{border: `1px solid ${HAIR}`, color: INK}}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <p className="w-24 shrink-0 text-right text-[14px] tabular-nums">{fmt(i.price * i.qty)}</p>
                   <button
                     type="button"
                     onClick={() => remove(i.id)}
