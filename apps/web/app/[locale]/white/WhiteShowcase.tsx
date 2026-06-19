@@ -48,7 +48,13 @@ export default function WhiteShowcase({locale}: {locale: string}) {
 
   if (!mounted) return null;
 
-  const nav = [t('New', 'Новинки'), t('Shop', 'Магазин')];
+  // Two truthful, distinct entries — not two links to the same /shop. "The edit"
+  // deep-links to the curated section on this landing (the scrollIntoView effect
+  // above handles it, same as the footer deep-links); "Shop" is the full catalog.
+  const nav = [
+    {label: t('The edit', 'Подборка'), href: `/${locale}/white#wv-edit`},
+    {label: t('Shop', 'Магазин'), href: `/${locale}/white/shop`},
+  ];
 
   return createPortal(
     <div
@@ -63,7 +69,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
             {/* Mobile gets a single shop entry; desktop shows the full nav (parity) */}
             <a href={`/${locale}/white/shop`} className="transition-opacity hover:opacity-60 md:hidden">{t('Shop', 'Магазин')}</a>
             {nav.map((n) => (
-              <a key={n} href={`/${locale}/white/shop`} className="hidden transition-opacity hover:opacity-60 md:inline">{n}</a>
+              <a key={n.href} href={n.href} className="hidden transition-opacity hover:opacity-60 md:inline">{n.label}</a>
             ))}
           </nav>
         }
