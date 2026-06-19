@@ -3,6 +3,7 @@
 import {useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
+import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
@@ -36,9 +37,19 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const [color, setColor] = useState(COLORS[0]!.key);
   const [guideOpen, setGuideOpen] = useState(false);
   const [favourited, setFavourited] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
+  const {add, count} = useWhiteBag();
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
   const selectedColor = COLORS.find((c) => c.key === color) ?? COLORS[0]!;
+  // Concrete product for the bag — fall back to the default demo dress (key 1).
+  const bagProduct = product ?? WHITE_PRODUCTS[0]!;
+  const handleAdd = () => {
+    if (!size) return;
+    add({key: bagProduct.key, en: bagProduct.en, ru: bagProduct.ru, price: bagProduct.price, size});
+    setJustAdded(true);
+    window.setTimeout(() => setJustAdded(false), 1600);
+  };
   // ?p selects the catalog product; fall back to the default demo dress.
   const name = product ? t(product.en, product.ru) : t('Silk Column Dress', 'Шёлковое платье-колонна');
   const priceStr = product ? `${product.price.toLocaleString('ru-RU')} ₽` : '24 500 ₽';
@@ -66,7 +77,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             ← {t('Back', 'Назад')}
           </a>
         }
-        right={<a href={`/${locale}/white/bag`} aria-label={t('Bag, 0 items', 'Корзина, 0 товаров')} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>{t('Bag (0)', 'Корзина (0)')}</a>}
+        right={<a href={`/${locale}/white/bag`} aria-label={t(`Bag, ${count} items`, `Корзина, ${count} товаров`)} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>{t('Bag', 'Корзина')} ({count})</a>}
       />
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}}>
@@ -199,8 +210,8 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
 
             {/* Add to bag */}
             <div className="mt-9 flex gap-3">
-              <button type="button" disabled={!size} className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
-                {size ? t('Add to bag', 'В корзину') : t('Select a size', 'Выберите размер')}
+              <button type="button" disabled={!size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
+                {justAdded ? t('Added', 'Добавлено') : size ? t('Add to bag', 'В корзину') : t('Select a size', 'Выберите размер')}
               </button>
               <button
                 type="button"

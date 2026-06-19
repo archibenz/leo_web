@@ -3,6 +3,7 @@
 import {useMemo, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
+import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
@@ -16,6 +17,7 @@ type Sort = 'new' | 'asc' | 'desc';
 
 export default function WhiteShopShowcase({locale, initialCat = 'all', initialQuery = ''}: {locale: string; initialCat?: Cat | 'all'; initialQuery?: string}) {
   const mounted = useWhitePortal();
+  const {count} = useWhiteBag();
   const [cat, setCat] = useState<Cat | 'all'>(initialCat);
   const [sort, setSort] = useState<Sort>('new');
   const [query, setQuery] = useState(initialQuery);
@@ -84,7 +86,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
             ← {t('Home', 'Главная')}
           </a>
         }
-        right={<a href={`/${locale}/white/bag`} aria-label={t('Bag, 0 items', 'Корзина, 0 товаров')} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>{t('Bag (0)', 'Корзина (0)')}</a>}
+        right={<a href={`/${locale}/white/bag`} aria-label={t(`Bag, ${count} items`, `Корзина, ${count} товаров`)} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>{t('Bag', 'Корзина')} ({count})</a>}
       />
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto max-w-[1400px] px-6 sm:px-10">
