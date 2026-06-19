@@ -62,7 +62,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
             <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>
               {t('Autumn / Winter 2026', 'Осень / Зима 2026')}
             </p>
-            <h1 className="font-display text-[15vw] font-light leading-[0.92] tracking-[-0.01em] sm:text-[72px] lg:text-[88px]">
+            <h1 className="font-display text-[clamp(56px,calc(4.4vw_+_39.5px),88px)] font-light leading-[0.92] tracking-[-0.01em]">
               {t('Quiet', 'Тихая')}
               <br />
               <span className="italic" style={{color: MUTED}}>{t('precision', 'точность')}</span>
