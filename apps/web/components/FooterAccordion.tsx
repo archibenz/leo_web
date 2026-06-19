@@ -35,7 +35,7 @@ export default function FooterAccordion({
     : {duration: 0.22, ease: 'easeOut' as const};
 
   return (
-    <div className="border-b border-[#F2E6D8]/[0.06]">
+    <div className="border-b border-inkSoft/[0.06]">
       <button
         type="button"
         aria-expanded={open}
@@ -43,11 +43,11 @@ export default function FooterAccordion({
         onClick={() => setOpen((o) => !o)}
         className="flex w-full items-center justify-between py-3.5"
       >
-        <span className="font-accent text-[11px] uppercase tracking-[0.3em] text-[#D4A574]/65">
+        <span className="font-accent text-[11px] uppercase tracking-[0.3em] text-accent/65">
           {title}
         </span>
         <svg
-          className={`h-3 w-3 text-[#F2E6D8]/40 transition-transform duration-300 motion-reduce:transition-none ${
+          className={`h-3 w-3 text-inkSoft/40 transition-transform duration-300 motion-reduce:transition-none ${
             open ? 'rotate-45' : ''
           }`}
           viewBox="0 0 12 12"

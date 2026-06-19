@@ -108,7 +108,7 @@ export default function ProductGalleryLightbox({
                 <div
                   key={i}
                   className={`h-[2px] flex-1 rounded-full transition-all duration-500 ${
-                    i === activeIndex ? 'bg-[#D4A574]' : 'bg-[#f3e9da]/20'
+                    i === activeIndex ? 'bg-accent' : 'bg-[#f3e9da]/20'
                   }`}
                 />
               ))}
@@ -120,7 +120,7 @@ export default function ProductGalleryLightbox({
               <span className="tabular-nums">
                 {String(activeIndex + 1).padStart(2, '0')}
               </span>
-              <span className="mx-3 text-[#D4A574]">—</span>
+              <span className="mx-3 text-accent">—</span>
               <span className="tabular-nums">
                 {String(images.length).padStart(2, '0')}
               </span>
