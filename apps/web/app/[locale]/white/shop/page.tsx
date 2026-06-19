@@ -3,8 +3,8 @@ import WhiteShopShowcase from './WhiteShopShowcase';
 import {normalizeWhiteCat} from '../products';
 
 // Variant 2 "White" — shop / catalog showcase (pitch preview at
-// /<locale>/white/shop?cat=<category>). noindex. The ?cat key pre-selects a
-// category, read server-side (mirrors the ?p PDP pattern) so filtered views are
+// /<locale>/white/shop?cat=<category>&q=<query>). noindex. ?cat and ?q are read
+// server-side (mirrors the ?p PDP pattern) so filtered / searched views are
 // deep-linkable and shareable from the footer / nav.
 
 export const metadata: Metadata = {
@@ -14,11 +14,17 @@ export const metadata: Metadata = {
 
 type Props = {
   params: Promise<{locale: string}>;
-  searchParams: Promise<{cat?: string}>;
+  searchParams: Promise<{cat?: string; q?: string}>;
 };
 
 export default async function WhiteShopPage({params, searchParams}: Props) {
   const {locale} = await params;
-  const {cat} = await searchParams;
-  return <WhiteShopShowcase locale={locale} initialCat={normalizeWhiteCat(cat)} />;
+  const {cat, q} = await searchParams;
+  return (
+    <WhiteShopShowcase
+      locale={locale}
+      initialCat={normalizeWhiteCat(cat)}
+      initialQuery={typeof q === 'string' ? q : ''}
+    />
+  );
 }

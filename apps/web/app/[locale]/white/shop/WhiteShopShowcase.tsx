@@ -14,22 +14,30 @@ import {WHITE_PRODUCTS as ITEMS, type WhiteProduct as Item, type WhiteCat as Cat
 
 type Sort = 'new' | 'asc' | 'desc';
 
-export default function WhiteShopShowcase({locale, initialCat = 'all'}: {locale: string; initialCat?: Cat | 'all'}) {
+export default function WhiteShopShowcase({locale, initialCat = 'all', initialQuery = ''}: {locale: string; initialCat?: Cat | 'all'; initialQuery?: string}) {
   const mounted = useWhitePortal();
   const [cat, setCat] = useState<Cat | 'all'>(initialCat);
   const [sort, setSort] = useState<Sort>('new');
+  const [query, setQuery] = useState(initialQuery);
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
 
-  // Keep the URL in sync with the active category so a filtered view can be
-  // shared or bookmarked (history.replaceState — no navigation, no reload).
-  const pickCat = (c: Cat | 'all') => {
-    setCat(c);
+  // Keep the URL in sync with the active filters so a view can be shared or
+  // bookmarked (history.replaceState — no navigation, no reload).
+  const syncParam = (key: string, val: string | null) => {
     if (typeof window === 'undefined') return;
     const url = new URL(window.location.href);
-    if (c === 'all') url.searchParams.delete('cat');
-    else url.searchParams.set('cat', c);
+    if (val) url.searchParams.set(key, val);
+    else url.searchParams.delete(key);
     window.history.replaceState(null, '', url);
+  };
+  const pickCat = (c: Cat | 'all') => {
+    setCat(c);
+    syncParam('cat', c === 'all' ? null : c);
+  };
+  const pickQuery = (q: string) => {
+    setQuery(q);
+    syncParam('q', q.trim() || null);
   };
 
   const catLabels: Record<Cat | 'all', string> = {
@@ -42,12 +50,15 @@ export default function WhiteShopShowcase({locale, initialCat = 'all'}: {locale:
   };
 
   const shown = useMemo(() => {
-    const filtered = cat === 'all' ? ITEMS : ITEMS.filter((i) => i.cat === cat);
+    const q = query.trim().toLowerCase();
+    let filtered = cat === 'all' ? ITEMS : ITEMS.filter((i) => i.cat === cat);
+    // Free-text match against both locales so "dress" and "платье" both work.
+    if (q) filtered = filtered.filter((i) => `${i.en} ${i.ru}`.toLowerCase().includes(q));
     const price = (i: Item) => i.sale ?? i.price;
     if (sort === 'asc') return [...filtered].sort((a, b) => price(a) - price(b));
     if (sort === 'desc') return [...filtered].sort((a, b) => price(b) - price(a));
     return filtered;
-  }, [cat, sort]);
+  }, [cat, sort, query]);
 
   if (!mounted) return null;
 
@@ -83,6 +94,20 @@ export default function WhiteShopShowcase({locale, initialCat = 'all'}: {locale:
           <span aria-live="polite" aria-atomic="true" className="text-[12px] uppercase tracking-[0.16em] tabular-nums" style={{color: MUTED}}>
             {shown.length} {itemsLabel(shown.length)}
           </span>
+        </div>
+
+        {/* Search — free-text filter by product name (en+ru). Hairline underline, square. */}
+        <div className="pb-6">
+          <label htmlFor="wv-shop-search" className="sr-only">{t('Search products', 'Поиск по товарам')}</label>
+          <input
+            id="wv-shop-search"
+            type="search"
+            value={query}
+            onChange={(e) => pickQuery(e.target.value)}
+            placeholder={t('Search the collection', 'Поиск по коллекции')}
+            className="w-full border-b bg-transparent pb-2 text-[15px] outline-none placeholder:text-[#8c837a]"
+            style={{borderColor: HAIR, color: INK}}
+          />
         </div>
 
         {/* Filter bar */}
@@ -154,7 +179,11 @@ export default function WhiteShopShowcase({locale, initialCat = 'all'}: {locale:
         </div>
 
         {shown.length === 0 && (
-          <p className="py-24 text-center text-[14px]" style={{color: MUTED}}>{t('Nothing here yet.', 'Здесь пока пусто.')}</p>
+          <p className="py-24 text-center text-[14px]" style={{color: MUTED}}>
+            {query.trim()
+              ? t(`Nothing found for “${query.trim()}”.`, `Ничего не найдено по «${query.trim()}».`)
+              : t('Nothing here yet.', 'Здесь пока пусто.')}
+          </p>
         )}
       </div>
 
