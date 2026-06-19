@@ -99,7 +99,7 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
                     onClick={() => setColor(c.key)}
                     aria-label={t(c.en, c.ru)}
                     aria-pressed={color === c.key}
-                    className="h-8 w-8 rounded-full transition-transform hover:scale-105"
+                    className="h-8 w-8 rounded-full transition-transform motion-safe:hover:scale-105"
                     style={{background: c.hex, outline: color === c.key ? `1px solid ${INK}` : `1px solid ${HAIR}`, outlineOffset: '2px'}}
                   />
                 ))}
