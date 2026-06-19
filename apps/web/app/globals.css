@@ -1369,6 +1369,15 @@ h2.font-display,
   background: transparent;
   color: #1c1714;
 }
+/* Size-gated CTA: dimmed + non-actionable until a size is chosen. */
+.wv-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.wv-btn:disabled:hover {
+  background: #1c1714;
+  color: #fff;
+}
 
 .wv-quickadd {
   transform: translateY(100%);

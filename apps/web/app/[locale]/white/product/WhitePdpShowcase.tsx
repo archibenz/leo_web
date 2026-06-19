@@ -141,7 +141,7 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
 
             {/* Add to bag */}
             <div className="mt-9 flex gap-3">
-              <button type="button" className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
+              <button type="button" disabled={!size} className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
                 {size ? t('Add to bag', 'В корзину') : t('Select a size', 'Выберите размер')}
               </button>
               <button
