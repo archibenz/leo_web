@@ -19,12 +19,21 @@ const COLORS = [
   {key: 'bordeaux', hex: '#6e2a2a', en: 'Bordeaux', ru: 'Бордовый'},
 ];
 const THUMBS = [0, 1, 2, 3];
+// Demo measurements (cm) for the size-guide disclosure.
+const SIZE_GUIDE = [
+  {size: 'XS', bust: 82, waist: 62, hips: 88},
+  {size: 'S', bust: 86, waist: 66, hips: 92},
+  {size: 'M', bust: 90, waist: 70, hips: 96},
+  {size: 'L', bust: 96, waist: 76, hips: 102},
+  {size: 'XL', bust: 102, waist: 82, hips: 108},
+];
 
 export default function WhitePdpShowcase({locale}: {locale: string}) {
   const mounted = useWhitePortal();
   const [activeImg, setActiveImg] = useState(0);
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState(COLORS[0]!.key);
+  const [guideOpen, setGuideOpen] = useState(false);
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
   const selectedColor = COLORS.find((c) => c.key === color) ?? COLORS[0]!;
@@ -120,7 +129,16 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
             <div className="mt-8">
               <div className="mb-3 flex items-baseline justify-between">
                 <p className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('Size', 'Размер')}</p>
-                <span className="text-[11px] uppercase tracking-[0.16em] underline-offset-4 hover:underline" style={{color: MUTED, cursor: 'pointer'}}>{t('Size guide', 'Таблица размеров')}</span>
+                <button
+                  type="button"
+                  onClick={() => setGuideOpen((o) => !o)}
+                  aria-expanded={guideOpen}
+                  aria-controls="wv-size-guide"
+                  className="text-[11px] uppercase tracking-[0.16em] underline-offset-4 hover:underline"
+                  style={{color: MUTED}}
+                >
+                  {t('Size guide', 'Таблица размеров')}
+                </button>
               </div>
               <div className="flex flex-wrap gap-2.5">
                 {SIZES.map((s) => (
@@ -139,6 +157,31 @@ export default function WhitePdpShowcase({locale}: {locale: string}) {
                     {s}
                   </button>
                 ))}
+              </div>
+              {/* Size-guide disclosure — semantic table, square/hairline, reduced-motion safe (hidden toggle). */}
+              <div id="wv-size-guide" hidden={!guideOpen} className="mt-4">
+                <table className="w-full border-collapse text-[12px]">
+                  <caption className="sr-only">{t('Size guide, measurements in cm', 'Таблица размеров, в сантиметрах')}</caption>
+                  <thead>
+                    <tr style={{color: MUTED}}>
+                      <th scope="col" className="border-b py-2 text-left font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('Size', 'Размер')}</th>
+                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('Bust', 'Грудь')}</th>
+                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('Waist', 'Талия')}</th>
+                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('Hips', 'Бёдра')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {SIZE_GUIDE.map((r) => (
+                      <tr key={r.size}>
+                        <th scope="row" className="border-b py-2 text-left font-medium" style={{borderColor: HAIR, color: INK}}>{r.size}</th>
+                        <td className="border-b py-2 text-right tabular-nums" style={{borderColor: HAIR}}>{r.bust}</td>
+                        <td className="border-b py-2 text-right tabular-nums" style={{borderColor: HAIR}}>{r.waist}</td>
+                        <td className="border-b py-2 text-right tabular-nums" style={{borderColor: HAIR}}>{r.hips}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="mt-2 text-[11px]" style={{color: MUTED}}>{t('Measurements in cm.', 'Размеры в сантиметрах.')}</p>
               </div>
             </div>
 
