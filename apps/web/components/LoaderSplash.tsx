@@ -1,3 +1,6 @@
+'use client';
+
+import {useTranslations} from 'next-intl';
 import BrandLoader from './BrandLoader';
 
 type LoaderSplashProps = {
@@ -5,10 +8,11 @@ type LoaderSplashProps = {
 };
 
 export default function LoaderSplash({size = 128}: LoaderSplashProps) {
+  const t = useTranslations('common');
   return (
     <div
       role="status"
-      aria-label="Loading"
+      aria-label={t('loading')}
       className="fixed inset-x-0 top-0 z-[9999] flex items-center justify-center bg-paper"
       style={{height: '100dvh', minHeight: '100dvh'}}
     >
@@ -34,7 +38,7 @@ export default function LoaderSplash({size = 128}: LoaderSplashProps) {
       />
 
       <div className="relative flex flex-col items-center gap-12">
-        <BrandLoader size={size} />
+        <BrandLoader size={size} decorative />
 
         <div className="flex flex-col items-center gap-3">
           <span aria-hidden className="block h-px w-16 bg-accent/40" />
