@@ -74,7 +74,8 @@ export default function WhiteProductCard({
   };
 
   const pick = (size: string) => {
-    add({key: product.key, en: product.en, ru: product.ru, price: product.price, size});
+    // Charge the effective (sale) price the card shows — not the struck regular.
+    add({key: product.key, en: product.en, ru: product.ru, price: product.sale ?? product.price, size});
     setOpen(false);
     setAdded(true);
     // Return focus after the trigger re-renders, then clear the confirmation.

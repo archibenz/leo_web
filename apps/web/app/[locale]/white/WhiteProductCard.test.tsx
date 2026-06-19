@@ -3,6 +3,7 @@ import {render, screen, cleanup, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import WhiteProductCard from './WhiteProductCard';
 import {removeWhiteFavourite} from '../../../hooks/useWhiteFavourites';
+import {removeFromWhiteBag} from '../../../hooks/useWhiteBag';
 import type {WhiteProduct} from './products';
 
 // jsdom here doesn't provide localStorage — install the same in-memory mock the
@@ -45,7 +46,7 @@ const PRODUCT: WhiteProduct = {
 const t = (en: string) => en;
 const readBag = () => {
   try {
-    return JSON.parse(localStorage.getItem('wv-bag') ?? '[]') as Array<{key: number; size: string; qty: number; id: string}>;
+    return JSON.parse(localStorage.getItem('wv-bag') ?? '[]') as Array<{key: number; size: string; qty: number; id: string; price: number}>;
   } catch {
     return [];
   }
@@ -59,8 +60,10 @@ const readFavs = (): number[] => {
 };
 
 afterEach(() => {
-  // Drain the favourites module store too (localStorage.clear() empties storage
-  // but not the in-memory store), so the heart starts unset in the next test.
+  // Drain the bag + favourites module stores too (localStorage.clear() empties
+  // storage but not the in-memory stores), so each test starts from empty and
+  // an add() can't consolidate into a leftover line from a prior test.
+  readBag().forEach((i) => removeFromWhiteBag(i.id));
   readFavs().forEach((k) => removeWhiteFavourite(k));
   cleanup();
   localStorage.clear();
@@ -90,6 +93,20 @@ describe('WhiteProductCard Quick Add', () => {
       const bag = readBag();
       expect(bag).toHaveLength(1);
       expect(bag[0]).toMatchObject({key: 3, size: 'M', qty: 1, id: '3-M'});
+    });
+  });
+
+  it('adds the effective (sale) price for a discounted product, not the regular one', async () => {
+    const user = userEvent.setup();
+    render(<WhiteProductCard locale="en" product={{...PRODUCT, sale: 11900}} t={t} quickAdd />);
+
+    await user.click(screen.getByRole('button', {name: /quick add/i}));
+    await user.click(await screen.findByRole('button', {name: 'M'}));
+
+    await waitFor(() => {
+      const bag = readBag();
+      expect(bag).toHaveLength(1);
+      expect(bag[0]!.price).toBe(11900); // sale, not regular 14900
     });
     // Visible confirmation on the trigger…
     expect(await screen.findByText('Added ✓')).toBeInTheDocument();
