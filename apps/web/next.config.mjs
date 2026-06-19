@@ -25,6 +25,16 @@ const nextConfig = {
     // dangerouslyAllowSVG removed: SVG can carry CSS/foreignObject exfil and clickjacking
     // even with the per-image CSP sandbox. Brand SVGs are served as /public/*.svg (not via next/image).
   },
+  // Shareable entry for the "White" preview variant. next.config redirects run
+  // before next-intl middleware (localePrefix: 'always'), so /white-version is
+  // sent to the locale-prefixed showcase before the matcher ever sees it.
+  // Temporary (307) on purpose — White is a prototype; the entry may move/retire.
+  async redirects() {
+    return [
+      {source: '/white-version', destination: '/ru/white', permanent: false},
+      {source: '/white-version/:path*', destination: '/ru/white/:path*', permanent: false},
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);
