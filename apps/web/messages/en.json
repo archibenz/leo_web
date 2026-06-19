@@ -9,7 +9,11 @@
     "scrollLeft": "Scroll left",
     "scrollRight": "Scroll right",
     "previousImage": "Previous image",
-    "nextImage": "Next image"
+    "nextImage": "Next image",
+    "carouselNavigation": "Carousel navigation",
+    "slideXofY": "Slide {n} of {total}",
+    "previousSlide": "Previous slide",
+    "nextSlide": "Next slide"
   },
   "languageSelect": {
     "label": "Language",

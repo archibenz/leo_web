@@ -9,7 +9,11 @@
     "scrollLeft": "Прокрутить влево",
     "scrollRight": "Прокрутить вправо",
     "previousImage": "Предыдущее изображение",
-    "nextImage": "Следующее изображение"
+    "nextImage": "Следующее изображение",
+    "carouselNavigation": "Навигация по карусели",
+    "slideXofY": "Слайд {n} из {total}",
+    "previousSlide": "Предыдущий слайд",
+    "nextSlide": "Следующий слайд"
   },
   "languageSelect": {
     "label": "Язык",
