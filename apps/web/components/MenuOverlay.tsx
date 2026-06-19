@@ -106,7 +106,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
                   ref={index === 0 ? firstLinkRef : undefined}
                   href={`/${locale}/shop?filter=${item.filter}`}
                   onClick={onClose}
-                  className="group flex items-baseline gap-2 py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-[#F2E6D8] transition-colors hover:text-accent focus:text-accent"
+                  className="group flex items-baseline gap-2 py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-inkSoft transition-colors hover:text-accent focus:text-accent"
                 >
                   <span className="text-[var(--accent)]/45 transition-colors group-hover:text-[var(--accent)]">·</span>
                   {t(`categories.${item.key}`)}
@@ -114,7 +114,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
               ))}
             </nav>
 
-            <div className="my-5 border-t border-[#F2E6D8]/10" />
+            <div className="my-5 border-t border-inkSoft/10" />
 
             <p className="mb-3 font-accent text-[11px] uppercase tracking-[0.22em] text-[var(--accent)]/70">
               {t('sections.categories')}
@@ -125,41 +125,41 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
                   key={key}
                   href={`/${locale}/shop?category=${key}`}
                   onClick={onClose}
-                  className="block py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-[#F2E6D8] transition-colors hover:text-accent focus:text-accent truncate"
+                  className="block py-2 text-[15px] font-medium uppercase tracking-[0.06em] text-inkSoft transition-colors hover:text-accent focus:text-accent truncate"
                 >
                   {t(`categories.${key}`)}
                 </Link>
               ))}
             </nav>
 
-            <div className="my-5 border-t border-[#F2E6D8]/10" />
+            <div className="my-5 border-t border-inkSoft/10" />
 
             <nav className="flex flex-wrap gap-x-5 gap-y-2 pt-1">
               <Link
                 href={`/${locale}/shop`}
                 onClick={onClose}
-                className="text-[13px] uppercase tracking-[0.08em] text-[#F2E6D8]/70 transition-colors hover:text-accent focus:text-accent"
+                className="text-[13px] uppercase tracking-[0.08em] text-inkSoft/70 transition-colors hover:text-accent focus:text-accent"
               >
                 {nav('shop')}
               </Link>
               <Link
                 href={`/${locale}/care`}
                 onClick={onClose}
-                className="text-[13px] uppercase tracking-[0.08em] text-[#F2E6D8]/70 transition-colors hover:text-accent focus:text-accent"
+                className="text-[13px] uppercase tracking-[0.08em] text-inkSoft/70 transition-colors hover:text-accent focus:text-accent"
               >
                 {t('categories.care')}
               </Link>
               <Link
                 href={`/${locale}/about`}
                 onClick={onClose}
-                className="text-[13px] uppercase tracking-[0.08em] text-[#F2E6D8]/70 transition-colors hover:text-accent focus:text-accent"
+                className="text-[13px] uppercase tracking-[0.08em] text-inkSoft/70 transition-colors hover:text-accent focus:text-accent"
               >
                 {nav('about')}
               </Link>
               <Link
                 href={`/${locale}/contact`}
                 onClick={onClose}
-                className="text-[13px] uppercase tracking-[0.08em] text-[#F2E6D8]/70 transition-colors hover:text-accent focus:text-accent"
+                className="text-[13px] uppercase tracking-[0.08em] text-inkSoft/70 transition-colors hover:text-accent focus:text-accent"
               >
                 {nav('contact')}
               </Link>
