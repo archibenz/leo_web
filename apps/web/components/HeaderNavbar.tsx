@@ -227,7 +227,13 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
           <div className="flex items-center gap-0.5 ml-auto flex-shrink-0">
             {/* Desktop: animated search bar */}
             <div className="hidden lg:block mr-1">
-              <SearchBar placeholder={t('search')} />
+              <SearchBar
+                placeholder={t('search')}
+                onSearch={(query) => {
+                  const v = query.trim();
+                  go(v ? `/shop?q=${encodeURIComponent(v)}` : '/shop');
+                }}
+              />
             </div>
 
             <IconBtn onClick={() => go('/favorites')} ariaLabel={t('favoritesWithCount', {count: favoritesCount})}><HeartIcon count={favoritesCount} /></IconBtn>

@@ -441,8 +441,12 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
   }, []);
 
   /* ---- derived data ---- */
+  // Free-text query from ?q (header search). Read here too — not just the
+  // server page — so soft navigations (search submitted from /shop) re-filter.
+  const query = (searchParams.get('q') ?? '').trim().toLowerCase();
   const filteredAndSorted = useMemo(() => {
     let result = items.filter(item => {
+      if (query && !item.title?.toLowerCase().includes(query)) return false;
       if (filters.occasion.length  > 0 && (!item.occasion || !filters.occasion.includes(item.occasion)))       return false;
       if (filters.category.length  > 0 && (!item.category || !filters.category.includes(item.category)))       return false;
       if (filters.color.length     > 0 && (!item.color || !filters.color.includes(item.color)))                return false;
@@ -458,7 +462,7 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
     }
 
     return result;
-  }, [items, filters, sortKey]);
+  }, [items, filters, sortKey, query]);
 
   const grouped = useMemo(() => {
     if (!groupByTheme) return null;

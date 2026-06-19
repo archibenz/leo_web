@@ -7,7 +7,10 @@ import MobileShopReveal from '../v1/shop/MobileShopReveal';
 import {mixCatalog} from '../v1/shop/mixCatalog';
 import type {ShopItem} from '../v1/shop/types';
 
-type Props = {params: Promise<{locale: Locale}>};
+type Props = {
+  params: Promise<{locale: Locale}>;
+  searchParams: Promise<{q?: string}>;
+};
 
 export async function generateMetadata({params}: Props): Promise<Metadata> {
   const {locale} = await params;
@@ -24,14 +27,23 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
   };
 }
 
-export default async function ShopPage({params}: Props) {
+export default async function ShopPage({params, searchParams}: Props) {
   const {locale} = await params;
+  const {q} = await searchParams;
 
   let products: ShopItem[] = [];
   try {
     const res = await fetch(`${API_BASE}/api/catalog/products`, {next: {revalidate: 60}});
     if (res.ok) products = (await res.json()) as ShopItem[];
   } catch { /* fallback to client-side fetch */ }
+
+  // Free-text search (?q from the header search). Match the product title so the
+  // header search resolves to real filtered results — applied here so both the
+  // desktop grid (ShopClient) and the mobile reveal (MobileShopReveal) honour it.
+  const query = (q ?? '').trim().toLowerCase();
+  if (query) {
+    products = products.filter((p) => p.title?.toLowerCase().includes(query));
+  }
 
   const mixed = mixCatalog(products);
 
