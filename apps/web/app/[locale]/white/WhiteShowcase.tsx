@@ -1,5 +1,6 @@
 'use client';
 
+import {useEffect} from 'react';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../hooks/useWhiteBag';
@@ -26,6 +27,24 @@ export default function WhiteShowcase({locale}: {locale: string}) {
   const {count: favCount} = useWhiteFavourites();
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
+
+  // The landing renders in a fixed overflow-y-auto portal, so native hash
+  // scrolling (#wv-atelier / #wv-edit from the footer) doesn't move the inner
+  // container — scrollIntoView does. Run on mount (deep-link) + on hashchange
+  // (same-page footer clicks). Reduced-motion → instant.
+  useEffect(() => {
+    if (!mounted) return;
+    const toHash = () => {
+      const id = window.location.hash.slice(1);
+      const el = id ? document.getElementById(id) : null;
+      if (!el) return;
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      el.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'});
+    };
+    toHash();
+    window.addEventListener('hashchange', toHash);
+    return () => window.removeEventListener('hashchange', toHash);
+  }, [mounted]);
 
   if (!mounted) return null;
 
@@ -85,7 +104,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       </section>
 
       {/* Editorial divider */}
-      <section className="mx-auto max-w-[1400px] px-6 sm:px-10">
+      <section id="wv-edit" className="mx-auto max-w-[1400px] scroll-mt-24 px-6 sm:px-10">
         <div className="flex flex-col gap-6 border-t py-14 sm:flex-row sm:items-baseline sm:justify-between" style={{borderColor: HAIR}}>
           <h2 className="font-display text-[28px] font-light tracking-tight sm:text-[34px]">{t('The edit', 'Подборка')}</h2>
           <p className="max-w-sm text-[13px] leading-relaxed" style={{color: MUTED}}>
@@ -104,7 +123,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       </section>
 
       {/* Lookbook — editorial brand statement */}
-      <section className="border-t" style={{borderColor: HAIR}}>
+      <section id="wv-atelier" className="scroll-mt-24 border-t" style={{borderColor: HAIR}}>
         <div className="mx-auto grid max-w-[1400px] items-center gap-0 lg:grid-cols-2">
           <div className="wv-ph wv-rise aspect-[4/5] w-full lg:aspect-auto lg:h-full lg:min-h-[560px]" aria-hidden="true" />
           <div className="wv-rise wv-delay-1 px-6 py-16 sm:px-12 lg:px-20 lg:py-28">

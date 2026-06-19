@@ -77,9 +77,11 @@ export default function WhiteFooter({locale}: {locale: string}) {
             {label: t('Outerwear', 'Верхняя одежда'), href: `/${locale}/white/shop?cat=outerwear`},
           ]},
           {h: t('Brand', 'Бренд'), items: [
-            {label: t('About', 'О бренде'), href: `/${locale}/white`},
-            {label: t('Care', 'Уход'), href: `/${locale}/white`},
-            {label: t('Contact', 'Контакты'), href: `/${locale}/white`},
+            // Real, distinct destinations — the landing's editorial sections.
+            // (No standalone About/Care/Contact pages exist in the prototype, so
+            // we don't pretend to link to them.)
+            {label: t('The atelier', 'Ателье'), href: `/${locale}/white#wv-atelier`},
+            {label: t('The edit', 'Подборка'), href: `/${locale}/white#wv-edit`},
           ]},
         ].map((col) => (
           <div key={col.h}>
