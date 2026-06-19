@@ -187,7 +187,7 @@ export function Carousel({ slides }: CarouselProps) {
       el.removeEventListener("mouseleave", onMouseUp);
       el.removeEventListener("keydown", onKeyDown);
     };
-  }, [goTo]);
+  }, [goTo, router]);
 
   return (
     <div
