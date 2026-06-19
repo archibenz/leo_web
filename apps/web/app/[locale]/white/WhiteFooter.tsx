@@ -18,15 +18,23 @@ export default function WhiteFooter({locale}: {locale: string}) {
           <p className="mt-3 text-[12px] leading-relaxed" style={{color: MUTED}}>{t('Premium womenswear', 'Премиальная женская одежда')}</p>
         </div>
         {[
-          {h: t('Shop', 'Магазин'), href: `/${locale}/white/shop`, items: [t('New', 'Новинки'), t('Dresses', 'Платья'), t('Outerwear', 'Верхняя одежда')]},
-          {h: t('Brand', 'Бренд'), href: `/${locale}/white`, items: [t('About', 'О бренде'), t('Care', 'Уход'), t('Contact', 'Контакты')]},
+          {h: t('Shop', 'Магазин'), items: [
+            {label: t('New', 'Новинки'), href: `/${locale}/white/shop`},
+            {label: t('Dresses', 'Платья'), href: `/${locale}/white/shop?cat=dresses`},
+            {label: t('Outerwear', 'Верхняя одежда'), href: `/${locale}/white/shop?cat=outerwear`},
+          ]},
+          {h: t('Brand', 'Бренд'), items: [
+            {label: t('About', 'О бренде'), href: `/${locale}/white`},
+            {label: t('Care', 'Уход'), href: `/${locale}/white`},
+            {label: t('Contact', 'Контакты'), href: `/${locale}/white`},
+          ]},
         ].map((col) => (
           <div key={col.h}>
             <p className="mb-4 text-[11px] uppercase tracking-[0.2em]" style={{color: INK}}>{col.h}</p>
             <ul className="space-y-2.5 text-[13px]" style={{color: MUTED}}>
               {col.items.map((it) => (
-                <li key={it}>
-                  <a href={col.href} className="inline-block transition-opacity hover:opacity-60">{it}</a>
+                <li key={it.label}>
+                  <a href={it.href} className="inline-block transition-opacity hover:opacity-60">{it.label}</a>
                 </li>
               ))}
             </ul>

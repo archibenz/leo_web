@@ -14,12 +14,23 @@ import {WHITE_PRODUCTS as ITEMS, type WhiteProduct as Item, type WhiteCat as Cat
 
 type Sort = 'new' | 'asc' | 'desc';
 
-export default function WhiteShopShowcase({locale}: {locale: string}) {
+export default function WhiteShopShowcase({locale, initialCat = 'all'}: {locale: string; initialCat?: Cat | 'all'}) {
   const mounted = useWhitePortal();
-  const [cat, setCat] = useState<Cat | 'all'>('all');
+  const [cat, setCat] = useState<Cat | 'all'>(initialCat);
   const [sort, setSort] = useState<Sort>('new');
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
+
+  // Keep the URL in sync with the active category so a filtered view can be
+  // shared or bookmarked (history.replaceState — no navigation, no reload).
+  const pickCat = (c: Cat | 'all') => {
+    setCat(c);
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    if (c === 'all') url.searchParams.delete('cat');
+    else url.searchParams.set('cat', c);
+    window.history.replaceState(null, '', url);
+  };
 
   const catLabels: Record<Cat | 'all', string> = {
     all: t('All', 'Все'),
@@ -81,7 +92,7 @@ export default function WhiteShopShowcase({locale}: {locale: string}) {
               <button
                 key={c}
                 type="button"
-                onClick={() => setCat(c)}
+                onClick={() => pickCat(c)}
                 aria-pressed={cat === c}
                 className="inline-flex min-h-11 shrink-0 items-center px-3.5 text-[12px] uppercase tracking-[0.14em] transition-colors"
                 style={{

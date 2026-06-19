@@ -32,3 +32,11 @@ export function findWhiteProduct(key?: string | number | null): WhiteProduct | u
   if (Number.isNaN(k)) return undefined;
   return WHITE_PRODUCTS.find((p) => p.key === k);
 }
+
+export const WHITE_CATS: WhiteCat[] = ['dresses', 'outerwear', 'knitwear', 'tailoring', 'skirts'];
+
+// Validate a ?cat query value so the shop can be deep-linked/shared. Anything
+// unrecognised collapses to 'all' (shared by server page + client showcase).
+export function normalizeWhiteCat(value?: string | null): WhiteCat | 'all' {
+  return value != null && (WHITE_CATS as string[]).includes(value) ? (value as WhiteCat) : 'all';
+}
