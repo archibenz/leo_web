@@ -445,6 +445,20 @@ h2.font-display,
   }
 }
 
+/* Full-screen menu — staggered editorial reveal of links (delay set inline). */
+.menu-rise {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: fadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-rise {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* BrandLoader — square ⇄ petals morphing loader */
 @keyframes brand-spin {
   to { transform: rotate(360deg); }
