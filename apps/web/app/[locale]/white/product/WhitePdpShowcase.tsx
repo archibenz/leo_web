@@ -15,9 +15,11 @@ import {WHITE_PRODUCTS, type WhiteProduct} from '../products';
 // imagery (editorial shots via Higgsfield later). CSS-only, reduced-motion safe.
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL'] as const;
-const COLORS = [
-  {key: 'sand', hex: '#d8cdbd', en: 'Sand', ru: 'Песочный'},
-  {key: 'ink', hex: '#2b2722', en: 'Ink', ru: 'Чернильный'},
+// Fallback colourways for the default demo dress (no ?p) — mirrors the Silk
+// product. Real products carry their own per-product colours (products.ts).
+const DEFAULT_COLORS = [
+  {key: 'ivory', hex: '#ece6da', en: 'Ivory', ru: 'Слоновая кость'},
+  {key: 'black', hex: '#2b2722', en: 'Black', ru: 'Чёрный'},
   {key: 'bordeaux', hex: '#6e2a2a', en: 'Bordeaux', ru: 'Бордовый'},
 ];
 const THUMBS = [0, 1, 2, 3];
@@ -31,17 +33,18 @@ const SIZE_GUIDE = [
 ];
 
 export default function WhitePdpShowcase({locale, product}: {locale: string; product?: WhiteProduct | null}) {
+  const productColors = product?.colors ?? DEFAULT_COLORS;
   const mounted = useWhitePortal();
   const [activeImg, setActiveImg] = useState(0);
   const [size, setSize] = useState<string | null>(null);
-  const [color, setColor] = useState(COLORS[0]!.key);
+  const [color, setColor] = useState(productColors[0]!.key);
   const [guideOpen, setGuideOpen] = useState(false);
   const [favourited, setFavourited] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const {add, count} = useWhiteBag();
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
-  const selectedColor = COLORS.find((c) => c.key === color) ?? COLORS[0]!;
+  const selectedColor = productColors.find((c) => c.key === color) ?? productColors[0]!;
   // Concrete product for the bag — fall back to the default demo dress (key 1).
   const bagProduct = product ?? WHITE_PRODUCTS[0]!;
   const handleAdd = () => {
@@ -129,7 +132,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   the visual unchanged — gap-0 since 44-32=12px padding reproduces
                   the previous gap-3 spacing between dots. */}
               <div className="flex">
-                {COLORS.map((c) => (
+                {productColors.map((c) => (
                   <button
                     key={c.key}
                     type="button"
