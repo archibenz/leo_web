@@ -25,6 +25,15 @@ const DEFAULT_COLORS = [
   {key: 'bordeaux', hex: '#6e2a2a', en: 'Bordeaux', ru: 'Бордовый'},
 ];
 const THUMBS = [0, 1, 2, 3];
+// Distinct on-DNA warm-neutral placeholders per gallery view, so selecting a
+// thumbnail visibly swaps the main image (no real photos yet). Forward-compatible:
+// swap these for <Image src={images[activeImg]}> once Higgsfield shots land.
+const PH_GRADIENTS = [
+  'linear-gradient(160deg, #f5f2ed, #e8e2d9)',
+  'linear-gradient(205deg, #f1ece3, #e3dccd)',
+  'linear-gradient(135deg, #efe9df, #e6dcca)',
+  'linear-gradient(180deg, #f3eee6, #e1d8c7)',
+];
 // Demo measurements (cm) for the size-guide disclosure.
 const SIZE_GUIDE = [
   {size: 'XS', bust: 82, waist: 62, hips: 88},
@@ -112,15 +121,16 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   onClick={() => setActiveImg(i)}
                   aria-label={t(`View image ${i + 1}`, `Фото ${i + 1}`)}
                   aria-pressed={i === activeImg}
-                  className="wv-ph aspect-[2/3] w-16 shrink-0 transition-opacity"
+                  className="aspect-[2/3] w-16 shrink-0 transition-opacity"
                   style={{
+                    background: PH_GRADIENTS[i],
                     outline: i === activeImg ? `1px solid ${INK}` : 'none',
                     opacity: i === activeImg ? 1 : 0.55,
                   }}
                 />
               ))}
             </div>
-            <div className="wv-ph order-1 aspect-[2/3] w-full sm:order-2" aria-hidden="true" />
+            <div className="order-1 aspect-[2/3] w-full sm:order-2" aria-hidden="true" style={{background: PH_GRADIENTS[activeImg] ?? PH_GRADIENTS[0]}} />
           </div>
 
           {/* Info */}
