@@ -111,8 +111,12 @@ export default function WhiteShowcase({locale}: {locale: string}) {
                 <p className="mt-1 text-[13px]" style={{color: p.sale ? SIGNAL : MUTED}}>
                   {p.sale ? (
                     <>
-                      <span className="mr-2 line-through" style={{color: MUTED}}>{p.price}</span>
-                      {p.sale}
+                      <s className="mr-2 line-through" style={{color: MUTED}}>
+                        <span className="sr-only">{t('Regular price', 'Обычная цена')}: </span>{p.price}
+                      </s>
+                      <span>
+                        <span className="sr-only">{t('Sale price', 'Цена со скидкой')}: </span>{p.sale}
+                      </span>
                     </>
                   ) : (
                     p.price
