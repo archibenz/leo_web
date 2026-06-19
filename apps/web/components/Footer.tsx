@@ -28,6 +28,8 @@ export default async function Footer({locale}: FooterProps) {
             {/* Left: Brand + tagline */}
             <div className="space-y-4">
               <div className="flex items-center gap-2.5">
+                {/* SVG brand marks — next/image is for raster only (see apps/web/CLAUDE.md). */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/logos/icon-white.svg"
                   alt=""
@@ -35,6 +37,7 @@ export default async function Footer({locale}: FooterProps) {
                   className="brand-asset h-8 w-8"
                   draggable="false"
                 />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/logos/name-white.svg"
                   alt="REINASLEO"
@@ -112,6 +115,8 @@ export default async function Footer({locale}: FooterProps) {
         <div className="px-5 py-8 space-y-6">
           {/* Brand */}
           <div className="flex items-center gap-2">
+            {/* SVG brand marks — next/image is for raster only (see apps/web/CLAUDE.md). */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logos/icon-white.svg"
               alt=""
@@ -119,6 +124,7 @@ export default async function Footer({locale}: FooterProps) {
               className="brand-asset h-6 w-6"
               draggable="false"
             />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/logos/name-white.svg"
               alt="REINASLEO"

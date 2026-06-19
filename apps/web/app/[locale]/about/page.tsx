@@ -64,6 +64,8 @@ export default async function AboutPage({params}: Props) {
         />
         <div className="relative z-10 mx-auto max-w-3xl px-6 text-center">
           <p className="capsule-tag mb-8">{t('tag')}</p>
+          {/* SVG brand logo — next/image is for raster only (see apps/web/CLAUDE.md). */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/logos/logo-white.svg"
             alt={t('hero.title')}
@@ -160,6 +162,8 @@ export default async function AboutPage({params}: Props) {
                   <h3 className="font-display mb-3 text-xl text-ink">{title}</h3>
                   <p className="text-sm leading-relaxed text-ink-soft">{text}</p>
                 </div>
+                {/* SVG brand mark — next/image is for raster only (see apps/web/CLAUDE.md). */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/logos/icon-white.svg"
                   alt=""
@@ -234,6 +238,8 @@ export default async function AboutPage({params}: Props) {
 
       {/* ── S7: CTA — monogram watermark ── */}
       <section className="relative isolate mx-auto max-w-4xl overflow-hidden px-6 py-32 text-center lg:px-8">
+        {/* SVG brand mark — next/image is for raster only (see apps/web/CLAUDE.md). */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/logos/icon-white.svg"
           alt=""

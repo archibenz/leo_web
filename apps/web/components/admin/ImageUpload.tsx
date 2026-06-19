@@ -92,6 +92,10 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
             <div key={i} className="relative group">
               <div className="h-24 w-24 rounded-lg overflow-hidden bg-[var(--ink)]/5">
                 {img.src ? (
+                  // Admin-only upload preview: src is a dynamic, arbitrary remote
+                  // host (or API_BASE) — out of scope for next/image's allow-list
+                  // and not LCP-critical, so a raw <img> is intentional here.
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={img.src.startsWith('/') ? `${API_BASE}${img.src}` : img.src}
                     alt={img.alt}

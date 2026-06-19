@@ -63,6 +63,8 @@ export default async function FooterEditorial({
         <div className="border-b border-[#F2E6D8]/[0.06] py-8 lg:py-10">
           <div className="flex flex-col items-center gap-3 text-center">
             <div className="flex items-center gap-2.5">
+              {/* SVG brand marks — next/image is for raster only (see apps/web/CLAUDE.md). */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logos/icon-white.svg"
                 alt=""
@@ -70,6 +72,7 @@ export default async function FooterEditorial({
                 className="brand-asset h-7 w-7"
                 draggable="false"
               />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/logos/name-white.svg"
                 alt="REINASLEO"
