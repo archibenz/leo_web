@@ -6,15 +6,16 @@ import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
+import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
-import {WHITE_PRODUCTS, type WhiteProduct} from '../products';
+import {WHITE_PRODUCTS, WHITE_SIZES, type WhiteProduct} from '../products';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
 // the landing: a full-bleed white surface over the gradient chrome so the
 // minimalist direction can be reviewed at /<locale>/white/product. Placeholder
 // imagery (editorial shots via Higgsfield later). CSS-only, reduced-motion safe.
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL'] as const;
+const SIZES = WHITE_SIZES;
 // Fallback colourways for the default demo dress (no ?p) — mirrors the Silk
 // product. Real products carry their own per-product colours (products.ts).
 const DEFAULT_COLORS = [
@@ -62,7 +63,6 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
         'A fluid floor-length silhouette in matte silk. Bias-cut, unlined, with a concealed side zip. Designed to move quietly.',
         'Текучий силуэт в пол из матового шёлка. Косой крой, без подклада, скрытая боковая молния. Создано двигаться тихо.',
       );
-  const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
   // "You may also like" — same category first, then fill from the rest, current excluded.
   const pool = WHITE_PRODUCTS.filter((p) => p.key !== product?.key);
   const sameCat = product ? pool.filter((p) => p.cat === product.cat) : [];
@@ -256,26 +256,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             </h2>
             <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 lg:grid-cols-4">
               {related.map((p) => (
-                <a key={p.key} href={`/${locale}/white/product?p=${p.key}`} className="wv-card group block">
-                  <div className="wv-ph relative aspect-[2/3] w-full overflow-hidden">
-                    {p.sale && (
-                      <span className="absolute left-3 top-3 text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>{t('Sale', 'Скидка')}</span>
-                    )}
-                  </div>
-                  <div className="mt-4 text-center">
-                    <p className="text-[14px] tracking-wide transition-opacity group-hover:opacity-60">{t(p.en, p.ru)}</p>
-                    <p className="mt-1 text-[13px]" style={{color: p.sale ? SIGNAL : MUTED}}>
-                      {p.sale ? (
-                        <>
-                          <s className="mr-2 line-through" style={{color: MUTED}}><span className="sr-only">{t('Regular price', 'Обычная цена')}: </span>{fmt(p.price)}</s>
-                          <span><span className="sr-only">{t('Sale price', 'Цена со скидкой')}: </span>{fmt(p.sale)}</span>
-                        </>
-                      ) : (
-                        fmt(p.price)
-                      )}
-                    </p>
-                  </div>
-                </a>
+                <WhiteProductCard key={p.key} locale={locale} product={p} t={t} />
               ))}
             </div>
           </div>

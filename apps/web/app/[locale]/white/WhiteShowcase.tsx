@@ -5,7 +5,8 @@ import {useWhitePortal} from '../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../hooks/useWhiteBag';
 import WhiteHeader from './WhiteHeader';
 import WhiteFooter from './WhiteFooter';
-import {INK, MUTED, HAIR, SIGNAL} from './wv-palette';
+import WhiteProductCard from './WhiteProductCard';
+import {INK, MUTED, HAIR} from './wv-palette';
 import {WHITE_PRODUCTS} from './products';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
@@ -23,7 +24,6 @@ export default function WhiteShowcase({locale}: {locale: string}) {
   const {count} = useWhiteBag();
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
-  const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
 
   if (!mounted) return null;
 
@@ -95,35 +95,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       <section className="mx-auto max-w-[1400px] px-6 pb-24 sm:px-10">
         <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 lg:grid-cols-3">
           {FEATURED.map((p, i) => (
-            <a key={p.key} href={`/${locale}/white/product?p=${p.key}`} className={`wv-card wv-rise group block wv-delay-${(i % 3) + 1}`}>
-              <div className="wv-ph relative aspect-[2/3] w-full overflow-hidden">
-                {p.sale && (
-                  <span className="absolute left-3 top-3 text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>
-                    {t('Sale', 'Скидка')}
-                  </span>
-                )}
-                <span aria-hidden="true" className="wv-quickadd absolute inset-x-0 bottom-0 flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm">
-                  {t('Quick add', 'В корзину')}
-                </span>
-              </div>
-              <div className="mt-4 text-center">
-                <p className="text-[14px] tracking-wide transition-opacity group-hover:opacity-60">{t(p.en, p.ru)}</p>
-                <p className="mt-1 text-[13px]" style={{color: p.sale ? SIGNAL : MUTED}}>
-                  {p.sale ? (
-                    <>
-                      <s className="mr-2 line-through" style={{color: MUTED}}>
-                        <span className="sr-only">{t('Regular price', 'Обычная цена')}: </span>{fmt(p.price)}
-                      </s>
-                      <span>
-                        <span className="sr-only">{t('Sale price', 'Цена со скидкой')}: </span>{fmt(p.sale)}
-                      </span>
-                    </>
-                  ) : (
-                    fmt(p.price)
-                  )}
-                </p>
-              </div>
-            </a>
+            <WhiteProductCard key={p.key} locale={locale} product={p} t={t} index={i} quickAdd rise />
           ))}
         </div>
       </section>

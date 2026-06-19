@@ -1384,8 +1384,11 @@ h2.font-display,
   opacity: 0;
   transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
 }
+/* Reveal Quick Add on hover, or when keyboard focus lands anywhere inside the
+   card (the trigger lives inside .wv-card, so :focus-within — not
+   :focus-visible on the card itself — is what catches a tabbed-to trigger). */
 .wv-card:hover .wv-quickadd,
-.wv-card:focus-visible .wv-quickadd {
+.wv-card:focus-within .wv-quickadd {
   transform: translateY(0);
   opacity: 1;
 }

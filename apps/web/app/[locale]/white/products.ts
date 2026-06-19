@@ -54,6 +54,11 @@ export function findWhiteProduct(key?: string | number | null): WhiteProduct | u
 
 export const WHITE_CATS: WhiteCat[] = ['dresses', 'outerwear', 'knitwear', 'tailoring', 'skirts'];
 
+// Single source for the size run, shared by the PDP and the card Quick Add so
+// they never drift. Demo sizing — real per-product runs arrive with the catalog.
+export const WHITE_SIZES = ['XS', 'S', 'M', 'L', 'XL'] as const;
+export type WhiteSize = (typeof WHITE_SIZES)[number];
+
 // Validate a ?cat query value so the shop can be deep-linked/shared. Anything
 // unrecognised collapses to 'all' (shared by server page + client showcase).
 export function normalizeWhiteCat(value?: string | null): WhiteCat | 'all' {
