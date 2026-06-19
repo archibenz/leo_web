@@ -87,7 +87,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         right={<a href={`/${locale}/white/bag`} aria-label={t('Bag, 0 items', 'Корзина, 0 товаров')} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>{t('Bag (0)', 'Корзина (0)')}</a>}
       />
 
-      <div className="mx-auto max-w-[1400px] px-6 sm:px-10">
+      <main className="mx-auto max-w-[1400px] px-6 sm:px-10">
         {/* Title */}
         <div className="flex items-baseline justify-between pt-12 pb-6">
           <h1 className="font-display text-[34px] font-light tracking-tight sm:text-[44px]">{t('Shop', 'Магазин')}</h1>
@@ -185,7 +185,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
               : t('Nothing here yet.', 'Здесь пока пусто.')}
           </p>
         )}
-      </div>
+      </main>
 
       <WhiteFooter locale={locale} />
     </div>,

@@ -52,6 +52,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         }
       />
 
+      <main>
       {/* Hero — type-led editorial */}
       <section className="mx-auto max-w-[1400px] px-6 sm:px-10">
         <div className="grid items-end gap-10 py-20 sm:py-28 lg:grid-cols-[1.1fr_0.9fr] lg:py-36">
@@ -148,6 +149,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
           </div>
         </div>
       </section>
+      </main>
 
       {/* Footer */}
       <WhiteFooter locale={locale} />
