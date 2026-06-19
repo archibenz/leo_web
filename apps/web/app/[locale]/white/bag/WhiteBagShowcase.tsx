@@ -1,11 +1,13 @@
 'use client';
 
+import Image from 'next/image';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
 import WhiteFooter from '../WhiteFooter';
+import {findWhiteProduct} from '../products';
 import {INK, MUTED, HAIR} from '../wv-palette';
 
 // Variant 2 "White" — bag / cart. Lists the localStorage-backed picks (via
@@ -68,7 +70,13 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
             <ul className="mt-10 border-t" style={{borderColor: HAIR}}>
               {items.map((i) => (
                 <li key={i.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b py-5" style={{borderColor: HAIR}}>
-                  <div className="wv-ph aspect-[2/3] w-16 shrink-0" aria-hidden="true" />
+                  <a
+                    href={`/${locale}/white/product?p=${i.key}`}
+                    aria-label={t(i.en, i.ru)}
+                    className="wv-ph relative aspect-[2/3] w-16 shrink-0 overflow-hidden"
+                  >
+                    <Image src={findWhiteProduct(i.key)?.image ?? '/images/shop/editorial-clean.jpg'} alt="" fill sizes="64px" className="object-cover" />
+                  </a>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px]">{t(i.en, i.ru)}</p>
                     <p className="mt-1 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>{t('Size', 'Размер')}: {i.size}</p>
