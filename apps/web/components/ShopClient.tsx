@@ -347,19 +347,6 @@ function BrandFallback({title, occasion}: {title: string; occasion: string | nul
   );
 }
 
-interface ProductCardProps {
-  item: ShopItem;
-  idx: number;
-  locale: string;
-  t: Translator;
-  tLook: Translator;
-}
-
-function ProductCard({item, idx, locale, t, tLook}: ProductCardProps) {
-  if (idx === 0) return <HeroCard item={item} idx={idx} locale={locale} t={t} tLook={tLook} />;
-  return <ListCard item={item} idx={idx} locale={locale} t={t} />;
-}
-
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
@@ -413,8 +400,8 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
     return () => controller.abort();
   }, [initialProducts]);
 
-  /* ---- season from URL ---- */
-  const [seasonFilter, setSeasonFilter] = useState<string | null>(null);
+  /* ---- season from URL (write-only: applied to `filters`, not read directly) ---- */
+  const [, setSeasonFilter] = useState<string | null>(null);
 
   /* ---- apply URL params on mount ---- */
   // Фильтры применяются, но панель остаётся свёрнутой и на мобилке, и на ПК —
