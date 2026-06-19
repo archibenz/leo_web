@@ -161,7 +161,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
   const isFav = isFavorite(product.id);
 
   const handleAddToBag = () => {
-    if (!selectedSize) {
+    if (sizeOptions.length > 0 && !selectedSize) {
       setSizeError(true);
       return;
     }
@@ -171,7 +171,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
       id,
       title: product.title,
       price: product.price,
-      size: selectedSize,
+      size: selectedSize ?? undefined,
       isTest: product.isTest,
     });
   };
@@ -308,6 +308,14 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
                   </>
                 )}
               </div>
+            )}
+            {product.inStock && (
+              <button
+                onClick={handleAddToBag}
+                className="flex h-14 w-full items-center justify-center rounded-full bg-button text-base font-medium text-ink transition-all duration-200 hover:bg-button/90 active:scale-[0.98]"
+              >
+                {t('addToBag')}
+              </button>
             )}
             <WildberriesButton href={WILDBERRIES_SELLER_URL}>
               {t('buyWildberries')}
