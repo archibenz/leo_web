@@ -143,29 +143,37 @@ export default function CartPage() {
                     </div>
 
                     <div className="flex items-center gap-3 sm:gap-5">
-                      <div className="flex items-center gap-2">
+                      {/* 44px tap targets (project a11y rule). Outer button is the
+                          44px hit area; the 32px bordered circle stays the visible
+                          control. gap-0.5 keeps the previous gap-2 spacing
+                          (6px wrapper padding + 2px = 8px). */}
+                      <div className="flex items-center gap-0.5">
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/12 text-ink-soft transition hover:border-ink hover:text-ink"
+                          className="group flex h-11 w-11 items-center justify-center"
                           aria-label={t('decrease')}
                         >
-                          &minus;
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/12 text-ink-soft transition group-hover:border-ink group-hover:text-ink">
+                            &minus;
+                          </span>
                         </button>
                         <span className="w-7 text-center text-sm font-medium text-ink tabular-nums">
                           {item.quantity}
                         </span>
                         <button
                           onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/12 text-ink-soft transition hover:border-ink hover:text-ink"
+                          className="group flex h-11 w-11 items-center justify-center"
                           aria-label={t('increase')}
                         >
-                          +
+                          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ink/12 text-ink-soft transition group-hover:border-ink group-hover:text-ink">
+                            +
+                          </span>
                         </button>
                       </div>
 
                       <button
                         onClick={() => removeItem(item.id)}
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-ink-soft transition hover:bg-ink/5 hover:text-ink"
+                        className="flex h-11 w-11 items-center justify-center rounded-full text-ink-soft transition hover:bg-ink/5 hover:text-ink"
                         aria-label={t('remove')}
                       >
                         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
