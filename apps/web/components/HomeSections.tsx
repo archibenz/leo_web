@@ -189,8 +189,8 @@ function ScrollRow({children}: {children: React.ReactNode}) {
 function SectionHeading({title}: {title: string}) {
   return (
     <div className="mb-7 flex items-center gap-5 sm:mb-9">
-      <div className="h-px w-10 bg-[#D4A574]/40 sm:w-14" />
-      <h2 className="font-display text-lg uppercase tracking-[0.06em] sm:tracking-[0.12em] text-[#F2E6D8] sm:text-xl lg:text-2xl">
+      <div className="h-px w-10 bg-accent/40 sm:w-14" />
+      <h2 className="font-display text-lg uppercase tracking-[0.06em] sm:tracking-[0.12em] text-inkSoft sm:text-xl lg:text-2xl">
         {title}
       </h2>
     </div>
@@ -239,10 +239,10 @@ function ShopHeroCard({title, subtitle, locale}: {title: string; subtitle: strin
         style={{opacity: 0, transition: 'opacity 500ms ease'}}
       >
         <div className="text-center px-6">
-          <p className="font-accent text-[14px] uppercase tracking-[0.2em] text-[#F2E6D8]/70 lg:text-[16px]">
+          <p className="font-accent text-[14px] uppercase tracking-[0.2em] text-inkSoft/70 lg:text-[16px]">
             {subtitle}
           </p>
-          <h3 className="mt-3 font-display text-3xl uppercase tracking-[0.08em] text-[#F2E6D8] sm:text-4xl lg:text-5xl">
+          <h3 className="mt-3 font-display text-3xl uppercase tracking-[0.08em] text-inkSoft sm:text-4xl lg:text-5xl">
             {title}
           </h3>
         </div>
@@ -250,8 +250,8 @@ function ShopHeroCard({title, subtitle, locale}: {title: string; subtitle: strin
 
       {/* Mobile: always visible */}
       <div className="absolute inset-x-0 bottom-0 z-[2] p-5 md:hidden">
-        <p className="font-accent text-[12px] uppercase tracking-[0.2em] text-[#F2E6D8]/60">{subtitle}</p>
-        <h3 className="mt-1 font-display text-xl uppercase tracking-[0.06em] text-[#F2E6D8]">{title}</h3>
+        <p className="font-accent text-[12px] uppercase tracking-[0.2em] text-inkSoft/60">{subtitle}</p>
+        <h3 className="mt-1 font-display text-xl uppercase tracking-[0.06em] text-inkSoft">{title}</h3>
       </div>
     </Link>
   );
@@ -326,10 +326,10 @@ export default function HomeSections({
                     )}
                   </div>
                   <div className="mt-3 space-y-1">
-                    <h3 className="text-sm font-medium text-[#F2E6D8] truncate sm:text-base">
+                    <h3 className="text-sm font-medium text-inkSoft truncate sm:text-base">
                       {cat.label}
                     </h3>
-                    <p className="text-[13px] tracking-[0.04em] sm:tracking-[0.1em] text-[#F2E6D8]/50 sm:text-[14px] line-clamp-2">
+                    <p className="text-[13px] tracking-[0.04em] sm:tracking-[0.1em] text-inkSoft/50 sm:text-[14px] line-clamp-2">
                       {cat.description}
                     </p>
                   </div>
@@ -361,10 +361,10 @@ export default function HomeSections({
                     )}
                   </div>
                   <div className="mt-3 space-y-1">
-                    <h3 className="text-sm font-medium text-[#F2E6D8] truncate sm:text-base">
+                    <h3 className="text-sm font-medium text-inkSoft truncate sm:text-base">
                       {item.label}
                     </h3>
-                    <p className="text-[13px] tracking-[0.04em] sm:tracking-[0.1em] text-[#F2E6D8]/50 sm:text-[14px] line-clamp-2">
+                    <p className="text-[13px] tracking-[0.04em] sm:tracking-[0.1em] text-inkSoft/50 sm:text-[14px] line-clamp-2">
                       {item.description}
                     </p>
                   </div>
