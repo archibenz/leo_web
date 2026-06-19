@@ -2,6 +2,7 @@ import {afterEach, describe, it, expect} from 'vitest';
 import {render, screen, cleanup, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import WhiteProductCard from './WhiteProductCard';
+import {removeWhiteFavourite} from '../../../hooks/useWhiteFavourites';
 import type {WhiteProduct} from './products';
 
 // jsdom here doesn't provide localStorage — install the same in-memory mock the
@@ -49,8 +50,18 @@ const readBag = () => {
     return [];
   }
 };
+const readFavs = (): number[] => {
+  try {
+    return JSON.parse(localStorage.getItem('wv-favourites') ?? '[]') as number[];
+  } catch {
+    return [];
+  }
+};
 
 afterEach(() => {
+  // Drain the favourites module store too (localStorage.clear() empties storage
+  // but not the in-memory store), so the heart starts unset in the next test.
+  readFavs().forEach((k) => removeWhiteFavourite(k));
   cleanup();
   localStorage.clear();
 });
@@ -92,5 +103,32 @@ describe('WhiteProductCard Quick Add', () => {
     expect(screen.queryByRole('button', {name: /quick add/i})).not.toBeInTheDocument();
     // The card is still a link to the product.
     expect(screen.getAllByRole('link').length).toBeGreaterThan(0);
+  });
+});
+
+describe('WhiteProductCard favourite heart', () => {
+  it('toggles the favourite on, persisting the product key', async () => {
+    const user = userEvent.setup();
+    render(<WhiteProductCard locale="en" product={PRODUCT} t={t} />);
+
+    const heart = screen.getByRole('button', {name: /add .* to favourites/i});
+    expect(heart).toHaveAttribute('aria-pressed', 'false');
+    expect(readFavs()).toHaveLength(0);
+
+    await user.click(heart);
+
+    await waitFor(() => expect(readFavs()).toEqual([3]));
+    // The button now offers the inverse action and reports the pressed state.
+    expect(screen.getByRole('button', {name: /remove .* from favourites/i})).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('toggles the favourite back off', async () => {
+    const user = userEvent.setup();
+    render(<WhiteProductCard locale="en" product={PRODUCT} t={t} />);
+    const heart = screen.getByRole('button', {name: /favourites/i});
+    await user.click(heart);
+    await waitFor(() => expect(readFavs()).toEqual([3]));
+    await user.click(screen.getByRole('button', {name: /favourites/i}));
+    await waitFor(() => expect(readFavs()).toEqual([]));
   });
 });

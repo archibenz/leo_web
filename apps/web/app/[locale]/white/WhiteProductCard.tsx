@@ -2,8 +2,9 @@
 
 import {useEffect, useRef, useState} from 'react';
 import {useWhiteBag} from '../../../hooks/useWhiteBag';
+import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import {WHITE_SIZES, type WhiteProduct} from './products';
-import {MUTED, SIGNAL} from './wv-palette';
+import {INK, MUTED, SIGNAL} from './wv-palette';
 
 // Variant 2 "White" — shared product card for the landing edit, the shop grid
 // and the PDP "related" rail. Single source so the three never drift.
@@ -32,6 +33,8 @@ export default function WhiteProductCard({
   rise?: boolean;
 }) {
   const {add} = useWhiteBag();
+  const {has, toggle} = useWhiteFavourites();
+  const favourited = has(product.key);
   const [open, setOpen] = useState(false);
   const [added, setAdded] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -97,6 +100,23 @@ export default function WhiteProductCard({
             {t('Sale', 'Скидка')}
           </span>
         )}
+
+        {/* Favourite — a sibling of the image link (a button nested in <a> is
+            invalid). Always visible (mobile has no hover); 44px hit area, the
+            heart fills with the signal colour when saved. Persists via the same
+            store as the PDP heart, so the two stay in sync. */}
+        <button
+          type="button"
+          onClick={() => toggle(product.key)}
+          aria-pressed={favourited}
+          aria-label={favourited ? t(`Remove ${name} from favourites`, `Убрать ${name} из избранного`) : t(`Add ${name} to favourites`, `Добавить ${name} в избранное`)}
+          className="absolute right-1 top-1 z-10 flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-100"
+          style={{opacity: favourited ? 1 : 0.75}}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={favourited ? SIGNAL : 'none'} stroke={favourited ? SIGNAL : INK} strokeWidth="1.4">
+            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+          </svg>
+        </button>
 
         {quickAdd && !open && (
           <button
