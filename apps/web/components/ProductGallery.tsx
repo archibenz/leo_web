@@ -3,6 +3,7 @@
 import {useState, useRef, useCallback, useEffect} from 'react';
 import Image from 'next/image';
 import dynamic from 'next/dynamic';
+import {useTranslations} from 'next-intl';
 
 const ProductGalleryLightbox = dynamic(
   () => import('./ProductGalleryLightbox'),
@@ -61,6 +62,7 @@ interface ProductGalleryProps {
 }
 
 export default function ProductGallery({images}: ProductGalleryProps) {
+  const t = useTranslations('common');
   const [activeIndex, setActiveIndex] = useState(0);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -263,7 +265,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 }}
                 className="absolute left-0 top-0 z-10 h-full w-[20%]"
                 style={{WebkitTapHighlightColor: 'transparent'}}
-                aria-label="Previous image"
+                aria-label={t('previousImage')}
               />
               <button
                 type="button"
@@ -273,7 +275,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 }}
                 className="absolute right-0 top-0 z-10 h-full w-[20%]"
                 style={{WebkitTapHighlightColor: 'transparent'}}
-                aria-label="Next image"
+                aria-label={t('nextImage')}
               />
             </>
           )}

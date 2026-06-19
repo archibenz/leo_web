@@ -16,7 +16,7 @@ export default function Toaster() {
     <div
       aria-live="polite"
       role="region"
-      aria-label="Notifications"
+      aria-label={t('common.notifications')}
       className="fixed top-4 right-4 z-[200] flex flex-col gap-2 max-w-sm pointer-events-none"
     >
       {toasts.map(toast => {

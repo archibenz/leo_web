@@ -238,7 +238,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
             {product.isTest && (
               <span
                 className="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--accent)]/40 bg-[var(--accent)]/[0.08] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--accent)]"
-                aria-label="Demo product"
+                aria-label={t('demoBadge')}
               >
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-75 motion-safe:animate-ping" />

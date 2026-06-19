@@ -4,7 +4,12 @@
     "switchTo": "Switch to {locale}",
     "confirm": "Confirm",
     "cancel": "Cancel",
-    "dismissNotification": "Dismiss notification"
+    "dismissNotification": "Dismiss notification",
+    "notifications": "Notifications",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right",
+    "previousImage": "Previous image",
+    "nextImage": "Next image"
   },
   "languageSelect": {
     "label": "Language",
@@ -739,7 +744,8 @@
     "buyWildberries": "Buy on Wildberries",
     "collection": "Collection",
     "careInstructions": "Garment care",
-    "completeLook": "Complete the look"
+    "completeLook": "Complete the look",
+    "demoBadge": "Demo product"
   },
   "look": {
     "openLook": "OPEN LOOK",

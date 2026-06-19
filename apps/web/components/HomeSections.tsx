@@ -3,6 +3,7 @@
 import {useRef, useState, useEffect, useCallback, type ReactNode} from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import {useTranslations} from 'next-intl';
 import BlurReveal from './BlurReveal';
 
 /* ── Types ── */
@@ -97,6 +98,7 @@ function ArrowIcon({direction}: {direction: 'left' | 'right'}) {
 /* ── Horizontal scroll row with arrows ── */
 
 function ScrollRow({children}: {children: React.ReactNode}) {
+  const t = useTranslations('common');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -164,7 +166,7 @@ function ScrollRow({children}: {children: React.ReactNode}) {
           type="button"
           onClick={() => scroll(-1)}
           className="absolute left-0 top-1/2 -translate-y-1/2 z-10 hidden h-10 w-10 items-center justify-center rounded-full bg-[var(--paper-base)]/80 text-[var(--ink)] opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-[var(--paper-base)] group-hover/scroll:opacity-100 md:flex"
-          aria-label="Scroll left"
+          aria-label={t('scrollLeft')}
         >
           <ArrowIcon direction="left" />
         </button>
@@ -175,7 +177,7 @@ function ScrollRow({children}: {children: React.ReactNode}) {
           type="button"
           onClick={() => scroll(1)}
           className="absolute right-0 top-1/2 -translate-y-1/2 z-10 hidden h-10 w-10 items-center justify-center rounded-full bg-[var(--paper-base)]/80 text-[var(--ink)] opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-[var(--paper-base)] group-hover/scroll:opacity-100 md:flex"
-          aria-label="Scroll right"
+          aria-label={t('scrollRight')}
         >
           <ArrowIcon direction="right" />
         </button>

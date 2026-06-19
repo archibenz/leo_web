@@ -4,7 +4,12 @@
     "switchTo": "Переключить на {locale}",
     "confirm": "Подтвердить",
     "cancel": "Отмена",
-    "dismissNotification": "Закрыть уведомление"
+    "dismissNotification": "Закрыть уведомление",
+    "notifications": "Уведомления",
+    "scrollLeft": "Прокрутить влево",
+    "scrollRight": "Прокрутить вправо",
+    "previousImage": "Предыдущее изображение",
+    "nextImage": "Следующее изображение"
   },
   "languageSelect": {
     "label": "Язык",
@@ -739,7 +744,8 @@
     "buyWildberries": "Купить на Wildberries",
     "collection": "Коллекция",
     "careInstructions": "Уход за изделием",
-    "completeLook": "Дополните образ"
+    "completeLook": "Дополните образ",
+    "demoBadge": "Демо-товар"
   },
   "look": {
     "openLook": "ОТКРЫТЬ LOOK",
