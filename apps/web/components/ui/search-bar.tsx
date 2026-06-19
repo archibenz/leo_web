@@ -221,7 +221,7 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
                   onMouseEnter={() => setActiveIndex(i)}
                   className={cn(
                     "flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg text-[13px] transition-colors hover:bg-ink/[0.06] hover:text-accent",
-                    i === activeIndex ? "bg-ink/[0.06] text-accent" : "text-ink/50"
+                    i === activeIndex ? "bg-ink/[0.06] text-accent" : "text-ink/65"
                   )}
                 >
                   <Search size={12} className="text-ink/20 flex-shrink-0" />

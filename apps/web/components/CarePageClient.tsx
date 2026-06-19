@@ -66,7 +66,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
           <h1 className="font-display text-4xl md:text-5xl tracking-tight text-ink mb-6">
             {t('title')}
           </h1>
-          <p className="text-ink/50 text-[16px] leading-relaxed max-w-2xl mx-auto">
+          <p className="text-ink/65 text-[16px] leading-relaxed max-w-2xl mx-auto">
             {t('intro')}
           </p>
         </section>
@@ -79,7 +79,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
             <h2 className="font-display text-2xl md:text-3xl tracking-tight text-ink mb-3">
               {t('hub.title')}
             </h2>
-            <p className="text-ink/50 text-[14px] max-w-xl mx-auto">
+            <p className="text-ink/65 text-[14px] max-w-xl mx-auto">
               {t('hub.subtitle')}
             </p>
           </div>
@@ -148,7 +148,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
                   </h2>
 
                   {guide.description && (
-                    <p className="text-ink/50 text-[15px] leading-relaxed mb-5">
+                    <p className="text-ink/65 text-[15px] leading-relaxed mb-5">
                       {guide.description}
                     </p>
                   )}

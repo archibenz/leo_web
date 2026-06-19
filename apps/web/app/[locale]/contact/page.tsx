@@ -60,7 +60,7 @@ export default async function ContactPage({params}: Props) {
           <p className="max-w-md text-[14px] leading-relaxed text-ink/55 md:text-[15px]">
             {t('subtitle')}
           </p>
-          <p className="max-w-md text-[12px] leading-relaxed text-ink/50 md:text-[13px]">
+          <p className="max-w-md text-[12px] leading-relaxed text-ink/65 md:text-[13px]">
             {t('responseTime')}
           </p>
 

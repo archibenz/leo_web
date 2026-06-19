@@ -108,7 +108,7 @@ export const HoveredLink = ({
   return (
     <Link
       {...rest}
-      className="block text-[17px] leading-relaxed text-ink/50 transition-colors duration-200 hover:text-accent"
+      className="block text-[17px] leading-relaxed text-ink/65 transition-colors duration-200 hover:text-accent"
     >
       {children}
     </Link>

@@ -8,7 +8,7 @@ import {track} from '../lib/analytics';
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
 const fieldClass =
-  'w-full rounded-lg border border-[#D4A574]/15 bg-[#140c08]/40 px-3.5 py-2.5 text-[14px] text-ink/85 placeholder:text-ink/50 outline-none transition-colors duration-300 focus:border-[#D4A574]/40';
+  'w-full rounded-lg border border-[#D4A574]/15 bg-[#140c08]/40 px-3.5 py-2.5 text-[14px] text-ink/85 placeholder:text-ink/65 outline-none transition-colors duration-300 focus:border-[#D4A574]/40';
 const labelClass = 'block text-[13px] text-ink/65';
 
 export default function ContactForm() {
