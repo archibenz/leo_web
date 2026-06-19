@@ -1,6 +1,6 @@
 'use client';
 
-import {useMemo, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
@@ -17,15 +17,22 @@ import {WHITE_PRODUCTS as ITEMS, type WhiteProduct as Item, type WhiteCat as Cat
 
 type Sort = 'new' | 'asc' | 'desc';
 
-export default function WhiteShopShowcase({locale, initialCat = 'all', initialQuery = ''}: {locale: string; initialCat?: Cat | 'all'; initialQuery?: string}) {
+export default function WhiteShopShowcase({locale, initialCat = 'all', initialQuery = '', focusSearch = false}: {locale: string; initialCat?: Cat | 'all'; initialQuery?: string; focusSearch?: boolean}) {
   const mounted = useWhitePortal();
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const [cat, setCat] = useState<Cat | 'all'>(initialCat);
   const [sort, setSort] = useState<Sort>('new');
   const [query, setQuery] = useState(initialQuery);
+  const searchRef = useRef<HTMLInputElement>(null);
   const ru = locale === 'ru';
   const t = (en: string, rus: string) => (ru ? rus : en);
+
+  // Deep-link intent (?focus=search, e.g. from the landing "Search" link):
+  // the portal mounts client-side, so focus the field once it has painted.
+  useEffect(() => {
+    if (focusSearch && mounted) searchRef.current?.focus();
+  }, [focusSearch, mounted]);
 
   // Keep the URL in sync with the active filters so a view can be shared or
   // bookmarked (history.replaceState — no navigation, no reload).
@@ -108,15 +115,32 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         {/* Search — free-text filter by product name (en+ru). Hairline underline, square. */}
         <div className="pb-6">
           <label htmlFor="wv-shop-search" className="sr-only">{t('Search products', 'Поиск по товарам')}</label>
-          <input
-            id="wv-shop-search"
-            type="search"
-            value={query}
-            onChange={(e) => pickQuery(e.target.value)}
-            placeholder={t('Search the collection', 'Поиск по коллекции')}
-            className="w-full border-b bg-transparent pb-2 text-[15px] outline-none placeholder:text-[#8c837a]"
-            style={{borderColor: HAIR, color: INK}}
-          />
+          <div className="relative">
+            <input
+              ref={searchRef}
+              id="wv-shop-search"
+              type="search"
+              value={query}
+              onChange={(e) => pickQuery(e.target.value)}
+              placeholder={t('Search the collection', 'Поиск по коллекции')}
+              className="w-full border-b bg-transparent pb-2 pr-10 text-[15px] outline-none placeholder:text-[#8c837a] [&::-webkit-search-cancel-button]:hidden"
+              style={{borderColor: HAIR, color: INK}}
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => {
+                  pickQuery('');
+                  searchRef.current?.focus();
+                }}
+                aria-label={t('Clear search', 'Очистить поиск')}
+                className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-[16px] leading-none transition-opacity hover:opacity-60"
+                style={{color: MUTED}}
+              >
+                ×
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Filter bar */}
