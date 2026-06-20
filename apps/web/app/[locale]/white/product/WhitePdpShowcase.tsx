@@ -231,7 +231,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   onClick={() => setGuideOpen((o) => !o)}
                   aria-expanded={guideOpen}
                   aria-controls="wv-size-guide"
-                  className="text-[11px] uppercase tracking-[0.16em] underline-offset-4 hover:underline"
+                  className="-my-2 py-2 text-[11px] uppercase tracking-[0.16em] underline-offset-4 hover:underline"
                   style={{color: MUTED}}
                 >
                   {t('Size guide', 'Таблица размеров')}
