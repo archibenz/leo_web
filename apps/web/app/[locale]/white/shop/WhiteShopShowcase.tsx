@@ -123,6 +123,11 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
               type="search"
               value={query}
               onChange={(e) => pickQuery(e.target.value)}
+              autoCapitalize="off"
+              autoCorrect="off"
+              autoComplete="off"
+              spellCheck={false}
+              enterKeyHint="search"
               placeholder={t('Search the collection', 'Поиск по коллекции')}
               className="w-full border-b bg-transparent pb-2 pr-10 text-[15px] outline-none placeholder:text-[#8c837a] [&::-webkit-search-cancel-button]:hidden"
               style={{borderColor: HAIR, color: INK}}
