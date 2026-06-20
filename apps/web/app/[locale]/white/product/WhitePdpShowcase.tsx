@@ -350,7 +350,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             tabIndex={showSticky ? 0 : -1}
             className="wv-btn flex-1 py-3.5 text-[12px] uppercase tracking-[0.2em]"
           >
-            {size ? t('Add to bag', 'В корзину') : t('Select a size', 'Выберите размер')}
+            {justAdded ? t('Added', 'Добавлено') : size ? t('Add to bag', 'В корзину') : t('Select a size', 'Выберите размер')}
           </button>
         </div>
       </div>
