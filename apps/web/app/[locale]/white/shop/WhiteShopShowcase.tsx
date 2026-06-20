@@ -2,6 +2,7 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
+import {useTranslations} from 'next-intl';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
@@ -27,8 +28,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
   const [sort, setSort] = useState<Sort>(initialSort);
   const [query, setQuery] = useState(initialQuery);
   const searchRef = useRef<HTMLInputElement>(null);
-  const ru = locale === 'ru';
-  const t = (en: string, rus: string) => (ru ? rus : en);
+  const t = useTranslations('white.shop');
 
   // Deep-link intent (?focus=search, e.g. from the landing "Search" link):
   // the portal mounts client-side, so focus the field once it has painted.
@@ -61,7 +61,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
 
   // 'all' chip reads "All/Все"; real categories use the shared whiteCatLabel
   // (same source as the server-side title — no drift).
-  const catLabel = (c: Cat | 'all') => (c === 'all' ? t('All', 'Все') : whiteCatLabel(c, locale));
+  const catLabel = (c: Cat | 'all') => (c === 'all' ? t('all') : whiteCatLabel(c, locale));
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -118,7 +118,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         activeCat={cat}
         left={
           <a href={`/${locale}/white`} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>
-            ← {t('Home', 'Главная')}
+            ← {t('home')}
           </a>
         }
         right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
@@ -127,7 +127,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto max-w-[1400px] px-6 sm:px-10">
         {/* Title */}
         <div className="flex items-baseline justify-between pt-12 pb-6">
-          <h1 className="font-display text-[34px] font-light tracking-tight sm:text-[44px]">{t('Shop', 'Магазин')}</h1>
+          <h1 className="font-display text-[34px] font-light tracking-tight sm:text-[44px]">{t('shop')}</h1>
           <span aria-live="polite" aria-atomic="true" className="text-[12px] uppercase tracking-[0.16em] tabular-nums" style={{color: MUTED}}>
             {shown.length} {whiteItemNoun(shown.length, locale)}
           </span>
@@ -135,7 +135,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
 
         {/* Search — free-text filter by product name (en+ru). Hairline underline, square. */}
         <div className="pb-6">
-          <label htmlFor="wv-shop-search" className="sr-only">{t('Search products', 'Поиск по товарам')}</label>
+          <label htmlFor="wv-shop-search" className="sr-only">{t('searchProducts')}</label>
           <div className="relative">
             <input
               ref={searchRef}
@@ -148,7 +148,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
               autoComplete="off"
               spellCheck={false}
               enterKeyHint="search"
-              placeholder={t('Search the collection', 'Поиск по коллекции')}
+              placeholder={t('searchCollection')}
               className="w-full border-b bg-transparent pb-2 pr-10 text-[15px] outline-none placeholder:text-[#8c837a] [&::-webkit-search-cancel-button]:hidden"
               style={{borderColor: HAIR, color: INK}}
             />
@@ -159,7 +159,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
                   pickQuery('');
                   searchRef.current?.focus();
                 }}
-                aria-label={t('Clear search', 'Очистить поиск')}
+                aria-label={t('clearSearch')}
                 className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-[16px] leading-none transition-opacity hover:opacity-60"
                 style={{color: MUTED}}
               >
@@ -195,16 +195,16 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
             ))}
           </div>
           <label className="flex items-center gap-2 text-[12px] uppercase tracking-[0.14em]" style={{color: MUTED}}>
-            {t('Sort', 'Сортировка')}
+            {t('sort')}
             <select
               value={sort}
               onChange={(e) => pickSort(e.target.value as Sort)}
               className="cursor-pointer border-b bg-transparent py-1 text-[12px] uppercase tracking-[0.14em] outline-none"
               style={{color: INK, borderColor: MUTED}}
             >
-              <option value="new">{t('Newest', 'Новизна')}</option>
-              <option value="asc">{t('Price: low to high', 'Цена: по возр.')}</option>
-              <option value="desc">{t('Price: high to low', 'Цена: по убыв.')}</option>
+              <option value="new">{t('sortNewest')}</option>
+              <option value="asc">{t('sortAsc')}</option>
+              <option value="desc">{t('sortDesc')}</option>
             </select>
           </label>
         </div>
@@ -219,8 +219,8 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         {shown.length === 0 && (
           <p className="py-24 text-center text-[14px]" style={{color: MUTED}}>
             {query.trim()
-              ? t(`Nothing found for “${query.trim()}”.`, `Ничего не найдено по «${query.trim()}».`)
-              : t('Nothing here yet.', 'Здесь пока пусто.')}
+              ? t('nothingFound', {query: query.trim()})
+              : t('nothingHere')}
           </p>
         )}
       </main>

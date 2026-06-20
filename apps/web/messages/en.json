@@ -1154,6 +1154,20 @@
       "browse": "Browse the collection",
       "saved": "Saved",
       "savedOnDevice": "Saved on this device."
+    },
+    "shop": {
+      "all": "All",
+      "home": "Home",
+      "shop": "Shop",
+      "searchProducts": "Search products",
+      "searchCollection": "Search the collection",
+      "clearSearch": "Clear search",
+      "sort": "Sort",
+      "sortNewest": "Newest",
+      "sortAsc": "Price: low to high",
+      "sortDesc": "Price: high to low",
+      "nothingFound": "Nothing found for “{query}”.",
+      "nothingHere": "Nothing here yet."
     }
   }
 }
