@@ -3,6 +3,7 @@
 import {useEffect, useRef, useState, useCallback} from 'react';
 import {useTranslations} from 'next-intl';
 import Link from 'next/link';
+import Image from 'next/image';
 import {usePathname} from 'next/navigation';
 import {useFocusTrap} from '../lib/useFocusTrap';
 
@@ -22,13 +23,15 @@ const CATEGORY_ITEMS = [
   'trousers',
 ] as const;
 
+// Editorial anchor for the takeover — outerwear shot in the warm brand key.
+const MENU_EDITORIAL_IMAGE = '/images/shop/editorial-outer.jpg';
+
 export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps) {
   const t = useTranslations('menu');
   const nav = useTranslations('nav');
   const pathname = usePathname();
 
   const menuRef = useRef<HTMLDivElement>(null);
-  const firstLinkRef = useRef<HTMLAnchorElement>(null);
   const [isAnimating, setIsAnimating] = useState(false);
   // Active category is read from the URL on open (window.location, not
   // useSearchParams — keeps this global-header component out of a Suspense
@@ -46,7 +49,9 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
       setIsAnimating(true);
       setActiveCat(new URLSearchParams(window.location.search).get('category'));
       document.body.style.overflow = 'hidden';
-      const focusTimer = setTimeout(() => firstLinkRef.current?.focus(), 280);
+      // Move focus into the dialog container (not the first link) so the
+      // overlay is announced without ringing/scrolling a link on touch-open.
+      const focusTimer = setTimeout(() => menuRef.current?.focus(), 320);
       const handleEsc = (e: KeyboardEvent) => {
         if (e.key === 'Escape') handleClose();
       };
@@ -58,18 +63,12 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
       };
     } else {
       document.body.style.overflow = '';
-      const timer = setTimeout(() => setIsAnimating(false), 280);
+      const timer = setTimeout(() => setIsAnimating(false), 300);
       return () => clearTimeout(timer);
     }
   }, [isOpen, handleClose]);
 
   if (!isOpen && !isAnimating) return null;
-
-  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-      handleClose();
-    }
-  };
 
   const primary = [
     {key: 'shop', href: `/${locale}/shop`, label: nav('shop')},
@@ -83,82 +82,105 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
     {href: `/${locale}/contact`, label: nav('contact')},
   ];
 
+  // Full-screen editorial takeover — sits above the header (z-200) so the menu
+  // is the entire context. Fashion-contents layout: two-digit gold index
+  // numerals beside large serif category links, hairline rules, staggered
+  // reveal (menu-rise is reduced-motion-safe), an editorial photo footer.
   return (
     <div
-      className={`fixed inset-0 z-[180] transition-opacity duration-300 ease-out ${
+      ref={menuRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t('label')}
+      tabIndex={-1}
+      className={`fixed inset-0 z-[210] flex h-[100dvh] w-full flex-col outline-none transition-opacity duration-300 ease-out ${
         isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
-      onClick={handleBackdropClick}
-      style={{
-        background: 'rgba(8, 5, 3, 0.5)',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        cursor: 'pointer',
-      }}
-      role="presentation"
+      style={{background: 'radial-gradient(125% 85% at 50% -12%, #2B1711 0%, #1E120D 58%)'}}
     >
-      <div className="flex items-start justify-center px-3 pt-[70px] sm:px-4">
-        <div
-          ref={menuRef}
-          onClick={(e) => e.stopPropagation()}
-          className={`liquid-glass-menu menu-panel relative w-full max-w-[calc(100%-12px)] cursor-default rounded-[28px] ${
-            isOpen ? 'menu-panel-open' : 'menu-panel-close'
-          }`}
-          role="dialog"
-          aria-modal="true"
+      {/* Top bar — wordmark + close (header is covered, so close lives here). */}
+      <div className="flex shrink-0 items-center justify-between px-6 py-5">
+        <span className="font-display text-[15px] font-medium tracking-[0.34em] text-inkSoft">REINASLEO</span>
+        <button
+          type="button"
+          onClick={handleClose}
           aria-label={t('label')}
+          className="-mr-2 flex h-11 w-11 items-center justify-center text-inkSoft transition-colors hover:text-accent focus-visible:text-accent"
         >
-          <div className="relative max-h-[calc(100dvh-100px)] overflow-y-auto px-3 py-4 sm:px-4">
-            {/* Primary — each row is a tactile glass pill. */}
-            <nav className="flex flex-col gap-0.5">
-              {primary.map((item, index) => {
-                const onShop = pathname === `/${locale}/shop`;
-                const current = item.key === 'shop' ? onShop && !activeCat : onShop && item.key === activeCat;
-                return (
-                  <Link
-                    key={item.key}
-                    ref={index === 0 ? firstLinkRef : undefined}
-                    href={item.href}
-                    onClick={onClose}
-                    aria-current={current ? 'page' : undefined}
-                    className="menu-rise group flex items-center justify-between rounded-2xl px-4 py-3 transition-colors duration-200 hover:bg-[rgba(242,230,216,0.07)] focus-visible:bg-[rgba(242,230,216,0.07)] active:bg-[rgba(212,165,116,0.10)]"
-                    style={{animationDelay: `${70 + index * 45}ms`}}
-                  >
-                    <span
-                      className={`font-display text-[19px] tracking-[0.01em] transition-colors group-hover:text-accent group-focus-visible:text-accent ${
-                        current ? 'text-accent' : 'text-inkSoft'
-                      }`}
-                    >
-                      {item.label}
-                    </span>
-                    <span
-                      aria-hidden="true"
-                      className="font-accent text-[13px] text-inkSoft/20 transition-all duration-200 group-hover:translate-x-1 group-hover:text-accent group-focus-visible:translate-x-1 group-focus-visible:text-accent"
-                    >
-                      →
-                    </span>
-                  </Link>
-                );
-              })}
-            </nav>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
+            <path d="M5 5l14 14M19 5L5 19" />
+          </svg>
+        </button>
+      </div>
 
-            <div className="mx-4 my-3 h-px bg-[rgba(242,230,216,0.1)]" />
+      {/* Primary — editorial table of contents. my-auto centres the list when
+          there is spare height and collapses to a clean top-aligned scroll when
+          the list overflows (justify-center would clip both ends instead). */}
+      <nav className="flex flex-1 flex-col overflow-y-auto" aria-label={t('label')}>
+        <div className="my-auto flex w-full flex-col px-6 py-4">
+        {primary.map((item, index) => {
+          const onShop = pathname === `/${locale}/shop`;
+          const current = item.key === 'shop' ? onShop && !activeCat : onShop && item.key === activeCat;
+          return (
+            <Link
+              key={item.key}
+              href={item.href}
+              onClick={onClose}
+              aria-current={current ? 'page' : undefined}
+              className="menu-rise group flex items-baseline gap-5 border-b py-3.5 transition-colors"
+              style={{animationDelay: `${60 + index * 42}ms`, borderColor: 'rgba(242,230,216,0.10)'}}
+            >
+              <span
+                aria-hidden="true"
+                className={`w-6 shrink-0 font-accent text-[12px] tabular-nums tracking-[0.06em] transition-colors ${
+                  current ? 'text-accent' : 'text-accent/45 group-hover:text-accent group-focus-visible:text-accent'
+                }`}
+              >
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              <span
+                className={`flex-1 font-display text-[30px] font-light leading-[1.08] tracking-[-0.01em] transition-colors group-hover:text-accent group-focus-visible:text-accent ${
+                  current ? 'text-accent' : 'text-inkSoft'
+                }`}
+              >
+                {item.label}
+              </span>
+              <span
+                aria-hidden="true"
+                className={`font-accent text-[15px] transition-all duration-200 group-hover:translate-x-1 group-hover:text-accent group-focus-visible:translate-x-1 group-focus-visible:text-accent ${
+                  current ? 'text-accent' : 'text-inkSoft/20'
+                }`}
+              >
+                →
+              </span>
+            </Link>
+          );
+        })}
+        </div>
+      </nav>
 
-            {/* Quiet secondary links — inline-flex + py lifts the tap target to
-                ~38px (WCAG 2.5.8 AA needs ≥24px; raw 12px text was only 18px)
-                while staying visually quieter than the 46px primary rows. */}
-            <nav className="flex flex-wrap gap-x-5 gap-y-0.5 px-4">
-              {secondary.map(({href, label}) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={onClose}
-                  className="inline-flex items-center py-2.5 text-[12px] uppercase tracking-[0.08em] text-inkSoft/55 transition-colors hover:text-accent focus-visible:text-accent"
-                >
-                  {label}
-                </Link>
-              ))}
-            </nav>
+      {/* Secondary quiet row + editorial photo footer. */}
+      <div className="shrink-0 px-6 pb-8 pt-4">
+        <nav className="flex flex-wrap gap-x-5 gap-y-0.5" aria-label={t('sections.more')}>
+          {secondary.map(({href, label}) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={onClose}
+              className="inline-flex items-center py-2.5 text-[12px] uppercase tracking-[0.1em] text-inkSoft/70 transition-colors hover:text-accent focus-visible:text-accent"
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="menu-rise relative mt-5 aspect-[16/9] w-full overflow-hidden rounded-[18px]" style={{animationDelay: '420ms'}}>
+          <Image src={MENU_EDITORIAL_IMAGE} alt="" fill sizes="100vw" className="object-cover" />
+          <div
+            className="absolute inset-x-0 bottom-0 flex items-end p-4"
+            style={{background: 'linear-gradient(to top, rgba(8,5,3,0.62), transparent)'}}
+          >
+            <span className="font-accent text-[12px] uppercase tracking-[0.18em] text-inkSoft/90">{t('footer.tagline')}</span>
           </div>
         </div>
       </div>
