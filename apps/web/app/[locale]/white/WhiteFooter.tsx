@@ -90,7 +90,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
             <ul className="space-y-2.5 text-[13px]" style={{color: MUTED}}>
               {col.items.map((it) => (
                 <li key={it.label}>
-                  <a href={it.href} className="inline-block transition-opacity hover:opacity-60">{it.label}</a>
+                  <a href={it.href} className="block py-1.5 transition-opacity hover:opacity-60">{it.label}</a>
                 </li>
               ))}
             </ul>
@@ -121,7 +121,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
               type="submit"
               disabled={nlLocked}
               aria-label={t('Subscribe', 'Подписаться')}
-              className="shrink-0 px-1 text-[12px] uppercase tracking-[0.16em] transition-opacity hover:opacity-60 disabled:opacity-40"
+              className="-my-2.5 flex h-11 w-10 shrink-0 items-center justify-center text-[14px] uppercase tracking-[0.16em] transition-opacity hover:opacity-60 disabled:opacity-40"
               style={{color: INK}}
             >
               {status === 'loading' ? '…' : '→'}
