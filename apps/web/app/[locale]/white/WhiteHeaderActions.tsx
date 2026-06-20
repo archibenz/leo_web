@@ -16,20 +16,28 @@ import {whiteItemNoun} from './wv-i18n';
 
 type ActionKey = 'favourites' | 'bag';
 
-function HeartIcon({className}: {className?: string}) {
+// The brand heart/cart icons live in /public/icons (shared with the gradient
+// site) but their fill is the gradient's cream (#F2E6D8) — invisible on White's
+// white background. Render the custom shape as a CSS mask filled with
+// currentColor, so it inherits White's colour system (MUTED, INK when current)
+// without recolouring assets. Static — nothing for reduced-motion to suppress.
+function MaskIcon({src, className}: {src: string; className?: string}) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 20.7 5 13.6a4.5 4.5 0 0 1 6.4-6.3l.6.6.6-.6a4.5 4.5 0 0 1 6.4 6.3l-7 7.1Z" />
-    </svg>
-  );
-}
-
-function BagIcon({className}: {className?: string}) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M6 8h12l-.8 11.4a1.4 1.4 0 0 1-1.4 1.3H8.2a1.4 1.4 0 0 1-1.4-1.3L6 8Z" />
-      <path d="M9.3 8V6.6a2.7 2.7 0 0 1 5.4 0V8" />
-    </svg>
+    <span
+      aria-hidden="true"
+      className={`inline-block ${className ?? ''}`}
+      style={{
+        backgroundColor: 'currentColor',
+        WebkitMaskImage: `url(${src})`,
+        maskImage: `url(${src})`,
+        WebkitMaskRepeat: 'no-repeat',
+        maskRepeat: 'no-repeat',
+        WebkitMaskPosition: 'center',
+        maskPosition: 'center',
+        WebkitMaskSize: 'contain',
+        maskSize: 'contain',
+      }}
+    />
   );
 }
 
@@ -104,7 +112,7 @@ export default function WhiteHeaderActions({
         href={`/${locale}/white/favourites`}
         ariaLabel={`${t('saved')}, ${favCount} ${whiteItemNoun(favCount, locale)}`}
         isCurrent={current === 'favourites'}
-        icon={<HeartIcon className={icon} />}
+        icon={<MaskIcon src="/icons/heart.svg" className={icon} />}
         label={t('saved')}
         count={favCount}
       />
@@ -112,7 +120,7 @@ export default function WhiteHeaderActions({
         href={`/${locale}/white/bag`}
         ariaLabel={`${t('bag')}, ${count} ${whiteItemNoun(count, locale)}`}
         isCurrent={current === 'bag'}
-        icon={<BagIcon className={icon} />}
+        icon={<MaskIcon src="/icons/cart.svg" className={icon} />}
         label={t('bag')}
         count={count}
       />
