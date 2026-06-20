@@ -114,7 +114,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
               aria-invalid={status === 'invalid' ? true : undefined}
               aria-describedby="wv-newsletter-status"
               placeholder={t('Email', 'Email')}
-              className="w-full bg-transparent text-[13px] outline-none placeholder:text-[#7a7167] disabled:opacity-50"
+              className="w-full bg-transparent py-2.5 text-[13px] outline-none placeholder:text-[#7a7167] disabled:opacity-50"
               style={{color: INK}}
             />
             <button
