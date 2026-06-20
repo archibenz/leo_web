@@ -239,7 +239,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
       {/* ── Back button ── */}
       <button
         onClick={() => router.back()}
-        className="group mb-6 flex items-center gap-2 text-sm uppercase tracking-[0.12em] text-[var(--ink-soft)] transition-colors duration-200 hover:text-[var(--ink)]"
+        className="group -mt-3 mb-3 flex items-center gap-2 py-3 text-sm uppercase tracking-[0.12em] text-[var(--ink-soft)] transition-colors duration-200 hover:text-[var(--ink)]"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-200 group-hover:-translate-x-1">
           <line x1="19" y1="12" x2="5" y2="12" />
