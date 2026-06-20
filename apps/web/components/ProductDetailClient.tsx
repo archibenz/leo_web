@@ -78,6 +78,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
   const [recommendations, setRecommendations] = useState<ApiProduct[]>([]);
 
   const {addItem: addToCart} = useCart();
@@ -174,6 +175,8 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
       size: selectedSize ?? undefined,
       isTest: product.isTest,
     });
+    setJustAdded(true);
+    window.setTimeout(() => setJustAdded(false), 1600);
   };
 
   const handleSizeSelect = (size: string) => {
@@ -335,9 +338,10 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
               <button
                 ref={inlineCtaRef}
                 onClick={handleAddToBag}
+                aria-live="polite"
                 className="flex h-14 w-full items-center justify-center rounded-full bg-button text-base font-medium text-ink transition-all duration-200 hover:bg-button/90 active:scale-[0.98]"
               >
-                {t('addToBag')}
+                {justAdded ? t('addedToBag') : t('addToBag')}
               </button>
             )}
             <WildberriesButton href={WILDBERRIES_SELLER_URL}>
@@ -462,7 +466,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
               tabIndex={showSticky ? 0 : -1}
               className="flex h-12 flex-1 items-center justify-center rounded-full bg-button text-base font-medium text-ink transition-transform active:scale-[0.98]"
             >
-              {t('addToBag')}
+              {justAdded ? t('addedToBag') : t('addToBag')}
             </button>
           </div>
         </div>
