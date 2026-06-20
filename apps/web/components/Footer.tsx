@@ -52,7 +52,7 @@ export default async function Footer({locale}: FooterProps) {
 
             {/* Center: Navigation */}
             <nav className="flex flex-col items-center gap-3 pt-1">
-              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-accent/40">
+              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-accent/75">
                 {t('navigate')}
               </span>
               {navItems.map((item) => (
@@ -69,7 +69,7 @@ export default async function Footer({locale}: FooterProps) {
 
             {/* Right: Contact + social */}
             <div className="flex flex-col items-end gap-3 pt-1">
-              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-accent/40">
+              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-accent/75">
                 {t('connect')}
               </span>
               <Link
@@ -140,7 +140,7 @@ export default async function Footer({locale}: FooterProps) {
           {/* Nav + Contact side by side */}
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2.5">
-              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-accent/40">
+              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-accent/75">
                 {t('navigate')}
               </span>
               {navItems.map((item) => (
@@ -155,7 +155,7 @@ export default async function Footer({locale}: FooterProps) {
               ))}
             </div>
             <div className="space-y-2.5">
-              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-accent/40">
+              <span className="font-accent text-[12px] uppercase tracking-[0.2em] text-accent/75">
                 {t('connect')}
               </span>
               <Link
