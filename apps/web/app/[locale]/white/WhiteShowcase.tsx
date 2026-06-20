@@ -163,7 +163,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
             <p className="mt-8 max-w-md text-[15px] leading-relaxed" style={{color: MUTED}}>
               {t('atelierBody')}
             </p>
-            <a href={`/${locale}/white/shop`} className="wv-btn mt-10 inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
+            <a href={`/${locale}/white/atelier`} className="wv-btn mt-10 inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
               {t('exploreAtelier')}
             </a>
           </div>

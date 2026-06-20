@@ -78,11 +78,12 @@ export default function WhiteFooter({locale}: {locale: string}) {
             {label: t('outerwear'), href: `/${locale}/white/shop?cat=outerwear`},
           ]},
           {h: t('brand'), items: [
-            // Real, distinct destinations — the landing's editorial sections.
-            // (No standalone About/Care/Contact pages exist in the prototype, so
-            // we don't pretend to link to them.)
-            {label: t('atelier'), href: `/${locale}/white#wv-atelier`},
+            // Real, distinct destinations — Atelier and Lookbook are standalone
+            // pages; The edit deep-links to the curated section on the landing.
+            {label: t('atelier'), href: `/${locale}/white/atelier`},
+            {label: t('lookbook'), href: `/${locale}/white/lookbook`},
             {label: t('theEdit'), href: `/${locale}/white#wv-edit`},
+            {label: t('contact'), href: `/${locale}/white/contact`},
           ]},
         ].map((col) => (
           <div key={col.h}>
