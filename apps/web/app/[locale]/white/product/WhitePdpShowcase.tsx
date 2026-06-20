@@ -4,6 +4,7 @@ import Image from 'next/image';
 import {useState, useEffect, useRef} from 'react';
 import {createPortal} from 'react-dom';
 import {useTranslations} from 'next-intl';
+import {useFocusTrap} from '../../../../lib/useFocusTrap';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
@@ -47,6 +48,10 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const [color, setColor] = useState(productColors[0]!.key);
   const [guideOpen, setGuideOpen] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+  // Tap-to-zoom lightbox for the active gallery image.
+  const [zoomed, setZoomed] = useState(false);
+  const lightboxRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(lightboxRef, zoomed);
   const {add, count} = useWhiteBag();
   const {has: isFavourite, toggle: toggleFavourite, count: favCount} = useWhiteFavourites();
   const ru = locale === 'ru';
@@ -118,6 +123,26 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
       el.removeEventListener('touchend', onEnd);
     };
   }, [mounted, gallery.length]);
+
+  // Lightbox: lock scroll, ESC to close, move focus into the dialog. Focus
+  // returns to the zoom trigger on close via useFocusTrap (it was the active
+  // element when opened). The overlay itself has no entrance animation, so it
+  // is reduced-motion-safe by construction.
+  useEffect(() => {
+    if (!zoomed) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setZoomed(false);
+    };
+    document.addEventListener('keydown', onKey);
+    const raf = window.requestAnimationFrame(() => lightboxRef.current?.focus());
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+      window.cancelAnimationFrame(raf);
+    };
+  }, [zoomed]);
   // ?p selects the catalog product; fall back to the default demo dress.
   const name = product ? (ru ? product.ru : product.en) : t('nameFallback');
   const priceStr = product ? `${product.price.toLocaleString('ru-RU')} ₽` : '24 500 ₽';
@@ -178,6 +203,19 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             </div>
             <div ref={galleryRef} className="relative order-1 aspect-[2/3] w-full touch-pan-y overflow-hidden sm:order-2">
               <Image src={gallery[activeImg] ?? gallery[0]!} alt={name} fill priority sizes="(max-width: 1024px) 100vw, 560px" className="object-cover" />
+              {/* Tap-to-zoom — always-visible square trigger (no hover gate), opens
+                  a full-screen view of the active photo. */}
+              <button
+                type="button"
+                onClick={() => setZoomed(true)}
+                aria-label={t('zoomImage')}
+                className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center bg-white/85 backdrop-blur-sm transition-opacity hover:opacity-70"
+                style={{border: `1px solid ${HAIR}`, color: INK}}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" aria-hidden="true">
+                  <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+                </svg>
+              </button>
             </div>
           </div>
 
@@ -328,6 +366,36 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
         </section>
       )}
       </main>
+
+      {/* Image lightbox — full-screen view of the active photo, White DNA
+          (white field, square close, generous air). No entrance animation →
+          reduced-motion-safe. Backdrop tap / ESC / × close; focus-trapped. */}
+      {zoomed && (
+        <div
+          ref={lightboxRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('zoomImage')}
+          tabIndex={-1}
+          onClick={() => setZoomed(false)}
+          className="fixed inset-0 z-[1100] flex items-center justify-center overscroll-contain bg-white outline-none"
+        >
+          <button
+            type="button"
+            onClick={() => setZoomed(false)}
+            aria-label={t('close')}
+            className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-60"
+            style={{color: INK}}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="square" aria-hidden="true">
+              <path d="M5 5l14 14M19 5L5 19" />
+            </svg>
+          </button>
+          <div className="relative h-[88%] w-[92%]" onClick={(e) => e.stopPropagation()}>
+            <Image src={gallery[activeImg] ?? gallery[0]!} alt={name} fill sizes="100vw" className="object-contain" />
+          </div>
+        </div>
+      )}
 
       <WhiteFooter locale={locale} />
 

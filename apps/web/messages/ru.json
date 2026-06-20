@@ -1231,7 +1231,9 @@
       "delivery": "Доставка",
       "deliveryValue": "2–5 рабочих дней",
       "relatedHeading": "Вам также может понравиться",
-      "viewImage": "Фото {n}"
+      "viewImage": "Фото {n}",
+      "zoomImage": "Увеличить фото",
+      "close": "Закрыть"
     }
   }
 }
