@@ -54,18 +54,30 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
   const filterParam = searchParams.get('filter');
   const categoryParam = searchParams.get('category');
   const sortParam = searchParams.get('sort');
+  const colorParam = searchParams.get('color');
+
+  // Distinct colours present in the catalog (first-seen order) — drives the
+  // colour chip row. The label comes from menu.colours.* with a capitalize
+  // fallback so a colour the API adds later still renders (never blank).
+  const colours = useMemo(
+    () => [...new Set(products.map((p) => p.color).filter((c): c is string => !!c))],
+    [products],
+  );
+  const colourLabel = (c: string) =>
+    menu.has(`colours.${c}`) ? menu(`colours.${c}`) : c.charAt(0).toUpperCase() + c.slice(1);
 
   const items = useMemo(() => {
     const filtered = products.filter((p) => {
       if (filterParam === 'new' && p.badge !== 'new') return false;
       if (filterParam === 'popular' && p.badge !== 'popular') return false;
       if (categoryParam && p.category !== categoryParam) return false;
+      if (colorParam && p.color !== colorParam) return false;
       return true;
     });
     if (sortParam === 'price-asc') return [...filtered].sort((a, b) => a.price - b.price);
     if (sortParam === 'price-desc') return [...filtered].sort((a, b) => b.price - a.price);
     return filtered;
-  }, [products, filterParam, categoryParam, sortParam]);
+  }, [products, filterParam, categoryParam, sortParam, colorParam]);
 
   // Build a /shop href that flips one param while preserving the rest.
   const hrefWith = (key: string, value: string | null) => {
@@ -143,6 +155,24 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
           ))}
         </nav>
       </div>
+
+      {/* Colour filter chips — shown only when the catalog spans >1 colour.
+          Same rounded-full chip language as categories; URL-driven + shareable. */}
+      {colours.length > 1 && (
+        <nav
+          aria-label={tr('Filter by colour', 'Фильтр по цвету')}
+          className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <Link href={hrefWith('color', null)} className={chip(!colorParam)} aria-current={!colorParam ? 'true' : undefined}>
+            {tr('All colours', 'Все цвета')}
+          </Link>
+          {colours.map((c) => (
+            <Link key={c} href={hrefWith('color', c)} className={chip(colorParam === c)} aria-current={colorParam === c ? 'true' : undefined}>
+              {colourLabel(c)}
+            </Link>
+          ))}
+        </nav>
+      )}
 
       {/* Count + sort. */}
       <div className="mt-3 flex items-center justify-between">

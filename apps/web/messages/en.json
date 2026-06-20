@@ -96,6 +96,15 @@
     "footer": {
       "copyright": "© 2026 REINASLEO",
       "tagline": "Made with precision"
+    },
+    "colours": {
+      "neutrals": "Neutrals",
+      "burgundy": "Burgundy",
+      "black": "Black",
+      "chocolate": "Chocolate",
+      "ivory": "Ivory",
+      "oatmeal": "Oatmeal",
+      "charcoal": "Charcoal"
     }
   },
   "products": {
@@ -190,13 +199,13 @@
       "badge": "Limited atelier drops"
     },
     "philosophy": {
-      "eyebrow": "REINASLEO \u00b7 EDITORIAL",
+      "eyebrow": "REINASLEO · EDITORIAL",
       "tag": "Our Essence",
       "title": "Brand Philosophy",
       "text": "We believe in the power of a perfectly tailored silhouette to transform not just how you look, but how you move through the world. Every piece is designed to last — not just seasons, but years. Crafted with intention, finished by hand, meant to be treasured. REINASLEO is for women who understand that true luxury lives in the details others might miss.",
       "statements": [
         "We believe in the power of a perfectly tailored silhouette to transform not just how you look, but how you move through the world.",
-        "Every piece is designed to last\u2014not just seasons, but years. Crafted with intention, finished by hand, meant to be treasured.",
+        "Every piece is designed to last—not just seasons, but years. Crafted with intention, finished by hand, meant to be treasured.",
         "REINASLEO is for women who understand that true luxury lives in the details others might miss."
       ],
       "editorialCard": {
@@ -223,14 +232,46 @@
       "heroSubtitle": "New arrivals",
       "heroSeason": "ss26",
       "items": [
-        {"slug": "silk-evening-gown", "label": "Silk Evening Gown", "description": "Evening · Silk"},
-        {"slug": "sculptured-wool-coat", "label": "Sculptured Wool Coat", "description": "Outerwear · Wool"},
-        {"slug": "cashmere-cardigan", "label": "Cashmere Draped Cardigan", "description": "Knitwear · Cashmere"},
-        {"slug": "ae-tailored-trousers", "label": "Tailored Wide-Leg Trousers", "description": "Tailoring · Wool"},
-        {"slug": "ae-pleated-skirt", "label": "Pleated Wool Skirt", "description": "Tailoring · Wool"},
-        {"slug": "ae-linen-blouse", "label": "Linen Resort Blouse", "description": "Resort · Linen"},
-        {"slug": "wl-structured-blazer", "label": "Structured Blazer", "description": "Office · Wool"},
-        {"slug": "wl-silk-camisole", "label": "Draped Silk Camisole", "description": "Evening · Silk"}
+        {
+          "slug": "silk-evening-gown",
+          "label": "Silk Evening Gown",
+          "description": "Evening · Silk"
+        },
+        {
+          "slug": "sculptured-wool-coat",
+          "label": "Sculptured Wool Coat",
+          "description": "Outerwear · Wool"
+        },
+        {
+          "slug": "cashmere-cardigan",
+          "label": "Cashmere Draped Cardigan",
+          "description": "Knitwear · Cashmere"
+        },
+        {
+          "slug": "ae-tailored-trousers",
+          "label": "Tailored Wide-Leg Trousers",
+          "description": "Tailoring · Wool"
+        },
+        {
+          "slug": "ae-pleated-skirt",
+          "label": "Pleated Wool Skirt",
+          "description": "Tailoring · Wool"
+        },
+        {
+          "slug": "ae-linen-blouse",
+          "label": "Linen Resort Blouse",
+          "description": "Resort · Linen"
+        },
+        {
+          "slug": "wl-structured-blazer",
+          "label": "Structured Blazer",
+          "description": "Office · Wool"
+        },
+        {
+          "slug": "wl-silk-camisole",
+          "label": "Draped Silk Camisole",
+          "description": "Evening · Silk"
+        }
       ]
     },
     "shopHero": {
@@ -240,27 +281,91 @@
     "categories": {
       "title": "Categories",
       "items": [
-        {"key": "dresses", "label": "Dresses", "description": "Evening & casual"},
-        {"key": "coats", "label": "Coats", "description": "Outerwear"},
-        {"key": "knitwear", "label": "Knitwear", "description": "Cashmere & wool"},
-        {"key": "skirts", "label": "Skirts", "description": "Midi & maxi"},
-        {"key": "blouses", "label": "Blouses", "description": "Silk & linen"},
-        {"key": "trousers", "label": "Trousers", "description": "Tailored cuts"},
-        {"key": "blazers", "label": "Blazers", "description": "Structured fits"},
-        {"key": "accessories", "label": "Accessories", "description": "Finishing touches"}
+        {
+          "key": "dresses",
+          "label": "Dresses",
+          "description": "Evening & casual"
+        },
+        {
+          "key": "coats",
+          "label": "Coats",
+          "description": "Outerwear"
+        },
+        {
+          "key": "knitwear",
+          "label": "Knitwear",
+          "description": "Cashmere & wool"
+        },
+        {
+          "key": "skirts",
+          "label": "Skirts",
+          "description": "Midi & maxi"
+        },
+        {
+          "key": "blouses",
+          "label": "Blouses",
+          "description": "Silk & linen"
+        },
+        {
+          "key": "trousers",
+          "label": "Trousers",
+          "description": "Tailored cuts"
+        },
+        {
+          "key": "blazers",
+          "label": "Blazers",
+          "description": "Structured fits"
+        },
+        {
+          "key": "accessories",
+          "label": "Accessories",
+          "description": "Finishing touches"
+        }
       ]
     },
     "popular": {
       "title": "Popular",
       "items": [
-        {"slug": "silk-evening-gown", "label": "Silk Evening Gown", "description": "Evening · Silk"},
-        {"slug": "cashmere-cardigan", "label": "Cashmere Cardigan", "description": "Knitwear · Cashmere"},
-        {"slug": "sculptured-wool-coat", "label": "Sculptured Wool Coat", "description": "Outerwear · Wool"},
-        {"slug": "wl-structured-blazer", "label": "Structured Blazer", "description": "Office · Wool"},
-        {"slug": "wl-evening-gown", "label": "Ceremony Column Dress", "description": "Ceremony · Silk"},
-        {"slug": "ae-tailored-trousers", "label": "Tailored Trousers", "description": "Tailoring · Wool"},
-        {"slug": "ae-linen-blouse", "label": "Linen Blouse", "description": "Resort · Linen"},
-        {"slug": "wl-cashmere-turtleneck", "label": "Cashmere Turtleneck", "description": "Casual · Cashmere"}
+        {
+          "slug": "silk-evening-gown",
+          "label": "Silk Evening Gown",
+          "description": "Evening · Silk"
+        },
+        {
+          "slug": "cashmere-cardigan",
+          "label": "Cashmere Cardigan",
+          "description": "Knitwear · Cashmere"
+        },
+        {
+          "slug": "sculptured-wool-coat",
+          "label": "Sculptured Wool Coat",
+          "description": "Outerwear · Wool"
+        },
+        {
+          "slug": "wl-structured-blazer",
+          "label": "Structured Blazer",
+          "description": "Office · Wool"
+        },
+        {
+          "slug": "wl-evening-gown",
+          "label": "Ceremony Column Dress",
+          "description": "Ceremony · Silk"
+        },
+        {
+          "slug": "ae-tailored-trousers",
+          "label": "Tailored Trousers",
+          "description": "Tailoring · Wool"
+        },
+        {
+          "slug": "ae-linen-blouse",
+          "label": "Linen Blouse",
+          "description": "Resort · Linen"
+        },
+        {
+          "slug": "wl-cashmere-turtleneck",
+          "label": "Cashmere Turtleneck",
+          "description": "Casual · Cashmere"
+        }
       ]
     },
     "manifesto": {
@@ -313,7 +418,14 @@
     "shopPreview": {
       "title": "Shop preview",
       "cta": "View all",
-      "labels": ["Evening", "Everyday", "Outerwear", "Knit", "Dress", "Atelier"]
+      "labels": [
+        "Evening",
+        "Everyday",
+        "Outerwear",
+        "Knit",
+        "Dress",
+        "Atelier"
+      ]
     },
     "newsletter": {
       "tag": "Join the list",
@@ -951,12 +1063,30 @@
     "body1": "We make premium womenswear where quality is visible and comfort is felt. No slogans — just pieces that work in real life.",
     "body2": "Every design starts with fit: silhouette, balance, fabric, and hardware — everything in its right place.",
     "principles": {
-      "quality": { "title": "Quality", "text": "Materials, fit, attention to detail." },
-      "comfort": { "title": "Comfort", "text": "Freedom in movement and rhythm of the day." },
-      "honestCut": { "title": "Honest cut", "text": "The silhouette works with the figure, not against it." },
-      "longevity": { "title": "Longevity", "text": "Pieces that stay in the wardrobe for years." },
-      "subtlety": { "title": "Subtlety", "text": "Careful accents instead of noise." },
-      "care": { "title": "Care", "text": "Thoughtfulness from fabric to hardware." }
+      "quality": {
+        "title": "Quality",
+        "text": "Materials, fit, attention to detail."
+      },
+      "comfort": {
+        "title": "Comfort",
+        "text": "Freedom in movement and rhythm of the day."
+      },
+      "honestCut": {
+        "title": "Honest cut",
+        "text": "The silhouette works with the figure, not against it."
+      },
+      "longevity": {
+        "title": "Longevity",
+        "text": "Pieces that stay in the wardrobe for years."
+      },
+      "subtlety": {
+        "title": "Subtlety",
+        "text": "Careful accents instead of noise."
+      },
+      "care": {
+        "title": "Care",
+        "text": "Thoughtfulness from fabric to hardware."
+      }
     }
   },
   "admin": {
