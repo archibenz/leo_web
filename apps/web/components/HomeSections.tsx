@@ -132,7 +132,7 @@ function ScrollRow({children}: {children: React.ReactNode}) {
     <div className="relative group/scroll -mx-2 -my-4">
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto px-2 py-4 scrollbar-none sm:gap-5"
+        className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-2 py-4 scrollbar-none [&>*]:snap-start sm:gap-5"
         style={{WebkitOverflowScrolling: 'touch'}}
       >
         {children}
