@@ -73,9 +73,11 @@ export default function WhiteLookbookShowcase({locale}: {locale: string}) {
                   </p>
                   <h2 className="mt-4 font-display text-[30px] font-light leading-tight tracking-tight sm:text-[36px]">{name}</h2>
                   <p className="mt-4 max-w-sm text-[14px] leading-relaxed" style={{color: MUTED}}>{desc}</p>
+                  {/* min-h-11 → 44px tap floor (this is the primary shop-this-look
+                      CTA); mt-4 trims the visual gap the taller box would add. */}
                   <a
                     href={href}
-                    className="mt-7 inline-block text-[12px] uppercase tracking-[0.2em] underline-offset-4 transition-opacity hover:opacity-60"
+                    className="mt-4 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.2em] underline-offset-4 transition-opacity hover:opacity-60"
                     style={{color: INK}}
                   >
                     {t('shopLook')} →
