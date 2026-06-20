@@ -82,6 +82,40 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
     handleAdd();
   };
   const stickyPrice = `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
+
+  // Mobile: swipe the main gallery image horizontally to step through views.
+  const galleryRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = galleryRef.current;
+    if (!el) return;
+    let startX = 0;
+    let startY = 0;
+    let active = false;
+    const onStart = (e: TouchEvent) => {
+      const tch = e.touches[0];
+      if (!tch) return;
+      startX = tch.clientX;
+      startY = tch.clientY;
+      active = true;
+    };
+    const onEnd = (e: TouchEvent) => {
+      if (!active) return;
+      active = false;
+      const tch = e.changedTouches[0];
+      if (!tch) return;
+      const dx = tch.clientX - startX;
+      const dy = tch.clientY - startY;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+        setActiveImg((prev) => (dx < 0 ? Math.min(prev + 1, gallery.length - 1) : Math.max(prev - 1, 0)));
+      }
+    };
+    el.addEventListener('touchstart', onStart, {passive: true});
+    el.addEventListener('touchend', onEnd);
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchend', onEnd);
+    };
+  }, [mounted, gallery.length]);
   // ?p selects the catalog product; fall back to the default demo dress.
   const name = product ? t(product.en, product.ru) : t('Silk Column Dress', 'Шёлковое платье-колонна');
   const priceStr = product ? `${product.price.toLocaleString('ru-RU')} ₽` : '24 500 ₽';
@@ -148,7 +182,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                 </button>
               ))}
             </div>
-            <div className="relative order-1 aspect-[2/3] w-full overflow-hidden sm:order-2">
+            <div ref={galleryRef} className="relative order-1 aspect-[2/3] w-full touch-pan-y overflow-hidden sm:order-2">
               <Image src={gallery[activeImg] ?? gallery[0]!} alt={name} fill priority sizes="(max-width: 1024px) 100vw, 560px" className="object-cover" />
             </div>
           </div>
