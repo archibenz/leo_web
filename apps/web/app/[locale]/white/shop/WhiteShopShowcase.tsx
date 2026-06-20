@@ -172,7 +172,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
               spellCheck={false}
               enterKeyHint="search"
               placeholder={t('searchCollection')}
-              className="w-full border-b bg-transparent pb-2 pr-10 text-[15px] outline-none placeholder:text-[#8c837a] [&::-webkit-search-cancel-button]:hidden"
+              className="w-full border-b bg-transparent pb-2 pr-10 pt-3 text-[15px] outline-none placeholder:text-[#8c837a] [&::-webkit-search-cancel-button]:hidden"
               style={{borderColor: HAIR, color: INK}}
             />
             {query && (
@@ -222,7 +222,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
             <select
               value={sort}
               onChange={(e) => pickSort(e.target.value as Sort)}
-              className="cursor-pointer border-b bg-transparent py-1 text-[12px] uppercase tracking-[0.14em] outline-none"
+              className="min-h-11 cursor-pointer border-b bg-transparent py-1 text-[12px] uppercase tracking-[0.14em] outline-none"
               style={{color: INK, borderColor: MUTED}}
             >
               <option value="new">{t('sortNewest')}</option>
