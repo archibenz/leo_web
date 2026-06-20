@@ -1146,6 +1146,14 @@
       "selectSize": "Select size",
       "regularPrice": "Regular price",
       "salePrice": "Sale price"
+    },
+    "favourites": {
+      "shop": "Shop",
+      "noFavourites": "No favourites yet",
+      "emptyHint": "Tap the heart on a product to save it here for later.",
+      "browse": "Browse the collection",
+      "saved": "Saved",
+      "savedOnDevice": "Saved on this device."
     }
   }
 }
