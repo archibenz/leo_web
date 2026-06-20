@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import {useState, useEffect, useRef} from 'react';
 import {createPortal} from 'react-dom';
+import {useTranslations} from 'next-intl';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
@@ -49,7 +50,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const {add, count} = useWhiteBag();
   const {has: isFavourite, toggle: toggleFavourite, count: favCount} = useWhiteFavourites();
   const ru = locale === 'ru';
-  const t = (en: string, rus: string) => (ru ? rus : en);
+  const t = useTranslations('white.pdp');
   const selectedColor = productColors.find((c) => c.key === color) ?? productColors[0]!;
   // Concrete product for the bag/wishlist — fall back to the demo dress (key 1).
   const bagProduct = product ?? WHITE_PRODUCTS[0]!;
@@ -118,14 +119,11 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
     };
   }, [mounted, gallery.length]);
   // ?p selects the catalog product; fall back to the default demo dress.
-  const name = product ? t(product.en, product.ru) : t('Silk Column Dress', 'Шёлковое платье-колонна');
+  const name = product ? (ru ? product.ru : product.en) : t('nameFallback');
   const priceStr = product ? `${product.price.toLocaleString('ru-RU')} ₽` : '24 500 ₽';
   const desc = product
-    ? t(product.descEn, product.descRu)
-    : t(
-        'A fluid floor-length silhouette in matte silk. Bias-cut, unlined, with a concealed side zip. Designed to move quietly.',
-        'Текучий силуэт в пол из матового шёлка. Косой крой, без подклада, скрытая боковая молния. Создано двигаться тихо.',
-      );
+    ? (ru ? product.descRu : product.descEn)
+    : t('descFallback');
   // "You may also like" — same category first, then fill from the rest, current excluded.
   const pool = WHITE_PRODUCTS.filter((p) => p.key !== product?.key);
   const sameCat = product ? pool.filter((p) => p.cat === product.cat) : [];
@@ -140,7 +138,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
         locale={locale}
         left={
           <a href={`/${locale}/white`} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>
-            ← {t('Back', 'Назад')}
+            ← {t('back')}
           </a>
         }
         right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
@@ -149,10 +147,10 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}}>
       <div className="mx-auto max-w-[1400px] px-6 sm:px-10">
         {/* Breadcrumb */}
-        <nav className="py-5 text-[11px] uppercase tracking-[0.18em]" style={{color: MUTED}} aria-label={t('Breadcrumb', 'Хлебные крошки')}>
+        <nav className="py-5 text-[11px] uppercase tracking-[0.18em]" style={{color: MUTED}} aria-label={t('breadcrumb')}>
           <a href={`/${locale}/white`} className="transition-opacity hover:opacity-60">REINASLEO</a>
           <span className="mx-2">/</span>
-          <a href={`/${locale}/white/shop`} className="transition-opacity hover:opacity-60">{t('Shop', 'Магазин')}</a>
+          <a href={`/${locale}/white/shop`} className="transition-opacity hover:opacity-60">{t('shop')}</a>
           <span className="mx-2">/</span>
           <span style={{color: INK}} aria-current="page">{name}</span>
         </nav>
@@ -166,7 +164,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   key={i}
                   type="button"
                   onClick={() => setActiveImg(i)}
-                  aria-label={t(`View image ${i + 1}`, `Фото ${i + 1}`)}
+                  aria-label={t('viewImage', {n: i + 1})}
                   aria-pressed={i === activeImg}
                   className="relative aspect-[2/3] w-16 shrink-0 overflow-hidden transition-opacity"
                   style={{
@@ -185,7 +183,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
 
           {/* Info */}
           <div className="wv-rise wv-delay-1 lg:pt-6">
-            <p className="text-[11px] uppercase tracking-[0.3em]" style={{color: MUTED}}>{t('Autumn / Winter 2026', 'Осень / Зима 2026')}</p>
+            <p className="text-[11px] uppercase tracking-[0.3em]" style={{color: MUTED}}>{t('season')}</p>
             <h1 className="mt-4 font-display text-[34px] font-light leading-tight sm:text-[42px]">{name}</h1>
             <p className="mt-3 text-[18px]" style={{color: INK}}>{priceStr}</p>
             <p className="mt-6 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>{desc}</p>
@@ -193,7 +191,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             {/* Color */}
             <div className="mt-8">
               <p className="mb-3 text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>
-                {t('Colour', 'Цвет')} — <span style={{color: INK}}>{t(selectedColor.en, selectedColor.ru)}</span>
+                {t('colour')} — <span style={{color: INK}}>{(ru ? selectedColor.ru : selectedColor.en)}</span>
               </p>
               {/* 44px tap targets (project a11y rule); the 32px inner dot keeps
                   the visual unchanged — gap-0 since 44-32=12px padding reproduces
@@ -204,7 +202,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                     key={c.key}
                     type="button"
                     onClick={() => setColor(c.key)}
-                    aria-label={t(c.en, c.ru)}
+                    aria-label={(ru ? c.ru : c.en)}
                     aria-pressed={color === c.key}
                     className="group flex h-11 w-11 items-center justify-center"
                   >
@@ -221,7 +219,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             {/* Size */}
             <div id="wv-pdp-size" className="mt-8 scroll-mt-24">
               <div className="mb-3 flex items-baseline justify-between">
-                <p className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('Size', 'Размер')}</p>
+                <p className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('size')}</p>
                 <button
                   type="button"
                   onClick={() => setGuideOpen((o) => !o)}
@@ -230,7 +228,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   className="-my-2 py-2 text-[11px] uppercase tracking-[0.16em] underline-offset-4 hover:underline"
                   style={{color: MUTED}}
                 >
-                  {t('Size guide', 'Таблица размеров')}
+                  {t('sizeGuide')}
                 </button>
               </div>
               <div className="flex flex-wrap gap-2.5">
@@ -254,13 +252,13 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               {/* Size-guide disclosure — semantic table, square/hairline, reduced-motion safe (hidden toggle). */}
               <div id="wv-size-guide" hidden={!guideOpen} className="mt-4">
                 <table className="w-full border-collapse text-[12px]">
-                  <caption className="sr-only">{t('Size guide, measurements in cm', 'Таблица размеров, в сантиметрах')}</caption>
+                  <caption className="sr-only">{t('sizeGuideCaption')}</caption>
                   <thead>
                     <tr style={{color: MUTED}}>
-                      <th scope="col" className="border-b py-2 text-left font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('Size', 'Размер')}</th>
-                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('Bust', 'Грудь')}</th>
-                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('Waist', 'Талия')}</th>
-                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('Hips', 'Бёдра')}</th>
+                      <th scope="col" className="border-b py-2 text-left font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('size')}</th>
+                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('bust')}</th>
+                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('waist')}</th>
+                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('hips')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -274,20 +272,20 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                     ))}
                   </tbody>
                 </table>
-                <p className="mt-2 text-[11px]" style={{color: MUTED}}>{t('Measurements in cm.', 'Размеры в сантиметрах.')}</p>
+                <p className="mt-2 text-[11px]" style={{color: MUTED}}>{t('measurementsCm')}</p>
               </div>
             </div>
 
             {/* Add to bag */}
             <div className="mt-9 flex gap-3">
               <button ref={inlineAddRef} type="button" disabled={!size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
-                {justAdded ? t('Added', 'Добавлено') : size ? t('Add to bag', 'В корзину') : t('Select a size', 'Выберите размер')}
+                {justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
               </button>
               <button
                 type="button"
                 onClick={() => toggleFavourite(bagProduct.key)}
                 aria-pressed={favourited}
-                aria-label={favourited ? t('Remove from favourites', 'Убрать из избранного') : t('Add to favourites', 'В избранное')}
+                aria-label={favourited ? t('removeFav') : t('addFav')}
                 className="flex h-[52px] w-[52px] items-center justify-center transition-colors hover:bg-[#f5f2ed]"
                 style={{border: `1px solid ${favourited ? SIGNAL : HAIR}`}}
               >
@@ -300,9 +298,9 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             {/* Details */}
             <dl className="mt-10 divide-y" style={{borderColor: HAIR}}>
               {[
-                [t('Composition', 'Состав'), product ? t(product.compositionEn, product.compositionRu) : t('100% mulberry silk', '100% тутовый шёлк')],
-                [t('Care', 'Уход'), product ? t(product.careEn, product.careRu) : t('Dry clean only', 'Только химчистка')],
-                [t('Delivery', 'Доставка'), t('2–5 business days', '2–5 рабочих дней')],
+                [t('composition'), product ? (ru ? product.compositionRu : product.compositionEn) : t('compositionFallback')],
+                [t('care'), product ? (ru ? product.careRu : product.careEn) : t('careFallback')],
+                [t('delivery'), t('deliveryValue')],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between py-3.5 text-[13px]" style={{borderColor: HAIR}}>
                   <dt style={{color: MUTED}}>{k}</dt>
@@ -319,7 +317,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
         <section className="border-t" style={{borderColor: HAIR}} aria-labelledby="wv-related-heading">
           <div className="mx-auto max-w-[1400px] px-6 py-16 sm:px-10">
             <h2 id="wv-related-heading" className="mb-10 font-display text-[24px] font-light tracking-tight sm:text-[30px]">
-              {t('You may also like', 'Вам также может понравиться')}
+              {t('relatedHeading')}
             </h2>
             <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 lg:grid-cols-4">
               {related.map((p) => (
@@ -350,7 +348,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             tabIndex={showSticky ? 0 : -1}
             className="wv-btn flex-1 py-3.5 text-[12px] uppercase tracking-[0.2em]"
           >
-            {justAdded ? t('Added', 'Добавлено') : size ? t('Add to bag', 'В корзину') : t('Select a size', 'Выберите размер')}
+            {justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
           </button>
         </div>
       </div>

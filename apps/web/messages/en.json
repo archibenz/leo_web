@@ -1203,6 +1203,35 @@
       "email": "Email",
       "subscribe": "Subscribe",
       "previewNote": "White variant — preview"
+    },
+    "pdp": {
+      "nameFallback": "Silk Column Dress",
+      "descFallback": "A fluid floor-length silhouette in matte silk. Bias-cut, unlined, with a concealed side zip. Designed to move quietly.",
+      "back": "Back",
+      "breadcrumb": "Breadcrumb",
+      "shop": "Shop",
+      "season": "Autumn / Winter 2026",
+      "colour": "Colour",
+      "size": "Size",
+      "sizeGuide": "Size guide",
+      "sizeGuideCaption": "Size guide, measurements in cm",
+      "bust": "Bust",
+      "waist": "Waist",
+      "hips": "Hips",
+      "measurementsCm": "Measurements in cm.",
+      "added": "Added",
+      "addToBag": "Add to bag",
+      "selectSize": "Select a size",
+      "removeFav": "Remove from favourites",
+      "addFav": "Add to favourites",
+      "composition": "Composition",
+      "compositionFallback": "100% mulberry silk",
+      "care": "Care",
+      "careFallback": "Dry clean only",
+      "delivery": "Delivery",
+      "deliveryValue": "2–5 business days",
+      "relatedHeading": "You may also like",
+      "viewImage": "View image {n}"
     }
   }
 }
