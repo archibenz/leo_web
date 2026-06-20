@@ -1390,6 +1390,13 @@
       "title": "Get in touch",
       "intro": "For orders, sizing, collaboration or anything else — write to us directly.",
       "responseTime": "We reply within one business day."
+    },
+    "notFound": {
+      "eyebrow": "404",
+      "title": "Page not found",
+      "intro": "The link may be outdated, or the piece has sold out.",
+      "home": "Home",
+      "shop": "Shop the collection"
     }
   }
 }
