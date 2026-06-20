@@ -100,7 +100,7 @@ export default function CartPage() {
                 {items.map((item) => (
                   <div
                     key={item.id}
-                    className="paper-card flex items-center gap-4 p-4 sm:p-5"
+                    className="paper-card flex items-start gap-4 p-4 sm:items-center sm:p-5"
                   >
                     {item.image ? (
                       <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-paperMuted">
@@ -122,6 +122,10 @@ export default function CartPage() {
                       </div>
                     )}
 
+                    {/* On phones the title, controls and remove no longer share
+                        one row (the title was crushed to a single character) —
+                        stack them: title/size/price first, controls below. */}
+                    <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                     <div className="flex-1 min-w-0 space-y-1">
                       <div className="flex items-center gap-2">
                         <p className="font-medium text-ink truncate">{item.title}</p>
@@ -179,6 +183,7 @@ export default function CartPage() {
                           <path d="M6 6l12 12M6 18L18 6" strokeLinecap="round" />
                         </svg>
                       </button>
+                    </div>
                     </div>
                   </div>
                 ))}
