@@ -17,7 +17,7 @@ export default function Toaster() {
       aria-live="polite"
       role="region"
       aria-label={t('common.notifications')}
-      className="fixed top-4 right-4 z-[200] flex flex-col gap-2 max-w-sm pointer-events-none"
+      className="fixed top-4 right-4 left-4 z-[200] flex flex-col gap-2 pointer-events-none sm:left-auto sm:max-w-sm"
     >
       {toasts.map(toast => {
         const text = resolveText(t, toast);
@@ -38,7 +38,7 @@ export default function Toaster() {
             <button
               type="button"
               onClick={() => dismissToast(toast.id)}
-              className="-mr-1 -mt-0.5 shrink-0 rounded-md p-1 text-lg leading-none text-ink-soft/60 transition-colors hover:text-ink-soft"
+              className="-my-2 -mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-lg leading-none text-ink-soft/60 transition-colors hover:text-ink-soft"
               aria-label={t('common.dismissNotification')}
             >
               ×

@@ -70,7 +70,7 @@ export default function FooterLanguageSelect({currentLocale}: FooterLanguageSele
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 text-[13px] text-inkSoft/40 transition-colors hover:text-inkSoft/70"
+        className="flex items-center gap-1.5 text-[13px] text-inkSoft/65 transition-colors hover:text-inkSoft/90"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >

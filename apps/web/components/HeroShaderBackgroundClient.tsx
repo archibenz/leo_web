@@ -20,6 +20,10 @@ export default function HeroShaderBackgroundClient() {
   // critical path. Reduced-motion users never load the chunk at all.
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    // Mobile: never load the ~265KB WebGL shader on phones (battery, data, GPU).
+    // The animated PosterGradient already covers the hero — match the 768px
+    // breakpoint HeroShaderBackground itself uses for its `isMobile` tuning.
+    if (window.matchMedia('(max-width: 768px)').matches) return;
 
     let cancelled = false;
     const reveal = () => {

@@ -112,8 +112,10 @@ export default function FavoritesPage() {
                     <BrandHeart filled size={16} />
                   </button>
 
-                  {/* Hover overlay with action */}
-                  <div className="absolute inset-x-0 bottom-0 z-20 translate-y-full opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                  {/* Action overlay. Touch has no hover, so it is visible by
+                      default on mobile and only slides up on hover from md+ —
+                      otherwise the primary CTA was invisible on phones. */}
+                  <div className="absolute inset-x-0 bottom-0 z-20 transition-all duration-300 motion-reduce:transition-none md:translate-y-full md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100">
                     <div className="bg-gradient-to-t from-paper/95 via-paper/80 to-transparent px-4 pb-4 pt-10">
                       {/* Favourites carry no size; the cart keys items by productId__size,
                           so route to the PDP to pick a size instead of adding a size-less item. */}

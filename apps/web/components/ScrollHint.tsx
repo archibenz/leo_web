@@ -85,12 +85,12 @@ export default function ScrollHint({text, heroVh = 1.5}: ScrollHintProps) {
     >
       <span
         ref={textRef}
-        className="text-[10px] uppercase tracking-[0.3em] text-white/40"
+        className="text-[10px] uppercase tracking-[0.3em] text-white/70 drop-shadow-[0_1px_4px_rgba(0,0,0,0.45)]"
       >
         {text}
       </span>
       <svg
-        className="h-4 w-4 text-white/30 animate-scroll-bounce"
+        className="h-4 w-4 text-white/60 animate-scroll-bounce drop-shadow-[0_1px_3px_rgba(0,0,0,0.45)]"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"

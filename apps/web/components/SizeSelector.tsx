@@ -34,7 +34,7 @@ export default function SizeSelector({
         <button
           type="button"
           onClick={onSizeGuideClick}
-          className="text-sm text-[var(--ink-soft)] underline underline-offset-2 transition hover:text-[var(--accent)]"
+          className="-my-3 py-3 text-sm text-[var(--ink-soft)] underline underline-offset-2 transition hover:text-[var(--accent)]"
         >
           {sizeGuideLabel}
         </button>
@@ -59,7 +59,7 @@ export default function SizeSelector({
                   isSelected
                     ? 'text-[var(--accent)] font-medium after:scale-x-100 after:bg-[var(--accent)]'
                     : size.available
-                      ? 'text-[var(--ink)] hover:text-[var(--accent)] after:bg-[var(--accent)] hover:after:scale-x-100'
+                      ? 'text-[var(--ink)] hover:text-[var(--accent)] after:bg-[var(--ink-soft)] hover:after:bg-[var(--accent)] hover:after:scale-x-100 [@media(hover:none)]:after:scale-x-100 [@media(hover:none)]:after:opacity-50'
                       : 'text-[var(--ink)]/20 cursor-not-allowed line-through'
                 }
               `}

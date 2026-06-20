@@ -3,7 +3,7 @@ import type {Metadata} from 'next';
 import type {Locale} from '../../../i18n';
 import ShopClient from '../../../components/ShopClient';
 import {API_BASE} from '../../../lib/api';
-import MobileShopReveal from '../v1/shop/MobileShopReveal';
+import MobileShopGrid from '../v1/shop/MobileShopGrid';
 import {mixCatalog} from '../v1/shop/mixCatalog';
 import type {ShopItem} from '../v1/shop/types';
 
@@ -39,7 +39,7 @@ export default async function ShopPage({params, searchParams}: Props) {
 
   // Free-text search (?q from the header search). Match the product title so the
   // header search resolves to real filtered results — applied here so both the
-  // desktop grid (ShopClient) and the mobile reveal (MobileShopReveal) honour it.
+  // desktop grid (ShopClient) and the mobile grid (MobileShopGrid) honour it.
   const query = (q ?? '').trim().toLowerCase();
   if (query) {
     products = products.filter((p) => p.title?.toLowerCase().includes(query));
@@ -53,10 +53,7 @@ export default async function ShopPage({params, searchParams}: Props) {
         <ShopClient initialProducts={products} />
       </div>
       <div className="lg:hidden">
-        <MobileShopReveal
-          products={mixed}
-          locale={locale}
-        />
+        <MobileShopGrid products={mixed} locale={locale} />
       </div>
     </Suspense>
   );

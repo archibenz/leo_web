@@ -70,6 +70,9 @@ export default function HomeContent({
       <div className="relative z-10">
         <section className="relative" style={{minHeight: '150vh'}}>
           <div className="relative flex min-h-screen flex-col items-center justify-center px-6 py-32 text-center lg:py-40">
+            {/* Page h1 — the brand hero is an image, so the document's main
+                heading lives here for screen readers + SEO (visually hidden). */}
+            <h1 className="sr-only">{locale === 'ru' ? 'REINASLEO — премиальная женская одежда' : 'REINASLEO — premium womenswear'}</h1>
             <BlurReveal delay={200} duration={1200} blur={16} translateY={0}>
               {/* next/image with priority emits a <link rel="preload"> ahead of
                   render — beats a raw <img fetchpriority="high"> which only the
