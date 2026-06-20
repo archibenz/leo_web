@@ -9,7 +9,8 @@ import WhiteHeader from '../WhiteHeader';
 import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
-import {MUTED, HAIR, SIGNAL} from '../wv-palette';
+import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
+import {MaskIcon} from '../wv-icons';
 import {whiteItemNoun} from '../wv-i18n';
 import {findWhiteProduct} from '../products';
 
@@ -45,9 +46,7 @@ export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
           <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">
             {/* Square-geometry heart glyph — hairline outline, decorative. */}
             <span aria-hidden="true" className="mb-10 flex h-16 w-16 items-center justify-center" style={{border: `1px solid ${HAIR}`}}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1c1714" strokeWidth="1.2">
-                <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
-              </svg>
+              <MaskIcon src="/icons/heart.svg" className="h-[26px] w-[26px]" color={INK} />
             </span>
             <h1 className="font-display text-[32px] font-light leading-tight sm:text-[40px]">{t('noFavourites')}</h1>
             <p className="mt-5 max-w-sm text-[14px] leading-relaxed" style={{color: MUTED}}>

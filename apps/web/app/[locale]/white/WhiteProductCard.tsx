@@ -6,7 +6,8 @@ import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import {WHITE_SIZES, type WhiteProduct} from './products';
-import {INK, MUTED, SIGNAL} from './wv-palette';
+import {MUTED, SIGNAL} from './wv-palette';
+import {WhiteFavHeart} from './wv-icons';
 
 // Variant 2 "White" — shared product card for the landing edit, the shop grid
 // and the PDP "related" rail. Single source so the three never drift.
@@ -123,9 +124,7 @@ export default function WhiteProductCard({
           className="absolute right-1 top-1 z-10 flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-100"
           style={{opacity: favourited ? 1 : 0.75}}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill={favourited ? SIGNAL : 'none'} stroke={favourited ? SIGNAL : INK} strokeWidth="1.4">
-            <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
-          </svg>
+          <WhiteFavHeart filled={favourited} size={18} />
         </button>
 
         {quickAdd && !open && (

@@ -11,6 +11,7 @@ import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import {findWhiteProduct} from '../products';
 import {INK, MUTED, HAIR} from '../wv-palette';
+import {MaskIcon} from '../wv-icons';
 
 // Variant 2 "White" — bag / cart. Lists the localStorage-backed picks (via
 // useWhiteBag) with remove + total, or an honest empty state. No checkout — the
@@ -44,10 +45,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
           <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">
             {/* Square-geometry bag glyph — hairline outline, ink, decorative. */}
             <span aria-hidden="true" className="mb-10 flex h-16 w-16 items-center justify-center" style={{border: `1px solid ${HAIR}`}}>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.2" strokeLinecap="square">
-                <path d="M5 7h14l-1 13H6L5 7z" />
-                <path d="M9 7V5.5a3 3 0 0 1 6 0V7" />
-              </svg>
+              <MaskIcon src="/icons/cart.svg" className="h-[26px] w-[26px]" color={INK} />
             </span>
             <h1 className="font-display text-[32px] font-light leading-tight sm:text-[40px]">{t('bagEmpty')}</h1>
             <p className="mt-5 max-w-sm text-[14px] leading-relaxed" style={{color: MUTED}}>
