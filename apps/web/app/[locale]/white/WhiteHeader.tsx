@@ -1,6 +1,7 @@
 'use client';
 
 import type {ReactNode} from 'react';
+import WhiteMobileMenu from './WhiteMobileMenu';
 import {INK, HAIR} from './wv-palette';
 
 // Variant 2 "White" — shared sticky header. Owns the chrome (blur, hairline,
@@ -19,7 +20,13 @@ export default function WhiteHeader({locale, left, right}: {locale: string; left
         {locale === 'ru' ? 'Перейти к содержанию' : 'Skip to content'}
       </a>
       <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-5 sm:px-10">
-        <div className="flex flex-1 items-center justify-start">{left}</div>
+        <div className="flex flex-1 items-center justify-start">
+          {/* Mobile: full-screen menu (hamburger). Desktop: the page's own nav. */}
+          <div className="md:hidden">
+            <WhiteMobileMenu locale={locale} />
+          </div>
+          <div className="hidden items-center md:flex">{left}</div>
+        </div>
         <a href={`/${locale}/white`} className="font-display text-[22px] font-medium tracking-[0.42em] sm:text-[26px]" style={{color: INK}}>
           REINASLEO
         </a>
