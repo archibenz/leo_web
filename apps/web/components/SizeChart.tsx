@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useRef} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {getSizeChart} from '../lib/sizeChartData';
 import {useFocusTrap} from '../lib/useFocusTrap';
@@ -14,6 +14,19 @@ interface SizeChartProps {
 export default function SizeChart({open, onClose, category}: SizeChartProps) {
   const t = useTranslations('product.sizeChart');
   const dialogRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  // The size table is wider than a phone (7 columns); track scroll position so
+  // the edge fades only show when there is actually more table off-screen.
+  const [edges, setEdges] = useState({left: false, right: false});
+
+  const syncEdges = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setEdges({
+      left: el.scrollLeft > 2,
+      right: el.scrollLeft + el.clientWidth < el.scrollWidth - 2,
+    });
+  }, []);
 
   useFocusTrap(dialogRef, open);
 
@@ -33,6 +46,22 @@ export default function SizeChart({open, onClose, category}: SizeChartProps) {
       document.removeEventListener('keydown', handleKey);
     };
   }, [open, onClose]);
+
+  // Measure the table's overflow once it is in the DOM and on resize/category
+  // change, so the scroll-edge fades reflect the real overflow on any width.
+  useEffect(() => {
+    if (!open) return;
+    const id = window.requestAnimationFrame(syncEdges);
+    window.addEventListener('resize', syncEdges);
+    // Web fonts change column widths as they load; an early measure can read a
+    // stale fallback-font overflow (e.g. a phantom fade on desktop). Re-measure
+    // once fonts settle.
+    document.fonts?.ready.then(syncEdges);
+    return () => {
+      window.cancelAnimationFrame(id);
+      window.removeEventListener('resize', syncEdges);
+    };
+  }, [open, category, syncEdges]);
 
   if (!open) return null;
 
@@ -68,11 +97,16 @@ export default function SizeChart({open, onClose, category}: SizeChartProps) {
         </h2>
         <p className="mt-1 text-xs text-[var(--ink-soft)]">{t('unit')}</p>
 
-        <div className="mt-5 overflow-x-auto rounded-xl border border-[var(--ink)]/10">
-          <table className="w-full text-sm">
+        <div className="relative mt-5">
+          <div
+            ref={scrollRef}
+            onScroll={syncEdges}
+            className="overflow-x-auto rounded-xl border border-[var(--ink)]/10"
+          >
+            <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--ink)]/10 bg-[var(--ink)]/[0.02]">
-                <th scope="col" className="px-3 py-2 text-left font-medium text-[var(--ink-soft)]">
+                <th scope="col" className="sticky left-0 z-20 border-r border-[var(--ink)]/10 bg-[var(--paper)] px-3 py-2 text-left font-medium text-[var(--ink-soft)]">
                   {t('sizeHeader')}
                 </th>
                 {chart.sizes.map((size) => (
@@ -88,7 +122,7 @@ export default function SizeChart({open, onClose, category}: SizeChartProps) {
                 const values = chart.values[key];
                 return (
                   <tr key={key} className="border-b border-[var(--ink)]/5 last:border-b-0">
-                    <th scope="row" className="px-3 py-2.5 text-left font-normal text-[var(--ink-soft)]">
+                    <th scope="row" className="sticky left-0 z-10 border-r border-[var(--ink)]/10 bg-[var(--paper)] px-3 py-2.5 text-left font-normal text-[var(--ink-soft)]">
                       {t(`measurements.${key}`)}
                     </th>
                     {values.map((v, i) => (
@@ -101,6 +135,17 @@ export default function SizeChart({open, onClose, category}: SizeChartProps) {
               })}
             </tbody>
           </table>
+          </div>
+          {/* Scroll-edge fades — only visible while the table has more columns
+              off-screen in that direction. Decorative; the table itself scrolls. */}
+          <div
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-y-0 left-0 w-8 rounded-l-xl bg-gradient-to-r from-[var(--paper)] to-transparent transition-opacity duration-200 ${edges.left ? 'opacity-100' : 'opacity-0'}`}
+          />
+          <div
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-y-0 right-0 w-10 rounded-r-xl bg-gradient-to-l from-[var(--paper)] to-transparent transition-opacity duration-200 ${edges.right ? 'opacity-100' : 'opacity-0'}`}
+          />
         </div>
 
         <div className="mt-5 flex h-40 items-center justify-center rounded-xl border-2 border-dashed border-[var(--ink)]/15 bg-[var(--ink)]/[0.02] p-4 text-center">
