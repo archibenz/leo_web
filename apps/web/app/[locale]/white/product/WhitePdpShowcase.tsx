@@ -51,6 +51,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   // Tap-to-zoom lightbox for the active gallery image.
   const [zoomed, setZoomed] = useState(false);
   const lightboxRef = useRef<HTMLDivElement>(null);
+  const lbStartX = useRef(0);
   useFocusTrap(lightboxRef, zoomed);
   const {add, count} = useWhiteBag();
   const {has: isFavourite, toggle: toggleFavourite, count: favCount} = useWhiteFavourites();
@@ -391,9 +392,25 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               <path d="M5 5l14 14M19 5L5 19" />
             </svg>
           </button>
-          <div className="relative h-[88%] w-[92%]" onClick={(e) => e.stopPropagation()}>
+          {/* Swipe left/right to step through the gallery while zoomed. */}
+          <div
+            className="relative h-[88%] w-[92%]"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              lbStartX.current = e.touches[0]?.clientX ?? 0;
+            }}
+            onTouchEnd={(e) => {
+              const dx = (e.changedTouches[0]?.clientX ?? 0) - lbStartX.current;
+              if (Math.abs(dx) > 40) setActiveImg((i) => (dx < 0 ? Math.min(i + 1, gallery.length - 1) : Math.max(i - 1, 0)));
+            }}
+          >
             <Image src={gallery[activeImg] ?? gallery[0]!} alt={name} fill sizes="100vw" className="object-contain" />
           </div>
+          {gallery.length > 1 && (
+            <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[12px] tabular-nums tracking-[0.2em]" style={{color: MUTED}} aria-hidden="true">
+              {activeImg + 1} / {gallery.length}
+            </p>
+          )}
         </div>
       )}
 
