@@ -59,7 +59,7 @@ export default function SizeSelector({
                   isSelected
                     ? 'text-[var(--accent)] font-medium after:scale-x-100 after:bg-[var(--accent)]'
                     : size.available
-                      ? 'text-[var(--ink)] hover:text-[var(--accent)] after:bg-[var(--accent)] hover:after:scale-x-100'
+                      ? 'text-[var(--ink)] hover:text-[var(--accent)] after:bg-[var(--ink-soft)] hover:after:bg-[var(--accent)] hover:after:scale-x-100 [@media(hover:none)]:after:scale-x-100 [@media(hover:none)]:after:opacity-50'
                       : 'text-[var(--ink)]/20 cursor-not-allowed line-through'
                 }
               `}
