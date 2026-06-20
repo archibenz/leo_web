@@ -179,7 +179,7 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
                         src={img}
                         alt={p.title}
                         loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transform-none"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
                       />
                     ) : null}
                     {p.badge ? (

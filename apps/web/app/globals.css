@@ -1331,3 +1331,24 @@ h2.font-display,
   from { transform: translateX(0); }
   to   { transform: translateX(-25%); }
 }
+
+/* ============================================
+   Reduced-motion: neutralise hover/focus transforms
+   ============================================ */
+/* Hover/focus scale & translate affordances must not move for reduced-motion
+   users. Tailwind's per-element motion-reduce:transform-none (specificity 0,1,0)
+   loses the cascade to group-hover:* / group-focus-visible:* rules (0,3,0), so
+   the transform end-state is neutralised here with reach + !important — matching
+   how the other reduced-motion blocks in this file enforce suppression. Covers
+   every group-hover/group-focus-visible scale & translate utility plus the raw
+   err2 button hover lifts. */
+@media (prefers-reduced-motion: reduce) {
+  .group:hover [class*="group-hover:scale"],
+  .group:hover [class*="group-hover:translate"],
+  .group:focus-visible [class*="group-focus-visible:scale"],
+  .group:focus-visible [class*="group-focus-visible:translate"],
+  .err2-btn-primary:hover,
+  .err2-btn-ghost:hover {
+    transform: none !important;
+  }
+}
