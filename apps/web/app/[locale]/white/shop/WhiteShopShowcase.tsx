@@ -72,6 +72,15 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
     syncParam('colour', c === 'all' ? null : c);
   };
 
+  const hasFilters = cat !== 'all' || colour !== 'all' || query.trim() !== '' || sort !== 'new';
+  const clearFilters = () => {
+    setCat('all');
+    setColour('all');
+    setQuery('');
+    setSort('new');
+    if (typeof window !== 'undefined') window.history.replaceState(null, '', `/${locale}/white/shop`);
+  };
+
   // 'all' chip reads "All/Все"; real categories use the shared whiteCatLabel
   // (same source as the server-side title — no drift).
   const catLabel = (c: Cat | 'all') => (c === 'all' ? t('all') : whiteCatLabel(c, locale));
@@ -142,7 +151,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         {/* Title */}
         <div className="flex items-baseline justify-between pt-12 pb-6">
           <h1 className="font-display text-[34px] font-light tracking-tight sm:text-[44px]">{t('shop')}</h1>
-          <span aria-live="polite" aria-atomic="true" className="text-[12px] uppercase tracking-[0.16em] tabular-nums" style={{color: MUTED}}>
+          <span aria-live="polite" aria-atomic="true" className="shrink-0 text-[12px] uppercase tracking-[0.16em] tabular-nums" style={{color: MUTED}}>
             {shown.length} {whiteItemNoun(shown.length, locale)}
           </span>
         </div>
@@ -264,6 +273,21 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
           ))}
         </div>
 
+        {/* Clear filters — shown when any filter is active, so a refined search
+            is one tap to undo (no need to reset each chip). */}
+        {hasFilters && (
+          <div className="pt-4">
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="text-[12px] uppercase tracking-[0.16em] underline underline-offset-4 transition-opacity hover:opacity-60"
+              style={{color: INK}}
+            >
+              {t('clearFilters')} ×
+            </button>
+          </div>
+        )}
+
         {/* Grid */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-12 py-12 sm:gap-x-6 lg:grid-cols-3">
           {shown.map((p, i) => (
@@ -272,11 +296,20 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         </div>
 
         {shown.length === 0 && (
-          <p className="py-24 text-center text-[14px]" style={{color: MUTED}}>
-            {query.trim()
-              ? t('nothingFound', {query: query.trim()})
-              : t('nothingHere')}
-          </p>
+          <div className="flex flex-col items-center py-24 text-center">
+            <p className="max-w-sm text-[14px] leading-relaxed" style={{color: MUTED}}>
+              {query.trim() ? t('nothingFound', {query: query.trim()}) : hasFilters ? t('noMatch') : t('nothingHere')}
+            </p>
+            {hasFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="wv-btn mt-8 inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]"
+              >
+                {t('clearFilters')}
+              </button>
+            )}
+          </div>
         )}
       </main>
 

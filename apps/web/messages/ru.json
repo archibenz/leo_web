@@ -1293,7 +1293,9 @@
       "nothingFound": "Ничего не найдено по «{query}».",
       "nothingHere": "Здесь пока пусто.",
       "allColours": "Все цвета",
-      "colour": "Цвет"
+      "colour": "Цвет",
+      "clearFilters": "Сбросить фильтры",
+      "noMatch": "Ничего не подошло по выбранным фильтрам."
     },
     "landing": {
       "theEdit": "Подборка",

@@ -1293,7 +1293,9 @@
       "nothingFound": "Nothing found for “{query}”.",
       "nothingHere": "Nothing here yet.",
       "allColours": "All colours",
-      "colour": "Colour"
+      "colour": "Colour",
+      "clearFilters": "Clear filters",
+      "noMatch": "No products match these filters."
     },
     "landing": {
       "theEdit": "The edit",
