@@ -144,14 +144,16 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
 
             <div className="mx-4 my-3 h-px bg-[rgba(242,230,216,0.1)]" />
 
-            {/* Quiet secondary links. */}
-            <nav className="flex flex-wrap gap-x-5 gap-y-2.5 px-4 pb-1">
+            {/* Quiet secondary links — inline-flex + py lifts the tap target to
+                ~38px (WCAG 2.5.8 AA needs ≥24px; raw 12px text was only 18px)
+                while staying visually quieter than the 46px primary rows. */}
+            <nav className="flex flex-wrap gap-x-5 gap-y-0.5 px-4">
               {secondary.map(({href, label}) => (
                 <Link
                   key={href}
                   href={href}
                   onClick={onClose}
-                  className="text-[12px] uppercase tracking-[0.08em] text-inkSoft/55 transition-colors hover:text-accent focus-visible:text-accent"
+                  className="inline-flex items-center py-2.5 text-[12px] uppercase tracking-[0.08em] text-inkSoft/55 transition-colors hover:text-accent focus-visible:text-accent"
                 >
                   {label}
                 </Link>
