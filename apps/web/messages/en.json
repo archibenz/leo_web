@@ -1324,7 +1324,8 @@
       "email": "Email",
       "subscribe": "Subscribe",
       "previewNote": "White variant — preview",
-      "lookbook": "Lookbook"
+      "lookbook": "Lookbook",
+      "contact": "Contact"
     },
     "pdp": {
       "nameFallback": "Silk Column Dress",
@@ -1379,6 +1380,13 @@
       "intro": "Looks from the season, cut for quiet movement. Tap any piece to shop it.",
       "look": "Look",
       "shopLook": "Shop this look"
+    },
+    "contact": {
+      "back": "Home",
+      "eyebrow": "Contact",
+      "title": "Get in touch",
+      "intro": "For orders, sizing, collaboration or anything else — write to us directly.",
+      "responseTime": "We reply within one business day."
     }
   }
 }

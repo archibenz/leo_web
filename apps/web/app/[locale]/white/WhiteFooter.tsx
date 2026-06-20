@@ -83,6 +83,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
             {label: t('atelier'), href: `/${locale}/white/atelier`},
             {label: t('lookbook'), href: `/${locale}/white/lookbook`},
             {label: t('theEdit'), href: `/${locale}/white#wv-edit`},
+            {label: t('contact'), href: `/${locale}/white/contact`},
           ]},
         ].map((col) => (
           <div key={col.h}>
