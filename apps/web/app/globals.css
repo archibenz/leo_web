@@ -147,7 +147,8 @@ summary:focus-visible,
 [tabindex]:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 4px;
+  /* No border-radius override — let the ring follow each element's own shape
+     (a forced 4px squared off rounded-full controls on focus). */
 }
 
 /* Input/textarea/select focus - glow effect (mouse + keyboard) */
@@ -191,8 +192,10 @@ input.focus-bare:focus-visible {
   outline: none !important;
 }
 
-/* Buttons - clear mouse focus, keyboard focus handled by :focus-visible rule above */
-button:focus {
+/* Buttons - clear mouse focus only; keyboard focus keeps the gold :focus-visible
+   ring above. Without :not(:focus-visible) this rule (equal specificity, later
+   in source) overrode the ring and left buttons with no visible keyboard focus. */
+button:focus:not(:focus-visible) {
   outline: none;
 }
 
