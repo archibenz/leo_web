@@ -6,6 +6,7 @@ import {getMessages} from 'next-intl/server';
 import Header from '../../components/Header';
 import SmartHeader from '../../components/SmartHeader';
 import Footer from '../../components/Footer';
+import MobileTabBar from '../../components/MobileTabBar';
 import Providers from '../../components/Providers';
 import Metrika from '../../components/Metrika';
 import {safeJsonLd} from '../../lib/jsonLd';
@@ -79,6 +80,7 @@ export default async function LocaleLayout({
           </SmartHeader>
           <main id="main-content" className="relative z-40 flex-1">{children}</main>
           <Footer locale={locale} />
+          <MobileTabBar locale={locale} />
         </div>
       </Providers>
     </NextIntlClientProvider>
