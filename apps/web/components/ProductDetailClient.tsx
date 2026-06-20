@@ -116,6 +116,20 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
     return () => controller.abort();
   }, [product]);
 
+  // Mobile sticky add-to-bag bar: reveal it once the inline CTA scrolls out of
+  // view, so the conversion action is always within thumb reach on a long PDP.
+  // Declared before the early return below so the hooks run unconditionally
+  // (Rules of Hooks); the effect no-ops when there is no inline CTA (ref null).
+  const inlineCtaRef = useRef<HTMLButtonElement>(null);
+  const [showSticky, setShowSticky] = useState(false);
+  useEffect(() => {
+    const el = inlineCtaRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setShowSticky(!entry.isIntersecting), {rootMargin: '0px 0px -48px 0px'});
+    io.observe(el);
+    return () => io.disconnect();
+  }, [product?.inStock]);
+
   if (!product) {
     return (
       <div className="mx-auto max-w-7xl px-4 pt-28 pb-16 sm:px-6 lg:px-8">
@@ -183,18 +197,6 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
     setSelectedSize(size);
     setSizeError(false);
   };
-
-  // Mobile sticky add-to-bag bar: reveal it once the inline CTA scrolls out of
-  // view, so the conversion action is always within thumb reach on a long PDP.
-  const inlineCtaRef = useRef<HTMLButtonElement>(null);
-  const [showSticky, setShowSticky] = useState(false);
-  useEffect(() => {
-    const el = inlineCtaRef.current;
-    if (!el) return;
-    const io = new IntersectionObserver(([entry]) => setShowSticky(!entry.isIntersecting), {rootMargin: '0px 0px -48px 0px'});
-    io.observe(el);
-    return () => io.disconnect();
-  }, [product.inStock]);
 
   const handleStickyAdd = () => {
     if (sizeOptions.length > 0 && !selectedSize) {
