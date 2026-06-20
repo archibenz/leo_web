@@ -1239,7 +1239,10 @@
       "menu": "Menu",
       "close": "Close",
       "saved": "Saved",
-      "bag": "Bag"
+      "bag": "Bag",
+      "lookbook": "Lookbook",
+      "atelier": "Atelier",
+      "contact": "Contact"
     },
     "bag": {
       "shop": "Shop",

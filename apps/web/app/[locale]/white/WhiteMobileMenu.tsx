@@ -2,6 +2,7 @@
 
 import {useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
+import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {useFocusTrap} from '../../../lib/useFocusTrap';
 import {WHITE_CATS, whiteCatLabel} from './products';
@@ -20,6 +21,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [mounted, setMounted] = useState(false);
   const t = useTranslations('white.menu');
+  const pathname = usePathname();
 
   useFocusTrap(panelRef, open);
   useEffect(() => setMounted(true), []);
@@ -45,6 +47,14 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
   const links = [
     {key: 'all', label: t('shop'), href: `/${locale}/white/shop`},
     ...WHITE_CATS.map((c) => ({key: c, label: whiteCatLabel(c, locale), href: `/${locale}/white/shop?cat=${c}`})),
+  ];
+
+  // Secondary tier — the brand/editorial pages, a quiet UI-font row beneath the
+  // serif categories so the multi-page site is reachable from the primary nav.
+  const secondary = [
+    {key: 'lookbook', label: t('lookbook'), href: `/${locale}/white/lookbook`},
+    {key: 'atelier', label: t('atelier'), href: `/${locale}/white/atelier`},
+    {key: 'contact', label: t('contact'), href: `/${locale}/white/contact`},
   ];
 
   return (
@@ -112,6 +122,25 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                   </a>
                 );
               })}
+
+              {/* Secondary tier — brand/editorial pages, quiet UI-font row. */}
+              <div className="wv-rise wv-delay-3 mt-12 flex flex-col text-[12px] uppercase tracking-[0.2em]">
+                {secondary.map((s) => {
+                  const active = pathname === s.href;
+                  return (
+                    <a
+                      key={s.key}
+                      href={s.href}
+                      onClick={() => setOpen(false)}
+                      aria-current={active ? 'page' : undefined}
+                      className="py-2 transition-opacity hover:opacity-60"
+                      style={{color: active ? SIGNAL : MUTED}}
+                    >
+                      {s.label}
+                    </a>
+                  );
+                })}
+              </div>
             </div>
           </nav>
 
