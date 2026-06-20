@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
@@ -72,6 +72,38 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
     if (sort === 'desc') return [...filtered].sort((a, b) => price(b) - price(a));
     return filtered;
   }, [cat, sort, query]);
+
+  // Edge-fade affordance for the mobile category carousel (sm: it wraps, no
+  // scroll → edge stays 'none', no mask). Keyed off scroll position so it never
+  // shows a false 'more' cue. Fades into the white DNA bg; static — nothing for
+  // reduced-motion to suppress.
+  const catRef = useRef<HTMLDivElement>(null);
+  const [edge, setEdge] = useState<'none' | 'right' | 'both' | 'left'>('none');
+  const syncEdge = useCallback(() => {
+    const el = catRef.current;
+    if (!el) return;
+    const canLeft = el.scrollLeft > 4;
+    const canRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+    setEdge(canLeft && canRight ? 'both' : canRight ? 'right' : canLeft ? 'left' : 'none');
+  }, []);
+  useEffect(() => {
+    syncEdge();
+    // The Jost UI font loads after first paint; once it applies the chips widen
+    // and may start to overflow, so re-measure when fonts settle (syncEdge no-ops
+    // if the ref is gone, so it is safe after unmount).
+    if (typeof document !== 'undefined' && document.fonts) document.fonts.ready.then(syncEdge);
+    window.addEventListener('resize', syncEdge);
+    return () => window.removeEventListener('resize', syncEdge);
+  }, [syncEdge, cat, shown.length, mounted]);
+  const FADE = 28;
+  const edgeMask =
+    edge === 'right'
+      ? `linear-gradient(to right, #000 calc(100% - ${FADE}px), transparent)`
+      : edge === 'left'
+        ? `linear-gradient(to right, transparent, #000 ${FADE}px)`
+        : edge === 'both'
+          ? `linear-gradient(to right, transparent, #000 ${FADE}px, #000 calc(100% - ${FADE}px), transparent)`
+          : undefined;
 
   if (!mounted) return null;
 
@@ -147,7 +179,12 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
 
         {/* Filter bar */}
         <div className="flex flex-col gap-4 border-y py-4 sm:flex-row sm:items-center sm:justify-between" style={{borderColor: HAIR}}>
-          <div className="-mx-1 flex gap-1 overflow-x-auto sm:mx-0 sm:flex-wrap">
+          <div
+            ref={catRef}
+            onScroll={syncEdge}
+            className="-mx-1 flex gap-1 overflow-x-auto sm:mx-0 sm:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            style={edgeMask ? {maskImage: edgeMask, WebkitMaskImage: edgeMask} : undefined}
+          >
             {cats.map((c) => (
               <button
                 key={c}
