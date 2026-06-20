@@ -65,6 +65,15 @@ export default function MobileTabBar({locale}: {locale: string}) {
                 href={href}
                 aria-current={active ? 'page' : undefined}
                 aria-label={label}
+                onClick={(e) => {
+                  // Tapping the already-active tab scrolls to top (iOS/Android
+                  // convention) instead of a no-op navigation. preventDefault
+                  // keeps the current query (e.g. shop filters) intact.
+                  if (!active) return;
+                  e.preventDefault();
+                  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                  window.scrollTo({top: 0, behavior: reduce ? 'auto' : 'smooth'});
+                }}
                 className={`relative flex h-[60px] flex-col items-center justify-center gap-1 transition-colors ${
                   active ? 'text-accent' : 'text-inkSoft/55 hover:text-inkSoft'
                 }`}
