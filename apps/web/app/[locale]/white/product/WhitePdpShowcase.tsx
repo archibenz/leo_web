@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import {useState} from 'react';
+import {useState, useEffect, useRef} from 'react';
 import {createPortal} from 'react-dom';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
@@ -62,6 +62,26 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
     setJustAdded(true);
     window.setTimeout(() => setJustAdded(false), 1600);
   };
+
+  // Mobile sticky add-to-bag: reveal it once the inline CTA scrolls out of view.
+  const inlineAddRef = useRef<HTMLButtonElement>(null);
+  const [showSticky, setShowSticky] = useState(false);
+  useEffect(() => {
+    const el = inlineAddRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setShowSticky(!entry.isIntersecting), {rootMargin: '0px 0px -48px 0px'});
+    io.observe(el);
+    return () => io.disconnect();
+  }, [mounted]);
+  const handleStickyAdd = () => {
+    if (!size) {
+      const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.getElementById('wv-pdp-size')?.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'center'});
+      return;
+    }
+    handleAdd();
+  };
+  const stickyPrice = `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
   // ?p selects the catalog product; fall back to the default demo dress.
   const name = product ? t(product.en, product.ru) : t('Silk Column Dress', 'Шёлковое платье-колонна');
   const priceStr = product ? `${product.price.toLocaleString('ru-RU')} ₽` : '24 500 ₽';
@@ -169,7 +189,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             </div>
 
             {/* Size */}
-            <div className="mt-8">
+            <div id="wv-pdp-size" className="mt-8 scroll-mt-24">
               <div className="mb-3 flex items-baseline justify-between">
                 <p className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('Size', 'Размер')}</p>
                 <button
@@ -230,7 +250,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
 
             {/* Add to bag */}
             <div className="mt-9 flex gap-3">
-              <button type="button" disabled={!size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
+              <button ref={inlineAddRef} type="button" disabled={!size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
                 {justAdded ? t('Added', 'Добавлено') : size ? t('Add to bag', 'В корзину') : t('Select a size', 'Выберите размер')}
               </button>
               <button
@@ -282,6 +302,28 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
       </main>
 
       <WhiteFooter locale={locale} />
+
+      {/* Mobile sticky add-to-bag — slides up once the inline CTA scrolls away,
+          keeping the action within thumb reach on a long PDP. */}
+      <div
+        aria-hidden={!showSticky}
+        className={`fixed inset-x-0 bottom-0 z-[60] border-t bg-white/95 px-6 pt-3 backdrop-blur-sm transition-transform duration-300 ease-out lg:hidden motion-reduce:transition-none ${
+          showSticky ? 'translate-y-0' : 'pointer-events-none translate-y-full'
+        }`}
+        style={{borderColor: HAIR, paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))'}}
+      >
+        <div className="flex items-center gap-4">
+          <span className="shrink-0 text-[15px]" style={{color: INK}}>{stickyPrice}</span>
+          <button
+            type="button"
+            onClick={handleStickyAdd}
+            tabIndex={showSticky ? 0 : -1}
+            className="wv-btn flex-1 py-3.5 text-[12px] uppercase tracking-[0.2em]"
+          >
+            {size ? t('Add to bag', 'В корзину') : t('Select a size', 'Выберите размер')}
+          </button>
+        </div>
+      </div>
     </div>,
     document.body,
   );
