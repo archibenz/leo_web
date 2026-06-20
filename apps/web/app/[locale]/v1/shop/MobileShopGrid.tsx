@@ -1,6 +1,6 @@
 'use client';
 
-import {useMemo} from 'react';
+import {useMemo, useState, useRef, useEffect, useCallback} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import Link from 'next/link';
@@ -84,24 +84,62 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
     {key: 'price-desc', label: tr('Price ↓', 'Цена ↓')},
   ] as const;
 
+  // Edge-fade affordance for the hidden-scrollbar category carousel: with no
+  // scrollbar, a fade signals there are more chips to swipe to. Keyed off scroll
+  // position so it never lies (no right-fade once you reach the end). Static
+  // mask, no animation — nothing for reduced-motion to suppress.
+  const catRef = useRef<HTMLElement>(null);
+  const [edge, setEdge] = useState<'none' | 'right' | 'both' | 'left'>('right');
+  const syncEdge = useCallback(() => {
+    const el = catRef.current;
+    if (!el) return;
+    const canLeft = el.scrollLeft > 4;
+    const canRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+    setEdge(canLeft && canRight ? 'both' : canRight ? 'right' : canLeft ? 'left' : 'none');
+  }, []);
+  useEffect(() => {
+    syncEdge();
+    window.addEventListener('resize', syncEdge);
+    return () => window.removeEventListener('resize', syncEdge);
+  }, [syncEdge, categoryParam]);
+  const FADE = 28;
+  const edgeMask =
+    edge === 'right'
+      ? `linear-gradient(to right, #000 calc(100% - ${FADE}px), transparent)`
+      : edge === 'left'
+        ? `linear-gradient(to right, transparent, #000 ${FADE}px)`
+        : edge === 'both'
+          ? `linear-gradient(to right, transparent, #000 ${FADE}px, #000 calc(100% - ${FADE}px), transparent)`
+          : undefined;
+
   return (
     <div className="px-4 pb-20 pt-[76px]">
-      {/* Category filter chips — sticky under the header, horizontal scroll. */}
-      <nav className="sticky top-[60px] z-10 -mx-4 flex gap-2 overflow-x-auto bg-[var(--paper)]/85 px-4 py-2 backdrop-blur-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label={menu('sections.categories')}>
-        <Link href={hrefWith('category', null)} className={chip(!categoryParam)} aria-current={!categoryParam ? 'true' : undefined}>
-          {tr('All', 'Все')}
-        </Link>
-        {CATEGORY_OPTIONS.map((key) => (
-          <Link
-            key={key}
-            href={hrefWith('category', key)}
-            className={chip(categoryParam === key)}
-            aria-current={categoryParam === key ? 'true' : undefined}
-          >
-            {menu(`categories.${key}`)}
+      {/* Category filter chips — sticky under the header. The sticky bg/blur sit
+          on the wrapper so the inner scroller can carry an edge-fade mask without
+          fading the bar itself. */}
+      <div className="sticky top-[60px] z-10 -mx-4 bg-[var(--paper)]/85 backdrop-blur-sm">
+        <nav
+          ref={catRef}
+          onScroll={syncEdge}
+          aria-label={menu('sections.categories')}
+          className="flex gap-2 overflow-x-auto px-4 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          style={edgeMask ? {maskImage: edgeMask, WebkitMaskImage: edgeMask} : undefined}
+        >
+          <Link href={hrefWith('category', null)} className={chip(!categoryParam)} aria-current={!categoryParam ? 'true' : undefined}>
+            {tr('All', 'Все')}
           </Link>
-        ))}
-      </nav>
+          {CATEGORY_OPTIONS.map((key) => (
+            <Link
+              key={key}
+              href={hrefWith('category', key)}
+              className={chip(categoryParam === key)}
+              aria-current={categoryParam === key ? 'true' : undefined}
+            >
+              {menu(`categories.${key}`)}
+            </Link>
+          ))}
+        </nav>
+      </div>
 
       {/* Count + sort. */}
       <div className="mt-3 flex items-center justify-between">
