@@ -1291,7 +1291,9 @@
       "sortAsc": "Price: low to high",
       "sortDesc": "Price: high to low",
       "nothingFound": "Nothing found for “{query}”.",
-      "nothingHere": "Nothing here yet."
+      "nothingHere": "Nothing here yet.",
+      "allColours": "All colours",
+      "colour": "Colour"
     },
     "landing": {
       "theEdit": "The edit",

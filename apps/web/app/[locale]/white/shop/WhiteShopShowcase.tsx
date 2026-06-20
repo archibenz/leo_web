@@ -12,7 +12,14 @@ import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR} from '../wv-palette';
 import {whiteItemNoun} from '../wv-i18n';
-import {WHITE_PRODUCTS as ITEMS, whiteCatLabel, type WhiteProduct as Item, type WhiteCat as Cat} from '../products';
+import {WHITE_PRODUCTS as ITEMS, whiteCatLabel, type WhiteProduct as Item, type WhiteCat as Cat, type WhiteColor as Colour} from '../products';
+
+// Distinct colours across the catalog, in first-seen order — the swatch filter.
+const COLOURS: Colour[] = (() => {
+  const map = new Map<string, Colour>();
+  ITEMS.forEach((i) => i.colors.forEach((c) => map.set(c.key, c)));
+  return [...map.values()];
+})();
 
 // Variant 2 "White" — shop / catalog grid with filters + sort. Same portal
 // technique as the landing/PDP. Catalog lives in ../products (shared with the
@@ -20,12 +27,14 @@ import {WHITE_PRODUCTS as ITEMS, whiteCatLabel, type WhiteProduct as Item, type 
 
 type Sort = 'new' | 'asc' | 'desc';
 
-export default function WhiteShopShowcase({locale, initialCat = 'all', initialQuery = '', initialSort = 'new', focusSearch = false}: {locale: string; initialCat?: Cat | 'all'; initialQuery?: string; initialSort?: Sort; focusSearch?: boolean}) {
+export default function WhiteShopShowcase({locale, initialCat = 'all', initialQuery = '', initialSort = 'new', initialColour = 'all', focusSearch = false}: {locale: string; initialCat?: Cat | 'all'; initialQuery?: string; initialSort?: Sort; initialColour?: string; focusSearch?: boolean}) {
   const mounted = useWhitePortal();
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
+  const ru = locale === 'ru';
   const [cat, setCat] = useState<Cat | 'all'>(initialCat);
   const [sort, setSort] = useState<Sort>(initialSort);
+  const [colour, setColour] = useState<string>(() => (COLOURS.some((c) => c.key === initialColour) ? initialColour : 'all'));
   const [query, setQuery] = useState(initialQuery);
   const searchRef = useRef<HTMLInputElement>(null);
   const t = useTranslations('white.shop');
@@ -58,6 +67,10 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
     // 'new' is the default — keep it out of the URL so shared links stay clean.
     syncParam('sort', s === 'new' ? null : s);
   };
+  const pickColour = (c: string) => {
+    setColour(c);
+    syncParam('colour', c === 'all' ? null : c);
+  };
 
   // 'all' chip reads "All/Все"; real categories use the shared whiteCatLabel
   // (same source as the server-side title — no drift).
@@ -68,11 +81,12 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
     let filtered = cat === 'all' ? ITEMS : ITEMS.filter((i) => i.cat === cat);
     // Free-text match against both locales so "dress" and "платье" both work.
     if (q) filtered = filtered.filter((i) => `${i.en} ${i.ru}`.toLowerCase().includes(q));
+    if (colour !== 'all') filtered = filtered.filter((i) => i.colors.some((c) => c.key === colour));
     const price = (i: Item) => i.sale ?? i.price;
     if (sort === 'asc') return [...filtered].sort((a, b) => price(a) - price(b));
     if (sort === 'desc') return [...filtered].sort((a, b) => price(b) - price(a));
     return filtered;
-  }, [cat, sort, query]);
+  }, [cat, sort, colour, query]);
 
   // Edge-fade affordance for the mobile category carousel (sm: it wraps, no
   // scroll → edge stays 'none', no mask). Keyed off scroll position so it never
@@ -207,6 +221,47 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
               <option value="desc">{t('sortDesc')}</option>
             </select>
           </label>
+        </div>
+
+        {/* Colour filter — square swatches (White square-geometry; colour shown
+            only as the product's own swatch). Ink ring marks the active colour;
+            a hairline inset keeps light colours visible on white. Static. */}
+        <div
+          role="group"
+          aria-label={t('colour')}
+          className="-mx-1 flex items-center gap-1.5 overflow-x-auto pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <button
+            type="button"
+            onClick={() => pickColour('all')}
+            aria-pressed={colour === 'all'}
+            className="inline-flex min-h-11 shrink-0 items-center px-3.5 text-[12px] uppercase tracking-[0.14em] transition-colors"
+            style={{
+              color: colour === 'all' ? '#fff' : INK,
+              background: colour === 'all' ? INK : 'transparent',
+              border: `1px solid ${colour === 'all' ? INK : HAIR}`,
+            }}
+          >
+            {t('allColours')}
+          </button>
+          {COLOURS.map((c) => (
+            <button
+              key={c.key}
+              type="button"
+              onClick={() => pickColour(c.key)}
+              aria-pressed={colour === c.key}
+              aria-label={ru ? c.ru : c.en}
+              className="flex h-11 w-11 shrink-0 items-center justify-center"
+            >
+              <span
+                className="h-6 w-6"
+                style={{
+                  background: c.hex,
+                  boxShadow: colour === c.key ? `0 0 0 1.5px #fff, 0 0 0 2.5px ${INK}` : `inset 0 0 0 1px ${HAIR}`,
+                }}
+              />
+            </button>
+          ))}
         </div>
 
         {/* Grid */}

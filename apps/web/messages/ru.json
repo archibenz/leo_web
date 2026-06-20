@@ -1291,7 +1291,9 @@
       "sortAsc": "Цена: по возр.",
       "sortDesc": "Цена: по убыв.",
       "nothingFound": "Ничего не найдено по «{query}».",
-      "nothingHere": "Здесь пока пусто."
+      "nothingHere": "Здесь пока пусто.",
+      "allColours": "Все цвета",
+      "colour": "Цвет"
     },
     "landing": {
       "theEdit": "Подборка",
