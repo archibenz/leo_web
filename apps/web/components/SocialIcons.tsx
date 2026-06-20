@@ -46,7 +46,7 @@ const ICONS = [
 
 export default function SocialIcons({className = ''}: SocialIconsProps) {
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`-mx-2.5 flex items-center ${className}`}>
       {ICONS.map((icon) => (
         <a
           key={icon.label}
@@ -54,7 +54,7 @@ export default function SocialIcons({className = ''}: SocialIconsProps) {
           target="_blank"
           rel="noreferrer"
           aria-label={icon.label}
-          className="text-inkSoft/40 transition-colors duration-200 hover:text-accent"
+          className="flex h-11 w-11 items-center justify-center text-inkSoft/40 transition-colors duration-200 hover:text-accent"
         >
           {icon.svg}
         </a>

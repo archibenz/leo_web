@@ -147,7 +147,7 @@ export default async function Footer({locale}: FooterProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="block text-[15px] text-inkSoft/55 transition hover:text-accent"
+                  className="block py-1 text-[15px] text-inkSoft/55 transition hover:text-accent"
                   prefetch
                 >
                   {item.label}
@@ -160,7 +160,7 @@ export default async function Footer({locale}: FooterProps) {
               </span>
               <Link
                 href={`mailto:${t('email')}`}
-                className="block text-[15px] text-inkSoft/55 transition hover:text-accent"
+                className="block py-1 text-[15px] text-inkSoft/55 transition hover:text-accent"
               >
                 {t('email')}
               </Link>
