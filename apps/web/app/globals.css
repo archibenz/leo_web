@@ -1428,7 +1428,27 @@ h2.font-display,
   background: linear-gradient(160deg, #f5f2ed, #e8e2d9);
 }
 
+/* Kinetic editorial marquee — an oversized italic Cormorant brand line that
+   drifts across a full-bleed band. Two identical copies + translateX(-50%) loop
+   seamlessly. Decorative (the track is aria-hidden); reduced-motion holds it
+   still so there is no drift to trigger vestibular discomfort. */
+.wv-marquee-band {
+  overflow: hidden;
+}
+.wv-marquee {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  will-change: transform;
+  animation: wv-marquee-scroll 34s linear infinite;
+}
+@keyframes wv-marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .wv-rise { animation: none; opacity: 1; }
   .wv-quickadd { transition: opacity 0.2s ease; transform: none; }
+  .wv-marquee { animation: none; }
 }

@@ -11,7 +11,7 @@ import WhiteHeader from './WhiteHeader';
 import WhiteHeaderActions from './WhiteHeaderActions';
 import WhiteFooter from './WhiteFooter';
 import WhiteProductCard from './WhiteProductCard';
-import {INK, MUTED, HAIR} from './wv-palette';
+import {INK, MUTED, HAIR, SIGNAL} from './wv-palette';
 import {WHITE_PRODUCTS, WHITE_HERO_IMAGE, WHITE_ATELIER_IMAGE} from './products';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
@@ -57,6 +57,10 @@ export default function WhiteShowcase({locale}: {locale: string}) {
     {label: t('theEdit'), href: `/${locale}/white#wv-edit`},
     {label: t('shop'), href: `/${locale}/white/shop`},
   ];
+
+  // Kinetic marquee segments — brand, tagline, season. Localized (via t) but the
+  // running band is decorative (aria-hidden); the same words live in the hero.
+  const marquee = ['REINASLEO', `${t('heroLine1')} ${t('heroLine2')}`, t('season')];
 
   return createPortal(
     <div
@@ -119,6 +123,26 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 lg:grid-cols-3">
           {FEATURED.map((p, i) => (
             <WhiteProductCard key={p.key} locale={locale} product={p} index={i} quickAdd rise />
+          ))}
+        </div>
+      </section>
+
+      {/* Kinetic brand marquee — an oversized editorial type moment that breaks
+          the centered rhythm with a full-bleed drift. Decorative (aria-hidden);
+          reduced-motion holds it still. */}
+      <section aria-hidden="true" className="wv-marquee-band border-y py-7 sm:py-10" style={{borderColor: HAIR}}>
+        <div className="wv-marquee">
+          {[0, 1].map((copy) => (
+            <span key={copy} className="flex shrink-0 items-center">
+              {marquee.map((seg, i) => (
+                <span key={i} className="flex items-center">
+                  <span className="font-display text-[40px] font-light italic leading-none tracking-[-0.01em] sm:text-[58px]">
+                    {seg}
+                  </span>
+                  <span className="mx-7 text-[16px] sm:mx-11 sm:text-[20px]" style={{color: SIGNAL}}>✦</span>
+                </span>
+              ))}
+            </span>
           ))}
         </div>
       </section>
