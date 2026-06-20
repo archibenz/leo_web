@@ -6,6 +6,7 @@ import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
+import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import {findWhiteProduct} from '../products';
 import {INK, MUTED, HAIR} from '../wv-palette';
@@ -34,12 +35,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
             ← {t('Shop', 'Магазин')}
           </a>
         }
-        right={
-          <div className="flex items-center gap-6 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
-            <a href={`/${locale}/white/favourites`} aria-label={t(`Saved, ${favCount} items`, `Избранное, ${favCount} товаров`)} className="transition-opacity hover:opacity-60">{t('Saved', 'Избранное')} ({favCount})</a>
-            <span style={{color: INK}} aria-current="page">{t('Bag', 'Корзина')} ({count})</span>
-          </div>
-        }
+        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} current="bag" />}
       />
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 py-12 sm:px-10">
