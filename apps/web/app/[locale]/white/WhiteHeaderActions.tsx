@@ -1,6 +1,7 @@
 'use client';
 
 import type {ReactNode} from 'react';
+import {useTranslations} from 'next-intl';
 import {MUTED, INK, SIGNAL} from './wv-palette';
 import {whiteItemNoun} from './wv-i18n';
 
@@ -86,33 +87,33 @@ export default function WhiteHeaderActions({
   current?: ActionKey;
   search?: boolean;
 }) {
-  const t = (en: string, ru: string) => (locale === 'ru' ? ru : en);
+  const t = useTranslations('white.header');
   const icon = 'h-[18px] w-[18px] sm:hidden';
   return (
     <div className="flex items-center gap-1 sm:gap-6 sm:text-[12px] sm:uppercase sm:tracking-[0.18em]" style={{color: MUTED}}>
       {search && (
         <a
           href={`/${locale}/white/shop?focus=search`}
-          aria-label={t('Search the collection', 'Поиск по коллекции')}
+          aria-label={t('searchCollection')}
           className="hidden transition-opacity hover:opacity-60 sm:inline"
         >
-          {t('Search', 'Поиск')}
+          {t('search')}
         </a>
       )}
       <Action
         href={`/${locale}/white/favourites`}
-        ariaLabel={`${t('Saved', 'Избранное')}, ${favCount} ${whiteItemNoun(favCount, locale)}`}
+        ariaLabel={`${t('saved')}, ${favCount} ${whiteItemNoun(favCount, locale)}`}
         isCurrent={current === 'favourites'}
         icon={<HeartIcon className={icon} />}
-        label={t('Saved', 'Избранное')}
+        label={t('saved')}
         count={favCount}
       />
       <Action
         href={`/${locale}/white/bag`}
-        ariaLabel={`${t('Bag', 'Корзина')}, ${count} ${whiteItemNoun(count, locale)}`}
+        ariaLabel={`${t('bag')}, ${count} ${whiteItemNoun(count, locale)}`}
         isCurrent={current === 'bag'}
         icon={<BagIcon className={icon} />}
-        label={t('Bag', 'Корзина')}
+        label={t('bag')}
         count={count}
       />
     </div>

@@ -1104,5 +1104,13 @@
       "actionRetry": "Try again",
       "actionHome": "Go home"
     }
+  },
+  "white": {
+    "header": {
+      "search": "Search",
+      "searchCollection": "Search the collection",
+      "saved": "Saved",
+      "bag": "Bag"
+    }
   }
 }

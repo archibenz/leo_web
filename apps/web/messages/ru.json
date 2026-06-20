@@ -1104,5 +1104,13 @@
       "actionRetry": "Попробовать снова",
       "actionHome": "На главную"
     }
+  },
+  "white": {
+    "header": {
+      "search": "Поиск",
+      "searchCollection": "Поиск по коллекции",
+      "saved": "Избранное",
+      "bag": "Корзина"
+    }
   }
 }
