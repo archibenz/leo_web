@@ -34,7 +34,7 @@ export default function SizeSelector({
         <button
           type="button"
           onClick={onSizeGuideClick}
-          className="text-sm text-[var(--ink-soft)] underline underline-offset-2 transition hover:text-[var(--accent)]"
+          className="-my-3 py-3 text-sm text-[var(--ink-soft)] underline underline-offset-2 transition hover:text-[var(--accent)]"
         >
           {sizeGuideLabel}
         </button>
