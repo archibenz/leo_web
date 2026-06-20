@@ -88,10 +88,12 @@ export default function WhiteFooter({locale}: {locale: string}) {
         ].map((col) => (
           <div key={col.h}>
             <p className="mb-4 text-[11px] uppercase tracking-[0.2em]" style={{color: INK}}>{col.h}</p>
-            <ul className="space-y-2.5 text-[13px]" style={{color: MUTED}}>
+            {/* py-3 → 44px tap height (project a11y floor); space-y-1 keeps the
+                column from ballooning while the targets clear 44px each. */}
+            <ul className="space-y-1 text-[13px]" style={{color: MUTED}}>
               {col.items.map((it) => (
                 <li key={it.label}>
-                  <a href={it.href} className="block py-1.5 transition-opacity hover:opacity-60">{it.label}</a>
+                  <a href={it.href} className="flex min-h-11 items-center transition-opacity hover:opacity-60">{it.label}</a>
                 </li>
               ))}
             </ul>

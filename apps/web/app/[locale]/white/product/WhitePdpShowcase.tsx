@@ -211,7 +211,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                 type="button"
                 onClick={() => setZoomed(true)}
                 aria-label={t('zoomImage')}
-                className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center bg-white/85 backdrop-blur-sm transition-opacity hover:opacity-70"
+                className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center bg-white/85 backdrop-blur-sm transition-opacity hover:opacity-70"
                 style={{border: `1px solid ${HAIR}`, color: INK}}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" aria-hidden="true">
