@@ -90,6 +90,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
       {/* Header */}
       <WhiteHeader
         locale={locale}
+        activeCat={cat}
         left={
           <a href={`/${locale}/white`} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>
             ← {t('Home', 'Главная')}

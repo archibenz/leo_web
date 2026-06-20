@@ -8,7 +8,7 @@ import {INK, HAIR} from './wv-palette';
 // padding) and the flex-1 left/right slots that keep the REINASLEO wordmark
 // dead-centre on every page; each page passes its own left/right content.
 
-export default function WhiteHeader({locale, left, right}: {locale: string; left: ReactNode; right: ReactNode}) {
+export default function WhiteHeader({locale, left, right, activeCat}: {locale: string; left: ReactNode; right: ReactNode; activeCat?: string}) {
   return (
     <header className="sticky top-0 z-10 bg-white/85 backdrop-blur-md" style={{borderBottom: `1px solid ${HAIR}`}}>
       {/* Skip-link: first focusable element so keyboard users bypass the repeated
@@ -23,7 +23,7 @@ export default function WhiteHeader({locale, left, right}: {locale: string; left
         <div className="flex flex-1 items-center justify-start">
           {/* Mobile: full-screen menu (hamburger). Desktop: the page's own nav. */}
           <div className="md:hidden">
-            <WhiteMobileMenu locale={locale} />
+            <WhiteMobileMenu locale={locale} activeCat={activeCat} />
           </div>
           <div className="hidden items-center md:flex">{left}</div>
         </div>
