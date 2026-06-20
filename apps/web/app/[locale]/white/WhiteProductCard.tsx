@@ -155,7 +155,7 @@ export default function WhiteProductCard({
                 triggerRef.current?.focus();
               }}
               aria-label={t('close')}
-              className="absolute right-1 top-1 flex h-9 w-9 items-center justify-center text-[15px] leading-none transition-opacity hover:opacity-60"
+              className="absolute right-1 top-1 flex h-11 w-11 items-center justify-center text-[15px] leading-none transition-opacity hover:opacity-60"
               style={{color: MUTED}}
             >
               ×
