@@ -1119,6 +1119,19 @@
       "close": "Close",
       "saved": "Saved",
       "bag": "Bag"
+    },
+    "bag": {
+      "shop": "Shop",
+      "bagEmpty": "Your bag is empty",
+      "emptyHint": "Nothing here yet. Explore the collection and add the pieces you love.",
+      "continueShopping": "Continue shopping",
+      "bag": "Bag",
+      "size": "Size",
+      "quantity": "Quantity",
+      "decreaseQty": "Decrease quantity",
+      "increaseQty": "Increase quantity",
+      "total": "Total",
+      "removeFromBag": "Remove {name} from bag"
     }
   }
 }
