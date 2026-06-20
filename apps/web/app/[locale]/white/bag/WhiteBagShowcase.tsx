@@ -75,39 +75,46 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                     <p className="truncate text-[15px]">{(ru ? i.ru : i.en)}</p>
                     <p className="mt-1 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>{t('size')}: {i.size}</p>
                   </div>
-                  {/* Quantity stepper — min 1 (× removes); 44px tap targets, square. */}
-                  <div className="flex shrink-0 items-center" role="group" aria-label={t('quantity')}>
-                    <button
-                      type="button"
-                      onClick={() => setQty(i.id, i.qty - 1)}
-                      disabled={i.qty <= 1}
-                      aria-label={t('decreaseQty')}
-                      className="flex h-11 w-11 items-center justify-center text-[16px] leading-none transition-colors disabled:opacity-30"
-                      style={{border: `1px solid ${HAIR}`, color: INK}}
-                    >
-                      −
-                    </button>
-                    <span aria-live="polite" className="min-w-10 text-center text-[14px] tabular-nums">{i.qty}</span>
-                    <button
-                      type="button"
-                      onClick={() => setQty(i.id, i.qty + 1)}
-                      aria-label={t('increaseQty')}
-                      className="flex h-11 w-11 items-center justify-center text-[16px] leading-none transition-colors"
-                      style={{border: `1px solid ${HAIR}`, color: INK}}
-                    >
-                      +
-                    </button>
+                  {/* Controls — own full-width row on phones so the product name
+                      above keeps the whole line (it was truncating to ~103px);
+                      inline single row on sm+. */}
+                  <div className="flex w-full items-center justify-between gap-4 sm:w-auto sm:justify-end">
+                    {/* Quantity stepper — min 1 (× removes); 44px tap targets, square. */}
+                    <div className="flex shrink-0 items-center" role="group" aria-label={t('quantity')}>
+                      <button
+                        type="button"
+                        onClick={() => setQty(i.id, i.qty - 1)}
+                        disabled={i.qty <= 1}
+                        aria-label={t('decreaseQty')}
+                        className="flex h-11 w-11 items-center justify-center text-[16px] leading-none transition-colors disabled:opacity-30"
+                        style={{border: `1px solid ${HAIR}`, color: INK}}
+                      >
+                        −
+                      </button>
+                      <span aria-live="polite" className="min-w-10 text-center text-[14px] tabular-nums">{i.qty}</span>
+                      <button
+                        type="button"
+                        onClick={() => setQty(i.id, i.qty + 1)}
+                        aria-label={t('increaseQty')}
+                        className="flex h-11 w-11 items-center justify-center text-[16px] leading-none transition-colors"
+                        style={{border: `1px solid ${HAIR}`, color: INK}}
+                      >
+                        +
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <p className="w-24 shrink-0 text-right text-[14px] tabular-nums">{fmt(i.price * i.qty)}</p>
+                      <button
+                        type="button"
+                        onClick={() => remove(i.id)}
+                        aria-label={t('removeFromBag', {name: ru ? i.ru : i.en})}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center text-[20px] leading-none transition-opacity hover:opacity-60"
+                        style={{color: MUTED}}
+                      >
+                        ×
+                      </button>
+                    </div>
                   </div>
-                  <p className="w-24 shrink-0 text-right text-[14px] tabular-nums">{fmt(i.price * i.qty)}</p>
-                  <button
-                    type="button"
-                    onClick={() => remove(i.id)}
-                    aria-label={t('removeFromBag', {name: ru ? i.ru : i.en})}
-                    className="flex h-11 w-11 shrink-0 items-center justify-center text-[20px] leading-none transition-opacity hover:opacity-60"
-                    style={{color: MUTED}}
-                  >
-                    ×
-                  </button>
                 </li>
               ))}
             </ul>
