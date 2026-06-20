@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useRef} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname, useRouter} from 'next/navigation';
 import Link from 'next/link';
@@ -181,6 +181,28 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
     setSizeError(false);
   };
 
+  // Mobile sticky add-to-bag bar: reveal it once the inline CTA scrolls out of
+  // view, so the conversion action is always within thumb reach on a long PDP.
+  const inlineCtaRef = useRef<HTMLButtonElement>(null);
+  const [showSticky, setShowSticky] = useState(false);
+  useEffect(() => {
+    const el = inlineCtaRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setShowSticky(!entry.isIntersecting), {rootMargin: '0px 0px -48px 0px'});
+    io.observe(el);
+    return () => io.disconnect();
+  }, [product.inStock]);
+
+  const handleStickyAdd = () => {
+    if (sizeOptions.length > 0 && !selectedSize) {
+      setSizeError(true);
+      const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.getElementById('pdp-size')?.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'center'});
+      return;
+    }
+    handleAddToBag();
+  };
+
   const handleToggleFav = () => {
     toggleItem({id: product.id, title: product.title, image: product.image ?? undefined});
   };
@@ -262,7 +284,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
 
           {/* Size selector */}
           {sizeOptions.length > 0 && (
-            <div>
+            <div id="pdp-size" className="scroll-mt-24">
               <SizeSelector
                 sizes={sizeOptions}
                 selected={selectedSize}
@@ -311,6 +333,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
             )}
             {product.inStock && (
               <button
+                ref={inlineCtaRef}
                 onClick={handleAddToBag}
                 className="flex h-14 w-full items-center justify-center rounded-full bg-button text-base font-medium text-ink transition-all duration-200 hover:bg-button/90 active:scale-[0.98]"
               >
@@ -418,6 +441,29 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
                 </div>
               </Link>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Mobile sticky add-to-bag — slides up once the inline CTA scrolls away,
+          keeping the conversion action within thumb reach on a long PDP. */}
+      {product.inStock && (
+        <div
+          aria-hidden={!showSticky}
+          className={`fixed inset-x-0 bottom-0 z-40 border-t border-[var(--ink)]/10 bg-[var(--paper)]/95 px-4 pt-3 backdrop-blur-md transition-transform duration-300 ease-out lg:hidden motion-reduce:transition-none ${
+            showSticky ? 'translate-y-0' : 'pointer-events-none translate-y-full'
+          }`}
+          style={{paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))'}}
+        >
+          <div className="flex items-center gap-4">
+            <span className="shrink-0 text-base font-medium text-ink">{formatPrice(locale, product.price)}</span>
+            <button
+              onClick={handleStickyAdd}
+              tabIndex={showSticky ? 0 : -1}
+              className="flex h-12 flex-1 items-center justify-center rounded-full bg-button text-base font-medium text-ink transition-transform active:scale-[0.98]"
+            >
+              {t('addToBag')}
+            </button>
           </div>
         </div>
       )}
