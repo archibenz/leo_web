@@ -1,14 +1,17 @@
 'use client';
 
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
+import {useTranslations} from 'next-intl';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
+import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR} from '../wv-palette';
+import {whiteItemNoun} from '../wv-i18n';
 import {WHITE_PRODUCTS as ITEMS, whiteCatLabel, type WhiteProduct as Item, type WhiteCat as Cat} from '../products';
 
 // Variant 2 "White" — shop / catalog grid with filters + sort. Same portal
@@ -25,8 +28,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
   const [sort, setSort] = useState<Sort>(initialSort);
   const [query, setQuery] = useState(initialQuery);
   const searchRef = useRef<HTMLInputElement>(null);
-  const ru = locale === 'ru';
-  const t = (en: string, rus: string) => (ru ? rus : en);
+  const t = useTranslations('white.shop');
 
   // Deep-link intent (?focus=search, e.g. from the landing "Search" link):
   // the portal mounts client-side, so focus the field once it has painted.
@@ -59,7 +61,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
 
   // 'all' chip reads "All/Все"; real categories use the shared whiteCatLabel
   // (same source as the server-side title — no drift).
-  const catLabel = (c: Cat | 'all') => (c === 'all' ? t('All', 'Все') : whiteCatLabel(c, locale));
+  const catLabel = (c: Cat | 'all') => (c === 'all' ? t('all') : whiteCatLabel(c, locale));
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -72,49 +74,68 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
     return filtered;
   }, [cat, sort, query]);
 
+  // Edge-fade affordance for the mobile category carousel (sm: it wraps, no
+  // scroll → edge stays 'none', no mask). Keyed off scroll position so it never
+  // shows a false 'more' cue. Fades into the white DNA bg; static — nothing for
+  // reduced-motion to suppress.
+  const catRef = useRef<HTMLDivElement>(null);
+  const [edge, setEdge] = useState<'none' | 'right' | 'both' | 'left'>('none');
+  const syncEdge = useCallback(() => {
+    const el = catRef.current;
+    if (!el) return;
+    const canLeft = el.scrollLeft > 4;
+    const canRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+    setEdge(canLeft && canRight ? 'both' : canRight ? 'right' : canLeft ? 'left' : 'none');
+  }, []);
+  useEffect(() => {
+    syncEdge();
+    // The Jost UI font loads after first paint; once it applies the chips widen
+    // and may start to overflow, so re-measure when fonts settle (syncEdge no-ops
+    // if the ref is gone, so it is safe after unmount).
+    if (typeof document !== 'undefined' && document.fonts) document.fonts.ready.then(syncEdge);
+    window.addEventListener('resize', syncEdge);
+    return () => window.removeEventListener('resize', syncEdge);
+  }, [syncEdge, cat, shown.length, mounted]);
+  const FADE = 28;
+  const edgeMask =
+    edge === 'right'
+      ? `linear-gradient(to right, #000 calc(100% - ${FADE}px), transparent)`
+      : edge === 'left'
+        ? `linear-gradient(to right, transparent, #000 ${FADE}px)`
+        : edge === 'both'
+          ? `linear-gradient(to right, transparent, #000 ${FADE}px, #000 calc(100% - ${FADE}px), transparent)`
+          : undefined;
+
   if (!mounted) return null;
 
   const cats: (Cat | 'all')[] = ['all', 'dresses', 'outerwear', 'knitwear', 'tailoring', 'skirts'];
-  // Pluralised item count: en item/items, ru 3-form (one/few/many).
-  const itemsLabel = (n: number) => {
-    if (!ru) return n === 1 ? 'item' : 'items';
-    const m10 = n % 10;
-    const m100 = n % 100;
-    if (m10 === 1 && m100 !== 11) return 'товар';
-    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 'товара';
-    return 'товаров';
-  };
 
   return createPortal(
     <div className="wv-root fixed inset-0 z-[1000] overflow-y-auto bg-white font-sans antialiased" style={{color: INK}}>
       {/* Header */}
       <WhiteHeader
         locale={locale}
+        activeCat={cat}
         left={
           <a href={`/${locale}/white`} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>
-            ← {t('Home', 'Главная')}
+            ← {t('home')}
           </a>
         }
-        right={
-          <div className="flex items-center gap-6 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
-            <a href={`/${locale}/white/favourites`} aria-label={t(`Saved, ${favCount} items`, `Избранное, ${favCount} товаров`)} className="transition-opacity hover:opacity-60">{t('Saved', 'Избранное')} ({favCount})</a>
-            <a href={`/${locale}/white/bag`} aria-label={t(`Bag, ${count} items`, `Корзина, ${count} товаров`)} className="transition-opacity hover:opacity-60">{t('Bag', 'Корзина')} ({count})</a>
-          </div>
-        }
+        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
       />
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto max-w-[1400px] px-6 sm:px-10">
         {/* Title */}
         <div className="flex items-baseline justify-between pt-12 pb-6">
-          <h1 className="font-display text-[34px] font-light tracking-tight sm:text-[44px]">{t('Shop', 'Магазин')}</h1>
+          <h1 className="font-display text-[34px] font-light tracking-tight sm:text-[44px]">{t('shop')}</h1>
           <span aria-live="polite" aria-atomic="true" className="text-[12px] uppercase tracking-[0.16em] tabular-nums" style={{color: MUTED}}>
-            {shown.length} {itemsLabel(shown.length)}
+            {shown.length} {whiteItemNoun(shown.length, locale)}
           </span>
         </div>
 
         {/* Search — free-text filter by product name (en+ru). Hairline underline, square. */}
         <div className="pb-6">
-          <label htmlFor="wv-shop-search" className="sr-only">{t('Search products', 'Поиск по товарам')}</label>
+          <label htmlFor="wv-shop-search" className="sr-only">{t('searchProducts')}</label>
           <div className="relative">
             <input
               ref={searchRef}
@@ -122,7 +143,12 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
               type="search"
               value={query}
               onChange={(e) => pickQuery(e.target.value)}
-              placeholder={t('Search the collection', 'Поиск по коллекции')}
+              autoCapitalize="off"
+              autoCorrect="off"
+              autoComplete="off"
+              spellCheck={false}
+              enterKeyHint="search"
+              placeholder={t('searchCollection')}
               className="w-full border-b bg-transparent pb-2 pr-10 text-[15px] outline-none placeholder:text-[#8c837a] [&::-webkit-search-cancel-button]:hidden"
               style={{borderColor: HAIR, color: INK}}
             />
@@ -133,7 +159,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
                   pickQuery('');
                   searchRef.current?.focus();
                 }}
-                aria-label={t('Clear search', 'Очистить поиск')}
+                aria-label={t('clearSearch')}
                 className="absolute right-0 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center text-[16px] leading-none transition-opacity hover:opacity-60"
                 style={{color: MUTED}}
               >
@@ -145,7 +171,12 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
 
         {/* Filter bar */}
         <div className="flex flex-col gap-4 border-y py-4 sm:flex-row sm:items-center sm:justify-between" style={{borderColor: HAIR}}>
-          <div className="-mx-1 flex gap-1 overflow-x-auto sm:mx-0 sm:flex-wrap">
+          <div
+            ref={catRef}
+            onScroll={syncEdge}
+            className="-mx-1 flex gap-1 overflow-x-auto sm:mx-0 sm:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            style={edgeMask ? {maskImage: edgeMask, WebkitMaskImage: edgeMask} : undefined}
+          >
             {cats.map((c) => (
               <button
                 key={c}
@@ -164,16 +195,16 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
             ))}
           </div>
           <label className="flex items-center gap-2 text-[12px] uppercase tracking-[0.14em]" style={{color: MUTED}}>
-            {t('Sort', 'Сортировка')}
+            {t('sort')}
             <select
               value={sort}
               onChange={(e) => pickSort(e.target.value as Sort)}
               className="cursor-pointer border-b bg-transparent py-1 text-[12px] uppercase tracking-[0.14em] outline-none"
               style={{color: INK, borderColor: MUTED}}
             >
-              <option value="new">{t('Newest', 'Новизна')}</option>
-              <option value="asc">{t('Price: low to high', 'Цена: по возр.')}</option>
-              <option value="desc">{t('Price: high to low', 'Цена: по убыв.')}</option>
+              <option value="new">{t('sortNewest')}</option>
+              <option value="asc">{t('sortAsc')}</option>
+              <option value="desc">{t('sortDesc')}</option>
             </select>
           </label>
         </div>
@@ -181,15 +212,15 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         {/* Grid */}
         <div className="grid grid-cols-2 gap-x-4 gap-y-12 py-12 sm:gap-x-6 lg:grid-cols-3">
           {shown.map((p, i) => (
-            <WhiteProductCard key={p.key} locale={locale} product={p} t={t} index={i} quickAdd rise />
+            <WhiteProductCard key={p.key} locale={locale} product={p} index={i} quickAdd rise />
           ))}
         </div>
 
         {shown.length === 0 && (
           <p className="py-24 text-center text-[14px]" style={{color: MUTED}}>
             {query.trim()
-              ? t(`Nothing found for “${query.trim()}”.`, `Ничего не найдено по «${query.trim()}».`)
-              : t('Nothing here yet.', 'Здесь пока пусто.')}
+              ? t('nothingFound', {query: query.trim()})
+              : t('nothingHere')}
           </p>
         )}
       </main>

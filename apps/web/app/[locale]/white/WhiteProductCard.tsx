@@ -1,6 +1,8 @@
 'use client';
 
+import Image from 'next/image';
 import {useEffect, useRef, useState} from 'react';
+import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import {WHITE_SIZES, type WhiteProduct} from './products';
@@ -15,23 +17,20 @@ import {INK, MUTED, SIGNAL} from './wv-palette';
 // control lives OUTSIDE the anchor (a button nested in <a> is invalid markup
 // and breaks the link). CSS-only reveal, reduced-motion safe (see globals.css).
 
-type Translate = (_en: string, _ru: string) => string;
-
 export default function WhiteProductCard({
   locale,
   product,
-  t,
   index = 0,
   quickAdd = false,
   rise = false,
 }: {
   locale: string;
   product: WhiteProduct;
-  t: Translate;
   index?: number;
   quickAdd?: boolean;
   rise?: boolean;
 }) {
+  const t = useTranslations('white.card');
   const {add} = useWhiteBag();
   const {has, toggle} = useWhiteFavourites();
   const favourited = has(product.key);
@@ -41,7 +40,7 @@ export default function WhiteProductCard({
   const panelRef = useRef<HTMLDivElement>(null);
 
   const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
-  const name = t(product.en, product.ru);
+  const name = locale === 'ru' ? product.ru : product.en;
   const href = `/${locale}/white/product?p=${product.key}`;
 
   // ESC closes the panel; a click outside closes it. Focus returns to the
@@ -90,15 +89,25 @@ export default function WhiteProductCard({
       {/* The trigger's aria-label is a stable function name ("Quick add {name}"),
           so its visible "Added ✓" swap isn't announced — this polite status is. */}
       <span role="status" aria-live="polite" className="sr-only">
-        {added ? t(`${name} added to bag`, `${name} — добавлено в корзину`) : ''}
+        {added ? t('addedToBag', {name}) : ''}
       </span>
       <div className="wv-ph relative aspect-[2/3] w-full overflow-hidden">
+        {/* Real photo (gradient asset base). Slow zoom on hover for editorial
+            feel — disabled under reduced-motion. pointer-events-none so the
+            link layer above stays the click target. */}
+        <Image
+          src={product.image}
+          alt={name}
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 460px"
+          className="pointer-events-none object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+        />
         {/* Image is its own link so Quick Add can sit outside the anchor. */}
-        <a href={href} aria-label={name} className="absolute inset-0 z-0" />
+        <a href={href} aria-label={name} className="absolute inset-0 z-[1]" />
 
         {product.sale && (
           <span className="pointer-events-none absolute left-3 top-3 z-10 text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>
-            {t('Sale', 'Скидка')}
+            {t('sale')}
           </span>
         )}
 
@@ -110,7 +119,7 @@ export default function WhiteProductCard({
           type="button"
           onClick={() => toggle(product.key)}
           aria-pressed={favourited}
-          aria-label={favourited ? t(`Remove ${name} from favourites`, `Убрать ${name} из избранного`) : t(`Add ${name} to favourites`, `Добавить ${name} в избранное`)}
+          aria-label={favourited ? t('removeFavourite', {name}) : t('addFavourite', {name})}
           className="absolute right-1 top-1 z-10 flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-100"
           style={{opacity: favourited ? 1 : 0.75}}
         >
@@ -126,10 +135,10 @@ export default function WhiteProductCard({
             onClick={openPanel}
             aria-haspopup="true"
             aria-expanded={open}
-            aria-label={t(`Quick add ${name}`, `Быстро добавить: ${name}`)}
+            aria-label={t('quickAddNamed', {name})}
             className="wv-quickadd absolute inset-x-0 bottom-0 z-10 flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm"
           >
-            {added ? t('Added ✓', 'Добавлено ✓') : t('Quick add', 'В корзину')}
+            {added ? t('added') : t('quickAdd')}
           </button>
         )}
 
@@ -137,7 +146,7 @@ export default function WhiteProductCard({
           <div
             ref={panelRef}
             role="group"
-            aria-label={t(`Select a size for ${name}`, `Выберите размер: ${name}`)}
+            aria-label={t('selectSizeFor', {name})}
             className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-white/95 px-3"
           >
             <button
@@ -146,14 +155,14 @@ export default function WhiteProductCard({
                 setOpen(false);
                 triggerRef.current?.focus();
               }}
-              aria-label={t('Close', 'Закрыть')}
+              aria-label={t('close')}
               className="absolute right-1 top-1 flex h-9 w-9 items-center justify-center text-[15px] leading-none transition-opacity hover:opacity-60"
               style={{color: MUTED}}
             >
               ×
             </button>
             <p className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>
-              {t('Select size', 'Размер')}
+              {t('selectSize')}
             </p>
             <div className="flex flex-wrap justify-center gap-1.5">
               {WHITE_SIZES.map((s) => (
@@ -179,11 +188,11 @@ export default function WhiteProductCard({
           {product.sale ? (
             <>
               <s className="mr-2 line-through" style={{color: MUTED}}>
-                <span className="sr-only">{t('Regular price', 'Обычная цена')}: </span>
+                <span className="sr-only">{t('regularPrice')}: </span>
                 {fmt(product.price)}
               </s>
               <span>
-                <span className="sr-only">{t('Sale price', 'Цена со скидкой')}: </span>
+                <span className="sr-only">{t('salePrice')}: </span>
                 {fmt(product.sale)}
               </span>
             </>

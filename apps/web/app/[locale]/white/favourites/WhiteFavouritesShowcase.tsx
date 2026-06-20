@@ -1,13 +1,16 @@
 'use client';
 
 import {createPortal} from 'react-dom';
+import {useTranslations} from 'next-intl';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
+import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {MUTED, HAIR, SIGNAL} from '../wv-palette';
+import {whiteItemNoun} from '../wv-i18n';
 import {findWhiteProduct} from '../products';
 
 // Variant 2 "White" — favourites / wishlist. Lists the localStorage-backed
@@ -18,8 +21,7 @@ export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
   const mounted = useWhitePortal();
   const {count} = useWhiteBag();
   const {keys} = useWhiteFavourites();
-  const ru = locale === 'ru';
-  const t = (en: string, rus: string) => (ru ? rus : en);
+  const t = useTranslations('white.favourites');
 
   if (!mounted) return null;
 
@@ -32,15 +34,10 @@ export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
         locale={locale}
         left={
           <a href={`/${locale}/white/shop`} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>
-            ← {t('Shop', 'Магазин')}
+            ← {t('shop')}
           </a>
         }
-        right={
-          <div className="flex items-center gap-6 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
-            <span style={{color: '#1c1714'}} aria-current="page">{t('Saved', 'Избранное')} ({keys.length})</span>
-            <a href={`/${locale}/white/bag`} aria-label={t(`Bag, ${count} items`, `Корзина, ${count} товаров`)} className="transition-opacity hover:opacity-60">{t('Bag', 'Корзина')} ({count})</a>
-          </div>
-        }
+        right={<WhiteHeaderActions locale={locale} favCount={keys.length} count={count} current="favourites" />}
       />
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 py-12 sm:px-10">
@@ -52,32 +49,29 @@ export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
                 <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
               </svg>
             </span>
-            <h1 className="font-display text-[32px] font-light leading-tight sm:text-[40px]">{t('No favourites yet', 'Пока нет избранного')}</h1>
+            <h1 className="font-display text-[32px] font-light leading-tight sm:text-[40px]">{t('noFavourites')}</h1>
             <p className="mt-5 max-w-sm text-[14px] leading-relaxed" style={{color: MUTED}}>
-              {t(
-                'Tap the heart on a product to save it here for later.',
-                'Нажмите на сердце на странице товара, чтобы сохранить его сюда.',
-              )}
+              {t('emptyHint')}
             </p>
             <a href={`/${locale}/white/shop`} className="wv-btn mt-10 inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
-              {t('Browse the collection', 'Смотреть коллекцию')}
+              {t('browse')}
             </a>
           </div>
         ) : (
           <>
             <div className="flex items-baseline justify-between pb-2">
-              <h1 className="font-display text-[32px] font-light leading-tight sm:text-[40px]">{t('Saved', 'Избранное')}</h1>
+              <h1 className="font-display text-[32px] font-light leading-tight sm:text-[40px]">{t('saved')}</h1>
               <span className="text-[12px] uppercase tracking-[0.16em] tabular-nums" style={{color: MUTED}}>
-                {keys.length} {ru ? itemsLabelRu(keys.length) : keys.length === 1 ? 'item' : 'items'}
+                {keys.length} {whiteItemNoun(keys.length, locale)}
               </span>
             </div>
             <p className="mb-8 max-w-md text-[13px] leading-relaxed" style={{color: SIGNAL}}>
               {/* Honest note: the wishlist is held locally on this device. */}
-              {t('Saved on this device.', 'Сохранено на этом устройстве.')}
+              {t('savedOnDevice')}
             </p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-12 pb-12 sm:gap-x-6 lg:grid-cols-3">
               {saved.map((p, i) => (
-                <WhiteProductCard key={p.key} locale={locale} product={p} t={t} index={i} quickAdd rise />
+                <WhiteProductCard key={p.key} locale={locale} product={p} index={i} quickAdd rise />
               ))}
             </div>
           </>
@@ -88,13 +82,4 @@ export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
     </div>,
     document.body,
   );
-}
-
-// ru 3-form plural for the count (one / few / many) — matches the shop grid.
-function itemsLabelRu(n: number): string {
-  const m10 = n % 10;
-  const m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return 'товар';
-  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 'товара';
-  return 'товаров';
 }

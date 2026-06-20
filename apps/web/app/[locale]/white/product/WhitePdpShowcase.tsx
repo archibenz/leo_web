@@ -1,15 +1,19 @@
 'use client';
 
-import {useState} from 'react';
+import Image from 'next/image';
+import {useState, useEffect, useRef} from 'react';
 import {createPortal} from 'react-dom';
+import {useTranslations} from 'next-intl';
+import {useFocusTrap} from '../../../../lib/useFocusTrap';
 import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
+import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
-import {WHITE_PRODUCTS, WHITE_SIZES, type WhiteProduct} from '../products';
+import {WHITE_PRODUCTS, WHITE_SIZES, WHITE_EDITORIAL, type WhiteProduct} from '../products';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
 // the landing: a full-bleed white surface over the gradient chrome so the
@@ -24,16 +28,9 @@ const DEFAULT_COLORS = [
   {key: 'black', hex: '#2b2722', en: 'Black', ru: 'Чёрный'},
   {key: 'bordeaux', hex: '#6e2a2a', en: 'Bordeaux', ru: 'Бордовый'},
 ];
+// Gallery = the product photo first, then shared editorial views (gradient asset
+// base). Selecting a thumbnail swaps the main image. Built per-product below.
 const THUMBS = [0, 1, 2, 3];
-// Distinct on-DNA warm-neutral placeholders per gallery view, so selecting a
-// thumbnail visibly swaps the main image (no real photos yet). Forward-compatible:
-// swap these for <Image src={images[activeImg]}> once Higgsfield shots land.
-const PH_GRADIENTS = [
-  'linear-gradient(160deg, #f5f2ed, #e8e2d9)',
-  'linear-gradient(205deg, #f1ece3, #e3dccd)',
-  'linear-gradient(135deg, #efe9df, #e6dcca)',
-  'linear-gradient(180deg, #f3eee6, #e1d8c7)',
-];
 // Demo measurements (cm) for the size-guide disclosure.
 const SIZE_GUIDE = [
   {size: 'XS', bust: 82, waist: 62, hips: 88},
@@ -51,13 +48,20 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const [color, setColor] = useState(productColors[0]!.key);
   const [guideOpen, setGuideOpen] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
+  // Tap-to-zoom lightbox for the active gallery image.
+  const [zoomed, setZoomed] = useState(false);
+  const lightboxRef = useRef<HTMLDivElement>(null);
+  const lbStartX = useRef(0);
+  useFocusTrap(lightboxRef, zoomed);
   const {add, count} = useWhiteBag();
   const {has: isFavourite, toggle: toggleFavourite, count: favCount} = useWhiteFavourites();
   const ru = locale === 'ru';
-  const t = (en: string, rus: string) => (ru ? rus : en);
+  const t = useTranslations('white.pdp');
   const selectedColor = productColors.find((c) => c.key === color) ?? productColors[0]!;
   // Concrete product for the bag/wishlist — fall back to the demo dress (key 1).
   const bagProduct = product ?? WHITE_PRODUCTS[0]!;
+  // Product photo first, then shared editorial views — 4 gallery slots (THUMBS).
+  const gallery = [bagProduct.image, ...WHITE_EDITORIAL];
   const favourited = isFavourite(bagProduct.key);
   const handleAdd = () => {
     if (!size) return;
@@ -66,15 +70,86 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
     setJustAdded(true);
     window.setTimeout(() => setJustAdded(false), 1600);
   };
+
+  // Mobile sticky add-to-bag: reveal it once the inline CTA scrolls out of view.
+  const inlineAddRef = useRef<HTMLButtonElement>(null);
+  const [showSticky, setShowSticky] = useState(false);
+  useEffect(() => {
+    const el = inlineAddRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setShowSticky(!entry.isIntersecting), {rootMargin: '0px 0px -48px 0px'});
+    io.observe(el);
+    return () => io.disconnect();
+  }, [mounted]);
+  const handleStickyAdd = () => {
+    if (!size) {
+      const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.getElementById('wv-pdp-size')?.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'center'});
+      return;
+    }
+    handleAdd();
+  };
+  const stickyPrice = `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
+
+  // Mobile: swipe the main gallery image horizontally to step through views.
+  const galleryRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = galleryRef.current;
+    if (!el) return;
+    let startX = 0;
+    let startY = 0;
+    let active = false;
+    const onStart = (e: TouchEvent) => {
+      const tch = e.touches[0];
+      if (!tch) return;
+      startX = tch.clientX;
+      startY = tch.clientY;
+      active = true;
+    };
+    const onEnd = (e: TouchEvent) => {
+      if (!active) return;
+      active = false;
+      const tch = e.changedTouches[0];
+      if (!tch) return;
+      const dx = tch.clientX - startX;
+      const dy = tch.clientY - startY;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+        setActiveImg((prev) => (dx < 0 ? Math.min(prev + 1, gallery.length - 1) : Math.max(prev - 1, 0)));
+      }
+    };
+    el.addEventListener('touchstart', onStart, {passive: true});
+    el.addEventListener('touchend', onEnd);
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchend', onEnd);
+    };
+  }, [mounted, gallery.length]);
+
+  // Lightbox: lock scroll, ESC to close, move focus into the dialog. Focus
+  // returns to the zoom trigger on close via useFocusTrap (it was the active
+  // element when opened). The overlay itself has no entrance animation, so it
+  // is reduced-motion-safe by construction.
+  useEffect(() => {
+    if (!zoomed) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setZoomed(false);
+    };
+    document.addEventListener('keydown', onKey);
+    const raf = window.requestAnimationFrame(() => lightboxRef.current?.focus());
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+      window.cancelAnimationFrame(raf);
+    };
+  }, [zoomed]);
   // ?p selects the catalog product; fall back to the default demo dress.
-  const name = product ? t(product.en, product.ru) : t('Silk Column Dress', 'Шёлковое платье-колонна');
+  const name = product ? (ru ? product.ru : product.en) : t('nameFallback');
   const priceStr = product ? `${product.price.toLocaleString('ru-RU')} ₽` : '24 500 ₽';
   const desc = product
-    ? t(product.descEn, product.descRu)
-    : t(
-        'A fluid floor-length silhouette in matte silk. Bias-cut, unlined, with a concealed side zip. Designed to move quietly.',
-        'Текучий силуэт в пол из матового шёлка. Косой крой, без подклада, скрытая боковая молния. Создано двигаться тихо.',
-      );
+    ? (ru ? product.descRu : product.descEn)
+    : t('descFallback');
   // "You may also like" — same category first, then fill from the rest, current excluded.
   const pool = WHITE_PRODUCTS.filter((p) => p.key !== product?.key);
   const sameCat = product ? pool.filter((p) => p.cat === product.cat) : [];
@@ -89,24 +164,19 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
         locale={locale}
         left={
           <a href={`/${locale}/white`} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>
-            ← {t('Back', 'Назад')}
+            ← {t('back')}
           </a>
         }
-        right={
-          <div className="flex items-center gap-6 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
-            <a href={`/${locale}/white/favourites`} aria-label={t(`Saved, ${favCount} items`, `Избранное, ${favCount} товаров`)} className="transition-opacity hover:opacity-60">{t('Saved', 'Избранное')} ({favCount})</a>
-            <a href={`/${locale}/white/bag`} aria-label={t(`Bag, ${count} items`, `Корзина, ${count} товаров`)} className="transition-opacity hover:opacity-60">{t('Bag', 'Корзина')} ({count})</a>
-          </div>
-        }
+        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
       />
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}}>
       <div className="mx-auto max-w-[1400px] px-6 sm:px-10">
         {/* Breadcrumb */}
-        <nav className="py-5 text-[11px] uppercase tracking-[0.18em]" style={{color: MUTED}} aria-label={t('Breadcrumb', 'Хлебные крошки')}>
+        <nav className="py-5 text-[11px] uppercase tracking-[0.18em]" style={{color: MUTED}} aria-label={t('breadcrumb')}>
           <a href={`/${locale}/white`} className="transition-opacity hover:opacity-60">REINASLEO</a>
           <span className="mx-2">/</span>
-          <a href={`/${locale}/white/shop`} className="transition-opacity hover:opacity-60">{t('Shop', 'Магазин')}</a>
+          <a href={`/${locale}/white/shop`} className="transition-opacity hover:opacity-60">{t('shop')}</a>
           <span className="mx-2">/</span>
           <span style={{color: INK}} aria-current="page">{name}</span>
         </nav>
@@ -120,23 +190,39 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   key={i}
                   type="button"
                   onClick={() => setActiveImg(i)}
-                  aria-label={t(`View image ${i + 1}`, `Фото ${i + 1}`)}
+                  aria-label={t('viewImage', {n: i + 1})}
                   aria-pressed={i === activeImg}
-                  className="aspect-[2/3] w-16 shrink-0 transition-opacity"
+                  className="relative aspect-[2/3] w-16 shrink-0 overflow-hidden transition-opacity"
                   style={{
-                    background: PH_GRADIENTS[i],
                     outline: i === activeImg ? `1px solid ${INK}` : 'none',
                     opacity: i === activeImg ? 1 : 0.55,
                   }}
-                />
+                >
+                  <Image src={gallery[i] ?? gallery[0]!} alt="" fill sizes="64px" className="object-cover" />
+                </button>
               ))}
             </div>
-            <div className="order-1 aspect-[2/3] w-full sm:order-2" aria-hidden="true" style={{background: PH_GRADIENTS[activeImg] ?? PH_GRADIENTS[0]}} />
+            <div ref={galleryRef} className="relative order-1 aspect-[2/3] w-full touch-pan-y overflow-hidden sm:order-2">
+              <Image src={gallery[activeImg] ?? gallery[0]!} alt={name} fill priority sizes="(max-width: 1024px) 100vw, 560px" className="object-cover" />
+              {/* Tap-to-zoom — always-visible square trigger (no hover gate), opens
+                  a full-screen view of the active photo. */}
+              <button
+                type="button"
+                onClick={() => setZoomed(true)}
+                aria-label={t('zoomImage')}
+                className="absolute right-3 top-3 z-10 flex h-9 w-9 items-center justify-center bg-white/85 backdrop-blur-sm transition-opacity hover:opacity-70"
+                style={{border: `1px solid ${HAIR}`, color: INK}}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" aria-hidden="true">
+                  <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Info */}
           <div className="wv-rise wv-delay-1 lg:pt-6">
-            <p className="text-[11px] uppercase tracking-[0.3em]" style={{color: MUTED}}>{t('Autumn / Winter 2026', 'Осень / Зима 2026')}</p>
+            <p className="text-[11px] uppercase tracking-[0.3em]" style={{color: MUTED}}>{t('season')}</p>
             <h1 className="mt-4 font-display text-[34px] font-light leading-tight sm:text-[42px]">{name}</h1>
             <p className="mt-3 text-[18px]" style={{color: INK}}>{priceStr}</p>
             <p className="mt-6 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>{desc}</p>
@@ -144,7 +230,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             {/* Color */}
             <div className="mt-8">
               <p className="mb-3 text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>
-                {t('Colour', 'Цвет')} — <span style={{color: INK}}>{t(selectedColor.en, selectedColor.ru)}</span>
+                {t('colour')} — <span style={{color: INK}}>{(ru ? selectedColor.ru : selectedColor.en)}</span>
               </p>
               {/* 44px tap targets (project a11y rule); the 32px inner dot keeps
                   the visual unchanged — gap-0 since 44-32=12px padding reproduces
@@ -155,7 +241,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                     key={c.key}
                     type="button"
                     onClick={() => setColor(c.key)}
-                    aria-label={t(c.en, c.ru)}
+                    aria-label={(ru ? c.ru : c.en)}
                     aria-pressed={color === c.key}
                     className="group flex h-11 w-11 items-center justify-center"
                   >
@@ -170,18 +256,18 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             </div>
 
             {/* Size */}
-            <div className="mt-8">
+            <div id="wv-pdp-size" className="mt-8 scroll-mt-24">
               <div className="mb-3 flex items-baseline justify-between">
-                <p className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('Size', 'Размер')}</p>
+                <p className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('size')}</p>
                 <button
                   type="button"
                   onClick={() => setGuideOpen((o) => !o)}
                   aria-expanded={guideOpen}
                   aria-controls="wv-size-guide"
-                  className="text-[11px] uppercase tracking-[0.16em] underline-offset-4 hover:underline"
+                  className="-my-2 py-2 text-[11px] uppercase tracking-[0.16em] underline-offset-4 hover:underline"
                   style={{color: MUTED}}
                 >
-                  {t('Size guide', 'Таблица размеров')}
+                  {t('sizeGuide')}
                 </button>
               </div>
               <div className="flex flex-wrap gap-2.5">
@@ -205,13 +291,13 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               {/* Size-guide disclosure — semantic table, square/hairline, reduced-motion safe (hidden toggle). */}
               <div id="wv-size-guide" hidden={!guideOpen} className="mt-4">
                 <table className="w-full border-collapse text-[12px]">
-                  <caption className="sr-only">{t('Size guide, measurements in cm', 'Таблица размеров, в сантиметрах')}</caption>
+                  <caption className="sr-only">{t('sizeGuideCaption')}</caption>
                   <thead>
                     <tr style={{color: MUTED}}>
-                      <th scope="col" className="border-b py-2 text-left font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('Size', 'Размер')}</th>
-                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('Bust', 'Грудь')}</th>
-                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('Waist', 'Талия')}</th>
-                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('Hips', 'Бёдра')}</th>
+                      <th scope="col" className="border-b py-2 text-left font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('size')}</th>
+                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('bust')}</th>
+                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('waist')}</th>
+                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('hips')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -225,20 +311,20 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                     ))}
                   </tbody>
                 </table>
-                <p className="mt-2 text-[11px]" style={{color: MUTED}}>{t('Measurements in cm.', 'Размеры в сантиметрах.')}</p>
+                <p className="mt-2 text-[11px]" style={{color: MUTED}}>{t('measurementsCm')}</p>
               </div>
             </div>
 
             {/* Add to bag */}
             <div className="mt-9 flex gap-3">
-              <button type="button" disabled={!size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
-                {justAdded ? t('Added', 'Добавлено') : size ? t('Add to bag', 'В корзину') : t('Select a size', 'Выберите размер')}
+              <button ref={inlineAddRef} type="button" disabled={!size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
+                {justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
               </button>
               <button
                 type="button"
                 onClick={() => toggleFavourite(bagProduct.key)}
                 aria-pressed={favourited}
-                aria-label={favourited ? t('Remove from favourites', 'Убрать из избранного') : t('Add to favourites', 'В избранное')}
+                aria-label={favourited ? t('removeFav') : t('addFav')}
                 className="flex h-[52px] w-[52px] items-center justify-center transition-colors hover:bg-[#f5f2ed]"
                 style={{border: `1px solid ${favourited ? SIGNAL : HAIR}`}}
               >
@@ -251,9 +337,9 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             {/* Details */}
             <dl className="mt-10 divide-y" style={{borderColor: HAIR}}>
               {[
-                [t('Composition', 'Состав'), product ? t(product.compositionEn, product.compositionRu) : t('100% mulberry silk', '100% тутовый шёлк')],
-                [t('Care', 'Уход'), product ? t(product.careEn, product.careRu) : t('Dry clean only', 'Только химчистка')],
-                [t('Delivery', 'Доставка'), t('2–5 business days', '2–5 рабочих дней')],
+                [t('composition'), product ? (ru ? product.compositionRu : product.compositionEn) : t('compositionFallback')],
+                [t('care'), product ? (ru ? product.careRu : product.careEn) : t('careFallback')],
+                [t('delivery'), t('deliveryValue')],
               ].map(([k, v]) => (
                 <div key={k} className="flex justify-between py-3.5 text-[13px]" style={{borderColor: HAIR}}>
                   <dt style={{color: MUTED}}>{k}</dt>
@@ -270,11 +356,11 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
         <section className="border-t" style={{borderColor: HAIR}} aria-labelledby="wv-related-heading">
           <div className="mx-auto max-w-[1400px] px-6 py-16 sm:px-10">
             <h2 id="wv-related-heading" className="mb-10 font-display text-[24px] font-light tracking-tight sm:text-[30px]">
-              {t('You may also like', 'Вам также может понравиться')}
+              {t('relatedHeading')}
             </h2>
             <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 lg:grid-cols-4">
               {related.map((p) => (
-                <WhiteProductCard key={p.key} locale={locale} product={p} t={t} />
+                <WhiteProductCard key={p.key} locale={locale} product={p} />
               ))}
             </div>
           </div>
@@ -282,7 +368,75 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
       )}
       </main>
 
+      {/* Image lightbox — full-screen view of the active photo, White DNA
+          (white field, square close, generous air). No entrance animation →
+          reduced-motion-safe. Backdrop tap / ESC / × close; focus-trapped. */}
+      {zoomed && (
+        <div
+          ref={lightboxRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('zoomImage')}
+          tabIndex={-1}
+          onClick={() => setZoomed(false)}
+          className="fixed inset-0 z-[1100] flex items-center justify-center overscroll-contain bg-white outline-none"
+        >
+          <button
+            type="button"
+            onClick={() => setZoomed(false)}
+            aria-label={t('close')}
+            className="absolute right-4 top-4 z-10 flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-60"
+            style={{color: INK}}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="square" aria-hidden="true">
+              <path d="M5 5l14 14M19 5L5 19" />
+            </svg>
+          </button>
+          {/* Swipe left/right to step through the gallery while zoomed. */}
+          <div
+            className="relative h-[88%] w-[92%]"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => {
+              lbStartX.current = e.touches[0]?.clientX ?? 0;
+            }}
+            onTouchEnd={(e) => {
+              const dx = (e.changedTouches[0]?.clientX ?? 0) - lbStartX.current;
+              if (Math.abs(dx) > 40) setActiveImg((i) => (dx < 0 ? Math.min(i + 1, gallery.length - 1) : Math.max(i - 1, 0)));
+            }}
+          >
+            <Image src={gallery[activeImg] ?? gallery[0]!} alt={name} fill sizes="100vw" className="object-contain" />
+          </div>
+          {gallery.length > 1 && (
+            <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[12px] tabular-nums tracking-[0.2em]" style={{color: MUTED}} aria-hidden="true">
+              {activeImg + 1} / {gallery.length}
+            </p>
+          )}
+        </div>
+      )}
+
       <WhiteFooter locale={locale} />
+
+      {/* Mobile sticky add-to-bag — slides up once the inline CTA scrolls away,
+          keeping the action within thumb reach on a long PDP. */}
+      <div
+        aria-hidden={!showSticky}
+        className={`fixed inset-x-0 bottom-0 z-[60] border-t bg-white/95 px-6 pt-3 backdrop-blur-sm transition-transform duration-300 ease-out lg:hidden motion-reduce:transition-none ${
+          showSticky ? 'translate-y-0' : 'pointer-events-none translate-y-full'
+        }`}
+        style={{borderColor: HAIR, paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))'}}
+      >
+        <div className="flex items-center gap-4">
+          <span className="shrink-0 text-[15px]" style={{color: INK}}>{stickyPrice}</span>
+          <button
+            type="button"
+            onClick={handleStickyAdd}
+            tabIndex={showSticky ? 0 : -1}
+            className="wv-btn flex-1 py-3.5 text-[12px] uppercase tracking-[0.2em]"
+          >
+            {justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
+          </button>
+        </div>
+      </div>
     </div>,
     document.body,
   );

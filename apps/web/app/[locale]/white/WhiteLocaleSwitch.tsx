@@ -43,7 +43,7 @@ export default function WhiteLocaleSwitch({locale}: {locale: string}) {
             <a
               href={hrefFor(l.code)}
               hrefLang={l.code}
-              className="transition-opacity hover:opacity-60"
+              className="-mx-2 -my-2.5 inline-flex items-center px-2 py-2.5 transition-opacity hover:opacity-60"
               style={{color: MUTED}}
             >
               {l.label}
