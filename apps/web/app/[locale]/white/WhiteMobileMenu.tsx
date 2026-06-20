@@ -78,22 +78,27 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             </button>
           </div>
 
-          <nav className="flex flex-1 flex-col justify-center overflow-y-auto px-6" aria-label={t('menu')}>
-            {links.map((l, i) => {
-              const active = activeCat != null && l.key === activeCat;
-              return (
-                <a
-                  key={l.key}
-                  href={l.href}
-                  onClick={() => setOpen(false)}
-                  aria-current={active ? 'page' : undefined}
-                  className={`wv-rise wv-delay-${(i % 3) + 1} border-b py-3.5 font-display text-[30px] font-light leading-tight tracking-[-0.01em] transition-colors`}
-                  style={{borderColor: HAIR, color: active ? SIGNAL : INK}}
-                >
-                  {l.label}
-                </a>
-              );
-            })}
+          {/* my-auto child centres the list when it fits but lets it scroll from
+              the top when it overflows (short viewports / long RU labels / more
+              categories) — justify-center would clip the first link out of reach. */}
+          <nav className="flex flex-1 flex-col overflow-y-auto px-6" aria-label={t('menu')}>
+            <div className="my-auto w-full py-6">
+              {links.map((l, i) => {
+                const active = activeCat != null && l.key === activeCat;
+                return (
+                  <a
+                    key={l.key}
+                    href={l.href}
+                    onClick={() => setOpen(false)}
+                    aria-current={active ? 'page' : undefined}
+                    className={`wv-rise wv-delay-${(i % 3) + 1} block border-b py-3.5 font-display text-[30px] font-light leading-tight tracking-[-0.01em] transition-colors`}
+                    style={{borderColor: HAIR, color: active ? SIGNAL : INK}}
+                  >
+                    {l.label}
+                  </a>
+                );
+              })}
+            </div>
           </nav>
 
           <div className="shrink-0 px-6 pb-8">
