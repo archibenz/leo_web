@@ -3,19 +3,21 @@
 import {useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {useTranslations} from 'next-intl';
-import Image from 'next/image';
 import {useFocusTrap} from '../../../lib/useFocusTrap';
-import {WHITE_CATS, whiteCatLabel, WHITE_HERO_IMAGE} from './products';
-import {INK, MUTED, HAIR, SIGNAL} from './wv-palette';
+import {WHITE_CATS, whiteCatLabel} from './products';
+import {INK, MUTED, SIGNAL} from './wv-palette';
 
-// Variant 2 "White" — mobile menu. The header only had a single Shop link; this
-// is a full-screen white-DNA menu: large Cormorant category links centred with
-// air, an editorial photo, signal accent on the active route. Staggered reveal
-// is reduced-motion-safe (wv-rise). Focus-trapped, ESC + scroll-lock.
+// Variant 2 "White" — minimalist mobile menu (owner ask). Stripped to essentials
+// in the White DNA (Zara/H&M refs): no editorial photo, no per-link dividers —
+// air separates. Large left-aligned Cormorant links with quiet muted index
+// numerals as the one editorial detail; signal accent only on the active route.
+// Staggered reveal is reduced-motion-safe (wv-rise). Focus-trapped; ESC +
+// scroll-lock; focus returns to the hamburger on close (WCAG 2.4.3).
 
 export default function WhiteMobileMenu({locale, activeCat}: {locale: string; activeCat?: string | null}) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const [mounted, setMounted] = useState(false);
   const t = useTranslations('white.menu');
 
@@ -24,6 +26,9 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
 
   useEffect(() => {
     if (!open) return;
+    // The hamburger is always mounted, so capturing it here is stable; copying to
+    // a local keeps the cleanup honest (no stale-ref lint warning).
+    const trigger = triggerRef.current;
     document.body.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
@@ -32,6 +37,8 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
     return () => {
       document.body.style.overflow = '';
       document.removeEventListener('keydown', onKey);
+      // WCAG 2.4.3 — focus order: hand focus back to the trigger on close.
+      trigger?.focus();
     };
   }, [open]);
 
@@ -43,6 +50,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => setOpen(true)}
         aria-expanded={open}
@@ -64,7 +72,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
           className="fixed inset-0 z-[1200] flex flex-col bg-white font-sans antialiased"
           style={{color: INK}}
         >
-          <div className="flex shrink-0 items-center justify-between px-6 py-5">
+          <div className="flex shrink-0 items-center justify-between px-7 py-5">
             <span className="font-display text-[20px] font-medium tracking-[0.42em]">REINASLEO</span>
             <button
               type="button"
@@ -79,10 +87,9 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
           </div>
 
           {/* my-auto child centres the list when it fits but lets it scroll from
-              the top when it overflows (short viewports / long RU labels / more
-              categories) — justify-center would clip the first link out of reach. */}
-          <nav className="flex flex-1 flex-col overflow-y-auto px-6" aria-label={t('menu')}>
-            <div className="my-auto w-full py-6">
+              the top when it overflows (short viewports / long RU labels). */}
+          <nav className="flex flex-1 flex-col overflow-y-auto px-7" aria-label={t('menu')}>
+            <div className="my-auto w-full py-8">
               {links.map((l, i) => {
                 const active = activeCat != null && l.key === activeCat;
                 return (
@@ -91,21 +98,25 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                     href={l.href}
                     onClick={() => setOpen(false)}
                     aria-current={active ? 'page' : undefined}
-                    className={`wv-rise wv-delay-${(i % 3) + 1} block border-b py-3.5 font-display text-[30px] font-light leading-tight tracking-[-0.01em] transition-colors`}
-                    style={{borderColor: HAIR, color: active ? SIGNAL : INK}}
+                    className={`wv-rise wv-delay-${(i % 3) + 1} flex items-baseline gap-5 py-4 transition-colors`}
+                    style={{color: active ? SIGNAL : INK}}
                   >
-                    {l.label}
+                    <span
+                      aria-hidden="true"
+                      className="w-5 shrink-0 text-[11px] tabular-nums tracking-[0.2em]"
+                      style={{color: active ? SIGNAL : MUTED}}
+                    >
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className="font-display text-[34px] font-light leading-none tracking-[-0.01em]">{l.label}</span>
                   </a>
                 );
               })}
             </div>
           </nav>
 
-          <div className="shrink-0 px-6 pb-8">
-            <div className="wv-rise relative mb-5 aspect-[3/1] w-full overflow-hidden">
-              <Image src={WHITE_HERO_IMAGE} alt="" fill sizes="100vw" className="object-cover" />
-            </div>
-            <div className="flex gap-6 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
+          <div className="shrink-0 px-7 pb-9">
+            <div className="flex gap-7 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
               <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="transition-opacity hover:opacity-60">
                 {t('saved')}
               </a>

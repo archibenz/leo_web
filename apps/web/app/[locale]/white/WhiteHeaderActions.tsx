@@ -4,6 +4,7 @@ import type {ReactNode} from 'react';
 import {useTranslations} from 'next-intl';
 import {MUTED, INK, SIGNAL} from './wv-palette';
 import {whiteItemNoun} from './wv-i18n';
+import {MaskIcon} from './wv-icons';
 
 // Shared header right-slot. On mobile the full-text labels ("Избранное (0)",
 // "Корзина (0)") crowd the wordmark on a 375px header; the reference set
@@ -15,31 +16,6 @@ import {whiteItemNoun} from './wv-i18n';
 // reduced-motion to suppress.
 
 type ActionKey = 'favourites' | 'bag';
-
-// The brand heart/cart icons live in /public/icons (shared with the gradient
-// site) but their fill is the gradient's cream (#F2E6D8) — invisible on White's
-// white background. Render the custom shape as a CSS mask filled with
-// currentColor, so it inherits White's colour system (MUTED, INK when current)
-// without recolouring assets. Static — nothing for reduced-motion to suppress.
-function MaskIcon({src, className}: {src: string; className?: string}) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`inline-block ${className ?? ''}`}
-      style={{
-        backgroundColor: 'currentColor',
-        WebkitMaskImage: `url(${src})`,
-        maskImage: `url(${src})`,
-        WebkitMaskRepeat: 'no-repeat',
-        maskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center',
-        maskPosition: 'center',
-        WebkitMaskSize: 'contain',
-        maskSize: 'contain',
-      }}
-    />
-  );
-}
 
 const WRAP = 'relative flex h-11 w-11 items-center justify-center sm:h-auto sm:w-auto';
 

@@ -13,6 +13,7 @@ import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
+import {WhiteFavHeart} from '../wv-icons';
 import {WHITE_PRODUCTS, WHITE_SIZES, WHITE_EDITORIAL, type WhiteProduct} from '../products';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
@@ -328,9 +329,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                 className="flex h-[52px] w-[52px] items-center justify-center transition-colors hover:bg-[#f5f2ed]"
                 style={{border: `1px solid ${favourited ? SIGNAL : HAIR}`}}
               >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill={favourited ? SIGNAL : 'none'} stroke={favourited ? SIGNAL : INK} strokeWidth="1.4">
-                  <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 1 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
-                </svg>
+                <WhiteFavHeart filled={favourited} size={18} />
               </button>
             </div>
 
