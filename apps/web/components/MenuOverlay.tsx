@@ -2,7 +2,6 @@
 
 import {useEffect, useRef, useState, useCallback} from 'react';
 import {useTranslations} from 'next-intl';
-import Image from 'next/image';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {useFocusTrap} from '../lib/useFocusTrap';
@@ -22,9 +21,6 @@ const CATEGORY_ITEMS = [
   'skirts',
   'trousers',
 ] as const;
-
-// Editorial full-screen menu image — from the shared shop asset base (CSP 'self').
-const MENU_IMAGE = '/images/shop/editorial-clean.jpg';
 
 export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps) {
   const t = useTranslations('menu');
@@ -57,14 +53,19 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
       };
     } else {
       document.body.style.overflow = '';
-      const timer = setTimeout(() => setIsAnimating(false), 360);
+      const timer = setTimeout(() => setIsAnimating(false), 280);
       return () => clearTimeout(timer);
     }
   }, [isOpen, handleClose]);
 
   if (!isOpen && !isAnimating) return null;
 
-  // Primary list — Shop, then the categories. Indexed editorial numbering.
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      handleClose();
+    }
+  };
+
   const primary = [
     {key: 'shop', href: `/${locale}/shop`, label: nav('shop')},
     ...CATEGORY_ITEMS.map((key) => ({key, href: `/${locale}/shop?category=${key}`, label: t(`categories.${key}`)})),
@@ -79,68 +80,79 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
 
   return (
     <div
-      ref={menuRef}
-      className={`fixed inset-0 z-[180] flex h-[100dvh] flex-col transition-opacity duration-300 ease-out ${
+      className={`fixed inset-0 z-[180] transition-opacity duration-300 ease-out ${
         isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
-      style={{background: 'var(--paper)'}}
-      role="dialog"
-      aria-modal="true"
-      aria-label={t('label')}
+      onClick={handleBackdropClick}
+      style={{
+        background: 'rgba(8, 5, 3, 0.5)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        cursor: 'pointer',
+      }}
+      role="presentation"
     >
-      {/* The site header (hamburger→✕, wordmark, icons) stays above this overlay
-          and owns the close affordance — so the menu is pure content, padded to
-          clear the header. ESC also closes (handler above). */}
+      <div className="flex items-start justify-center px-3 pt-[70px] sm:px-4">
+        <div
+          ref={menuRef}
+          onClick={(e) => e.stopPropagation()}
+          className={`liquid-glass-menu menu-panel relative w-full max-w-[calc(100%-12px)] cursor-default rounded-[28px] ${
+            isOpen ? 'menu-panel-open' : 'menu-panel-close'
+          }`}
+          role="dialog"
+          aria-modal="true"
+          aria-label={t('label')}
+        >
+          <div className="relative max-h-[calc(100dvh-100px)] overflow-y-auto px-3 py-4 sm:px-4">
+            {/* Primary — each row is a tactile glass pill. */}
+            <nav className="flex flex-col gap-0.5">
+              {primary.map((item, index) => {
+                const current = pathname === item.href;
+                return (
+                  <Link
+                    key={item.key}
+                    ref={index === 0 ? firstLinkRef : undefined}
+                    href={item.href}
+                    onClick={onClose}
+                    aria-current={current ? 'page' : undefined}
+                    className="menu-rise group flex items-center justify-between rounded-2xl px-4 py-3 transition-colors duration-200 hover:bg-[rgba(242,230,216,0.07)] focus-visible:bg-[rgba(242,230,216,0.07)] active:bg-[rgba(212,165,116,0.10)]"
+                    style={{animationDelay: `${70 + index * 45}ms`}}
+                  >
+                    <span
+                      className={`font-display text-[19px] tracking-[0.01em] transition-colors group-hover:text-accent group-focus-visible:text-accent ${
+                        current ? 'text-accent' : 'text-inkSoft'
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                    <span
+                      aria-hidden="true"
+                      className="font-accent text-[13px] text-inkSoft/20 transition-all duration-200 group-hover:translate-x-1 group-hover:text-accent group-focus-visible:translate-x-1 group-focus-visible:text-accent"
+                    >
+                      →
+                    </span>
+                  </Link>
+                );
+              })}
+            </nav>
 
-      {/* Primary nav — large indexed serif links, staggered reveal */}
-      <nav className="flex-1 overflow-y-auto px-6 pt-[92px] sm:px-8" aria-label={t('label')}>
-        {primary.map((item, index) => {
-          const current = pathname === item.href;
-          return (
-            <Link
-              key={item.key}
-              ref={index === 0 ? firstLinkRef : undefined}
-              href={item.href}
-              onClick={onClose}
-              aria-current={current ? 'page' : undefined}
-              className="menu-rise group flex items-baseline gap-4 py-2"
-              style={{animationDelay: `${90 + index * 50}ms`}}
-            >
-              <span className="w-6 shrink-0 font-accent text-[11px] tabular-nums text-[var(--accent)]/55">
-                {String(index + 1).padStart(2, '0')}
-              </span>
-              <span
-                className={`font-display text-[30px] leading-[1.08] tracking-[-0.01em] transition-colors group-hover:text-accent group-focus-visible:text-accent ${
-                  current ? 'text-accent' : 'text-inkSoft'
-                }`}
-              >
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
-      </nav>
+            <div className="mx-4 my-3 h-px bg-[rgba(242,230,216,0.1)]" />
 
-      {/* Editorial strip + quiet secondary links */}
-      <div className="menu-rise shrink-0 px-6 pb-7 sm:px-8" style={{animationDelay: `${90 + primary.length * 50}ms`}}>
-        <div className="relative mb-5 aspect-[3/1] w-full overflow-hidden">
-          <Image src={MENU_IMAGE} alt="" fill sizes="100vw" className="object-cover" />
-          <span className="absolute bottom-2.5 left-3 font-accent text-[10px] uppercase tracking-[0.24em] text-white/90">
-            {locale === 'ru' ? 'Осень / Зима 2026' : 'Autumn / Winter 2026'}
-          </span>
+            {/* Quiet secondary links. */}
+            <nav className="flex flex-wrap gap-x-5 gap-y-2.5 px-4 pb-1">
+              {secondary.map(({href, label}) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={onClose}
+                  className="text-[12px] uppercase tracking-[0.08em] text-inkSoft/55 transition-colors hover:text-accent focus-visible:text-accent"
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
+          </div>
         </div>
-        <nav className="flex flex-wrap gap-x-5 gap-y-2" aria-label={t('sections.categories')}>
-          {secondary.map(({href, label}) => (
-            <Link
-              key={href}
-              href={href}
-              onClick={onClose}
-              className="text-[12px] uppercase tracking-[0.08em] text-inkSoft/55 transition-colors hover:text-accent focus-visible:text-accent"
-            >
-              {label}
-            </Link>
-          ))}
-        </nav>
       </div>
     </div>
   );
