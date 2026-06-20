@@ -56,7 +56,6 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
   const [hasAnimated, setHasAnimated] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -133,8 +132,11 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
   const handleMenuToggle = useCallback(() => {
     setHasAnimated(true);
     setIsMenuOpen((p) => !p);
-    // Sheds focus so iOS Safari doesn't keep the visual highlight after tap
-    menuButtonRef.current?.blur();
+    // No blur() here: blurring before the overlay's focus-trap activates made it
+    // capture <body> as previous-focus, so focus was lost on close (WCAG 2.4.3).
+    // Leaving the trigger focused lets useFocusTrap restore focus to it on close.
+    // The iOS tap highlight is handled by WebkitTapHighlightColor: transparent
+    // below, and the only focus ring is :focus-visible (keyboard, not tap).
   }, []);
   const getHamburgerClass = () => !hasAnimated ? '' : isMenuOpen ? 'hamburger-open' : 'hamburger-close';
   const desc = (map: Record<string, { en: string; ru: string }>, key: string) => locale === 'ru' ? map[key]?.ru : map[key]?.en;
@@ -146,7 +148,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
 
           {/* Left: Hamburger (mobile) + Logo */}
           <div className="flex items-center gap-2.5 min-w-0 flex-shrink-0 ml-2 lg:ml-4">
-            <button ref={menuButtonRef} type="button" onClick={handleMenuToggle}
+            <button type="button" onClick={handleMenuToggle}
               aria-label={isMenuOpen ? t('closeMenu') : t('openMenu')} aria-expanded={isMenuOpen}
               style={{ WebkitTapHighlightColor: 'transparent' }}
               className="group relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 focus-visible:rounded-full lg:hidden">
