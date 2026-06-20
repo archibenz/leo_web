@@ -124,7 +124,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
               type="submit"
               disabled={nlLocked}
               aria-label={t('subscribe')}
-              className="-my-2.5 flex h-11 w-10 shrink-0 items-center justify-center text-[14px] uppercase tracking-[0.16em] transition-opacity hover:opacity-60 disabled:opacity-40"
+              className="-my-2.5 flex h-11 w-11 shrink-0 items-center justify-center text-[14px] uppercase tracking-[0.16em] transition-opacity hover:opacity-60 disabled:opacity-40"
               style={{color: INK}}
             >
               {status === 'loading' ? '…' : '→'}
