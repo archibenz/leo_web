@@ -30,6 +30,10 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
   const menuRef = useRef<HTMLDivElement>(null);
   const firstLinkRef = useRef<HTMLAnchorElement>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  // Active category is read from the URL on open (window.location, not
+  // useSearchParams — keeps this global-header component out of a Suspense
+  // bailout). The ?category lives in the query, which usePathname omits.
+  const [activeCat, setActiveCat] = useState<string | null>(null);
 
   useFocusTrap(menuRef, isOpen);
 
@@ -40,6 +44,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
   useEffect(() => {
     if (isOpen) {
       setIsAnimating(true);
+      setActiveCat(new URLSearchParams(window.location.search).get('category'));
       document.body.style.overflow = 'hidden';
       const focusTimer = setTimeout(() => firstLinkRef.current?.focus(), 280);
       const handleEsc = (e: KeyboardEvent) => {
@@ -107,7 +112,8 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
             {/* Primary — each row is a tactile glass pill. */}
             <nav className="flex flex-col gap-0.5">
               {primary.map((item, index) => {
-                const current = pathname === item.href;
+                const onShop = pathname === `/${locale}/shop`;
+                const current = item.key === 'shop' ? onShop && !activeCat : onShop && item.key === activeCat;
                 return (
                   <Link
                     key={item.key}
