@@ -323,7 +323,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             </h2>
             <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 lg:grid-cols-4">
               {related.map((p) => (
-                <WhiteProductCard key={p.key} locale={locale} product={p} t={t} />
+                <WhiteProductCard key={p.key} locale={locale} product={p} />
               ))}
             </div>
           </div>

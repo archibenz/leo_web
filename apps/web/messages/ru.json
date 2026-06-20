@@ -1132,6 +1132,20 @@
       "increaseQty": "Увеличить количество",
       "total": "Итого",
       "removeFromBag": "Убрать {name} из корзины"
+    },
+    "card": {
+      "sale": "Скидка",
+      "addedToBag": "{name} — добавлено в корзину",
+      "removeFavourite": "Убрать {name} из избранного",
+      "addFavourite": "Добавить {name} в избранное",
+      "quickAddNamed": "Быстро добавить: {name}",
+      "added": "Добавлено ✓",
+      "quickAdd": "В корзину",
+      "selectSizeFor": "Выберите размер: {name}",
+      "close": "Закрыть",
+      "selectSize": "Размер",
+      "regularPrice": "Обычная цена",
+      "salePrice": "Цена со скидкой"
     }
   }
 }

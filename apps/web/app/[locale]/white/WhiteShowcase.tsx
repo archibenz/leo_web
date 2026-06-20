@@ -121,7 +121,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       <section className="mx-auto max-w-[1400px] px-6 pb-24 sm:px-10">
         <div className="grid grid-cols-2 gap-x-4 gap-y-12 sm:gap-x-6 lg:grid-cols-3">
           {FEATURED.map((p, i) => (
-            <WhiteProductCard key={p.key} locale={locale} product={p} t={t} index={i} quickAdd rise />
+            <WhiteProductCard key={p.key} locale={locale} product={p} index={i} quickAdd rise />
           ))}
         </div>
       </section>

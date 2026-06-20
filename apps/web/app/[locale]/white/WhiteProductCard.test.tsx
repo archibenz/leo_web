@@ -5,6 +5,8 @@ import WhiteProductCard from './WhiteProductCard';
 import {removeWhiteFavourite} from '../../../hooks/useWhiteFavourites';
 import {removeFromWhiteBag} from '../../../hooks/useWhiteBag';
 import type {WhiteProduct} from './products';
+import {NextIntlClientProvider} from 'next-intl';
+import enMessages from '../../../messages/en.json';
 
 // jsdom here doesn't provide localStorage — install the same in-memory mock the
 // useWhiteBag store test uses, so the Quick Add → bag write path is exercised.
@@ -44,7 +46,15 @@ const PRODUCT: WhiteProduct = {
   image: '/images/shop/editorial-clean.jpg',
 };
 
-const t = (en: string) => en;
+// Only the card's namespace is needed; passing the whole catalogue trips the
+// next-intl message type (en.json has an array-valued key it rejects).
+function renderCard(ui: Parameters<typeof render>[0]) {
+  return render(
+    <NextIntlClientProvider locale="en" messages={{white: {card: enMessages.white.card}}}>
+      {ui}
+    </NextIntlClientProvider>,
+  );
+}
 const readBag = () => {
   try {
     return JSON.parse(localStorage.getItem('wv-bag') ?? '[]') as Array<{key: number; size: string; qty: number; id: string; price: number}>;
@@ -72,7 +82,7 @@ afterEach(() => {
 
 describe('WhiteProductCard Quick Add', () => {
   it('does not expose any add control until a size is chosen (no null-size add)', () => {
-    render(<WhiteProductCard locale="en" product={PRODUCT} t={t} quickAdd />);
+    renderCard(<WhiteProductCard locale="en" product={PRODUCT} quickAdd />);
     // The card links to the PDP and shows a Quick Add trigger — but nothing is
     // in the bag and there is no size-less "add" affordance.
     expect(screen.getByRole('button', {name: /quick add/i})).toBeInTheDocument();
@@ -81,7 +91,7 @@ describe('WhiteProductCard Quick Add', () => {
 
   it('opens a size panel and adds the chosen size to the bag', async () => {
     const user = userEvent.setup();
-    render(<WhiteProductCard locale="en" product={PRODUCT} t={t} quickAdd />);
+    renderCard(<WhiteProductCard locale="en" product={PRODUCT} quickAdd />);
 
     await user.click(screen.getByRole('button', {name: /quick add/i}));
     // Panel reveals the size run.
@@ -99,7 +109,7 @@ describe('WhiteProductCard Quick Add', () => {
 
   it('adds the effective (sale) price for a discounted product, not the regular one', async () => {
     const user = userEvent.setup();
-    render(<WhiteProductCard locale="en" product={{...PRODUCT, sale: 11900}} t={t} quickAdd />);
+    renderCard(<WhiteProductCard locale="en" product={{...PRODUCT, sale: 11900}} quickAdd />);
 
     await user.click(screen.getByRole('button', {name: /quick add/i}));
     await user.click(await screen.findByRole('button', {name: 'M'}));
@@ -117,7 +127,7 @@ describe('WhiteProductCard Quick Add', () => {
   });
 
   it('omits the Quick Add control entirely when quickAdd is not set', () => {
-    render(<WhiteProductCard locale="en" product={PRODUCT} t={t} />);
+    renderCard(<WhiteProductCard locale="en" product={PRODUCT} />);
     expect(screen.queryByRole('button', {name: /quick add/i})).not.toBeInTheDocument();
     // The card is still a link to the product.
     expect(screen.getAllByRole('link').length).toBeGreaterThan(0);
@@ -127,7 +137,7 @@ describe('WhiteProductCard Quick Add', () => {
 describe('WhiteProductCard favourite heart', () => {
   it('toggles the favourite on, persisting the product key', async () => {
     const user = userEvent.setup();
-    render(<WhiteProductCard locale="en" product={PRODUCT} t={t} />);
+    renderCard(<WhiteProductCard locale="en" product={PRODUCT} />);
 
     const heart = screen.getByRole('button', {name: /add .* to favourites/i});
     expect(heart).toHaveAttribute('aria-pressed', 'false');
@@ -142,7 +152,7 @@ describe('WhiteProductCard favourite heart', () => {
 
   it('toggles the favourite back off', async () => {
     const user = userEvent.setup();
-    render(<WhiteProductCard locale="en" product={PRODUCT} t={t} />);
+    renderCard(<WhiteProductCard locale="en" product={PRODUCT} />);
     const heart = screen.getByRole('button', {name: /favourites/i});
     await user.click(heart);
     await waitFor(() => expect(readFavs()).toEqual([3]));

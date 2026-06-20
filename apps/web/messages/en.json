@@ -1132,6 +1132,20 @@
       "increaseQty": "Increase quantity",
       "total": "Total",
       "removeFromBag": "Remove {name} from bag"
+    },
+    "card": {
+      "sale": "Sale",
+      "addedToBag": "{name} added to bag",
+      "removeFavourite": "Remove {name} from favourites",
+      "addFavourite": "Add {name} to favourites",
+      "quickAddNamed": "Quick add {name}",
+      "added": "Added ✓",
+      "quickAdd": "Quick add",
+      "selectSizeFor": "Select a size for {name}",
+      "close": "Close",
+      "selectSize": "Select size",
+      "regularPrice": "Regular price",
+      "salePrice": "Sale price"
     }
   }
 }
