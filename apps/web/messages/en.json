@@ -1323,7 +1323,8 @@
       "emailLabel": "Email address",
       "email": "Email",
       "subscribe": "Subscribe",
-      "previewNote": "White variant — preview"
+      "previewNote": "White variant — preview",
+      "lookbook": "Lookbook"
     },
     "pdp": {
       "nameFallback": "Silk Column Dress",
@@ -1370,6 +1371,14 @@
       "p3Label": "Cloth",
       "p3Body": "Natural, weighty, honest fibres, chosen to age well.",
       "cta": "Shop the collection"
+    },
+    "lookbook": {
+      "back": "Home",
+      "eyebrow": "Autumn / Winter 2026",
+      "title": "The lookbook",
+      "intro": "Looks from the season, cut for quiet movement. Tap any piece to shop it.",
+      "look": "Look",
+      "shopLook": "Shop this look"
     }
   }
 }
