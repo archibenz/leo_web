@@ -96,6 +96,15 @@
     "footer": {
       "copyright": "© 2026 REINASLEO",
       "tagline": "Made with precision"
+    },
+    "colours": {
+      "neutrals": "Neutrals",
+      "burgundy": "Burgundy",
+      "black": "Black",
+      "chocolate": "Chocolate",
+      "ivory": "Ivory",
+      "oatmeal": "Oatmeal",
+      "charcoal": "Charcoal"
     }
   },
   "products": {

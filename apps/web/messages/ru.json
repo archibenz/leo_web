@@ -96,6 +96,15 @@
     "footer": {
       "copyright": "© 2026 REINASLEO",
       "tagline": "Сделано с точностью"
+    },
+    "colours": {
+      "neutrals": "Нейтральные",
+      "burgundy": "Бордовый",
+      "black": "Чёрный",
+      "chocolate": "Шоколадный",
+      "ivory": "Слоновая кость",
+      "oatmeal": "Овсяный",
+      "charcoal": "Угольный"
     }
   },
   "products": {

@@ -161,13 +161,15 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
 
       {/* Secondary quiet row + editorial photo footer. */}
       <div className="shrink-0 px-6 pb-8 pt-4">
-        <nav className="flex flex-wrap gap-x-5 gap-y-0.5" aria-label={t('sections.more')}>
+        {/* min-h-11 → 44px tap floor (matches the header/footer and the White
+            track); -my-1 keeps the row's visual height while the targets grow. */}
+        <nav className="-my-1 flex flex-wrap gap-x-5" aria-label={t('sections.more')}>
           {secondary.map(({href, label}) => (
             <Link
               key={href}
               href={href}
               onClick={onClose}
-              className="inline-flex items-center py-2.5 text-[12px] uppercase tracking-[0.1em] text-inkSoft/70 transition-colors hover:text-accent focus-visible:text-accent"
+              className="inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.1em] text-inkSoft/70 transition-colors hover:text-accent focus-visible:text-accent"
             >
               {label}
             </Link>

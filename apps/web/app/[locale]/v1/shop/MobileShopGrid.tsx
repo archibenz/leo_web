@@ -54,18 +54,31 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
   const filterParam = searchParams.get('filter');
   const categoryParam = searchParams.get('category');
   const sortParam = searchParams.get('sort');
+  const colorParam = searchParams.get('color');
+  const hasFilters = !!(filterParam || categoryParam || sortParam || colorParam);
+
+  // Distinct colours present in the catalog (first-seen order) — drives the
+  // colour chip row. The label comes from menu.colours.* with a capitalize
+  // fallback so a colour the API adds later still renders (never blank).
+  const colours = useMemo(
+    () => [...new Set(products.map((p) => p.color).filter((c): c is string => !!c))],
+    [products],
+  );
+  const colourLabel = (c: string) =>
+    menu.has(`colours.${c}`) ? menu(`colours.${c}`) : c.charAt(0).toUpperCase() + c.slice(1);
 
   const items = useMemo(() => {
     const filtered = products.filter((p) => {
       if (filterParam === 'new' && p.badge !== 'new') return false;
       if (filterParam === 'popular' && p.badge !== 'popular') return false;
       if (categoryParam && p.category !== categoryParam) return false;
+      if (colorParam && p.color !== colorParam) return false;
       return true;
     });
     if (sortParam === 'price-asc') return [...filtered].sort((a, b) => a.price - b.price);
     if (sortParam === 'price-desc') return [...filtered].sort((a, b) => b.price - a.price);
     return filtered;
-  }, [products, filterParam, categoryParam, sortParam]);
+  }, [products, filterParam, categoryParam, sortParam, colorParam]);
 
   // Build a /shop href that flips one param while preserving the rest.
   const hrefWith = (key: string, value: string | null) => {
@@ -144,6 +157,24 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
         </nav>
       </div>
 
+      {/* Colour filter chips — shown only when the catalog spans >1 colour.
+          Same rounded-full chip language as categories; URL-driven + shareable. */}
+      {colours.length > 1 && (
+        <nav
+          aria-label={tr('Filter by colour', 'Фильтр по цвету')}
+          className="-mx-4 mt-2 flex gap-2 overflow-x-auto px-4 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <Link href={hrefWith('color', null)} className={chip(!colorParam)} aria-current={!colorParam ? 'true' : undefined}>
+            {tr('All colours', 'Все цвета')}
+          </Link>
+          {colours.map((c) => (
+            <Link key={c} href={hrefWith('color', c)} className={chip(colorParam === c)} aria-current={colorParam === c ? 'true' : undefined}>
+              {colourLabel(c)}
+            </Link>
+          ))}
+        </nav>
+      )}
+
       {/* Count + sort. */}
       <div className="mt-3 flex items-center justify-between">
         <span className="text-[12px] uppercase tracking-[0.08em] text-inkSoft/55">
@@ -161,9 +192,33 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
         </div>
       </div>
 
+      {/* Clear-filters affordance — its own row, only when something is filtering. */}
+      {hasFilters && (
+        <div className="mt-3">
+          <Link
+            href={`/${locale}/shop`}
+            className="inline-flex items-center gap-1.5 text-[12px] uppercase tracking-[0.08em] text-inkSoft/55 underline-offset-4 transition-colors hover:text-accent hover:underline"
+          >
+            {tr('Clear filters', 'Сбросить фильтры')} <span aria-hidden="true">×</span>
+          </Link>
+        </div>
+      )}
+
       {/* 2-column product grid. */}
       {items.length === 0 ? (
-        <p className="mt-16 text-center text-[14px] text-inkSoft/55">{tr('Nothing here yet.', 'Здесь пока пусто.')}</p>
+        <div className="flex flex-col items-center py-20 text-center">
+          <p className="max-w-xs text-[14px] leading-relaxed text-inkSoft/55">
+            {hasFilters ? tr('No products match these filters.', 'Ничего не подошло по выбранным фильтрам.') : tr('Nothing here yet.', 'Здесь пока пусто.')}
+          </p>
+          {hasFilters && (
+            <Link
+              href={`/${locale}/shop`}
+              className="mt-7 inline-flex h-11 items-center rounded-full border border-accent px-7 text-[12px] uppercase tracking-[0.12em] text-accent transition-colors hover:bg-accent hover:text-paper"
+            >
+              {tr('Clear filters', 'Сбросить фильтры')}
+            </Link>
+          )}
+        </div>
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-7">
           {items.map((p) => {

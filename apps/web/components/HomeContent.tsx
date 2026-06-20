@@ -29,9 +29,12 @@ interface HomeContentProps {
 }
 
 const BANNER_BG = '#1a0f0b';
-const SECTION_PADDING = 'pt-32 pb-28 sm:pt-40 sm:pb-32 lg:pt-48 lg:pb-40';
-const CAROUSEL_PADDING = 'py-28 sm:py-36 lg:py-44';
-const BANNER_OUTER_PADDING = 'py-20 sm:py-28 lg:py-36';
+// Mobile base trimmed from desktop-scale values (pt-32/pb-28 etc. left a ~240px
+// dead gap between sections at 375px, padding > content). sm:/lg: keep the
+// original generous desktop rhythm untouched.
+const SECTION_PADDING = 'pt-20 pb-16 sm:pt-40 sm:pb-32 lg:pt-48 lg:pb-40';
+const CAROUSEL_PADDING = 'py-16 sm:py-36 lg:py-44';
+const BANNER_OUTER_PADDING = 'py-12 sm:py-28 lg:py-36';
 
 // Banner sits on a solid #1a0f0b island so the fixed shader behind doesn't
 // bleed through the photo edges. Outer padding gives generous breathing room
