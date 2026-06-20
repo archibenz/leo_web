@@ -1111,6 +1111,14 @@
       "searchCollection": "Search the collection",
       "saved": "Saved",
       "bag": "Bag"
+    },
+    "menu": {
+      "shop": "Shop",
+      "openMenu": "Open menu",
+      "menu": "Menu",
+      "close": "Close",
+      "saved": "Saved",
+      "bag": "Bag"
     }
   }
 }

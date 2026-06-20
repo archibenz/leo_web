@@ -2,6 +2,7 @@
 
 import {useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
+import {useTranslations} from 'next-intl';
 import Image from 'next/image';
 import {useFocusTrap} from '../../../lib/useFocusTrap';
 import {WHITE_CATS, whiteCatLabel, WHITE_HERO_IMAGE} from './products';
@@ -16,8 +17,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
-  const ru = locale === 'ru';
-  const t = (en: string, rus: string) => (ru ? rus : en);
+  const t = useTranslations('white.menu');
 
   useFocusTrap(panelRef, open);
   useEffect(() => setMounted(true), []);
@@ -36,7 +36,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
   }, [open]);
 
   const links = [
-    {key: 'all', label: t('Shop', 'Магазин'), href: `/${locale}/white/shop`},
+    {key: 'all', label: t('shop'), href: `/${locale}/white/shop`},
     ...WHITE_CATS.map((c) => ({key: c, label: whiteCatLabel(c, locale), href: `/${locale}/white/shop?cat=${c}`})),
   ];
 
@@ -46,7 +46,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
         type="button"
         onClick={() => setOpen(true)}
         aria-expanded={open}
-        aria-label={t('Open menu', 'Открыть меню')}
+        aria-label={t('openMenu')}
         className="-ml-2 flex h-11 w-11 items-center justify-center"
       >
         <svg width="20" height="12" viewBox="0 0 20 12" fill="none" stroke={INK} strokeWidth="1.3" strokeLinecap="square">
@@ -60,7 +60,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
           ref={panelRef}
           role="dialog"
           aria-modal="true"
-          aria-label={t('Menu', 'Меню')}
+          aria-label={t('menu')}
           className="fixed inset-0 z-[1200] flex flex-col bg-white font-sans antialiased"
           style={{color: INK}}
         >
@@ -69,7 +69,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             <button
               type="button"
               onClick={() => setOpen(false)}
-              aria-label={t('Close', 'Закрыть')}
+              aria-label={t('close')}
               className="-mr-2 flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-60"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.3" strokeLinecap="square">
@@ -78,7 +78,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             </button>
           </div>
 
-          <nav className="flex flex-1 flex-col justify-center overflow-y-auto px-6" aria-label={t('Menu', 'Меню')}>
+          <nav className="flex flex-1 flex-col justify-center overflow-y-auto px-6" aria-label={t('menu')}>
             {links.map((l, i) => {
               const active = activeCat != null && l.key === activeCat;
               return (
@@ -102,10 +102,10 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             </div>
             <div className="flex gap-6 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
               <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="transition-opacity hover:opacity-60">
-                {t('Saved', 'Избранное')}
+                {t('saved')}
               </a>
               <a href={`/${locale}/white/bag`} onClick={() => setOpen(false)} className="transition-opacity hover:opacity-60">
-                {t('Bag', 'Корзина')}
+                {t('bag')}
               </a>
             </div>
           </div>
