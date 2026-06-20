@@ -9,6 +9,7 @@ import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {MUTED, HAIR, SIGNAL} from '../wv-palette';
+import {whiteItemNoun} from '../wv-i18n';
 import {findWhiteProduct} from '../products';
 
 // Variant 2 "White" — favourites / wishlist. Lists the localStorage-backed
@@ -64,7 +65,7 @@ export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
             <div className="flex items-baseline justify-between pb-2">
               <h1 className="font-display text-[32px] font-light leading-tight sm:text-[40px]">{t('Saved', 'Избранное')}</h1>
               <span className="text-[12px] uppercase tracking-[0.16em] tabular-nums" style={{color: MUTED}}>
-                {keys.length} {ru ? itemsLabelRu(keys.length) : keys.length === 1 ? 'item' : 'items'}
+                {keys.length} {whiteItemNoun(keys.length, locale)}
               </span>
             </div>
             <p className="mb-8 max-w-md text-[13px] leading-relaxed" style={{color: SIGNAL}}>
@@ -84,13 +85,4 @@ export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
     </div>,
     document.body,
   );
-}
-
-// ru 3-form plural for the count (one / few / many) — matches the shop grid.
-function itemsLabelRu(n: number): string {
-  const m10 = n % 10;
-  const m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return 'товар';
-  if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 'товара';
-  return 'товаров';
 }

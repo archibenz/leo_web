@@ -2,6 +2,7 @@
 
 import type {ReactNode} from 'react';
 import {MUTED, INK, SIGNAL} from './wv-palette';
+import {whiteItemNoun} from './wv-i18n';
 
 // Shared header right-slot. On mobile the full-text labels ("Избранное (0)",
 // "Корзина (0)") crowd the wordmark on a 375px header; the reference set
@@ -100,7 +101,7 @@ export default function WhiteHeaderActions({
       )}
       <Action
         href={`/${locale}/white/favourites`}
-        ariaLabel={t(`Saved, ${favCount} items`, `Избранное, ${favCount} товаров`)}
+        ariaLabel={`${t('Saved', 'Избранное')}, ${favCount} ${whiteItemNoun(favCount, locale)}`}
         isCurrent={current === 'favourites'}
         icon={<HeartIcon className={icon} />}
         label={t('Saved', 'Избранное')}
@@ -108,7 +109,7 @@ export default function WhiteHeaderActions({
       />
       <Action
         href={`/${locale}/white/bag`}
-        ariaLabel={t(`Bag, ${count} items`, `Корзина, ${count} товаров`)}
+        ariaLabel={`${t('Bag', 'Корзина')}, ${count} ${whiteItemNoun(count, locale)}`}
         isCurrent={current === 'bag'}
         icon={<BagIcon className={icon} />}
         label={t('Bag', 'Корзина')}

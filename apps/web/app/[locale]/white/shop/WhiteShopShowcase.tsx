@@ -10,6 +10,7 @@ import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR} from '../wv-palette';
+import {whiteItemNoun} from '../wv-i18n';
 import {WHITE_PRODUCTS as ITEMS, whiteCatLabel, type WhiteProduct as Item, type WhiteCat as Cat} from '../products';
 
 // Variant 2 "White" — shop / catalog grid with filters + sort. Same portal
@@ -108,15 +109,6 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
   if (!mounted) return null;
 
   const cats: (Cat | 'all')[] = ['all', 'dresses', 'outerwear', 'knitwear', 'tailoring', 'skirts'];
-  // Pluralised item count: en item/items, ru 3-form (one/few/many).
-  const itemsLabel = (n: number) => {
-    if (!ru) return n === 1 ? 'item' : 'items';
-    const m10 = n % 10;
-    const m100 = n % 100;
-    if (m10 === 1 && m100 !== 11) return 'товар';
-    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return 'товара';
-    return 'товаров';
-  };
 
   return createPortal(
     <div className="wv-root fixed inset-0 z-[1000] overflow-y-auto bg-white font-sans antialiased" style={{color: INK}}>
@@ -137,7 +129,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         <div className="flex items-baseline justify-between pt-12 pb-6">
           <h1 className="font-display text-[34px] font-light tracking-tight sm:text-[44px]">{t('Shop', 'Магазин')}</h1>
           <span aria-live="polite" aria-atomic="true" className="text-[12px] uppercase tracking-[0.16em] tabular-nums" style={{color: MUTED}}>
-            {shown.length} {itemsLabel(shown.length)}
+            {shown.length} {whiteItemNoun(shown.length, locale)}
           </span>
         </div>
 
