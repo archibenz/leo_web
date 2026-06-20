@@ -102,9 +102,14 @@ function HeroCard({title, subtitle, locale, season}: {title: string; subtitle: s
         </div>
       </div>
 
-      {/* Mobile: always-visible label */}
-      <div className="absolute inset-x-0 bottom-0 z-[2] p-4 md:hidden">
-        <p className="font-accent text-[12px] uppercase tracking-[0.2em] text-inkSoft/60">{subtitle}</p>
+      {/* Mobile: always-visible label over a dedicated foot scrim so it stays
+          legible on any hero image — the global vignette alone is too light at
+          the foot (cream subtitle could drop below AA over a bright region). */}
+      <div
+        className="absolute inset-x-0 bottom-0 z-[2] px-4 pb-4 pt-12 md:hidden"
+        style={{background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.35) 45%, transparent 100%)'}}
+      >
+        <p className="font-accent text-[12px] uppercase tracking-[0.2em] text-inkSoft/75">{subtitle}</p>
         <h3 className="mt-0.5 font-display text-lg uppercase tracking-[0.06em] text-inkSoft">{title}</h3>
       </div>
     </Link>
