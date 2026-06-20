@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect, useState, type FormEvent} from 'react';
+import {useTranslations} from 'next-intl';
 import {isValidEmail} from '../../../lib/validation';
 import {INK, MUTED, HAIR, SIGNAL} from './wv-palette';
 import WhiteLocaleSwitch from './WhiteLocaleSwitch';
@@ -14,8 +15,7 @@ import WhiteLocaleSwitch from './WhiteLocaleSwitch';
 type NlStatus = 'idle' | 'loading' | 'success' | 'already' | 'error' | 'invalid';
 
 export default function WhiteFooter({locale}: {locale: string}) {
-  const ru = locale === 'ru';
-  const t = (en: string, rus: string) => (ru ? rus : en);
+  const t = useTranslations('white.footer');
 
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<NlStatus>('idle');
@@ -53,13 +53,13 @@ export default function WhiteFooter({locale}: {locale: string}) {
 
   const nlMessage =
     status === 'success'
-      ? t('Thanks — you are subscribed.', 'Спасибо — вы подписаны.')
+      ? t('subscribed')
       : status === 'already'
-        ? t('You are already subscribed.', 'Вы уже подписаны.')
+        ? t('alreadySubscribed')
         : status === 'error'
-          ? t('Something went wrong. Try again.', 'Что-то пошло не так. Попробуйте ещё раз.')
+          ? t('error')
           : status === 'invalid'
-            ? t('Enter a valid email.', 'Введите корректный email.')
+            ? t('invalidEmail')
             : '';
   const nlError = status === 'error' || status === 'invalid';
   const nlLocked = status === 'loading' || status === 'success';
@@ -69,20 +69,20 @@ export default function WhiteFooter({locale}: {locale: string}) {
       <div className="mx-auto grid max-w-[1400px] gap-10 px-6 py-16 sm:grid-cols-2 sm:px-10 lg:grid-cols-4">
         <div className="lg:col-span-1">
           <p className="font-display text-[20px] tracking-[0.3em]">REINASLEO</p>
-          <p className="mt-3 text-[12px] leading-relaxed" style={{color: MUTED}}>{t('Premium womenswear', 'Премиальная женская одежда')}</p>
+          <p className="mt-3 text-[12px] leading-relaxed" style={{color: MUTED}}>{t('tagline')}</p>
         </div>
         {[
-          {h: t('Shop', 'Магазин'), items: [
-            {label: t('New', 'Новинки'), href: `/${locale}/white/shop`},
-            {label: t('Dresses', 'Платья'), href: `/${locale}/white/shop?cat=dresses`},
-            {label: t('Outerwear', 'Верхняя одежда'), href: `/${locale}/white/shop?cat=outerwear`},
+          {h: t('shop'), items: [
+            {label: t('new'), href: `/${locale}/white/shop`},
+            {label: t('dresses'), href: `/${locale}/white/shop?cat=dresses`},
+            {label: t('outerwear'), href: `/${locale}/white/shop?cat=outerwear`},
           ]},
-          {h: t('Brand', 'Бренд'), items: [
+          {h: t('brand'), items: [
             // Real, distinct destinations — the landing's editorial sections.
             // (No standalone About/Care/Contact pages exist in the prototype, so
             // we don't pretend to link to them.)
-            {label: t('The atelier', 'Ателье'), href: `/${locale}/white#wv-atelier`},
-            {label: t('The edit', 'Подборка'), href: `/${locale}/white#wv-edit`},
+            {label: t('atelier'), href: `/${locale}/white#wv-atelier`},
+            {label: t('theEdit'), href: `/${locale}/white#wv-edit`},
           ]},
         ].map((col) => (
           <div key={col.h}>
@@ -97,9 +97,9 @@ export default function WhiteFooter({locale}: {locale: string}) {
           </div>
         ))}
         <div>
-          <p className="mb-4 text-[11px] uppercase tracking-[0.2em]" style={{color: INK}}>{t('Newsletter', 'Рассылка')}</p>
+          <p className="mb-4 text-[11px] uppercase tracking-[0.2em]" style={{color: INK}}>{t('newsletter')}</p>
           <form onSubmit={onSubscribe} noValidate className="flex items-center border-b pb-1.5" style={{borderColor: MUTED}}>
-            <label htmlFor="wv-newsletter" className="sr-only">{t('Email address', 'Email-адрес')}</label>
+            <label htmlFor="wv-newsletter" className="sr-only">{t('emailLabel')}</label>
             <input
               id="wv-newsletter"
               type="email"
@@ -113,14 +113,14 @@ export default function WhiteFooter({locale}: {locale: string}) {
               disabled={nlLocked}
               aria-invalid={status === 'invalid' ? true : undefined}
               aria-describedby="wv-newsletter-status"
-              placeholder={t('Email', 'Email')}
+              placeholder={t('email')}
               className="w-full bg-transparent py-2.5 text-[13px] outline-none placeholder:text-[#7a7167] disabled:opacity-50"
               style={{color: INK}}
             />
             <button
               type="submit"
               disabled={nlLocked}
-              aria-label={t('Subscribe', 'Подписаться')}
+              aria-label={t('subscribe')}
               className="-my-2.5 flex h-11 w-10 shrink-0 items-center justify-center text-[14px] uppercase tracking-[0.16em] transition-opacity hover:opacity-60 disabled:opacity-40"
               style={{color: INK}}
             >
@@ -140,7 +140,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
         </div>
       </div>
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-6 pb-10 text-[11px] uppercase tracking-[0.14em] sm:px-10" style={{color: MUTED}}>
-        <span>© 2026 REINASLEO · {t('White variant — preview', 'Белый вариант — превью')}</span>
+        <span>© 2026 REINASLEO · {t('previewNote')}</span>
         <WhiteLocaleSwitch locale={locale} />
       </div>
     </footer>
