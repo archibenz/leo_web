@@ -56,6 +56,10 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const lightboxRef = useRef<HTMLDivElement>(null);
   const lbTrackRef = useRef<HTMLDivElement>(null);
   const [lbDragDelta, setLbDragDelta] = useState<number | null>(null);
+  // Vertical pull-to-dismiss: lbDismissY = live offset (px), lbDismissing gates
+  // the snap-back transition so the pull follows the finger 1:1.
+  const [lbDismissY, setLbDismissY] = useState(0);
+  const [lbDismissing, setLbDismissing] = useState(false);
   useFocusTrap(lightboxRef, zoomed);
   const {add, count} = useWhiteBag();
   const {has: isFavourite, toggle: toggleFavourite, count: favCount} = useWhiteFavourites();
@@ -159,6 +163,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
     let startX = 0;
     let startY = 0;
     let dx = 0;
+    let dy = 0;
     let dir: 'h' | 'v' | null = null;
     const onStart = (e: TouchEvent) => {
       const tch = e.touches[0];
@@ -166,6 +171,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
       startX = tch.clientX;
       startY = tch.clientY;
       dx = 0;
+      dy = 0;
       dir = null;
     };
     const onMove = (e: TouchEvent) => {
@@ -182,15 +188,28 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
         const atStart = activeImg === 0 && dx > 0;
         const atEnd = activeImg === gallery.length - 1 && dx < 0;
         setLbDragDelta(atStart || atEnd ? dx * 0.35 : dx);
+      } else if (dir === 'v') {
+        // Pull-to-dismiss — follow the finger up or down, close past a threshold.
+        e.preventDefault();
+        dy = cdy;
+        setLbDismissing(true);
+        setLbDismissY(dy);
       }
     };
     const onEnd = () => {
-      const threshold = el.clientWidth * 0.18;
-      if (dx > threshold) setActiveImg((p) => Math.max(p - 1, 0));
-      else if (dx < -threshold) setActiveImg((p) => Math.min(p + 1, gallery.length - 1));
+      if (dir === 'v') {
+        if (Math.abs(dy) > 110) setZoomed(false);
+        setLbDismissing(false);
+        setLbDismissY(0);
+      } else {
+        const threshold = el.clientWidth * 0.18;
+        if (dx > threshold) setActiveImg((p) => Math.max(p - 1, 0));
+        else if (dx < -threshold) setActiveImg((p) => Math.min(p + 1, gallery.length - 1));
+        setLbDragDelta(null);
+      }
       dx = 0;
+      dy = 0;
       dir = null;
-      setLbDragDelta(null);
     };
     el.addEventListener('touchstart', onStart, {passive: true});
     el.addEventListener('touchmove', onMove, {passive: false});
@@ -492,7 +511,8 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
           aria-label={t('zoomImage')}
           tabIndex={-1}
           onClick={() => setZoomed(false)}
-          className="fixed inset-0 z-[1100] flex items-center justify-center overscroll-contain bg-white outline-none"
+          className="fixed inset-0 z-[1100] flex items-center justify-center overscroll-contain outline-none"
+          style={{backgroundColor: `rgba(255,255,255,${(1 - Math.min(Math.abs(lbDismissY) / 350, 0.55)).toFixed(3)})`}}
         >
           <button
             type="button"
@@ -505,10 +525,14 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               <path d="M5 5l14 14M19 5L5 19" />
             </svg>
           </button>
-          {/* Live-drag track — mirrors the main gallery for a consistent swipe. */}
+          {/* Live-drag track — horizontal swipe navigates; a vertical pull moves
+              this whole block (translateY) and the backdrop fades → dismiss. */}
           <div
             ref={lbTrackRef}
-            className="relative h-[88%] w-[92%] overflow-hidden"
+            className={`relative h-[88%] w-[92%] overflow-hidden ${
+              lbDismissing ? '' : 'transition-transform duration-300 ease-out motion-reduce:transition-none'
+            }`}
+            style={{transform: `translateY(${lbDismissY}px)`}}
             onClick={(e) => e.stopPropagation()}
           >
             <div
