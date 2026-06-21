@@ -87,7 +87,7 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
   };
 
   const chip = (active: boolean) =>
-    `inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full border px-4 text-[12px] uppercase tracking-[0.08em] transition-colors ${
+    `inline-flex h-11 shrink-0 items-center whitespace-nowrap rounded-full border px-4 text-[12px] uppercase tracking-[0.08em] transition-colors ${
       active ? 'border-accent text-accent' : 'border-inkSoft/20 text-inkSoft/70 hover:border-inkSoft/40'
     }`;
 
