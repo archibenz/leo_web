@@ -45,6 +45,8 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const productColors = product?.colors ?? DEFAULT_COLORS;
   const mounted = useWhitePortal();
   const [activeImg, setActiveImg] = useState(0);
+  // Live horizontal drag offset of the gallery track (px). null = not dragging.
+  const [dragDelta, setDragDelta] = useState<number | null>(null);
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState(productColors[0]!.key);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -92,39 +94,61 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   };
   const stickyPrice = `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
 
-  // Mobile: swipe the main gallery image horizontally to step through views.
+  // Mobile: live-drag the gallery track horizontally — the frames follow the
+  // finger, then snap to the nearest. Rubber-band resistance at the clamped
+  // bounds (White keeps clamp, no wrap). The snap transition lives on the track
+  // and is disabled under reduced-motion; the drag itself is direct manipulation.
   const galleryRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = galleryRef.current;
-    if (!el) return;
+    if (!el || gallery.length < 2) return;
     let startX = 0;
     let startY = 0;
-    let active = false;
+    let dx = 0;
+    let dir: 'h' | 'v' | null = null;
     const onStart = (e: TouchEvent) => {
       const tch = e.touches[0];
       if (!tch) return;
       startX = tch.clientX;
       startY = tch.clientY;
-      active = true;
+      dx = 0;
+      dir = null;
     };
-    const onEnd = (e: TouchEvent) => {
-      if (!active) return;
-      active = false;
-      const tch = e.changedTouches[0];
+    const onMove = (e: TouchEvent) => {
+      const tch = e.touches[0];
       if (!tch) return;
-      const dx = tch.clientX - startX;
-      const dy = tch.clientY - startY;
-      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
-        setActiveImg((prev) => (dx < 0 ? Math.min(prev + 1, gallery.length - 1) : Math.max(prev - 1, 0)));
+      const cdx = tch.clientX - startX;
+      const cdy = tch.clientY - startY;
+      if (!dir && (Math.abs(cdx) > 8 || Math.abs(cdy) > 8)) {
+        dir = Math.abs(cdx) > Math.abs(cdy) ? 'h' : 'v';
+      }
+      if (dir === 'h') {
+        e.preventDefault();
+        dx = cdx;
+        const atStart = activeImg === 0 && dx > 0;
+        const atEnd = activeImg === gallery.length - 1 && dx < 0;
+        setDragDelta(atStart || atEnd ? dx * 0.35 : dx);
       }
     };
+    const onEnd = () => {
+      const threshold = el.clientWidth * 0.18;
+      if (dx > threshold) setActiveImg((p) => Math.max(p - 1, 0));
+      else if (dx < -threshold) setActiveImg((p) => Math.min(p + 1, gallery.length - 1));
+      dx = 0;
+      dir = null;
+      setDragDelta(null);
+    };
     el.addEventListener('touchstart', onStart, {passive: true});
+    el.addEventListener('touchmove', onMove, {passive: false});
     el.addEventListener('touchend', onEnd);
+    el.addEventListener('touchcancel', onEnd);
     return () => {
       el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
       el.removeEventListener('touchend', onEnd);
+      el.removeEventListener('touchcancel', onEnd);
     };
-  }, [mounted, gallery.length]);
+  }, [mounted, gallery.length, activeImg]);
 
   // Lightbox: lock scroll, ESC to close, move focus into the dialog. Focus
   // returns to the zoom trigger on close via useFocusTrap (it was the active
@@ -204,7 +228,31 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               ))}
             </div>
             <div ref={galleryRef} className="relative order-1 aspect-[2/3] w-full touch-pan-y overflow-hidden sm:order-2">
-              <Image src={gallery[activeImg] ?? gallery[0]!} alt={name} fill priority sizes="(max-width: 1024px) 100vw, 560px" className="object-cover" />
+              {/* Track — all frames in a row; follows the finger during a drag
+                  (dragDelta), then snaps. The snap eases unless reduced-motion. */}
+              <div
+                className={`absolute inset-0 flex h-full w-full ${
+                  dragDelta === null ? 'transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none' : ''
+                }`}
+                style={{transform: `translate3d(calc(${-activeImg * 100}% + ${dragDelta ?? 0}px), 0, 0)`, willChange: 'transform'}}
+              >
+                {gallery.map((src, i) => {
+                  const neighbour = Math.abs(i - activeImg) <= 1;
+                  return (
+                    <div key={i} className="relative h-full w-full flex-shrink-0">
+                      <Image
+                        src={src ?? gallery[0]!}
+                        alt={i === activeImg ? name : ''}
+                        fill
+                        draggable={false}
+                        {...(i === 0 ? {priority: true} : {loading: neighbour ? ('eager' as const) : ('lazy' as const)})}
+                        sizes="(max-width: 1024px) 100vw, 560px"
+                        className="object-cover"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
               {/* Tap-to-zoom — always-visible square trigger (no hover gate), opens
                   a full-screen view of the active photo. */}
               <button
