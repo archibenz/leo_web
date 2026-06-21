@@ -53,7 +53,7 @@ export default function CartPage() {
           {!cartEmpty && (
             <button
               onClick={() => setConfirmClearOpen(true)}
-              className="text-sm uppercase tracking-wider text-ink-soft transition hover:text-ink"
+              className="-my-3 inline-flex min-h-11 items-center py-3 text-sm uppercase tracking-wider text-ink-soft transition hover:text-ink"
               aria-label={t('clearAll')}
             >
               {t('clearAll')}
