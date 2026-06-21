@@ -70,7 +70,7 @@ export default function FooterLanguageSelect({currentLocale}: FooterLanguageSele
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 text-[13px] text-inkSoft/65 transition-colors hover:text-inkSoft/90"
+        className="-my-2.5 flex min-h-11 items-center gap-1.5 text-[13px] text-inkSoft/65 transition-colors hover:text-inkSoft/90"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
       >
@@ -97,7 +97,7 @@ export default function FooterLanguageSelect({currentLocale}: FooterLanguageSele
               <button
                 type="button"
                 onClick={() => handleSelect(lang)}
-                className={`flex w-full items-center justify-between px-3.5 py-2 text-[13px] transition hover:bg-white/5 ${
+                className={`flex min-h-11 w-full items-center justify-between px-3.5 py-2 text-[13px] transition hover:bg-white/5 ${
                   selected === lang.code ? 'text-accent' : 'text-inkSoft/60'
                 }`}
                 role="option"
