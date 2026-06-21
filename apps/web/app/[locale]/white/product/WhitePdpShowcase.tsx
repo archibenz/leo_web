@@ -218,6 +218,18 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
                 </svg>
               </button>
+              {/* Editorial gallery index — immediate position for the mobile
+                  swipe (thumbnails sit below on phones; desktop has the column).
+                  Decorative: the thumbnails carry the accessible position. */}
+              <span
+                aria-hidden="true"
+                className="absolute bottom-3 left-3 z-10 bg-white/85 px-2.5 py-1 font-display text-[13px] leading-none tabular-nums backdrop-blur-sm sm:hidden"
+                style={{border: `1px solid ${HAIR}`, color: INK}}
+              >
+                {String(activeImg + 1).padStart(2, '0')}
+                <span style={{color: MUTED}}>{' / '}</span>
+                {String(gallery.length).padStart(2, '0')}
+              </span>
             </div>
           </div>
 
