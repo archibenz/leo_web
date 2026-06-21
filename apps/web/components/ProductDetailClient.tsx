@@ -187,6 +187,9 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
       title: product.title,
       price: product.price,
       size: selectedSize ?? undefined,
+      // Carry the displayed photo so the cart shows the product, not the
+      // placeholder — matches shop quick-add (which already passes an image).
+      image: galleryImages[0]?.src || undefined,
       isTest: product.isTest,
     });
     setJustAdded(true);
