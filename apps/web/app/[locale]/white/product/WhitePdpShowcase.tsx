@@ -381,7 +381,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   >
                     <span
                       aria-hidden="true"
-                      className="h-8 w-8 rounded-full transition-transform motion-safe:group-hover:scale-105"
+                      className="h-8 w-8 transition-transform motion-safe:group-hover:scale-105"
                       style={{background: c.hex, outline: color === c.key ? `1px solid ${INK}` : `1px solid ${HAIR}`, outlineOffset: '2px'}}
                     />
                   </button>
