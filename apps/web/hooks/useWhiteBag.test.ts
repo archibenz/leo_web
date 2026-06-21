@@ -41,6 +41,8 @@ const sample = (over: Partial<Omit<WhiteBagItem, 'id' | 'qty'>> = {}) => ({
   ru: 'Шёлковое платье-колонна',
   price: 24500,
   size: 'M',
+  colorEn: 'Black',
+  colorRu: 'Чёрный',
   ...over,
 });
 
@@ -50,11 +52,19 @@ afterEach(() => {
 });
 
 describe('useWhiteBag store', () => {
-  it('adds an item with qty 1 and a key-size id', () => {
+  it('adds an item with qty 1 and a key-size-colour id', () => {
     addToWhiteBag(sample());
     const bag = readBag();
     expect(bag).toHaveLength(1);
-    expect(bag[0]).toMatchObject({key: 1, size: 'M', qty: 1, id: '1-M'});
+    expect(bag[0]).toMatchObject({key: 1, size: 'M', qty: 1, colorEn: 'Black', id: '1-M-Black'});
+  });
+
+  it('keeps different colours of the same product+size as separate lines', () => {
+    addToWhiteBag(sample({colorEn: 'Black', colorRu: 'Чёрный'}));
+    addToWhiteBag(sample({colorEn: 'Ivory', colorRu: 'Слоновая кость'}));
+    const bag = readBag();
+    expect(bag).toHaveLength(2);
+    expect(bag.map((i) => i.colorEn).sort()).toEqual(['Black', 'Ivory']);
   });
 
   it('consolidates the same product+size into one line, incrementing qty', () => {
@@ -87,7 +97,7 @@ describe('useWhiteBag store', () => {
   it('removes a line by id, leaving the others', () => {
     addToWhiteBag(sample({size: 'M'}));
     addToWhiteBag(sample({size: 'L'}));
-    removeFromWhiteBag('1-M');
+    removeFromWhiteBag('1-M-Black');
     const bag = readBag();
     expect(bag).toHaveLength(1);
     expect(bag[0]!.size).toBe('L');
@@ -103,7 +113,7 @@ describe('useWhiteBag store', () => {
     addToWhiteBag(sample());
     const raw = localStorage.getItem('wv-bag');
     expect(raw).toContain('"qty":1');
-    expect(raw).toContain('"id":"1-M"');
+    expect(raw).toContain('"id":"1-M-Black"');
   });
 });
 
