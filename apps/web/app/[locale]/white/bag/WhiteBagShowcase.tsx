@@ -71,9 +71,20 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                   </a>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px]">{(ru ? i.ru : i.en)}</p>
-                    <p className="mt-1 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>
-                      {t('size')}: {i.size}
-                      {(ru ? i.colorRu : i.colorEn) ? ` · ${ru ? i.colorRu : i.colorEn}` : ''}
+                    <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>
+                      <span>{t('size')}: {i.size}</span>
+                      {(ru ? i.colorRu : i.colorEn) && (
+                        <>
+                          <span aria-hidden="true">·</span>
+                          {(() => {
+                            const hex = findWhiteProduct(i.key)?.colors.find((c) => c.en === i.colorEn)?.hex;
+                            return hex ? (
+                              <span aria-hidden="true" className="inline-block h-2.5 w-2.5 shrink-0" style={{background: hex, border: `1px solid ${HAIR}`}} />
+                            ) : null;
+                          })()}
+                          <span>{ru ? i.colorRu : i.colorEn}</span>
+                        </>
+                      )}
                     </p>
                   </div>
                   {/* Controls — own full-width row on phones so the product name
