@@ -194,7 +194,7 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
         <div className="mt-3">
           <Link
             href={`/${locale}/shop`}
-            className="inline-flex items-center gap-1.5 text-[12px] uppercase tracking-[0.08em] text-inkSoft/55 underline-offset-4 transition-colors hover:text-accent hover:underline"
+            className="-my-3 inline-flex min-h-11 items-center gap-1.5 text-[12px] uppercase tracking-[0.08em] text-inkSoft/55 underline-offset-4 transition-colors hover:text-accent hover:underline"
           >
             {tr('Clear filters', 'Сбросить фильтры')} <span aria-hidden="true">×</span>
           </Link>
