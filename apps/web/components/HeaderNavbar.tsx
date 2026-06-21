@@ -29,7 +29,7 @@ const IconBtn = ({ onClick, ariaLabel, children, badge }: {
     onClick={onClick}
     aria-label={ariaLabel}
     style={{ WebkitTapHighlightColor: 'transparent' }}
-    className="group relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 focus-visible:rounded-full"
+    className="group relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 motion-reduce:active:scale-100 focus-visible:rounded-full"
   >
     <span className="flex h-9 w-9 items-center justify-center rounded-full text-ink/65 transition-colors duration-200 group-hover:bg-ink/[0.07] group-hover:text-accent group-active:bg-ink/[0.12]">
       {children}
@@ -151,7 +151,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
             <button type="button" onClick={handleMenuToggle}
               aria-label={isMenuOpen ? t('closeMenu') : t('openMenu')} aria-expanded={isMenuOpen}
               style={{ WebkitTapHighlightColor: 'transparent' }}
-              className="group relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 focus-visible:rounded-full lg:hidden">
+              className="group relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 motion-reduce:active:scale-100 focus-visible:rounded-full lg:hidden">
               <span className={`flex h-9 w-9 items-center justify-center rounded-full text-ink/60 transition-colors duration-150 ${
                 isMenuOpen ? '' : 'group-active:bg-ink/[0.12]'
               }`}>
@@ -245,7 +245,7 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               {isAuthenticated && user ? (
                 <button type="button" onClick={() => go('/account')} aria-label={t('profile')}
                   style={{ WebkitTapHighlightColor: 'transparent' }}
-                  className="group relative flex h-11 items-center rounded-full transition-transform duration-150 active:scale-95 focus-visible:rounded-full">
+                  className="group relative flex h-11 items-center rounded-full transition-transform duration-150 active:scale-95 motion-reduce:active:scale-100 focus-visible:rounded-full">
                   <span className="flex h-9 items-center gap-1 rounded-full px-2.5 text-ink/55 transition-colors duration-200 group-hover:bg-ink/[0.06] group-hover:text-accent">
                     <span className="truncate max-w-[120px] sm:max-w-[160px] text-[13px] font-medium">
                       <span className="hidden sm:inline">{t('greeting', { name: user.name })}</span>

@@ -24,7 +24,7 @@ export default function WildberriesButton({
       onMouseLeave={() => setHovering(false)}
       className={
         className ??
-        'relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border-2 border-[#CB11AB] bg-[#CB11AB]/[0.08] text-base font-medium text-white active:scale-[0.98]'
+        'relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border-2 border-[#CB11AB] bg-[#CB11AB]/[0.08] text-base font-medium text-white active:scale-[0.98] motion-reduce:active:scale-100'
       }
     >
       <span

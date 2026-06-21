@@ -257,7 +257,7 @@ export function Carousel({ slides }: CarouselProps) {
                   <h3 className="font-display text-base sm:text-lg md:text-xl lg:text-2xl uppercase tracking-[0.06em] text-inkSoft leading-tight">
                     {slide.title}
                   </h3>
-                  <span className="inline-flex items-center gap-2 mt-3 px-4 py-2 text-[12px] sm:text-[14px] uppercase tracking-[0.1em] text-inkSoft/90 bg-white/10 backdrop-blur-sm border border-accent/30 rounded-full transition-all duration-300 group-hover:bg-white/15 group-hover:border-accent/50 group-active:scale-95">
+                  <span className="inline-flex items-center gap-2 mt-3 px-4 py-2 text-[12px] sm:text-[14px] uppercase tracking-[0.1em] text-inkSoft/90 bg-white/10 backdrop-blur-sm border border-accent/30 rounded-full transition-all duration-300 group-hover:bg-white/15 group-hover:border-accent/50 group-active:scale-95 motion-reduce:group-active:scale-100">
                     {slide.button}
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-70">
                       <path d="M5 12h14" />
@@ -281,7 +281,7 @@ export function Carousel({ slides }: CarouselProps) {
               type="button"
               role="tab"
               onClick={() => setCurrent(i)}
-              className="group/dot flex h-10 w-7 cursor-pointer items-center justify-center border-0 bg-transparent p-0 outline-none transition-transform duration-150 active:scale-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent/70 focus-visible:rounded-md"
+              className="group/dot flex h-10 w-7 cursor-pointer items-center justify-center border-0 bg-transparent p-0 outline-none transition-transform duration-150 active:scale-90 motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent/70 focus-visible:rounded-md"
               style={{ WebkitTapHighlightColor: "transparent", appearance: "none" }}
               aria-label={t('slideXofY', {n: i + 1, total: slides.length})}
               aria-selected={isActive}
@@ -303,7 +303,7 @@ export function Carousel({ slides }: CarouselProps) {
       <button
         type="button"
         onClick={() => goTo(-1)}
-        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/15 bg-black/45 text-inkSoft/85 backdrop-blur-md transition-all duration-200 hover:bg-black/65 hover:text-inkSoft active:scale-90 focus-visible:outline-2 focus-visible:outline-accent/70"
+        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/15 bg-black/45 text-inkSoft/85 backdrop-blur-md transition-all duration-200 hover:bg-black/65 hover:text-inkSoft active:scale-90 motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-accent/70"
         style={{ WebkitTapHighlightColor: "transparent" }}
         aria-label={t('previousSlide')}
       >
@@ -312,7 +312,7 @@ export function Carousel({ slides }: CarouselProps) {
       <button
         type="button"
         onClick={() => goTo(1)}
-        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/15 bg-black/45 text-inkSoft/85 backdrop-blur-md transition-all duration-200 hover:bg-black/65 hover:text-inkSoft active:scale-90 focus-visible:outline-2 focus-visible:outline-accent/70"
+        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-white/15 bg-black/45 text-inkSoft/85 backdrop-blur-md transition-all duration-200 hover:bg-black/65 hover:text-inkSoft active:scale-90 motion-reduce:active:scale-100 focus-visible:outline-2 focus-visible:outline-accent/70"
         style={{ WebkitTapHighlightColor: "transparent" }}
         aria-label={t('nextSlide')}
       >
