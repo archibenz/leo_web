@@ -122,7 +122,9 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
               <span className="text-[18px] tabular-nums">{fmt(total)}</span>
             </div>
 
-            <a href={`/${locale}/white/shop`} className="mt-8 inline-block text-[12px] uppercase tracking-[0.18em] underline-offset-4 transition-opacity hover:opacity-60" style={{color: MUTED}}>
+            {/* min-h-11 → 44px tap floor (this is the bag's only nav affordance
+                besides qty/remove); mt-4 trims the gap the taller box adds. */}
+            <a href={`/${locale}/white/shop`} className="mt-4 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.18em] underline-offset-4 transition-opacity hover:opacity-60" style={{color: MUTED}}>
               ← {t('continueShopping')}
             </a>
           </div>
