@@ -54,7 +54,8 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   // Tap-to-zoom lightbox for the active gallery image.
   const [zoomed, setZoomed] = useState(false);
   const lightboxRef = useRef<HTMLDivElement>(null);
-  const lbStartX = useRef(0);
+  const lbTrackRef = useRef<HTMLDivElement>(null);
+  const [lbDragDelta, setLbDragDelta] = useState<number | null>(null);
   useFocusTrap(lightboxRef, zoomed);
   const {add, count} = useWhiteBag();
   const {has: isFavourite, toggle: toggleFavourite, count: favCount} = useWhiteFavourites();
@@ -149,6 +150,59 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
       el.removeEventListener('touchcancel', onEnd);
     };
   }, [mounted, gallery.length, activeImg]);
+
+  // Lightbox: same live-drag track as the main gallery (consistency), attached
+  // only while the zoom view is mounted. Non-passive touchmove → preventDefault.
+  useEffect(() => {
+    const el = lbTrackRef.current;
+    if (!zoomed || !el || gallery.length < 2) return;
+    let startX = 0;
+    let startY = 0;
+    let dx = 0;
+    let dir: 'h' | 'v' | null = null;
+    const onStart = (e: TouchEvent) => {
+      const tch = e.touches[0];
+      if (!tch) return;
+      startX = tch.clientX;
+      startY = tch.clientY;
+      dx = 0;
+      dir = null;
+    };
+    const onMove = (e: TouchEvent) => {
+      const tch = e.touches[0];
+      if (!tch) return;
+      const cdx = tch.clientX - startX;
+      const cdy = tch.clientY - startY;
+      if (!dir && (Math.abs(cdx) > 8 || Math.abs(cdy) > 8)) {
+        dir = Math.abs(cdx) > Math.abs(cdy) ? 'h' : 'v';
+      }
+      if (dir === 'h') {
+        e.preventDefault();
+        dx = cdx;
+        const atStart = activeImg === 0 && dx > 0;
+        const atEnd = activeImg === gallery.length - 1 && dx < 0;
+        setLbDragDelta(atStart || atEnd ? dx * 0.35 : dx);
+      }
+    };
+    const onEnd = () => {
+      const threshold = el.clientWidth * 0.18;
+      if (dx > threshold) setActiveImg((p) => Math.max(p - 1, 0));
+      else if (dx < -threshold) setActiveImg((p) => Math.min(p + 1, gallery.length - 1));
+      dx = 0;
+      dir = null;
+      setLbDragDelta(null);
+    };
+    el.addEventListener('touchstart', onStart, {passive: true});
+    el.addEventListener('touchmove', onMove, {passive: false});
+    el.addEventListener('touchend', onEnd);
+    el.addEventListener('touchcancel', onEnd);
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+      el.removeEventListener('touchcancel', onEnd);
+    };
+  }, [zoomed, gallery.length, activeImg]);
 
   // Lightbox: lock scroll, ESC to close, move focus into the dialog. Focus
   // returns to the zoom trigger on close via useFocusTrap (it was the active
@@ -451,19 +505,24 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               <path d="M5 5l14 14M19 5L5 19" />
             </svg>
           </button>
-          {/* Swipe left/right to step through the gallery while zoomed. */}
+          {/* Live-drag track — mirrors the main gallery for a consistent swipe. */}
           <div
-            className="relative h-[88%] w-[92%]"
+            ref={lbTrackRef}
+            className="relative h-[88%] w-[92%] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
-            onTouchStart={(e) => {
-              lbStartX.current = e.touches[0]?.clientX ?? 0;
-            }}
-            onTouchEnd={(e) => {
-              const dx = (e.changedTouches[0]?.clientX ?? 0) - lbStartX.current;
-              if (Math.abs(dx) > 40) setActiveImg((i) => (dx < 0 ? Math.min(i + 1, gallery.length - 1) : Math.max(i - 1, 0)));
-            }}
           >
-            <Image src={gallery[activeImg] ?? gallery[0]!} alt={name} fill sizes="100vw" className="object-contain" />
+            <div
+              className={`absolute inset-0 flex h-full w-full ${
+                lbDragDelta === null ? 'transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none' : ''
+              }`}
+              style={{transform: `translate3d(calc(${-activeImg * 100}% + ${lbDragDelta ?? 0}px), 0, 0)`, willChange: 'transform'}}
+            >
+              {gallery.map((src, i) => (
+                <div key={i} className="relative h-full w-full flex-shrink-0">
+                  <Image src={src ?? gallery[0]!} alt={i === activeImg ? name : ''} fill sizes="100vw" className="object-contain" />
+                </div>
+              ))}
+            </div>
           </div>
           {gallery.length > 1 && (
             <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[12px] tabular-nums tracking-[0.2em]" style={{color: MUTED}} aria-hidden="true">
