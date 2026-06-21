@@ -103,7 +103,8 @@ describe('WhiteProductCard Quick Add', () => {
     await waitFor(() => {
       const bag = readBag();
       expect(bag).toHaveLength(1);
-      expect(bag[0]).toMatchObject({key: 3, size: 'M', qty: 1, id: '3-M'});
+      // Quick Add carries the product's primary colourway (colors[0] = Black).
+      expect(bag[0]).toMatchObject({key: 3, size: 'M', qty: 1, colorEn: 'Black', id: '3-M-Black'});
     });
   });
 

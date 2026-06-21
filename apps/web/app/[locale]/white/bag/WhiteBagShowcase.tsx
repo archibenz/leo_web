@@ -71,7 +71,10 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                   </a>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px]">{(ru ? i.ru : i.en)}</p>
-                    <p className="mt-1 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>{t('size')}: {i.size}</p>
+                    <p className="mt-1 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>
+                      {t('size')}: {i.size}
+                      {(ru ? i.colorRu : i.colorEn) ? ` · ${ru ? i.colorRu : i.colorEn}` : ''}
+                    </p>
                   </div>
                   {/* Controls — own full-width row on phones so the product name
                       above keeps the whole line (it was truncating to ~103px);

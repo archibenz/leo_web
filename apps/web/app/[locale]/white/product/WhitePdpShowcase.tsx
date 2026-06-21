@@ -74,7 +74,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const handleAdd = () => {
     if (!size) return;
     // Charge the effective (sale) price the PDP shows — not the struck regular.
-    add({key: bagProduct.key, en: bagProduct.en, ru: bagProduct.ru, price: bagProduct.sale ?? bagProduct.price, size});
+    add({key: bagProduct.key, en: bagProduct.en, ru: bagProduct.ru, price: bagProduct.sale ?? bagProduct.price, size, colorEn: selectedColor.en, colorRu: selectedColor.ru});
     setJustAdded(true);
     window.setTimeout(() => setJustAdded(false), 1600);
   };
