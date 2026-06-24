@@ -160,6 +160,8 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         <div className="pb-6">
           <label htmlFor="wv-shop-search" className="sr-only">{t('searchProducts')}</label>
           <div className="relative">
+            {/* placeholder uses the MUTED token value (#776e64, 5.0:1 on #fff); the
+                old #8c837a was 3.72:1 and failed WCAG AA — see wv-palette. */}
             <input
               ref={searchRef}
               id="wv-shop-search"
@@ -172,7 +174,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
               spellCheck={false}
               enterKeyHint="search"
               placeholder={t('searchCollection')}
-              className="w-full border-b bg-transparent pb-2 pr-10 pt-3 text-[15px] outline-none placeholder:text-[#8c837a] [&::-webkit-search-cancel-button]:hidden"
+              className="w-full border-b bg-transparent pb-2 pr-10 pt-3 text-[15px] outline-none placeholder:text-[#776e64] [&::-webkit-search-cancel-button]:hidden"
               style={{borderColor: HAIR, color: INK}}
             />
             {query && (
@@ -280,7 +282,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
             <button
               type="button"
               onClick={clearFilters}
-              className="text-[12px] uppercase tracking-[0.16em] underline underline-offset-4 transition-opacity hover:opacity-60"
+              className="-my-3 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.16em] underline underline-offset-4 transition-opacity hover:opacity-60"
               style={{color: INK}}
             >
               {t('clearFilters')} ×

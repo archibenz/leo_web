@@ -1,6 +1,7 @@
 'use client';
 
 import {usePathname} from 'next/navigation';
+import {useTranslations} from 'next-intl';
 import {INK, MUTED} from './wv-palette';
 
 // EN/RU switch for the White preview. Both locales render the full showcase
@@ -16,6 +17,7 @@ const LOCALES = [
 
 export default function WhiteLocaleSwitch({locale}: {locale: string}) {
   const pathname = usePathname();
+  const t = useTranslations('white.localeSwitch');
 
   const hrefFor = (code: string) => {
     const path = pathname || `/${locale}/white`;
@@ -30,7 +32,7 @@ export default function WhiteLocaleSwitch({locale}: {locale: string}) {
 
   return (
     <nav
-      aria-label={locale === 'ru' ? 'Выбор языка' : 'Language'}
+      aria-label={t('label')}
       className="flex items-center gap-2"
     >
       {LOCALES.map((l, i) => (

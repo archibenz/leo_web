@@ -45,6 +45,8 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const productColors = product?.colors ?? DEFAULT_COLORS;
   const mounted = useWhitePortal();
   const [activeImg, setActiveImg] = useState(0);
+  // Live horizontal drag offset of the gallery track (px). null = not dragging.
+  const [dragDelta, setDragDelta] = useState<number | null>(null);
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState(productColors[0]!.key);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -52,7 +54,12 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   // Tap-to-zoom lightbox for the active gallery image.
   const [zoomed, setZoomed] = useState(false);
   const lightboxRef = useRef<HTMLDivElement>(null);
-  const lbStartX = useRef(0);
+  const lbTrackRef = useRef<HTMLDivElement>(null);
+  const [lbDragDelta, setLbDragDelta] = useState<number | null>(null);
+  // Vertical pull-to-dismiss: lbDismissY = live offset (px), lbDismissing gates
+  // the snap-back transition so the pull follows the finger 1:1.
+  const [lbDismissY, setLbDismissY] = useState(0);
+  const [lbDismissing, setLbDismissing] = useState(false);
   useFocusTrap(lightboxRef, zoomed);
   const {add, count} = useWhiteBag();
   const {has: isFavourite, toggle: toggleFavourite, count: favCount} = useWhiteFavourites();
@@ -67,7 +74,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const handleAdd = () => {
     if (!size) return;
     // Charge the effective (sale) price the PDP shows — not the struck regular.
-    add({key: bagProduct.key, en: bagProduct.en, ru: bagProduct.ru, price: bagProduct.sale ?? bagProduct.price, size});
+    add({key: bagProduct.key, en: bagProduct.en, ru: bagProduct.ru, price: bagProduct.sale ?? bagProduct.price, size, colorEn: selectedColor.en, colorRu: selectedColor.ru});
     setJustAdded(true);
     window.setTimeout(() => setJustAdded(false), 1600);
   };
@@ -92,39 +99,129 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   };
   const stickyPrice = `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
 
-  // Mobile: swipe the main gallery image horizontally to step through views.
+  // Mobile: live-drag the gallery track horizontally — the frames follow the
+  // finger, then snap to the nearest. Rubber-band resistance at the clamped
+  // bounds (White keeps clamp, no wrap). The snap transition lives on the track
+  // and is disabled under reduced-motion; the drag itself is direct manipulation.
   const galleryRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = galleryRef.current;
-    if (!el) return;
+    if (!el || gallery.length < 2) return;
     let startX = 0;
     let startY = 0;
-    let active = false;
+    let dx = 0;
+    let dir: 'h' | 'v' | null = null;
     const onStart = (e: TouchEvent) => {
       const tch = e.touches[0];
       if (!tch) return;
       startX = tch.clientX;
       startY = tch.clientY;
-      active = true;
+      dx = 0;
+      dir = null;
     };
-    const onEnd = (e: TouchEvent) => {
-      if (!active) return;
-      active = false;
-      const tch = e.changedTouches[0];
+    const onMove = (e: TouchEvent) => {
+      const tch = e.touches[0];
       if (!tch) return;
-      const dx = tch.clientX - startX;
-      const dy = tch.clientY - startY;
-      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
-        setActiveImg((prev) => (dx < 0 ? Math.min(prev + 1, gallery.length - 1) : Math.max(prev - 1, 0)));
+      const cdx = tch.clientX - startX;
+      const cdy = tch.clientY - startY;
+      if (!dir && (Math.abs(cdx) > 8 || Math.abs(cdy) > 8)) {
+        dir = Math.abs(cdx) > Math.abs(cdy) ? 'h' : 'v';
+      }
+      if (dir === 'h') {
+        e.preventDefault();
+        dx = cdx;
+        const atStart = activeImg === 0 && dx > 0;
+        const atEnd = activeImg === gallery.length - 1 && dx < 0;
+        setDragDelta(atStart || atEnd ? dx * 0.35 : dx);
       }
     };
+    const onEnd = () => {
+      const threshold = el.clientWidth * 0.18;
+      if (dx > threshold) setActiveImg((p) => Math.max(p - 1, 0));
+      else if (dx < -threshold) setActiveImg((p) => Math.min(p + 1, gallery.length - 1));
+      dx = 0;
+      dir = null;
+      setDragDelta(null);
+    };
     el.addEventListener('touchstart', onStart, {passive: true});
+    el.addEventListener('touchmove', onMove, {passive: false});
     el.addEventListener('touchend', onEnd);
+    el.addEventListener('touchcancel', onEnd);
     return () => {
       el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
       el.removeEventListener('touchend', onEnd);
+      el.removeEventListener('touchcancel', onEnd);
     };
-  }, [mounted, gallery.length]);
+  }, [mounted, gallery.length, activeImg]);
+
+  // Lightbox: same live-drag track as the main gallery (consistency), attached
+  // only while the zoom view is mounted. Non-passive touchmove → preventDefault.
+  useEffect(() => {
+    const el = lbTrackRef.current;
+    if (!zoomed || !el || gallery.length < 2) return;
+    let startX = 0;
+    let startY = 0;
+    let dx = 0;
+    let dy = 0;
+    let dir: 'h' | 'v' | null = null;
+    const onStart = (e: TouchEvent) => {
+      const tch = e.touches[0];
+      if (!tch) return;
+      startX = tch.clientX;
+      startY = tch.clientY;
+      dx = 0;
+      dy = 0;
+      dir = null;
+    };
+    const onMove = (e: TouchEvent) => {
+      const tch = e.touches[0];
+      if (!tch) return;
+      const cdx = tch.clientX - startX;
+      const cdy = tch.clientY - startY;
+      if (!dir && (Math.abs(cdx) > 8 || Math.abs(cdy) > 8)) {
+        dir = Math.abs(cdx) > Math.abs(cdy) ? 'h' : 'v';
+      }
+      if (dir === 'h') {
+        e.preventDefault();
+        dx = cdx;
+        const atStart = activeImg === 0 && dx > 0;
+        const atEnd = activeImg === gallery.length - 1 && dx < 0;
+        setLbDragDelta(atStart || atEnd ? dx * 0.35 : dx);
+      } else if (dir === 'v') {
+        // Pull-to-dismiss — follow the finger up or down, close past a threshold.
+        e.preventDefault();
+        dy = cdy;
+        setLbDismissing(true);
+        setLbDismissY(dy);
+      }
+    };
+    const onEnd = () => {
+      if (dir === 'v') {
+        if (Math.abs(dy) > 110) setZoomed(false);
+        setLbDismissing(false);
+        setLbDismissY(0);
+      } else {
+        const threshold = el.clientWidth * 0.18;
+        if (dx > threshold) setActiveImg((p) => Math.max(p - 1, 0));
+        else if (dx < -threshold) setActiveImg((p) => Math.min(p + 1, gallery.length - 1));
+        setLbDragDelta(null);
+      }
+      dx = 0;
+      dy = 0;
+      dir = null;
+    };
+    el.addEventListener('touchstart', onStart, {passive: true});
+    el.addEventListener('touchmove', onMove, {passive: false});
+    el.addEventListener('touchend', onEnd);
+    el.addEventListener('touchcancel', onEnd);
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+      el.removeEventListener('touchcancel', onEnd);
+    };
+  }, [zoomed, gallery.length, activeImg]);
 
   // Lightbox: lock scroll, ESC to close, move focus into the dialog. Focus
   // returns to the zoom trigger on close via useFocusTrap (it was the active
@@ -204,7 +301,31 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               ))}
             </div>
             <div ref={galleryRef} className="relative order-1 aspect-[2/3] w-full touch-pan-y overflow-hidden sm:order-2">
-              <Image src={gallery[activeImg] ?? gallery[0]!} alt={name} fill priority sizes="(max-width: 1024px) 100vw, 560px" className="object-cover" />
+              {/* Track — all frames in a row; follows the finger during a drag
+                  (dragDelta), then snaps. The snap eases unless reduced-motion. */}
+              <div
+                className={`absolute inset-0 flex h-full w-full ${
+                  dragDelta === null ? 'transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none' : ''
+                }`}
+                style={{transform: `translate3d(calc(${-activeImg * 100}% + ${dragDelta ?? 0}px), 0, 0)`, willChange: 'transform'}}
+              >
+                {gallery.map((src, i) => {
+                  const neighbour = Math.abs(i - activeImg) <= 1;
+                  return (
+                    <div key={i} className="relative h-full w-full flex-shrink-0">
+                      <Image
+                        src={src ?? gallery[0]!}
+                        alt={i === activeImg ? name : ''}
+                        fill
+                        draggable={false}
+                        {...(i === 0 ? {priority: true} : {loading: neighbour ? ('eager' as const) : ('lazy' as const)})}
+                        sizes="(max-width: 1024px) 100vw, 560px"
+                        className="object-cover"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
               {/* Tap-to-zoom — always-visible square trigger (no hover gate), opens
                   a full-screen view of the active photo. */}
               <button
@@ -218,6 +339,18 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
                 </svg>
               </button>
+              {/* Editorial gallery index — immediate position for the mobile
+                  swipe (thumbnails sit below on phones; desktop has the column).
+                  Decorative: the thumbnails carry the accessible position. */}
+              <span
+                aria-hidden="true"
+                className="absolute bottom-3 left-3 z-10 bg-white/85 px-2.5 py-1 font-display text-[13px] leading-none tabular-nums backdrop-blur-sm sm:hidden"
+                style={{border: `1px solid ${HAIR}`, color: INK}}
+              >
+                {String(activeImg + 1).padStart(2, '0')}
+                <span style={{color: MUTED}}>{' / '}</span>
+                {String(gallery.length).padStart(2, '0')}
+              </span>
             </div>
           </div>
 
@@ -248,7 +381,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   >
                     <span
                       aria-hidden="true"
-                      className="h-8 w-8 rounded-full transition-transform motion-safe:group-hover:scale-105"
+                      className="h-8 w-8 transition-transform motion-safe:group-hover:scale-105"
                       style={{background: c.hex, outline: color === c.key ? `1px solid ${INK}` : `1px solid ${HAIR}`, outlineOffset: '2px'}}
                     />
                   </button>
@@ -265,7 +398,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   onClick={() => setGuideOpen((o) => !o)}
                   aria-expanded={guideOpen}
                   aria-controls="wv-size-guide"
-                  className="-my-2 py-2 text-[11px] uppercase tracking-[0.16em] underline-offset-4 hover:underline"
+                  className="-my-3.5 py-3.5 text-[11px] uppercase tracking-[0.16em] underline-offset-4 hover:underline"
                   style={{color: MUTED}}
                 >
                   {t('sizeGuide')}
@@ -378,7 +511,8 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
           aria-label={t('zoomImage')}
           tabIndex={-1}
           onClick={() => setZoomed(false)}
-          className="fixed inset-0 z-[1100] flex items-center justify-center overscroll-contain bg-white outline-none"
+          className="fixed inset-0 z-[1100] flex items-center justify-center overscroll-contain outline-none"
+          style={{backgroundColor: `rgba(255,255,255,${(1 - Math.min(Math.abs(lbDismissY) / 350, 0.55)).toFixed(3)})`}}
         >
           <button
             type="button"
@@ -391,19 +525,28 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               <path d="M5 5l14 14M19 5L5 19" />
             </svg>
           </button>
-          {/* Swipe left/right to step through the gallery while zoomed. */}
+          {/* Live-drag track — horizontal swipe navigates; a vertical pull moves
+              this whole block (translateY) and the backdrop fades → dismiss. */}
           <div
-            className="relative h-[88%] w-[92%]"
+            ref={lbTrackRef}
+            className={`relative h-[88%] w-[92%] overflow-hidden ${
+              lbDismissing ? '' : 'transition-transform duration-300 ease-out motion-reduce:transition-none'
+            }`}
+            style={{transform: `translateY(${lbDismissY}px)`}}
             onClick={(e) => e.stopPropagation()}
-            onTouchStart={(e) => {
-              lbStartX.current = e.touches[0]?.clientX ?? 0;
-            }}
-            onTouchEnd={(e) => {
-              const dx = (e.changedTouches[0]?.clientX ?? 0) - lbStartX.current;
-              if (Math.abs(dx) > 40) setActiveImg((i) => (dx < 0 ? Math.min(i + 1, gallery.length - 1) : Math.max(i - 1, 0)));
-            }}
           >
-            <Image src={gallery[activeImg] ?? gallery[0]!} alt={name} fill sizes="100vw" className="object-contain" />
+            <div
+              className={`absolute inset-0 flex h-full w-full ${
+                lbDragDelta === null ? 'transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none' : ''
+              }`}
+              style={{transform: `translate3d(calc(${-activeImg * 100}% + ${lbDragDelta ?? 0}px), 0, 0)`, willChange: 'transform'}}
+            >
+              {gallery.map((src, i) => (
+                <div key={i} className="relative h-full w-full flex-shrink-0">
+                  <Image src={src ?? gallery[0]!} alt={i === activeImg ? name : ''} fill sizes="100vw" className="object-contain" />
+                </div>
+              ))}
+            </div>
           </div>
           {gallery.length > 1 && (
             <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[12px] tabular-nums tracking-[0.2em]" style={{color: MUTED}} aria-hidden="true">

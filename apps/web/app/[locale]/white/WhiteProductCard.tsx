@@ -75,7 +75,10 @@ export default function WhiteProductCard({
 
   const pick = (size: string) => {
     // Charge the effective (sale) price the card shows — not the struck regular.
-    add({key: product.key, en: product.en, ru: product.ru, price: product.sale ?? product.price, size});
+    // Quick Add has no colour UI — default to the product's primary colourway
+    // (colors[0], the one the card photo shows); the PDP carries an explicit pick.
+    const primary = product.colors[0];
+    add({key: product.key, en: product.en, ru: product.ru, price: product.sale ?? product.price, size, colorEn: primary?.en ?? '', colorRu: primary?.ru ?? ''});
     setOpen(false);
     setAdded(true);
     // Return focus after the trigger re-renders, then clear the confirmation.
@@ -155,7 +158,7 @@ export default function WhiteProductCard({
                 triggerRef.current?.focus();
               }}
               aria-label={t('close')}
-              className="absolute right-1 top-1 flex h-9 w-9 items-center justify-center text-[15px] leading-none transition-opacity hover:opacity-60"
+              className="absolute right-1 top-1 flex h-11 w-11 items-center justify-center text-[15px] leading-none transition-opacity hover:opacity-60"
               style={{color: MUTED}}
             >
               ×

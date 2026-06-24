@@ -1260,7 +1260,8 @@
       "search": "Search",
       "searchCollection": "Search the collection",
       "saved": "Saved",
-      "bag": "Bag"
+      "bag": "Bag",
+      "skipToContent": "Skip to content"
     },
     "menu": {
       "shop": "Shop",
@@ -1430,6 +1431,9 @@
       "intro": "The link may be outdated, or the piece has sold out.",
       "home": "Home",
       "shop": "Shop the collection"
+    },
+    "localeSwitch": {
+      "label": "Language"
     }
   }
 }

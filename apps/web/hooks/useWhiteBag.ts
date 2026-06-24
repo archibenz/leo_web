@@ -9,16 +9,18 @@ import {useEffect, useState} from 'react';
 const KEY = 'wv-bag';
 
 export type WhiteBagItem = {
-  id: string; // stable: `${key}-${size}` so the same product+size consolidates
+  id: string; // stable: `${key}-${size}-${colorEn}` so product+size+colour consolidates
   key: number;
   en: string;
   ru: string;
   price: number;
   size: string;
+  colorEn: string; // chosen colourway (localised pair stored for display-independence)
+  colorRu: string;
   qty: number;
 };
 
-const lineId = (key: number, size: string) => `${key}-${size}`;
+const lineId = (key: number, size: string, colorEn: string) => `${key}-${size}-${colorEn}`;
 
 let items: WhiteBagItem[] = [];
 let loaded = false;
@@ -31,11 +33,15 @@ function normalise(raw: unknown): WhiteBagItem[] {
   const byLine = new Map<string, WhiteBagItem>();
   for (const r of raw as WhiteBagItem[]) {
     if (r == null || typeof r.key !== 'number' || typeof r.size !== 'string') continue;
-    const id = lineId(r.key, r.size);
+    // Legacy rows (added before colour tracking) carry no colour — keep them as
+    // an empty colourway so they survive the migration without merging.
+    const colorEn = typeof r.colorEn === 'string' ? r.colorEn : '';
+    const colorRu = typeof r.colorRu === 'string' ? r.colorRu : '';
+    const id = lineId(r.key, r.size, colorEn);
     const qty = Number.isFinite(r.qty) && r.qty > 0 ? Math.floor(r.qty) : 1;
     const existing = byLine.get(id);
     if (existing) existing.qty += qty;
-    else byLine.set(id, {id, key: r.key, en: r.en, ru: r.ru, price: r.price, size: r.size, qty});
+    else byLine.set(id, {id, key: r.key, en: r.en, ru: r.ru, price: r.price, size: r.size, colorEn, colorRu, qty});
   }
   return [...byLine.values()];
 }
@@ -85,7 +91,7 @@ function ensureStorageSync(): void {
 }
 
 export function addToWhiteBag(item: Omit<WhiteBagItem, 'id' | 'qty'>): void {
-  const id = lineId(item.key, item.size);
+  const id = lineId(item.key, item.size, item.colorEn);
   const existing = items.find((i) => i.id === id);
   if (existing) {
     items = items.map((i) => (i.id === id ? {...i, qty: i.qty + 1} : i));

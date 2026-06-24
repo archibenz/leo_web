@@ -1352,20 +1352,29 @@ h2.font-display,
   background: #1c1714;
   color: #fff;
   border: 1px solid #1c1714;
-  transition: background 0.4s cubic-bezier(0.4, 0, 0, 1), color 0.4s cubic-bezier(0.4, 0, 0, 1);
+  transition: background 0.4s cubic-bezier(0.4, 0, 0, 1), color 0.4s cubic-bezier(0.4, 0, 0, 1), opacity 0.18s ease;
 }
-.wv-btn:hover {
-  background: transparent;
-  color: #1c1714;
+/* Hover only on hover-capable devices — otherwise iOS sticky-hover leaves the
+   invert stuck on the (non-navigating) add-to-bag button after a tap. */
+@media (hover: hover) {
+  .wv-btn:hover {
+    background: transparent;
+    color: #1c1714;
+  }
+  .wv-btn:disabled:hover {
+    background: #1c1714;
+    color: #fff;
+  }
+}
+/* Touch/press feedback — phones have no hover, so respond to :active.
+   Opacity (not transform) keeps it reduced-motion-safe. */
+.wv-btn:active:not(:disabled) {
+  opacity: 0.8;
 }
 /* Size-gated CTA: dimmed + non-actionable until a size is chosen. */
 .wv-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-}
-.wv-btn:disabled:hover {
-  background: #1c1714;
-  color: #fff;
 }
 
 .wv-quickadd {

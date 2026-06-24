@@ -133,7 +133,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                       href={s.href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
-                      className="py-2 transition-opacity hover:opacity-60"
+                      className="-my-1 flex min-h-11 items-center transition-opacity hover:opacity-60"
                       style={{color: active ? SIGNAL : MUTED}}
                     >
                       {s.label}
@@ -146,10 +146,10 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
 
           <div className="shrink-0 px-7 pb-9">
             <div className="flex gap-7 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
-              <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="transition-opacity hover:opacity-60">
+              <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="-my-3 inline-flex min-h-11 items-center transition-opacity hover:opacity-60">
                 {t('saved')}
               </a>
-              <a href={`/${locale}/white/bag`} onClick={() => setOpen(false)} className="transition-opacity hover:opacity-60">
+              <a href={`/${locale}/white/bag`} onClick={() => setOpen(false)} className="-my-3 inline-flex min-h-11 items-center transition-opacity hover:opacity-60">
                 {t('bag')}
               </a>
             </div>

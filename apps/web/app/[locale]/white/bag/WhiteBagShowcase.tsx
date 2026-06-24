@@ -71,7 +71,21 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                   </a>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[15px]">{(ru ? i.ru : i.en)}</p>
-                    <p className="mt-1 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>{t('size')}: {i.size}</p>
+                    <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>
+                      <span>{t('size')}: {i.size}</span>
+                      {(ru ? i.colorRu : i.colorEn) && (
+                        <>
+                          <span aria-hidden="true">·</span>
+                          {(() => {
+                            const hex = findWhiteProduct(i.key)?.colors.find((c) => c.en === i.colorEn)?.hex;
+                            return hex ? (
+                              <span aria-hidden="true" className="inline-block h-2.5 w-2.5 shrink-0" style={{background: hex, border: `1px solid ${HAIR}`}} />
+                            ) : null;
+                          })()}
+                          <span>{ru ? i.colorRu : i.colorEn}</span>
+                        </>
+                      )}
+                    </p>
                   </div>
                   {/* Controls — own full-width row on phones so the product name
                       above keeps the whole line (it was truncating to ~103px);
@@ -122,7 +136,9 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
               <span className="text-[18px] tabular-nums">{fmt(total)}</span>
             </div>
 
-            <a href={`/${locale}/white/shop`} className="mt-8 inline-block text-[12px] uppercase tracking-[0.18em] underline-offset-4 transition-opacity hover:opacity-60" style={{color: MUTED}}>
+            {/* min-h-11 → 44px tap floor (this is the bag's only nav affordance
+                besides qty/remove); mt-4 trims the gap the taller box adds. */}
+            <a href={`/${locale}/white/shop`} className="mt-4 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.18em] underline-offset-4 transition-opacity hover:opacity-60" style={{color: MUTED}}>
               ← {t('continueShopping')}
             </a>
           </div>
