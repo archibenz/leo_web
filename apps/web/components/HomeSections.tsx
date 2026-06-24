@@ -250,9 +250,15 @@ function ShopHeroCard({title, subtitle, locale}: {title: string; subtitle: strin
         </div>
       </div>
 
-      {/* Mobile: always visible */}
-      <div className="absolute inset-x-0 bottom-0 z-[2] p-5 md:hidden">
-        <p className="font-accent text-[12px] uppercase tracking-[0.2em] text-inkSoft/60">{subtitle}</p>
+      {/* Mobile: always visible over a dedicated foot scrim. The plain vignette
+          (~0.3 at the foot) left the cream subtitle below AA over bright photo
+          regions; this scrim holds >=0.72 black through the text band so AA is
+          guaranteed regardless of the image, matching the collection banner. */}
+      <div
+        className="absolute inset-x-0 bottom-0 z-[2] px-5 pb-5 pt-12 md:hidden"
+        style={{background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.72) 55%, rgba(0,0,0,0.25) 100%)'}}
+      >
+        <p className="font-accent text-[12px] uppercase tracking-[0.2em] text-inkSoft/90">{subtitle}</p>
         <h3 className="mt-1 font-display text-xl uppercase tracking-[0.06em] text-inkSoft">{title}</h3>
       </div>
     </Link>

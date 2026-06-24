@@ -1,5 +1,6 @@
 'use client';
 
+import {useEffect, useState} from 'react';
 import Lightbox from 'yet-another-react-lightbox';
 import Zoom from 'yet-another-react-lightbox/plugins/zoom';
 import {useTranslations} from 'next-intl';
@@ -24,6 +25,17 @@ export default function ProductGalleryLightbox({
 }: ProductGalleryLightboxProps) {
   const hasMultiple = images.length > 1;
   const t = useTranslations('product.gallery');
+
+  // The library ships no prefers-reduced-motion handling and we set explicit
+  // animation durations — so honour the user setting ourselves: 0ms = instant.
+  const [reduce, setReduce] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReduce(mq.matches);
+    const onChange = () => setReduce(mq.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   return (
     <Lightbox
@@ -50,8 +62,9 @@ export default function ProductGalleryLightbox({
         pinchZoomDistanceFactor: 80,
       }}
       animation={{
-        fade: 500,
-        swipe: 450,
+        fade: reduce ? 0 : 500,
+        swipe: reduce ? 0 : 450,
+        navigation: reduce ? 0 : 450,
         easing: {
           fade: 'cubic-bezier(0.22, 1, 0.36, 1)',
           swipe: 'cubic-bezier(0.22, 1, 0.36, 1)',

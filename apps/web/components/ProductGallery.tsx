@@ -185,7 +185,7 @@ export default function ProductGallery({images}: ProductGalleryProps) {
                 onClick={() => jumpTo(i)}
                 onMouseEnter={() => setPreviewIndex(i)}
                 onMouseLeave={() => setPreviewIndex(null)}
-                className="relative flex-shrink-0 w-14 h-[72px] sm:w-16 sm:h-20 lg:w-full lg:h-20 rounded-md overflow-hidden transition-all duration-200 active:scale-95"
+                className="relative flex-shrink-0 w-14 h-[72px] sm:w-16 sm:h-20 lg:w-full lg:h-20 rounded-md overflow-hidden transition-all duration-200 active:scale-95 motion-reduce:active:scale-100"
                 style={{WebkitTapHighlightColor: 'transparent'}}
                 aria-label={img.alt}
                 aria-pressed={i === displayIndex}

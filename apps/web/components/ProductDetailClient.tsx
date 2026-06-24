@@ -187,6 +187,9 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
       title: product.title,
       price: product.price,
       size: selectedSize ?? undefined,
+      // Carry the displayed photo so the cart shows the product, not the
+      // placeholder — matches shop quick-add (which already passes an image).
+      image: galleryImages[0]?.src || undefined,
       isTest: product.isTest,
     });
     setJustAdded(true);
@@ -325,7 +328,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
                     <button
                       onClick={handleNotifyMe}
                       disabled={alertState === 'saving'}
-                      className="flex h-12 w-full items-center justify-center rounded-full border-2 border-[var(--accent)]/50 text-sm font-medium text-[var(--accent)] transition-all duration-200 hover:bg-[var(--accent)]/[0.08] active:scale-[0.98] disabled:opacity-50"
+                      className="flex h-12 w-full items-center justify-center rounded-full border-2 border-[var(--accent)]/50 text-sm font-medium text-[var(--accent)] transition-all duration-200 hover:bg-[var(--accent)]/[0.08] active:scale-[0.98] motion-reduce:active:scale-100 disabled:opacity-50"
                     >
                       {t('notifyMe')}
                     </button>
@@ -341,7 +344,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
                 ref={inlineCtaRef}
                 onClick={handleAddToBag}
                 aria-live="polite"
-                className="flex h-14 w-full items-center justify-center rounded-full bg-button text-base font-medium text-ink transition-all duration-200 hover:bg-button/90 active:scale-[0.98]"
+                className="flex h-14 w-full items-center justify-center rounded-full bg-button text-base font-medium text-ink transition-all duration-200 hover:bg-button/90 active:scale-[0.98] motion-reduce:active:scale-100"
               >
                 {justAdded ? t('addedToBag') : t('addToBag')}
               </button>
@@ -352,7 +355,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
 
             <button
               onClick={handleToggleFav}
-              className={`flex h-14 w-full items-center justify-center gap-2.5 rounded-full border-2 text-base font-medium transition-all duration-200 active:scale-[0.98] ${
+              className={`flex h-14 w-full items-center justify-center gap-2.5 rounded-full border-2 text-base font-medium transition-all duration-200 active:scale-[0.98] motion-reduce:active:scale-100 ${
                 isFav
                   ? 'border-[var(--accent)] text-[var(--accent)]'
                   : 'border-[var(--ink)]/20 text-[var(--ink)] hover:border-[var(--accent)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/[0.06]'
@@ -466,7 +469,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
             <button
               onClick={handleStickyAdd}
               tabIndex={showSticky ? 0 : -1}
-              className="flex h-12 flex-1 items-center justify-center rounded-full bg-button text-base font-medium text-ink transition-transform active:scale-[0.98]"
+              className="flex h-12 flex-1 items-center justify-center rounded-full bg-button text-base font-medium text-ink transition-transform active:scale-[0.98] motion-reduce:active:scale-100"
             >
               {justAdded ? t('addedToBag') : t('addToBag')}
             </button>

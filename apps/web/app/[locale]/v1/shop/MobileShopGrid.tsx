@@ -4,10 +4,8 @@ import {useMemo, useState, useRef, useEffect, useCallback} from 'react';
 import {useSearchParams} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import Link from 'next/link';
-import {formatPrice} from '../../../../lib/formatPrice';
-import {useFavorites} from '../../../../contexts';
-import {BrandHeart} from '../../../../components/icons';
 import type {MobileShopItem} from './types';
+import MobileShopCard from './MobileShopCard';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? '';
 
@@ -48,7 +46,6 @@ type MobileShopGridProps = {
 export default function MobileShopGrid({products, locale}: MobileShopGridProps) {
   const menu = useTranslations('menu');
   const searchParams = useSearchParams();
-  const {toggleItem, isFavorite} = useFavorites();
   const tr = (en: string, ru: string) => (locale === 'ru' ? ru : en);
 
   const filterParam = searchParams.get('filter');
@@ -90,7 +87,7 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
   };
 
   const chip = (active: boolean) =>
-    `inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-full border px-4 text-[12px] uppercase tracking-[0.08em] transition-colors ${
+    `inline-flex h-11 shrink-0 items-center whitespace-nowrap rounded-full border px-4 text-[12px] uppercase tracking-[0.08em] transition-colors ${
       active ? 'border-accent text-accent' : 'border-inkSoft/20 text-inkSoft/70 hover:border-inkSoft/40'
     }`;
 
@@ -197,7 +194,7 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
         <div className="mt-3">
           <Link
             href={`/${locale}/shop`}
-            className="inline-flex items-center gap-1.5 text-[12px] uppercase tracking-[0.08em] text-inkSoft/55 underline-offset-4 transition-colors hover:text-accent hover:underline"
+            className="-my-3 inline-flex min-h-11 items-center gap-1.5 text-[12px] uppercase tracking-[0.08em] text-inkSoft/55 underline-offset-4 transition-colors hover:text-accent hover:underline"
           >
             {tr('Clear filters', 'Сбросить фильтры')} <span aria-hidden="true">×</span>
           </Link>
@@ -221,45 +218,9 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
         </div>
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-7">
-          {items.map((p) => {
-            const img = firstImage(p);
-            const fav = isFavorite(p.id);
-            return (
-              <div key={p.id} className="group relative">
-                <Link href={`/${locale}/product/${p.id}`} className="block">
-                  <div className="relative aspect-[2/3] w-full overflow-hidden bg-[var(--paper-muted)]">
-                    {img ? (
-                      // eslint-disable-next-line @next/next/no-img-element -- catalog images come from arbitrary hosts/uploads; next/image remotePatterns can't cover them all
-                      <img
-                        src={img}
-                        alt={p.title}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                      />
-                    ) : null}
-                    {p.badge ? (
-                      <span className="absolute left-2 top-2 bg-[var(--paper)]/70 px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] text-accent">
-                        {p.badge === 'new' ? menu('categories.new') : menu('categories.popular')}
-                      </span>
-                    ) : null}
-                  </div>
-                  <p className="mt-2 truncate text-[13px] text-inkSoft transition-colors group-hover:text-accent">{p.title}</p>
-                  <p className="mt-0.5 text-[13px] text-inkSoft/60">{formatPrice(locale, p.price)}</p>
-                </Link>
-                {/* Favourite — sibling of the link (a button nested in <a> is invalid);
-                    save straight from the grid. 44px target, BrandHeart fills when saved. */}
-                <button
-                  type="button"
-                  onClick={() => toggleItem({id: p.id, title: p.title, image: img ?? undefined})}
-                  aria-pressed={fav}
-                  aria-label={fav ? tr(`Remove ${p.title} from favourites`, `Убрать ${p.title} из избранного`) : tr(`Add ${p.title} to favourites`, `Добавить ${p.title} в избранное`)}
-                  className="absolute right-2 top-2 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-[var(--paper)]/70 text-inkSoft backdrop-blur-sm transition hover:bg-[var(--paper)] hover:text-ink"
-                >
-                  <BrandHeart filled={fav} size={16} />
-                </button>
-              </div>
-            );
-          })}
+          {items.map((p) => (
+            <MobileShopCard key={p.id} p={p} locale={locale} img={firstImage(p)} />
+          ))}
         </div>
       )}
     </div>

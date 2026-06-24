@@ -42,7 +42,7 @@ export default function FavoritesPage() {
           {items.length > 0 && (
             <button
               onClick={() => setConfirmClearOpen(true)}
-              className="text-sm uppercase tracking-wider text-ink-soft transition hover:text-ink"
+              className="-my-3 inline-flex min-h-11 items-center py-3 text-sm uppercase tracking-wider text-ink-soft transition hover:text-ink"
             >
               {t('clearAll')}
             </button>
@@ -121,7 +121,7 @@ export default function FavoritesPage() {
                           so route to the PDP to pick a size instead of adding a size-less item. */}
                       <Link
                         href={`/${locale}/product/${item.id}`}
-                        className="block w-full rounded-full bg-button py-3 text-center text-xs font-medium uppercase tracking-wider text-ink transition hover:bg-button/90"
+                        className="flex min-h-11 w-full items-center justify-center rounded-full bg-button text-xs font-medium uppercase tracking-wider text-ink transition hover:bg-button/90"
                       >
                         {t('selectSize')}
                       </Link>
