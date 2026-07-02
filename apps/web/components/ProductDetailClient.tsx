@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useEffect, useRef} from 'react';
+import {useState, useEffect, useMemo, useRef} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname, useRouter} from 'next/navigation';
 import Link from 'next/link';
@@ -130,6 +130,45 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
     return () => io.disconnect();
   }, [product?.inStock]);
 
+  // Derived from the stable `product` prop only, so memoize them — otherwise
+  // they re-parse JSON / rebuild these arrays on every render, including the
+  // frequent unrelated re-renders `showSticky` above triggers on every mobile
+  // scroll tick. Declared before the early return below so the hooks run
+  // unconditionally (Rules of Hooks); each memo falls back to [] until there
+  // is a product. Matches useProductImages (ShopClient.tsx) / pickImages
+  // (SlideLayer.tsx).
+  const galleryImages = useMemo<ProductImage[]>(() => {
+    if (!product) return [];
+    let images: ProductImage[] = [];
+    if (product.images) {
+      try {
+        const parsed = JSON.parse(product.images);
+        if (Array.isArray(parsed)) {
+          images = parsed.map((img: {src?: string; alt?: string}, i: number) => ({
+            id: String(i + 1),
+            src: img.src ? (img.src.startsWith('/') ? `${API_BASE}${img.src}` : img.src) : '',
+            alt: img.alt ?? `${product.title} — ${i + 1}`,
+            gradient: GRADIENTS[product.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]',
+          }));
+        }
+      } catch { /* ignore */ }
+    }
+    if (images.length === 0) {
+      images = [{
+        id: '1',
+        src: product.image ? (product.image.startsWith('/') ? `${API_BASE}${product.image}` : product.image) : '',
+        alt: product.title,
+        gradient: GRADIENTS[product.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]',
+      }];
+    }
+    return images;
+  }, [product]);
+
+  const sizeOptions = useMemo<SizeOption[]>(() => {
+    if (!product) return [];
+    return (product.sizes ?? []).map(s => ({label: s, available: true}));
+  }, [product]);
+
   if (!product) {
     return (
       <div className="mx-auto max-w-7xl px-4 pt-28 pb-16 sm:px-6 lg:px-8">
@@ -142,36 +181,6 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
       </div>
     );
   }
-
-  // Parse images from JSON
-  let galleryImages: ProductImage[] = [];
-  if (product.images) {
-    try {
-      const parsed = JSON.parse(product.images);
-      if (Array.isArray(parsed)) {
-        galleryImages = parsed.map((img: {src?: string; alt?: string}, i: number) => ({
-          id: String(i + 1),
-          src: img.src ? (img.src.startsWith('/') ? `${API_BASE}${img.src}` : img.src) : '',
-          alt: img.alt ?? `${product.title} — ${i + 1}`,
-          gradient: GRADIENTS[product.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]',
-        }));
-      }
-    } catch { /* ignore */ }
-  }
-  if (galleryImages.length === 0) {
-    galleryImages = [{
-      id: '1',
-      src: product.image ? (product.image.startsWith('/') ? `${API_BASE}${product.image}` : product.image) : '',
-      alt: product.title,
-      gradient: GRADIENTS[product.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]',
-    }];
-  }
-
-  // Parse sizes
-  const sizeOptions: SizeOption[] = (product.sizes ?? []).map(s => ({
-    label: s,
-    available: true,
-  }));
 
   const isFav = isFavorite(product.id);
 
