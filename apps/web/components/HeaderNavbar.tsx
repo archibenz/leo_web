@@ -15,7 +15,7 @@ type HeaderNavbarProps = { locale: string };
 
 /* ── Icons ── */
 const ProfileIcon = () => (
-  <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 4-6 8-6s8 2 8 6" /></svg>
+  <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" /><path d="M4 20c0-4 4-6 8-6s8 2 8 6" /></svg>
 );
 const HeartIcon = ({count = 0}: {count?: number} = {}) => <BrandHeart count={count} size={18} />;
 const CartIcon = ({count = 0}: {count?: number} = {}) => <BrandCart count={count} size={18} />;
@@ -28,7 +28,7 @@ const IconBtn = ({ onClick, ariaLabel, children, badge }: {
     onClick={onClick}
     aria-label={ariaLabel}
     style={{ WebkitTapHighlightColor: 'transparent' }}
-    className="group relative flex h-11 w-11 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 motion-reduce:active:scale-100 focus-visible:rounded-full"
+    className="group relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full transition-transform duration-150 active:scale-90 motion-reduce:active:scale-100 focus-visible:rounded-full"
   >
     <span className="flex h-9 w-9 items-center justify-center rounded-full text-ink/65 transition-colors duration-200 group-hover:bg-ink/[0.07] group-hover:text-accent group-active:bg-ink/[0.12]">
       {children}
@@ -145,8 +145,11 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
       <header className="fixed top-0 left-0 right-0 z-[200] px-3 pt-3 sm:px-4 lg:px-6">
         <div className="liquid-glass relative flex h-12 items-center rounded-full px-3 sm:px-4 lg:px-5">
 
-          {/* Left: Hamburger (mobile) + Logo */}
-          <div className="flex items-center gap-2.5 min-w-0 flex-shrink-0 ml-2 lg:ml-4">
+          {/* Left: Hamburger (mobile) + Logo. Deliberately rigid: shrinking it would
+              squish the w-auto SVG wordmark instead of truncating; on widths where the
+              pill can't fit everything, the wordmark hides (see below) and the right
+              block absorbs the rest. */}
+          <div className="flex items-center gap-2.5 flex-shrink-0 ml-2 lg:ml-4">
             <button type="button" onClick={handleMenuToggle}
               aria-label={isMenuOpen ? t('closeMenu') : t('openMenu')} aria-expanded={isMenuOpen}
               style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -163,7 +166,11 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
             </button>
             <button type="button" onClick={() => go('')} className="flex items-center gap-2" aria-label={t('goHome')}>
               <Image src="/logos/icon-white.svg" alt="" aria-hidden="true" width={28} height={28} className="brand-asset h-7 w-7 flex-shrink-0" draggable={false} />
-              <Image src="/logos/name-white.svg" alt="REINASLEO" width={120} height={12} className="brand-asset h-3 min-w-0 w-auto" draggable={false} />
+              {/* Wordmark renders 76px wide (1026/162 aspect at h-3). Below 360px logged out
+                  (272px pill space vs 310px content) — and below 430px signed in, where the
+                  greeting chip needs the room — it can't fit, so the 28px icon mark carries
+                  the brand alone. */}
+              <Image src="/logos/name-white.svg" alt="REINASLEO" width={120} height={12} className={`brand-asset h-3 w-auto ${isAuthenticated ? 'max-[429px]:hidden' : 'max-[359px]:hidden'}`} draggable={false} />
             </button>
           </div>
 
@@ -224,8 +231,13 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
             </Menu>
           </div>
 
-          {/* Right: Search + Icons */}
-          <div className="flex items-center gap-0.5 ml-auto flex-shrink-0">
+          {/* Right: Search + Icons. Shrinkable (unlike the left block) so the signed-in
+              name chip truncates instead of pushing the account control off-screen;
+              every other child is flex-shrink-0 / min-w floored at the 44px tap size.
+              min-w-0 here is load-bearing: without it the flex item's min-width:auto
+              floors the block at its content width and none of the inner shrink
+              chain ever engages. */}
+          <div className="flex items-center gap-0.5 ml-auto min-w-0">
             {/* Desktop: animated search bar */}
             <div className="hidden lg:block mr-1">
               <SearchBar
@@ -240,13 +252,13 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
             <IconBtn onClick={() => go('/favorites')} ariaLabel={t('favoritesWithCount', {count: favoritesCount})}><HeartIcon count={favoritesCount} /></IconBtn>
             <IconBtn onClick={() => go('/cart')} ariaLabel={t('cartWithCount', {count: cartCount})}><CartIcon count={cartCount} /></IconBtn>
 
-            <div ref={profileDropdownRef} className="relative" onMouseEnter={handleProfileMouseEnter} onMouseLeave={handleProfileMouseLeave}>
+            <div ref={profileDropdownRef} className="relative min-w-11" onMouseEnter={handleProfileMouseEnter} onMouseLeave={handleProfileMouseLeave}>
               {isAuthenticated && user ? (
                 <button type="button" onClick={() => go('/account')} aria-label={t('profile')}
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                   className="group relative flex h-11 items-center rounded-full transition-transform duration-150 active:scale-95 motion-reduce:active:scale-100 focus-visible:rounded-full">
-                  <span className="flex h-9 items-center gap-1 rounded-full px-2.5 text-ink/55 transition-colors duration-200 group-hover:bg-ink/[0.06] group-hover:text-accent">
-                    <span className="truncate max-w-[120px] sm:max-w-[160px] text-[13px] font-medium">
+                  <span className="flex min-w-0 h-9 items-center gap-1 rounded-full px-2.5 text-ink/55 transition-colors duration-200 group-hover:bg-ink/[0.06] group-hover:text-accent">
+                    <span className="truncate min-w-0 max-w-[120px] sm:max-w-[160px] text-[13px] font-medium">
                       <span className="hidden sm:inline">{t('greeting', { name: user.name })}</span>
                       <span className="sm:hidden">{user.name}</span>
                     </span>
