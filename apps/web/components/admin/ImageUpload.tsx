@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useRef, useCallback} from 'react';
+import {useState, useCallback} from 'react';
 import {useTranslations} from 'next-intl';
 import {API_BASE, getToken} from '../../lib/api';
 import BrandLoader from '../BrandLoader';
@@ -16,7 +16,6 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
   const t = useTranslations('admin.upload');
   const [uploading, setUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -110,9 +109,12 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
               <button
                 type="button"
                 onClick={() => removeImage(i)}
-                className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs opacity-0 group-hover:opacity-100 transition"
+                aria-label={t('removeImage')}
+                className="absolute -top-2 -right-2 flex h-11 w-11 items-center justify-center rounded-full transition"
               >
-                &times;
+                <span aria-hidden="true" className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                  &times;
+                </span>
               </button>
             </div>
           ))}
@@ -126,13 +128,23 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
         </div>
       )}
 
-      {/* Drop zone */}
-      <div
+      {/* Drop zone — a native <label> wrapping a visually-hidden (not
+          display:none) file input, so Tab/Enter/Space open the file dialog
+          via default browser behaviour instead of a hand-rolled keydown
+          handler. has-[:focus-visible] mirrors the ring onto the label since
+          the sr-only input's own outline is clipped and invisible. */}
+      <label
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        onClick={() => fileInputRef.current?.click()}
-        className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--ink)]/20 p-8 text-center transition hover:border-[var(--accent)]/50 hover:bg-[var(--ink)]/3"
+        className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--ink)]/20 p-8 text-center transition hover:border-[var(--accent)]/50 hover:bg-[var(--ink)]/3 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-[var(--accent)] has-[:focus-visible]:outline-offset-2"
       >
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          className="sr-only"
+          onChange={e => handleUpload(e.target.files)}
+        />
         {uploading ? (
           <div className="flex items-center gap-2 text-sm text-[var(--ink-soft)]">
             <BrandLoader size={20} />
@@ -149,16 +161,7 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
             <p className="text-xs text-[var(--ink-soft)]/60">{t('maxSize')}</p>
           </>
         )}
-      </div>
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        multiple
-        className="hidden"
-        onChange={e => handleUpload(e.target.files)}
-      />
+      </label>
     </div>
   );
 }
