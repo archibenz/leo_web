@@ -151,9 +151,10 @@ interface HeroCardProps {
   locale: string;
   t: Translator;
   tLook: Translator;
+  tProduct: Translator;
 }
 
-function HeroCard({item, idx, locale, t, tLook}: HeroCardProps) {
+function HeroCard({item, idx, locale, t, tLook, tProduct}: HeroCardProps) {
   const images = useProductImages(item);
   const img = images[0];
   const [heroError, setHeroError] = useState(false);
@@ -208,7 +209,7 @@ function HeroCard({item, idx, locale, t, tLook}: HeroCardProps) {
 
       {item.isTest && (
         <span className="absolute left-4 top-4 rounded-full bg-[var(--accent)]/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--paper-base)] sm:left-8 sm:top-8">
-          Demo
+          {tProduct('demoBadge')}
         </span>
       )}
     </Link>
@@ -220,9 +221,10 @@ interface ListCardProps {
   idx: number;
   locale: string;
   t: Translator;
+  tProduct: Translator;
 }
 
-function ListCard({item, idx, locale, t}: ListCardProps) {
+function ListCard({item, idx, locale, t, tProduct}: ListCardProps) {
   const [hoverIndex, setHoverIndex] = useState(0);
   const [hovering, setHovering] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -296,7 +298,7 @@ function ListCard({item, idx, locale, t}: ListCardProps) {
 
         {item.isTest && (
           <span className="absolute left-2 top-2 rounded-full bg-[var(--accent)]/80 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--paper-base)]">
-            Demo
+            {tProduct('demoBadge')}
           </span>
         )}
       </div>
@@ -354,6 +356,7 @@ function BrandFallback({title, occasion}: {title: string; occasion: string | nul
 export default function ShopClient({initialProducts}: {initialProducts?: ShopItem[]}) {
   const t = useTranslations('shop');
   const tLook = useTranslations('look');
+  const tProduct = useTranslations('product');
   const pathname = usePathname() || '/';
   const locale = pathname.split('/')[1] || 'ru';
   const searchParams = useSearchParams();
@@ -622,7 +625,7 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
                   </h2>
                   <div className="flex flex-col gap-y-14 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-16 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-20">
                     {groupItems.map((item, i) => (
-                      <ListCard key={item.id} item={item} idx={i} locale={locale} t={t} />
+                      <ListCard key={item.id} item={item} idx={i} locale={locale} t={t} tProduct={tProduct} />
                     ))}
                   </div>
                 </div>
@@ -631,11 +634,11 @@ export default function ShopClient({initialProducts}: {initialProducts?: ShopIte
           ) : filteredAndSorted.length > 0 ? (
             <>
               {/* 05 Couture Display — hero "лицо коллекции" + классическая сетка с порядковыми номерами */}
-              <HeroCard item={filteredAndSorted[0]} idx={0} locale={locale} t={t} tLook={tLook} />
+              <HeroCard item={filteredAndSorted[0]} idx={0} locale={locale} t={t} tLook={tLook} tProduct={tProduct} />
               {filteredAndSorted.length > 1 && (
                 <div className="flex flex-col gap-y-14 sm:grid sm:grid-cols-2 sm:gap-x-6 sm:gap-y-16 lg:grid-cols-3 lg:gap-x-8 lg:gap-y-20">
                   {filteredAndSorted.slice(1).map((item, i) => (
-                    <ListCard key={item.id} item={item} idx={i + 1} locale={locale} t={t} />
+                    <ListCard key={item.id} item={item} idx={i + 1} locale={locale} t={t} tProduct={tProduct} />
                   ))}
                 </div>
               )}

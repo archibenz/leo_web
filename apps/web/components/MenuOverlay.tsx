@@ -68,6 +68,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
   if (!isOpen && !isAnimating) return null;
 
   const primary = [
+    {key: 'home', href: `/${locale}`, label: nav('home')},
     {key: 'shop', href: `/${locale}/shop`, label: nav('shop')},
     ...CATEGORY_ITEMS.map((key) => ({key, href: `/${locale}/shop?category=${key}`, label: t(`categories.${key}`)})),
   ];
@@ -128,7 +129,11 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
         <nav className="flex flex-1 flex-col overflow-y-auto px-5 py-1" aria-label={t('label')}>
           {primary.map((item, index) => {
             const onShop = pathname === `/${locale}/shop`;
-            const current = item.key === 'shop' ? onShop && !activeCat : onShop && item.key === activeCat;
+            const current = item.key === 'home'
+              ? pathname === `/${locale}`
+              : item.key === 'shop'
+              ? onShop && !activeCat
+              : onShop && item.key === activeCat;
             return (
               <Link
                 key={item.key}
