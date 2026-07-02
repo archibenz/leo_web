@@ -1,6 +1,5 @@
 'use client';
 
-import {AnimatePresence, motion, useReducedMotion} from 'framer-motion';
 import {useState, type ReactNode} from 'react';
 
 interface FooterAccordionProps {
@@ -24,15 +23,7 @@ export default function FooterAccordion({
   defaultOpen = false,
 }: FooterAccordionProps) {
   const [open, setOpen] = useState(defaultOpen);
-  const prefersReducedMotion = useReducedMotion();
   const panelId = `footer-accordion-${slugify(title)}`;
-
-  const heightTransition = prefersReducedMotion
-    ? {duration: 0}
-    : {duration: 0.32, ease: [0.4, 0, 0.2, 1] as [number, number, number, number]};
-  const opacityTransition = prefersReducedMotion
-    ? {duration: 0}
-    : {duration: 0.22, ease: 'easeOut' as const};
 
   return (
     <div className="border-b border-inkSoft/[0.06]">
@@ -59,25 +50,14 @@ export default function FooterAccordion({
           <path d="M6 1v10M1 6h10" strokeLinecap="round" />
         </svg>
       </button>
-      <AnimatePresence initial={false}>
-        {open && (
-          <motion.div
-            key="content"
-            id={panelId}
-            role="region"
-            initial={{height: 0, opacity: 0}}
-            animate={{height: 'auto', opacity: 1}}
-            exit={{height: 0, opacity: 0}}
-            transition={{
-              height: heightTransition,
-              opacity: opacityTransition,
-            }}
-            className="overflow-hidden"
-          >
-            <div className="pb-4 pt-1">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div
+        id={panelId}
+        role="region"
+        inert={!open}
+        className={`accordion-collapse ${open ? 'is-open' : ''}`}
+      >
+        <div className="pb-4 pt-1">{children}</div>
+      </div>
     </div>
   );
 }

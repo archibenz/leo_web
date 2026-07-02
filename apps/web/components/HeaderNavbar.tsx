@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, MenuItem, CategoryCard } from './ui/navbar-menu';
 import { SearchBar } from './ui/search-bar';
 import MenuOverlay from './MenuOverlay';
@@ -257,63 +256,60 @@ export default function HeaderNavbar({ locale }: HeaderNavbarProps) {
               ) : (
                 <IconBtn onClick={() => go('/account')} ariaLabel={t('profile')}><ProfileIcon /></IconBtn>
               )}
-              <AnimatePresence>
-                {isProfileOpen && isDesktop && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.85, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: 8, pointerEvents: "none" as never }}
-                    transition={{ type: 'spring', mass: 0.5, damping: 11.5, stiffness: 100, restDelta: 0.001 }}
-                    className="dropdown-glass absolute right-0 top-full mt-3 w-56 rounded-2xl border border-accent/[0.08] overflow-hidden z-[100]"
-                  >
-                    {isAuthenticated && user ? (
-                      <>
-                        {/* User info header */}
-                        <div className="px-4 pt-4 pb-3">
-                          <p className="font-display text-[15px] font-medium text-ink/80 truncate">{user.name}</p>
-                          {user.email && <p className="mt-0.5 text-[13px] text-ink/60 truncate">{user.email}</p>}
-                        </div>
-                        <div className="mx-3 h-px bg-gradient-to-r from-accent/10 via-accent/5 to-transparent" />
+              <div
+                className={`dropdown-glass absolute right-0 top-full mt-3 w-56 origin-top-right rounded-2xl border border-accent/[0.08] overflow-hidden z-[100] transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none ${
+                  isProfileOpen && isDesktop
+                    ? 'opacity-100 scale-100 translate-y-0'
+                    : 'pointer-events-none opacity-0 scale-95 translate-y-2'
+                }`}
+                inert={!(isProfileOpen && isDesktop)}
+              >
+                {isAuthenticated && user ? (
+                  <>
+                    {/* User info header */}
+                    <div className="px-4 pt-4 pb-3">
+                      <p className="font-display text-[15px] font-medium text-ink/80 truncate">{user.name}</p>
+                      {user.email && <p className="mt-0.5 text-[13px] text-ink/60 truncate">{user.email}</p>}
+                    </div>
+                    <div className="mx-3 h-px bg-gradient-to-r from-accent/10 via-accent/5 to-transparent" />
 
-                        <div className="py-1.5">
-                          <Link href={`/${locale}/account`} onClick={() => setIsProfileOpen(false)} className="group/item flex items-center gap-3 px-4 py-2.5 text-[15px] text-ink/60 transition-all duration-200 hover:bg-accent/[0.04] hover:text-ink hover:pl-5"><ProfileIcon />{t('dropdown.profile')}</Link>
-                          <span aria-disabled="true" className="flex items-center gap-3 px-4 py-2.5 text-[15px] text-ink/45 cursor-default"><svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>{t('dropdown.orders')}</span>
-                          <Link href={`/${locale}/account?tab=favorites`} onClick={() => setIsProfileOpen(false)} className="group/item flex items-center gap-3 px-4 py-2.5 text-[15px] text-ink/60 transition-all duration-200 hover:bg-accent/[0.04] hover:text-ink hover:pl-5"><HeartIcon />{t('dropdown.favourites')}</Link>
-                          <Link href={`/${locale}/account?tab=settings`} onClick={() => setIsProfileOpen(false)} className="group/item flex items-center gap-3 px-4 py-2.5 text-[15px] text-ink/60 transition-all duration-200 hover:bg-accent/[0.04] hover:text-ink hover:pl-5"><svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" /></svg>{t('dropdown.settings')}</Link>
-                          {isAdmin && (
-                            <Link href={`/${locale}/admin`} onClick={() => setIsProfileOpen(false)} className="group/item flex items-center gap-3 px-4 py-2.5 text-[15px] text-accent/70 transition-all duration-200 hover:bg-accent/[0.04] hover:text-accent hover:pl-5">
-                              <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
-                              {t('dropdown.admin')}
-                            </Link>
-                          )}
-                        </div>
-                        <div className="mx-3 h-px bg-gradient-to-r from-accent/10 via-accent/5 to-transparent" />
-                        <div className="py-1.5">
-                          <button type="button" onClick={() => { setIsProfileOpen(false); logout(); }}
-                            className="flex w-full items-center gap-3 px-4 py-2.5 text-[15px] text-ink/65 transition-all duration-200 hover:bg-accent/[0.04] hover:text-ink/70 hover:pl-5">
-                            <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                            {t('dropdown.logOut')}
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="p-5 text-center space-y-3">
-                        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-ink/8 bg-ink/[0.04]">
-                          <ProfileIcon />
-                        </div>
-                        <p className="text-[15px] text-ink/60">{t('dropdown.loginPrompt')}</p>
-                        <Link
-                          href={`/${locale}/account`}
-                          onClick={() => setIsProfileOpen(false)}
-                          className="block w-full rounded-full border border-accent/20 bg-accent/10 py-2.5 text-[14px] font-display font-medium uppercase tracking-[0.08em] text-accent transition-all duration-300 hover:bg-accent/20 hover:border-accent/35"
-                        >
-                          {t('dropdown.signIn')}
+                    <div className="py-1.5">
+                      <Link href={`/${locale}/account`} onClick={() => setIsProfileOpen(false)} className="group/item flex items-center gap-3 px-4 py-2.5 text-[15px] text-ink/60 transition-all duration-200 hover:bg-accent/[0.04] hover:text-ink hover:pl-5"><ProfileIcon />{t('dropdown.profile')}</Link>
+                      <span aria-disabled="true" className="flex items-center gap-3 px-4 py-2.5 text-[15px] text-ink/45 cursor-default"><svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>{t('dropdown.orders')}</span>
+                      <Link href={`/${locale}/account?tab=favorites`} onClick={() => setIsProfileOpen(false)} className="group/item flex items-center gap-3 px-4 py-2.5 text-[15px] text-ink/60 transition-all duration-200 hover:bg-accent/[0.04] hover:text-ink hover:pl-5"><HeartIcon />{t('dropdown.favourites')}</Link>
+                      <Link href={`/${locale}/account?tab=settings`} onClick={() => setIsProfileOpen(false)} className="group/item flex items-center gap-3 px-4 py-2.5 text-[15px] text-ink/60 transition-all duration-200 hover:bg-accent/[0.04] hover:text-ink hover:pl-5"><svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" /></svg>{t('dropdown.settings')}</Link>
+                      {isAdmin && (
+                        <Link href={`/${locale}/admin`} onClick={() => setIsProfileOpen(false)} className="group/item flex items-center gap-3 px-4 py-2.5 text-[15px] text-accent/70 transition-all duration-200 hover:bg-accent/[0.04] hover:text-accent hover:pl-5">
+                          <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
+                          {t('dropdown.admin')}
                         </Link>
-                      </div>
-                    )}
-                  </motion.div>
+                      )}
+                    </div>
+                    <div className="mx-3 h-px bg-gradient-to-r from-accent/10 via-accent/5 to-transparent" />
+                    <div className="py-1.5">
+                      <button type="button" onClick={() => { setIsProfileOpen(false); logout(); }}
+                        className="flex w-full items-center gap-3 px-4 py-2.5 text-[15px] text-ink/65 transition-all duration-200 hover:bg-accent/[0.04] hover:text-ink/70 hover:pl-5">
+                        <svg viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                        {t('dropdown.logOut')}
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-5 text-center space-y-3">
+                    <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-ink/8 bg-ink/[0.04]">
+                      <ProfileIcon />
+                    </div>
+                    <p className="text-[15px] text-ink/60">{t('dropdown.loginPrompt')}</p>
+                    <Link
+                      href={`/${locale}/account`}
+                      onClick={() => setIsProfileOpen(false)}
+                      className="block w-full rounded-full border border-accent/20 bg-accent/10 py-2.5 text-[14px] font-display font-medium uppercase tracking-[0.08em] text-accent transition-all duration-300 hover:bg-accent/20 hover:border-accent/35"
+                    >
+                      {t('dropdown.signIn')}
+                    </Link>
+                  </div>
                 )}
-              </AnimatePresence>
+              </div>
             </div>
           </div>
         </div>
