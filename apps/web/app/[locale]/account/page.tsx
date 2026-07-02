@@ -4,10 +4,11 @@ import {useState, useEffect, useRef, useCallback} from 'react';
 import {useTranslations, useLocale} from 'next-intl';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {createPortal} from 'react-dom';
-import {motion, AnimatePresence} from 'framer-motion';
+import {motion, AnimatePresence, MotionConfig} from 'framer-motion';
 import {useAuth, useFavorites} from '../../../contexts';
 import {useRecentlyViewed} from '../../../hooks/useRecentlyViewed';
 import {apiFetch} from '../../../lib/api';
+import {isValidTelegramDeepLink} from '../../../lib/validation';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import BrandLoader from '../../../components/BrandLoader';
 import LoaderSplash from '../../../components/LoaderSplash';
@@ -259,6 +260,12 @@ export default function AccountPage() {
     try {
       const result = await initTelegramAuth();
       if (result.success && result.deepLink && result.initToken) {
+        if (!isValidTelegramDeepLink(result.deepLink)) {
+          console.error('telegram auth: rejected deep link with unexpected scheme/host', result.deepLink);
+          setError(t('errors.genericError'));
+          setTgLoading(false);
+          return;
+        }
         localStorage.setItem('tg_init_token', result.initToken);
         window.location.href = result.deepLink;
       } else {
@@ -622,7 +629,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
     }`;
 
   return (
-    <>
+    <MotionConfig reducedMotion="user">
     <div className="relative min-h-screen pt-28 pb-6">
       <HeroShaderBackgroundClient />
       <div className="relative z-10 mx-auto max-w-4xl px-6 lg:px-8">
@@ -959,7 +966,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
       document.body
     )}
 
-    </>
+    </MotionConfig>
   );
 }
 

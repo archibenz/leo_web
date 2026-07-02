@@ -1,6 +1,7 @@
 'use client';
 
 import {useEffect, useRef, useState} from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import {useTranslations} from 'next-intl';
 import {useCart, useFavorites} from '../../../../contexts';
@@ -35,6 +36,7 @@ export default function MobileShopCard({p, locale, img}: Props) {
 
   const [open, setOpen] = useState(false);
   const [added, setAdded] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -88,13 +90,15 @@ export default function MobileShopCard({p, locale, img}: Props) {
 
       <Link href={href} className="block">
         <div className="relative aspect-[2/3] w-full overflow-hidden bg-[var(--paper-muted)]">
-          {img ? (
-            // eslint-disable-next-line @next/next/no-img-element -- catalog images come from arbitrary hosts/uploads; next/image remotePatterns can't cover them all
-            <img
+          {img && !imgError ? (
+            <Image
               src={img}
               alt={p.title}
+              fill
+              sizes="50vw"
               loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+              onError={() => setImgError(true)}
+              className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             />
           ) : null}
           {p.badge ? (

@@ -1,17 +1,7 @@
 "use client";
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-
-const transition = {
-  type: "spring" as const,
-  mass: 0.5,
-  damping: 11.5,
-  stiffness: 100,
-  restDelta: 0.001,
-  restSpeed: 0.001,
-};
 
 export const MenuItem = ({
   setActive,
@@ -43,9 +33,9 @@ export const MenuItem = ({
           {item}
         </Link>
       ) : (
-        <motion.p transition={{ duration: 0.3 }} className={labelClass}>
+        <p className={labelClass}>
           {item}
-        </motion.p>
+        </p>
       )}
       {/* Directional underline: enters left→right on hover, exits right on leave.
           Uses scoped `group/menuitem` so it doesn't collide with the inner
@@ -58,28 +48,18 @@ export const MenuItem = ({
             : "origin-right scale-x-0 group-hover/menuitem:origin-left group-hover/menuitem:scale-x-100"
         }`}
       />
-      <AnimatePresence>
-        {active === item && children && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.85, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 8, pointerEvents: "none" as never }}
-            transition={transition}
-          >
-            <div className="absolute top-full left-1/2 -translate-x-1/2 pt-5">
-              <motion.div
-                transition={transition}
-                layoutId="active"
-                className="dropdown-glass rounded-2xl overflow-hidden border border-accent/[0.08]"
-              >
-                <motion.div layout className="w-max h-full">
-                  {children}
-                </motion.div>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {children && (
+        <div
+          className={`absolute top-full left-1/2 -translate-x-1/2 pt-5 origin-top transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.34,1.56,0.64,1)] motion-reduce:transition-none ${
+            isActive ? "opacity-100 scale-100 translate-y-0" : "pointer-events-none opacity-0 scale-95 translate-y-2"
+          }`}
+          inert={!isActive}
+        >
+          <div className="dropdown-glass rounded-2xl overflow-hidden border border-accent/[0.08]">
+            <div className="w-max h-full">{children}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -3,7 +3,6 @@
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
 import { Search } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 interface SearchBarProps {
@@ -97,27 +96,16 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  const searchIconVariants = {
-    initial: { scale: 1 },
-    animate: {
-      rotate: isAnimating ? [0, -15, 15, -10, 10, 0] : 0,
-      scale: isAnimating ? [1, 1.3, 1] : 1,
-      transition: { duration: 0.6, ease: "easeInOut" as const },
-    },
-  }
-
   // Responsive widths
   const collapsedWidth = isMobile ? "36px" : "140px"
   const expandedWidth = isMobile ? "180px" : "220px"
 
   return (
     <div ref={containerRef} className="relative">
-      <motion.form
+      <form
         onSubmit={handleSubmit}
-        className="relative flex items-center"
-        initial={{ width: collapsedWidth }}
-        animate={{ width: isFocused ? expandedWidth : collapsedWidth }}
-        transition={{ type: "spring", stiffness: 400, damping: 28 }}
+        className="search-expand-input relative flex items-center"
+        style={{ width: isFocused ? expandedWidth : collapsedWidth }}
       >
         <div
           className={cn(
@@ -131,20 +119,19 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
         >
           {/* Subtle shimmer on focus */}
           {isFocused && (
-            <motion.div
-              className="absolute inset-0 rounded-full pointer-events-none"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: [0, 0.04, 0.08, 0.04, 0] }}
-              transition={{ duration: 3, repeat: Infinity }}
+            <div
+              aria-hidden="true"
+              className="search-bar-shimmer absolute inset-0 rounded-full pointer-events-none"
               style={{ background: "radial-gradient(circle at 50% 0%, rgba(212,165,116,0.25) 0%, transparent 70%)" }}
             />
           )}
 
-          <motion.div
-            className={cn("flex-shrink-0", isMobile && !isFocused ? "pl-2" : "pl-3")}
-            variants={searchIconVariants}
-            initial="initial"
-            animate="animate"
+          <div
+            className={cn(
+              "flex-shrink-0 transition-transform duration-300",
+              isAnimating && "search-icon-pulse",
+              isMobile && !isFocused ? "pl-2" : "pl-3"
+            )}
             onClick={() => { if (isMobile && !isFocused) setIsFocused(true) }}
           >
             <Search
@@ -157,7 +144,7 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
                   : isAnimating ? "text-accent" : isFocused ? "text-accent/60" : "text-ink/25"
               )}
             />
-          </motion.div>
+          </div>
 
           {/* On mobile collapsed: hide input. On mobile focused or desktop: show input */}
           <label htmlFor="search-bar-input" className="sr-only">
@@ -186,52 +173,42 @@ const SearchBar = ({ placeholder = "Search...", onSearch, suggestions: externalS
             tabIndex={isMobile && !isFocused ? -1 : 0}
           />
         </div>
-      </motion.form>
+      </form>
 
       {/* Suggestions */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto" }}
-            exit={{ opacity: 0, y: 8, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="absolute z-50 mt-2 overflow-hidden rounded-xl border border-ink/8 right-0"
-            style={{
-              background: "linear-gradient(160deg, rgba(30,18,13,0.98), rgba(43,23,17,0.97))",
-              backdropFilter: "blur(40px)",
-              maxHeight: "240px",
-              overflowY: "auto",
-              boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
-              minWidth: "200px",
-            }}
-          >
-            <div className="p-1.5" role="listbox" id={listboxId} aria-label={placeholder}>
-              {suggestions.map((suggestion, i) => (
-                <motion.div
-                  key={suggestion}
-                  id={optionId(i)}
-                  role="option"
-                  aria-selected={i === activeIndex}
-                  initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -4, scale: 0.9 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 15, delay: i * 0.05 }}
-                  onClick={() => selectSuggestion(suggestion)}
-                  onMouseEnter={() => setActiveIndex(i)}
-                  className={cn(
-                    "flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg text-[13px] transition-colors hover:bg-ink/[0.06] hover:text-accent",
-                    i === activeIndex ? "bg-ink/[0.06] text-accent" : "text-ink/65"
-                  )}
-                >
-                  <Search size={12} className="text-ink/20 flex-shrink-0" />
-                  <span>{suggestion}</span>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
+      <div
+        inert={!open}
+        className={cn(
+          "absolute z-50 mt-2 max-h-60 overflow-y-auto rounded-xl border border-ink/8 right-0 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
+          open ? "opacity-100 translate-y-0" : "pointer-events-none opacity-0 -translate-y-2"
         )}
-      </AnimatePresence>
+        style={{
+          background: "linear-gradient(160deg, rgba(30,18,13,0.98), rgba(43,23,17,0.97))",
+          backdropFilter: "blur(40px)",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
+          minWidth: "200px",
+        }}
+      >
+        <div className="p-1.5" role="listbox" id={listboxId} aria-label={placeholder}>
+          {suggestions.map((suggestion, i) => (
+            <div
+              key={suggestion}
+              id={optionId(i)}
+              role="option"
+              aria-selected={i === activeIndex}
+              onClick={() => selectSuggestion(suggestion)}
+              onMouseEnter={() => setActiveIndex(i)}
+              className={cn(
+                "flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg text-[13px] transition-colors hover:bg-ink/[0.06] hover:text-accent",
+                i === activeIndex ? "bg-ink/[0.06] text-accent" : "text-ink/65"
+              )}
+            >
+              <Search size={12} className="text-ink/20 flex-shrink-0" />
+              <span>{suggestion}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
