@@ -24,7 +24,7 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
       >
         {t('skipToContent')}
       </a>
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-6 py-5 sm:px-10">
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-5 sm:px-10">
         <div className="flex flex-1 items-center justify-start">
           {/* Mobile: full-screen menu (hamburger). Desktop: the page's own nav. */}
           <div className="md:hidden">
@@ -43,7 +43,7 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
             const root = e.currentTarget.closest('.wv-root');
             root?.scrollTo({top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
           }}
-          className="font-display text-[22px] font-medium tracking-[0.42em] sm:text-[26px]"
+          className="shrink-0 font-display text-[22px] font-medium tracking-[0.3em] sm:text-[26px] sm:tracking-[0.42em]"
           style={{color: INK}}
         >
           REINASLEO

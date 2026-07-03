@@ -31,13 +31,17 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
     // The hamburger is always mounted, so capturing it here is stable; copying to
     // a local keeps the cleanup honest (no stale-ref lint warning).
     const trigger = triggerRef.current;
+    // The white showcase portal (useWhitePortal) already owns body scroll-lock on
+    // every White page, so restore whatever was there — writing '' would unlock
+    // the page behind the still-mounted portal for the rest of the session.
+    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
     };
     document.addEventListener('keydown', onKey);
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = prevOverflow;
       document.removeEventListener('keydown', onKey);
       // WCAG 2.4.3 — focus order: hand focus back to the trigger on close.
       trigger?.focus();
@@ -65,7 +69,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
         onClick={() => setOpen(true)}
         aria-expanded={open}
         aria-label={t('openMenu')}
-        className="-ml-2 flex h-11 w-11 items-center justify-center"
+        className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center"
       >
         <svg width="20" height="12" viewBox="0 0 20 12" fill="none" stroke={INK} strokeWidth="1.3" strokeLinecap="square">
           <line x1="0" y1="1" x2="20" y2="1" />
@@ -79,7 +83,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
           role="dialog"
           aria-modal="true"
           aria-label={t('menu')}
-          className="fixed inset-0 z-[1200] flex flex-col bg-white font-sans antialiased"
+          className="wv-root fixed inset-0 z-[1200] flex flex-col bg-white font-sans antialiased"
           style={{color: INK}}
         >
           <div className="flex shrink-0 items-center justify-between px-7 py-5">

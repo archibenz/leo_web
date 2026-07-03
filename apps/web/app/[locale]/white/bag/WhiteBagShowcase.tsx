@@ -98,7 +98,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                         onClick={() => setQty(i.id, i.qty - 1)}
                         disabled={i.qty <= 1}
                         aria-label={t('decreaseQty')}
-                        className="flex h-11 w-11 items-center justify-center text-[16px] leading-none transition-colors disabled:opacity-30"
+                        className="flex h-11 w-11 items-center justify-center text-[16px] leading-none transition-colors disabled:opacity-[0.45]"
                         style={{border: `1px solid ${HAIR}`, color: INK}}
                       >
                         −

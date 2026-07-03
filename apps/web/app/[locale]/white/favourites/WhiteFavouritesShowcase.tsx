@@ -38,7 +38,7 @@ export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
             ← {t('shop')}
           </a>
         }
-        right={<WhiteHeaderActions locale={locale} favCount={keys.length} count={count} current="favourites" />}
+        right={<WhiteHeaderActions locale={locale} favCount={saved.length} count={count} current="favourites" />}
       />
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 py-12 sm:px-10">
@@ -61,7 +61,7 @@ export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
             <div className="flex items-baseline justify-between pb-2">
               <h1 className="font-display text-[32px] font-light leading-tight sm:text-[40px]">{t('saved')}</h1>
               <span className="text-[12px] uppercase tracking-[0.16em] tabular-nums" style={{color: MUTED}}>
-                {keys.length} {whiteItemNoun(keys.length, locale)}
+                {saved.length} {whiteItemNoun(saved.length, locale)}
               </span>
             </div>
             <p className="mb-8 max-w-md text-[13px] leading-relaxed" style={{color: SIGNAL}}>

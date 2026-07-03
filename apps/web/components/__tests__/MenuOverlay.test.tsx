@@ -1,5 +1,5 @@
 import {render, screen} from '@testing-library/react';
-import {describe, it, expect, vi} from 'vitest';
+import {afterEach, describe, it, expect, vi} from 'vitest';
 import MenuOverlay from '../MenuOverlay';
 
 const mockPathname = vi.fn(() => '/ru');
@@ -32,6 +32,39 @@ describe('MenuOverlay primary nav', () => {
     rerender(<MenuOverlay isOpen onClose={vi.fn()} locale="ru" />);
     expect(screen.getAllByRole('link')[0]).not.toHaveAttribute('aria-current');
     expect(screen.getAllByRole('link')[1]).toHaveAttribute('aria-current', 'page');
+  });
+});
+
+describe('MenuOverlay body scroll-lock', () => {
+  afterEach(() => {
+    document.body.style.overflow = '';
+  });
+
+  it('does not clobber an existing scroll-lock when it mounts closed (white portal owns it)', () => {
+    // On /white routes useWhitePortal locks the body before this always-mounted
+    // gradient drawer renders; mounting closed must not steal that lock.
+    document.body.style.overflow = 'hidden';
+    mockPathname.mockReturnValue('/ru/white/shop');
+    render(<MenuOverlay isOpen={false} onClose={vi.fn()} locale="ru" />);
+    expect(document.body.style.overflow).toBe('hidden');
+  });
+
+  it('restores the previous lock on close instead of forcing it open (white route)', () => {
+    document.body.style.overflow = 'hidden';
+    mockPathname.mockReturnValue('/ru/white/shop');
+    const {rerender} = render(<MenuOverlay isOpen onClose={vi.fn()} locale="ru" />);
+    expect(document.body.style.overflow).toBe('hidden');
+    rerender(<MenuOverlay isOpen={false} onClose={vi.fn()} locale="ru" />);
+    expect(document.body.style.overflow).toBe('hidden');
+  });
+
+  it('locks on open and unlocks on close where it owns the lock (gradient route)', () => {
+    document.body.style.overflow = '';
+    mockPathname.mockReturnValue('/ru');
+    const {rerender} = render(<MenuOverlay isOpen onClose={vi.fn()} locale="ru" />);
+    expect(document.body.style.overflow).toBe('hidden');
+    rerender(<MenuOverlay isOpen={false} onClose={vi.fn()} locale="ru" />);
+    expect(document.body.style.overflow).toBe('');
   });
 });
 

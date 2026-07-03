@@ -46,6 +46,10 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
     if (isOpen) {
       setIsAnimating(true);
       setActiveCat(new URLSearchParams(window.location.search).get('category'));
+      // Restore whatever lock was already there (the white portal holds
+      // overflow:hidden on /white routes) instead of hardcoding '', so closing
+      // this drawer never unlocks a scroll another owner still holds.
+      const prevOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       // Move focus into the panel (not the first link) so the drawer is
       // announced without ringing/scrolling a link on touch-open. Wait for the
@@ -56,12 +60,14 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
       };
       document.addEventListener('keydown', handleEsc);
       return () => {
-        document.body.style.overflow = '';
+        document.body.style.overflow = prevOverflow;
         clearTimeout(focusTimer);
         document.removeEventListener('keydown', handleEsc);
       };
     } else {
-      document.body.style.overflow = '';
+      // Closed: only run the slide-out timer. Do NOT touch body overflow — this
+      // drawer is not the lock owner while closed, and on /white routes the
+      // white portal's scroll-lock must survive this mount.
       const timer = setTimeout(() => setIsAnimating(false), 380);
       return () => clearTimeout(timer);
     }

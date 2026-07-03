@@ -24,12 +24,14 @@ export default function WhiteProductCard({
   index = 0,
   quickAdd = false,
   rise = false,
+  priority = false,
 }: {
   locale: string;
   product: WhiteProduct;
   index?: number;
   quickAdd?: boolean;
   rise?: boolean;
+  priority?: boolean;
 }) {
   const t = useTranslations('white.card');
   const {add} = useWhiteBag();
@@ -103,6 +105,8 @@ export default function WhiteProductCard({
           src={product.image}
           alt={name}
           fill
+          priority={priority}
+          loading={priority ? 'eager' : 'lazy'}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 460px"
           className="pointer-events-none object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />
@@ -127,7 +131,12 @@ export default function WhiteProductCard({
           className="absolute right-1 top-1 z-10 flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-100"
           style={{opacity: favourited ? 1 : 0.75}}
         >
-          <WhiteFavHeart filled={favourited} size={18} />
+          {/* Subtle plate so the ink heart stays legible over dark editorial
+              photos — same bg-white/backdrop-blur idiom as the quick-add pill.
+              Near-invisible over light imagery, lifts the glyph over dark. */}
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/60 backdrop-blur-sm">
+            <WhiteFavHeart filled={favourited} size={18} />
+          </span>
         </button>
 
         {quickAdd && !open && (

@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useState, type FormEvent} from 'react';
+import {useEffect, useRef, useState, type FormEvent} from 'react';
 import {useTranslations} from 'next-intl';
 import {isValidEmail} from '../../../lib/validation';
 import {INK, MUTED, HAIR, SIGNAL} from './wv-palette';
@@ -19,6 +19,10 @@ export default function WhiteFooter({locale}: {locale: string}) {
 
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<NlStatus>('idle');
+  // Synchronous in-flight flag: the disabled attribute and a status check both
+  // only update on the next render, so a same-frame touch double-tap could slip
+  // a second POST through. A ref flips immediately and closes that window.
+  const submittingRef = useRef(false);
 
   useEffect(() => {
     if (status !== 'success') return;
@@ -28,10 +32,12 @@ export default function WhiteFooter({locale}: {locale: string}) {
 
   const onSubscribe = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (submittingRef.current) return;
     if (!isValidEmail(email)) {
       setStatus('invalid');
       return;
     }
+    submittingRef.current = true;
     setStatus('loading');
     try {
       const res = await fetch('/api/newsletter/subscribe', {
@@ -48,6 +54,8 @@ export default function WhiteFooter({locale}: {locale: string}) {
       setEmail('');
     } catch {
       setStatus('error');
+    } finally {
+      submittingRef.current = false;
     }
   };
 
@@ -117,7 +125,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
               aria-invalid={status === 'invalid' ? true : undefined}
               aria-describedby="wv-newsletter-status"
               placeholder={t('email')}
-              className="w-full bg-transparent py-2.5 text-[13px] outline-none placeholder:text-[#7a7167] disabled:opacity-50"
+              className="min-h-11 w-full bg-transparent py-2.5 text-[13px] outline-none placeholder:text-[#7a7167] disabled:opacity-50"
               style={{color: INK}}
             />
             <button
