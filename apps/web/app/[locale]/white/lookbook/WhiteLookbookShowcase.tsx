@@ -65,7 +65,7 @@ export default function WhiteLookbookShowcase({locale}: {locale: string}) {
                   aria-label={name}
                   className={`wv-rise wv-ph relative block aspect-[3/4] w-full overflow-hidden ${reversed ? 'lg:order-2' : ''}`}
                 >
-                  <Image src={p.image} alt={name} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+                  <Image src={p.image} alt={name} fill priority={i === 0} sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
                 </a>
                 <div className={`wv-rise wv-delay-1 ${reversed ? 'lg:order-1' : ''}`}>
                   <p className="text-[12px] uppercase tabular-nums tracking-[0.2em]" style={{color: MUTED}}>
