@@ -1,5 +1,6 @@
 import {afterEach, describe, it, expect} from 'vitest';
-import {toggleWhiteFavourite, removeWhiteFavourite, isWhiteFavourite} from './useWhiteFavourites';
+import {renderHook, act} from '@testing-library/react';
+import {useWhiteFavourites, toggleWhiteFavourite, removeWhiteFavourite, isWhiteFavourite} from './useWhiteFavourites';
 
 // jsdom has no localStorage — install the same in-memory mock the bag store
 // test uses, then assert through localStorage and drain it after each test.
@@ -69,5 +70,15 @@ describe('useWhiteFavourites store', () => {
   it('persists under the wv-favourites key', () => {
     toggleWhiteFavourite(4);
     expect(localStorage.getItem('wv-favourites')).toBe('[4]');
+  });
+
+  it('count only counts keys the catalog still resolves (badge matches the favourites page)', () => {
+    const {result} = renderHook(() => useWhiteFavourites());
+    act(() => {
+      toggleWhiteFavourite(1); // a real product
+      toggleWhiteFavourite(999); // a stale key the catalog no longer carries
+    });
+    expect(result.current.keys).toEqual([1, 999]); // storage keeps it (another catalog may resolve it)
+    expect(result.current.count).toBe(1); // the badge doesn't
   });
 });

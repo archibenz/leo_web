@@ -24,7 +24,10 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
       >
         {t('skipToContent')}
       </a>
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-5 sm:px-10">
+      {/* px-6 through the md band: the wordmark's wide tracking leaves the
+          equal-split side slots ~178px each at 768, and the ru action labels
+          need every pixel of it — full px-10 returns at lg. */}
+      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-5 sm:px-6 lg:px-10">
         <div className="flex flex-1 items-center justify-start">
           {/* Mobile: full-screen menu (hamburger). Desktop: the page's own nav. */}
           <div className="md:hidden">

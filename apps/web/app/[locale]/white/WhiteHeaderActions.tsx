@@ -76,12 +76,16 @@ export default function WhiteHeaderActions({
   const t = useTranslations('white.header');
   const icon = 'h-[18px] w-[18px] md:hidden';
   return (
-    <div className="flex shrink-0 items-center gap-1 md:gap-6 md:text-[12px] md:uppercase md:tracking-[0.18em]" style={{color: MUTED}}>
+    <div className="flex shrink-0 items-center gap-1 md:gap-4 md:text-[12px] md:uppercase md:tracking-[0.18em] lg:gap-6" style={{color: MUTED}}>
       {search && (
+        /* lg, not md: in the 768-950px band the equal-split side slots run out
+           of room for the label row, and this shrink-0 group bleeds into the
+           centered wordmark (worst in ru). Below lg the shop page carries its
+           own search, so the landing shortcut only shows where it fits. */
         <a
           href={`/${locale}/white/shop?focus=search`}
           aria-label={t('searchCollection')}
-          className="hidden transition-opacity hover:opacity-60 md:inline"
+          className="hidden transition-opacity hover:opacity-60 lg:inline"
         >
           {t('search')}
         </a>
