@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, type ReactNode} from 'react';
+import {useId, useState, type ReactNode} from 'react';
 
 interface FooterAccordionProps {
   title: string;
@@ -9,25 +9,22 @@ interface FooterAccordionProps {
   defaultOpen?: boolean;
 }
 
-function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-
 export default function FooterAccordion({
   title,
   children,
   defaultOpen = false,
 }: FooterAccordionProps) {
   const [open, setOpen] = useState(defaultOpen);
-  const panelId = `footer-accordion-${slugify(title)}`;
+  // useId, not a title-derived slug: localized (Cyrillic) titles slugified to
+  // the same empty string, so every column shared one id.
+  const baseId = useId();
+  const triggerId = `footer-accordion-trigger-${baseId}`;
+  const panelId = `footer-accordion-panel-${baseId}`;
 
   return (
     <div className="border-b border-inkSoft/[0.06]">
       <button
+        id={triggerId}
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
@@ -53,6 +50,7 @@ export default function FooterAccordion({
       <div
         id={panelId}
         role="region"
+        aria-labelledby={triggerId}
         inert={!open}
         className={`accordion-collapse ${open ? 'is-open' : ''}`}
       >

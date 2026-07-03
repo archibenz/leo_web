@@ -50,12 +50,40 @@ describe('FooterAccordion', () => {
     expect(panel).toHaveAttribute('inert');
   });
 
-  it('links trigger and panel via aria-controls / id, derived from the title', () => {
+  it('links trigger and panel via aria-controls / id', () => {
     render(<FooterAccordion title="Size Guide">Fits true to size</FooterAccordion>);
 
     const trigger = screen.getByRole('button', { name: 'Size Guide' });
     const panel = screen.getByText('Fits true to size').closest('[role="region"]');
+    expect(panel?.id).toBeTruthy();
     expect(trigger.getAttribute('aria-controls')).toBe(panel?.id);
-    expect(panel?.id).toBe('footer-accordion-size-guide');
+  });
+
+  it('names the region after its trigger via aria-labelledby', () => {
+    render(
+      <FooterAccordion title="Care" defaultOpen>
+        Wash cold
+      </FooterAccordion>,
+    );
+
+    // role="region" needs an accessible name — it comes from the trigger button.
+    const region = screen.getByRole('region', { name: 'Care' });
+    const trigger = screen.getByRole('button', { name: 'Care' });
+    expect(trigger.id).toBeTruthy();
+    expect(region).toHaveAttribute('aria-labelledby', trigger.id);
+  });
+
+  it('keeps ids unique for localized titles that share no latin characters', () => {
+    render(
+      <>
+        <FooterAccordion title="Магазин">RU shop links</FooterAccordion>
+        <FooterAccordion title="Уход">RU care links</FooterAccordion>
+      </>,
+    );
+
+    const shop = screen.getByText('RU shop links').closest('[role="region"]');
+    const care = screen.getByText('RU care links').closest('[role="region"]');
+    expect(shop?.id).toBeTruthy();
+    expect(shop?.id).not.toBe(care?.id);
   });
 });
