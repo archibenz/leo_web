@@ -92,6 +92,9 @@ export default function WhiteFooter({locale}: {locale: string}) {
             {label: t('lookbook'), href: `/${locale}/white/lookbook`},
             {label: t('theEdit'), href: `/${locale}/white#wv-edit`},
             {label: t('contact'), href: `/${locale}/white/contact`},
+            {label: t('delivery'), href: `/${locale}/white/delivery`},
+            {label: t('faq'), href: `/${locale}/white/faq`},
+            {label: t('care'), href: `/${locale}/white/care`},
           ]},
         ].map((col) => (
           <div key={col.h}>

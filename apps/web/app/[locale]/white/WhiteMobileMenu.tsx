@@ -59,10 +59,13 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
     ...WHITE_CATS.map((c) => ({key: c, label: whiteCatLabel(c, locale), href: `/${locale}/white/shop?cat=${c}`})),
   ];
 
-  // Secondary tier — the brand pages that don't get the lookbook image slot.
+  // Secondary tier — brand and service pages, stacked under the categories.
   const secondary = [
     {key: 'atelier', label: t('atelier'), href: `/${locale}/white/atelier`},
     {key: 'contact', label: t('contact'), href: `/${locale}/white/contact`},
+    {key: 'delivery', label: t('delivery'), href: `/${locale}/white/delivery`},
+    {key: 'faq', label: t('faq'), href: `/${locale}/white/faq`},
+    {key: 'care', label: t('care'), href: `/${locale}/white/care`},
   ];
 
   return (
@@ -124,8 +127,8 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                       href={l.href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
-                      className="wv-tap flex min-h-[52px] items-center font-display text-[33px] font-light tracking-[-0.01em] transition-opacity hover:opacity-60"
-                      style={{color: active ? SIGNAL : INK}}
+                      className="wv-tap wv-menu-item flex min-h-[52px] items-center px-2 font-display text-[33px] font-light tracking-[-0.01em]"
+                      style={{color: active ? SIGNAL : INK, animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
                     >
                       {l.label}
                     </a>
@@ -134,11 +137,32 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
               </div>
             </nav>
 
+            {/* Service pages — small stacked rows, each arriving on the same
+                cadence as the categories above. */}
+            <div className="mx-6 flex shrink-0 flex-col border-t pb-2 pt-3" style={{borderColor: HAIR}}>
+              {secondary.map((sc, i) => {
+                const active = pathname === sc.href;
+                return (
+                  <a
+                    key={sc.key}
+                    href={sc.href}
+                    onClick={() => setOpen(false)}
+                    aria-current={active ? 'page' : undefined}
+                    className="wv-tap wv-menu-item flex min-h-10 items-center px-2 text-[12px] uppercase tracking-[0.12em]"
+                    style={{color: active ? SIGNAL : MUTED, animationDelay: `${360 + i * 40}ms`}}
+                  >
+                    {sc.label}
+                  </a>
+                );
+              })}
+            </div>
+
             {/* Lookbook — the drawer's one editorial image, a real entry not decor. */}
             <a
               href={`/${locale}/white/lookbook`}
               onClick={() => setOpen(false)}
-              className="relative mx-6 block aspect-[16/7] overflow-hidden"
+              className="wv-menu-item relative mx-6 block aspect-[16/6] overflow-hidden"
+              style={{animationDelay: '560ms'}}
             >
               <Image src={WHITE_EDITORIAL[0]} alt="" fill sizes="420px" className="object-cover" />
               <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(28,23,20,0.34))]" />
@@ -147,35 +171,13 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
               </span>
             </a>
 
-            <div className="mx-6 mt-5 flex shrink-0 items-center justify-between border-t pb-9 pt-4" style={{borderColor: HAIR}}>
-              {/* Jost runs wider than the serif this row was sized for — 11px,
-                  calmer tracking and tighter gaps keep all four ru labels inside
-                  the drawer edge. */}
-              <div className="flex gap-4 text-[11px] uppercase tracking-[0.1em]" style={{color: MUTED}}>
-                {secondary.map((s) => {
-                  const active = pathname === s.href;
-                  return (
-                    <a
-                      key={s.key}
-                      href={s.href}
-                      onClick={() => setOpen(false)}
-                      aria-current={active ? 'page' : undefined}
-                      className="wv-tap -mx-1 -my-3 inline-flex min-h-11 items-center px-1"
-                      style={{color: active ? SIGNAL : MUTED}}
-                    >
-                      {s.label}
-                    </a>
-                  );
-                })}
-              </div>
-              <div className="flex gap-4 text-[11px] uppercase tracking-[0.1em]" style={{color: INK}}>
-                <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="wv-tap -mx-1 -my-3 inline-flex min-h-11 items-center px-1">
-                  {t('saved')}
-                </a>
-                <a href={`/${locale}/white/bag`} onClick={() => setOpen(false)} className="wv-tap -mx-1 -my-3 inline-flex min-h-11 items-center px-1">
-                  {t('bag')}
-                </a>
-              </div>
+            <div className="mx-6 mt-4 flex shrink-0 items-center gap-4 border-t pb-8 pt-3 text-[12px] uppercase tracking-[0.12em]" style={{borderColor: HAIR, color: INK}}>
+              <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="wv-tap -my-2 inline-flex min-h-11 items-center px-2">
+                {t('saved')}
+              </a>
+              <a href={`/${locale}/white/bag`} onClick={() => setOpen(false)} className="wv-tap -my-2 inline-flex min-h-11 items-center px-2">
+                {t('bag')}
+              </a>
             </div>
           </aside>
         </>,
