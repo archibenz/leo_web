@@ -77,6 +77,17 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
     return filtered;
   }, [products, filterParam, categoryParam, sortParam, colorParam]);
 
+  // Resolve each product's primary image once per catalog change. firstImage()
+  // does a JSON.parse per product; running it inside the render map re-parsed
+  // the whole catalog on every filter/sort tap and every edge-scroll re-render
+  // (setEdge fires on the category-bar onScroll). Keyed on products, not the
+  // filtered list, so it recomputes only when the catalog itself changes.
+  // Mirrors ShopClient's per-item useProductImages memo.
+  const imageById = useMemo(
+    () => new Map(products.map((p) => [p.id, firstImage(p)] as const)),
+    [products],
+  );
+
   // Build a /shop href that flips one param while preserving the rest.
   const hrefWith = (key: string, value: string | null) => {
     const next = new URLSearchParams(searchParams.toString());
@@ -222,7 +233,7 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
             // First 4 (top two rows of the 2-col grid) are above the fold and
             // carry the LCP element — eager-load them. Matches ShopClient's
             // desktop `eager = idx <= 3`; the rest stay lazy.
-            <MobileShopCard key={p.id} p={p} locale={locale} img={firstImage(p)} priority={idx < 4} />
+            <MobileShopCard key={p.id} p={p} locale={locale} img={imageById.get(p.id) ?? null} priority={idx < 4} />
           ))}
         </div>
       )}
