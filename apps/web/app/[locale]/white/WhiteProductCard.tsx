@@ -97,7 +97,7 @@ export default function WhiteProductCard({
       <span role="status" aria-live="polite" className="sr-only">
         {added ? t('addedToBag', {name}) : ''}
       </span>
-      <div className="wv-ph relative aspect-[2/3] w-full overflow-hidden">
+      <div className="wv-ph wv-zoom relative aspect-[2/3] w-full overflow-hidden">
         {/* Real photo (gradient asset base). Slow zoom on hover for editorial
             feel — disabled under reduced-motion. pointer-events-none so the
             link layer above stays the click target. */}
