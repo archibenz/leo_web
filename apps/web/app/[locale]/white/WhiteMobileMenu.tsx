@@ -1,30 +1,36 @@
 'use client';
 
+import Image from 'next/image';
 import {useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {useFocusTrap} from '../../../lib/useFocusTrap';
-import {WHITE_CATS, whiteCatLabel} from './products';
-import {INK, MUTED, SIGNAL} from './wv-palette';
+import {useMountTransition} from '../../../lib/useMountTransition';
+import {WHITE_CATS, whiteCatLabel, WHITE_EDITORIAL} from './products';
+import {INK, MUTED, SIGNAL, HAIR} from './wv-palette';
 
-// Variant 2 "White" — minimalist mobile menu (owner ask). Stripped to essentials
-// in the White DNA (Zara/H&M refs): no editorial photo, no per-link dividers —
-// air separates. Large left-aligned Cormorant links with quiet muted index
-// numerals as the one editorial detail; signal accent only on the active route.
-// Staggered reveal is reduced-motion-safe (wv-rise). Focus-trapped; ESC +
-// scroll-lock; focus returns to the hamburger on close (WCAG 2.4.3).
+// Variant 2 "White" — a left side drawer (owner redesign). Slides in over a
+// dimmed home rather than a full-screen list: reads as a boutique, keeps the
+// shopper's place. Large left-aligned Cormorant category links (no index
+// numbers — navigation isn't a sequence), a lookbook image gives the drawer a
+// point of view, signal accent only on the active route. Slide is CSS +
+// reduced-motion safe. Focus-trapped; ESC + scroll-lock (restores the white
+// portal's own lock); focus returns to the hamburger on close (WCAG 2.4.3).
+
+const SLIDE_MS = 320;
 
 export default function WhiteMobileMenu({locale, activeCat}: {locale: string; activeCat?: string | null}) {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const [mounted, setMounted] = useState(false);
+  const [portalReady, setPortalReady] = useState(false);
+  const {mounted: shown, entered} = useMountTransition(open, SLIDE_MS);
   const t = useTranslations('white.menu');
   const pathname = usePathname();
 
   useFocusTrap(panelRef, open);
-  useEffect(() => setMounted(true), []);
+  useEffect(() => setPortalReady(true), []);
 
   useEffect(() => {
     if (!open) return;
@@ -53,10 +59,8 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
     ...WHITE_CATS.map((c) => ({key: c, label: whiteCatLabel(c, locale), href: `/${locale}/white/shop?cat=${c}`})),
   ];
 
-  // Secondary tier — the brand/editorial pages, a quiet UI-font row beneath the
-  // serif categories so the multi-page site is reachable from the primary nav.
+  // Secondary tier — the brand pages that don't get the lookbook image slot.
   const secondary = [
-    {key: 'lookbook', label: t('lookbook'), href: `/${locale}/white/lookbook`},
     {key: 'atelier', label: t('atelier'), href: `/${locale}/white/atelier`},
     {key: 'contact', label: t('contact'), href: `/${locale}/white/contact`},
   ];
@@ -77,58 +81,74 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
         </svg>
       </button>
 
-      {open && mounted && createPortal(
-        <div
-          ref={panelRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label={t('menu')}
-          className="wv-root fixed inset-0 z-[1200] flex flex-col bg-white font-sans antialiased"
-          style={{color: INK}}
-        >
-          <div className="flex shrink-0 items-center justify-between px-7 py-5">
-            <span className="font-display text-[20px] font-medium tracking-[0.42em]">REINASLEO</span>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label={t('close')}
-              className="-mr-2 flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-60"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.3" strokeLinecap="square">
-                <path d="M5 5l14 14M19 5L5 19" />
-              </svg>
-            </button>
-          </div>
+      {portalReady && shown && createPortal(
+        <>
+          {/* Scrim — dims the home behind and closes on tap. */}
+          <div
+            aria-hidden="true"
+            onClick={() => setOpen(false)}
+            className="fixed inset-0 z-[1200] bg-[rgba(28,23,20,0.30)] backdrop-blur-[1px] transition-opacity duration-300 ease-out motion-reduce:transition-none"
+            style={{opacity: entered ? 1 : 0}}
+          />
+          <aside
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={t('menu')}
+            className="wv-root fixed inset-y-0 left-0 z-[1201] flex w-[87%] max-w-[420px] flex-col bg-white font-sans antialiased shadow-[30px_0_60px_-30px_rgba(28,23,20,0.5)] transition-transform duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+            style={{color: INK, transform: entered ? 'translateX(0)' : 'translateX(-100%)'}}
+          >
+            <div className="flex shrink-0 items-center justify-between px-6 pb-2 pt-6">
+              <span className="font-display text-[19px] font-medium tracking-[0.34em]">REINASLEO</span>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                aria-label={t('close')}
+                className="-mr-2 flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-60"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.3" strokeLinecap="square">
+                  <path d="M5 5l14 14M19 5L5 19" />
+                </svg>
+              </button>
+            </div>
 
-          {/* my-auto child centres the list when it fits but lets it scroll from
-              the top when it overflows (short viewports / long RU labels). */}
-          <nav className="flex flex-1 flex-col overflow-y-auto px-7" aria-label={t('menu')}>
-            <div className="my-auto w-full py-8">
-              {links.map((l, i) => {
-                const active = activeCat != null && l.key === activeCat;
-                return (
-                  <a
-                    key={l.key}
-                    href={l.href}
-                    onClick={() => setOpen(false)}
-                    aria-current={active ? 'page' : undefined}
-                    className={`wv-rise wv-delay-${(i % 3) + 1} flex items-baseline gap-5 py-4 transition-colors`}
-                    style={{color: active ? SIGNAL : INK}}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="w-5 shrink-0 text-[11px] tabular-nums tracking-[0.2em]"
-                      style={{color: active ? SIGNAL : MUTED}}
+            {/* Primary nav — centres when it fits, scrolls from the top when the
+                list overflows (short viewports / long RU labels). */}
+            <nav className="flex flex-1 flex-col overflow-y-auto px-6">
+              <div className="my-auto flex w-full flex-col py-6">
+                {links.map((l) => {
+                  const active = activeCat != null && l.key === activeCat;
+                  return (
+                    <a
+                      key={l.key}
+                      href={l.href}
+                      onClick={() => setOpen(false)}
+                      aria-current={active ? 'page' : undefined}
+                      className="flex min-h-[52px] items-center font-display text-[33px] font-light tracking-[-0.01em] transition-opacity hover:opacity-60"
+                      style={{color: active ? SIGNAL : INK}}
                     >
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <span className="font-display text-[34px] font-light leading-none tracking-[-0.01em]">{l.label}</span>
-                  </a>
-                );
-              })}
+                      {l.label}
+                    </a>
+                  );
+                })}
+              </div>
+            </nav>
 
-              {/* Secondary tier — brand/editorial pages, quiet UI-font row. */}
-              <div className="wv-rise wv-delay-3 mt-12 flex flex-col text-[12px] uppercase tracking-[0.2em]">
+            {/* Lookbook — the drawer's one editorial image, a real entry not decor. */}
+            <a
+              href={`/${locale}/white/lookbook`}
+              onClick={() => setOpen(false)}
+              className="relative mx-6 block aspect-[16/7] overflow-hidden"
+            >
+              <Image src={WHITE_EDITORIAL[0]} alt="" fill sizes="420px" className="object-cover" />
+              <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(28,23,20,0.34))]" />
+              <span className="absolute bottom-3 left-4 font-display text-[18px] font-light italic text-white">
+                {t('lookbook')}
+              </span>
+            </a>
+
+            <div className="mx-6 mt-5 flex shrink-0 items-center justify-between border-t pb-9 pt-4" style={{borderColor: HAIR}}>
+              <div className="flex gap-6 text-[12px] uppercase tracking-[0.2em]" style={{color: MUTED}}>
                 {secondary.map((s) => {
                   const active = pathname === s.href;
                   return (
@@ -137,7 +157,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                       href={s.href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
-                      className="-my-1 flex min-h-11 items-center transition-opacity hover:opacity-60"
+                      className="-my-3 inline-flex min-h-11 items-center transition-opacity hover:opacity-60"
                       style={{color: active ? SIGNAL : MUTED}}
                     >
                       {s.label}
@@ -145,20 +165,17 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                   );
                 })}
               </div>
+              <div className="flex gap-5 text-[12px] uppercase tracking-[0.2em]" style={{color: INK}}>
+                <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="-my-3 inline-flex min-h-11 items-center transition-opacity hover:opacity-60">
+                  {t('saved')}
+                </a>
+                <a href={`/${locale}/white/bag`} onClick={() => setOpen(false)} className="-my-3 inline-flex min-h-11 items-center transition-opacity hover:opacity-60">
+                  {t('bag')}
+                </a>
+              </div>
             </div>
-          </nav>
-
-          <div className="shrink-0 px-7 pb-9">
-            <div className="flex gap-7 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
-              <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="-my-3 inline-flex min-h-11 items-center transition-opacity hover:opacity-60">
-                {t('saved')}
-              </a>
-              <a href={`/${locale}/white/bag`} onClick={() => setOpen(false)} className="-my-3 inline-flex min-h-11 items-center transition-opacity hover:opacity-60">
-                {t('bag')}
-              </a>
-            </div>
-          </div>
-        </div>,
+          </aside>
+        </>,
         document.body,
       )}
     </>
