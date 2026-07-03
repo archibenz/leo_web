@@ -218,8 +218,11 @@ export default function MobileShopGrid({products, locale}: MobileShopGridProps) 
         </div>
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-x-3 gap-y-7">
-          {items.map((p) => (
-            <MobileShopCard key={p.id} p={p} locale={locale} img={firstImage(p)} />
+          {items.map((p, idx) => (
+            // First 4 (top two rows of the 2-col grid) are above the fold and
+            // carry the LCP element — eager-load them. Matches ShopClient's
+            // desktop `eager = idx <= 3`; the rest stay lazy.
+            <MobileShopCard key={p.id} p={p} locale={locale} img={firstImage(p)} priority={idx < 4} />
           ))}
         </div>
       )}

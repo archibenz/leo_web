@@ -55,4 +55,19 @@ describe('MobileShopCard', () => {
 
     expect(screen.getByRole('link')).toHaveAttribute('href', '/en/product/p42');
   });
+
+  // lw-ongo: above-the-fold cards carry the mobile-shop LCP element, so the
+  // grid marks the first four `priority`. next/image turns that into
+  // loading="eager" (and emits a preload) instead of lazy-deferring.
+  it('eager-loads the thumbnail when priority is set (above-the-fold LCP)', () => {
+    render(<MobileShopCard p={mk()} locale="en" img="https://reinasleo.com/uploads/p1.jpg" priority />);
+
+    expect(screen.getByAltText('Silk Slip Dress')).toHaveAttribute('loading', 'eager');
+  });
+
+  it('lazy-loads the thumbnail by default (below-the-fold cards)', () => {
+    render(<MobileShopCard p={mk()} locale="en" img="https://reinasleo.com/uploads/p1.jpg" />);
+
+    expect(screen.getByAltText('Silk Slip Dress')).toHaveAttribute('loading', 'lazy');
+  });
 });

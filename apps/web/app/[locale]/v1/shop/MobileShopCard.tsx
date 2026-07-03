@@ -20,11 +20,15 @@ type Props = {
   p: MobileShopItem;
   locale: string;
   img: string | null;
+  /** Above-the-fold cards eager-load with fetchpriority=high so the first grid
+      row (the mobile LCP element) isn't lazy-deferred. Mirrors ShopClient's
+      desktop `eager = idx <= 3`. */
+  priority?: boolean;
 };
 
 const cartItemId = (id: string, size?: string) => (size ? `${id}__${size}` : id);
 
-export default function MobileShopCard({p, locale, img}: Props) {
+export default function MobileShopCard({p, locale, img, priority = false}: Props) {
   const menu = useTranslations('menu');
   const {addItem} = useCart();
   const {toggleItem, isFavorite} = useFavorites();
@@ -96,7 +100,8 @@ export default function MobileShopCard({p, locale, img}: Props) {
               alt={p.title}
               fill
               sizes="50vw"
-              loading="lazy"
+              priority={priority}
+              loading={priority ? 'eager' : 'lazy'}
               onError={() => setImgError(true)}
               className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             />
