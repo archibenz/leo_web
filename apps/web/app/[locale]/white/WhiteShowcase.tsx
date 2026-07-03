@@ -69,7 +69,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         left={
           <nav className="flex items-center gap-7 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}} aria-label={t('primary')}>
             {nav.map((n) => (
-              <a key={n.href} href={n.href} className="hidden transition-opacity hover:opacity-60 md:inline">{n.label}</a>
+              <a key={n.href} href={n.href} className="wv-link hidden md:inline">{n.label}</a>
             ))}
           </nav>
         }
@@ -81,7 +81,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
           season + line set over its base. The image is a placeholder; the
           Higgsfield model-on-white shots swap in via WHITE_HERO_IMAGE. */}
       <section className="relative h-[82vh] min-h-[540px] w-full overflow-hidden">
-        <Image src={WHITE_HERO_IMAGE} alt="" fill priority sizes="100vw" className="object-cover object-[50%_22%]" />
+        <Image src={WHITE_HERO_IMAGE} alt="" fill priority sizes="100vw" className="wv-drift object-cover object-[50%_22%]" />
         {/* The scrim carries the text contrast on its own so any Higgsfield shot
             (however light in its lower third) keeps the white type AA-legible —
             it ramps to a firm base across the bottom band where the text sits,
@@ -128,7 +128,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
 
       {/* House line — one oversized editorial statement, the brand philosophy in
           a single breath. Replaces the busy marquee; the calm is the point. */}
-      <section className="mx-auto max-w-[1100px] border-y px-6 py-24 sm:px-10 sm:py-32" style={{borderColor: HAIR}}>
+      <section className="mx-auto max-w-[1100px] border-t px-6 py-24 sm:px-10 sm:py-32" style={{borderColor: HAIR}}>
         <p className="mx-auto max-w-[760px] text-center font-display text-[clamp(30px,7.5vw,54px)] font-light italic leading-[1.12] tracking-[-0.01em]">
           {t('houseLine')}
         </p>
@@ -137,10 +137,10 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       {/* Lookbook — editorial brand statement */}
       <section id="wv-atelier" className="scroll-mt-24 border-t" style={{borderColor: HAIR}}>
         <div className="mx-auto grid max-w-[1400px] items-center gap-0 lg:grid-cols-2">
-          <div className="wv-ph wv-rise relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto lg:h-full lg:min-h-[560px]">
+          <div className="wv-zoom relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto lg:min-h-[620px]">
             <Image src={WHITE_ATELIER_IMAGE} alt="" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
           </div>
-          <div className="wv-rise wv-delay-1 px-6 py-16 sm:px-12 lg:px-20 lg:py-28">
+          <div className="wv-rise wv-delay-1 flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-20 lg:py-24">
             <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('atelier')}</p>
             <h2 className="font-display text-[30px] font-light leading-[1.1] tracking-tight sm:text-[40px]">
               {t('atelierLine1')}
@@ -150,7 +150,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
             <p className="mt-8 max-w-md text-[15px] leading-relaxed" style={{color: MUTED}}>
               {t('atelierBody')}
             </p>
-            <a href={`/${locale}/white/atelier`} className="wv-btn mt-10 inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
+            <a href={`/${locale}/white/atelier`} className="wv-btn mt-10 inline-flex items-center justify-center self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
               {t('exploreAtelier')}
             </a>
           </div>

@@ -395,15 +395,19 @@ a {
 /* ============================================
    Display Typography - Sans-serif Headings
    ============================================ */
-.font-display {
+/* Scoped away from the White portal: inside .wv-root the Tailwind leading/
+   tracking/weight utilities must win (this post-utilities block used to
+   silently override them — the drawer tap-target bug and the bold hero both
+   traced here). */
+.font-display:not(.wv-root *) {
   line-height: 1.15;
   letter-spacing: 0.02em;
 }
 
 /* Large uppercase headings - tighter tracking */
-h1.font-display,
-h2.font-display,
-.heading-display {
+h1.font-display:not(.wv-root *),
+h2.font-display:not(.wv-root *),
+.heading-display:not(.wv-root *) {
   letter-spacing: 0.06em;
   line-height: 1.1;
   font-weight: 600;
@@ -1504,9 +1508,57 @@ h2.font-display,
   background: linear-gradient(160deg, #f5f2ed, #e8e2d9);
 }
 
+/* White reads sans-serif: inside the wv-root the display face re-points at the
+   body grotesk, so the wordmark, headings and prices lose their serifs while
+   the gradient site keeps Cormorant untouched. */
+.wv-root .font-display {
+  font-family: var(--font-body), 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* Slow hero drift — a barely-there push-in that gives the still image breath. */
+@keyframes wv-drift {
+  from { transform: scale(1); }
+  to { transform: scale(1.045); }
+}
+.wv-drift {
+  animation: wv-drift 12s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform;
+}
+
+/* Editorial stills ease closer on hover — pointer devices only, transform-only. */
+.wv-zoom img {
+  transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (hover: hover) {
+  .wv-zoom:hover img { transform: scale(1.045); }
+}
+
+/* Quiet text links draw a hairline underline. */
+.wv-link {
+  position: relative;
+}
+.wv-link::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: -3px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wv-link:hover::after,
+.wv-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .wv-rise { animation: none; opacity: 1; }
   .wv-quickadd { transition: opacity 0.2s ease; transform: none; }
+  .wv-drift { animation: none; }
+  .wv-zoom img { transition: none; transform: none; }
+  .wv-link::after { transition: none; }
 }
 
 /* WildberriesButton — fill rise + ripple waves. Values live here rather than

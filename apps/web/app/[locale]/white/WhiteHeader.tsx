@@ -46,7 +46,9 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
             const root = e.currentTarget.closest('.wv-root');
             root?.scrollTo({top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
           }}
-          className="shrink-0 font-display text-[22px] font-medium tracking-[0.3em] sm:text-[26px] sm:tracking-[0.42em]"
+          // The trailing letter-space after the final O widens the box to the right,
+          // so a negative right margin of one tracking unit re-centres the glyphs.
+          className="mr-[-0.3em] shrink-0 font-display text-[21px] font-medium tracking-[0.3em] sm:mr-[-0.42em] sm:text-[24px] sm:tracking-[0.42em]"
           style={{color: INK}}
         >
           REINASLEO
