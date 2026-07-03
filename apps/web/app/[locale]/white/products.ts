@@ -49,11 +49,12 @@ export const WHITE_PRODUCTS: WhiteProduct[] = [
   {key: 9, en: 'Ribbed Cardigan', ru: 'Кардиган в рубчик', cat: 'knitwear', price: 17600, sale: 13200, descEn: 'A fine-gauge ribbed cardigan with mother-of-pearl buttons. Slim through the body, cropped at the hip.', descRu: 'Кардиган тонкой вязки в рубчик с перламутровыми пуговицами. Приталенный, укороченный по бедру.', compositionEn: 'Fine-gauge wool', compositionRu: 'Шерсть тонкой вязки', careEn: 'Hand wash cold', careRu: 'Ручная стирка в холодной воде', colors: [OAT, CHARCOAL, BORDEAUX], image: '/images/shop/turtleneck.jpg'},
 ];
 
-// Editorial imagery from the shared gradient asset base — used for the hero, the
-// atelier/lookbook block and as alternate PDP gallery views. Same-origin (CSP).
-export const WHITE_HERO_IMAGE = '/images/shop/editorial-alt.jpg';
-export const WHITE_ATELIER_IMAGE = '/images/shop/full-figure.jpg';
-export const WHITE_EDITORIAL = ['/images/shop/editorial-clean.jpg', '/images/shop/full-figure.jpg', '/images/shop/bolero.jpg'];
+// Editorial imagery — model-on-white shots generated for the White variant (the
+// REINASLEO Soul), used for the hero, the atelier/lookbook block and as
+// alternate PDP gallery views. Same-origin, so CSP img-src 'self' covers them.
+export const WHITE_HERO_IMAGE = '/images/white/hero.jpg';
+export const WHITE_ATELIER_IMAGE = '/images/white/atelier.jpg';
+export const WHITE_EDITORIAL = ['/images/white/editorial-1.jpg', '/images/white/editorial-2.jpg', '/images/white/editorial-3.jpg'];
 
 export function findWhiteProduct(key?: string | number | null): WhiteProduct | undefined {
   if (key == null) return undefined;
