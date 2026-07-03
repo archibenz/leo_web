@@ -1465,20 +1465,28 @@ h2.font-display,
 }
 
 /* Keyboard focus on white: the global ring is gold (var(--accent)) which is
-   only 2.23:1 on #fff — fails WCAG 2.4.11. Override inside the white portal
-   with an ink ring (17.8:1), square geometry, and drop the gold input glow. */
+   only 2.23:1 on #fff — fails WCAG 1.4.11 (Non-text Contrast, needs 3:1).
+   Override inside the white portal with an ink ring (17.8:1), square geometry,
+   and drop the gold input glow. Covers select/textarea too so native form
+   controls get the ink ring, not the gold one. */
 .wv-root a:focus-visible,
 .wv-root button:focus-visible,
 .wv-root [role="button"]:focus-visible,
 .wv-root summary:focus-visible,
 .wv-root [tabindex]:focus-visible,
-.wv-root input:focus-visible {
+.wv-root input:focus-visible,
+.wv-root select:focus-visible,
+.wv-root textarea:focus-visible {
   outline: 2px solid #1c1714;
   outline-offset: 2px;
   border-radius: 2px;
 }
 .wv-root input:focus,
-.wv-root input:focus-visible {
+.wv-root input:focus-visible,
+.wv-root select:focus,
+.wv-root select:focus-visible,
+.wv-root textarea:focus,
+.wv-root textarea:focus-visible {
   box-shadow: none;
   border-color: #1c1714;
 }
