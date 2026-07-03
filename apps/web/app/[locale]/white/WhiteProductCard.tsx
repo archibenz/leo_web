@@ -24,12 +24,14 @@ export default function WhiteProductCard({
   index = 0,
   quickAdd = false,
   rise = false,
+  priority = false,
 }: {
   locale: string;
   product: WhiteProduct;
   index?: number;
   quickAdd?: boolean;
   rise?: boolean;
+  priority?: boolean;
 }) {
   const t = useTranslations('white.card');
   const {add} = useWhiteBag();
@@ -103,6 +105,8 @@ export default function WhiteProductCard({
           src={product.image}
           alt={name}
           fill
+          priority={priority}
+          loading={priority ? 'eager' : 'lazy'}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 460px"
           className="pointer-events-none object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />

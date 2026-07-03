@@ -135,6 +135,24 @@ describe('WhiteProductCard Quick Add', () => {
   });
 });
 
+describe('WhiteProductCard image loading', () => {
+  it('lazy-loads the product image by default (below-the-fold cards)', () => {
+    const {container} = renderCard(<WhiteProductCard locale="en" product={PRODUCT} />);
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute('loading')).toBe('lazy');
+  });
+
+  it('eager-loads the product image when priority is set (above-the-fold first row)', () => {
+    const {container} = renderCard(<WhiteProductCard locale="en" product={PRODUCT} priority />);
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    // The card's explicit loading={priority?'eager':'lazy'} resolves to eager
+    // (and next/image emits a preload) instead of lazy-deferring above-the-fold.
+    expect(img!.getAttribute('loading')).toBe('eager');
+  });
+});
+
 describe('WhiteProductCard favourite heart', () => {
   it('toggles the favourite on, persisting the product key', async () => {
     const user = userEvent.setup();
