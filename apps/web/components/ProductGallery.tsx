@@ -156,7 +156,8 @@ export default function ProductGallery({images}: ProductGalleryProps) {
     if (!container) return;
     const activeBtn = container.querySelector<HTMLButtonElement>(`[data-thumb-idx="${activeIndex}"]`);
     if (activeBtn) {
-      activeBtn.scrollIntoView({behavior: 'smooth', block: 'nearest', inline: 'center'});
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      activeBtn.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'nearest', inline: 'center'});
     }
   }, [activeIndex]);
 

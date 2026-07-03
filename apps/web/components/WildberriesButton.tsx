@@ -13,6 +13,10 @@ export default function WildberriesButton({
   children,
   className,
 }: WildberriesButtonProps) {
+  // Pointer events, not mouse events: on touch, mouseenter latched on the
+  // first tap and mouseleave never fired, so the ripple kept running after
+  // returning from the WB tab (WCAG 2.2.2). pointerleave also fires when a
+  // transient touch pointer lifts, so the state always releases.
   const [hovering, setHovering] = useState(false);
 
   return (
@@ -20,8 +24,8 @@ export default function WildberriesButton({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onMouseEnter={() => setHovering(true)}
-      onMouseLeave={() => setHovering(false)}
+      onPointerEnter={() => setHovering(true)}
+      onPointerLeave={() => setHovering(false)}
       className={
         className ??
         'relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border-2 border-[#CB11AB] bg-[#CB11AB]/[0.08] text-base font-medium text-white active:scale-[0.98] motion-reduce:active:scale-100'
@@ -31,25 +35,27 @@ export default function WildberriesButton({
         aria-hidden
         className="pointer-events-none absolute inset-0 flex items-center justify-center"
       >
+        {/* Rise transition + wave animations live in globals.css (.wb-*) so
+            the prefers-reduced-motion block there can neutralise them; the
+            wave classes apply only while hovering, so the resting (clipped)
+            fill runs no animation at all. */}
         <span
-          className="block aspect-square will-change-transform"
+          className="wb-fill block aspect-square will-change-transform"
           style={{
             width: '220%',
             position: 'relative',
             background: '#CB11AB',
             transform: `rotate(-45deg) translateY(${hovering ? '0%' : '101%'})`,
-            transition: 'transform 800ms cubic-bezier(0.65, 0.05, 0.35, 1)',
           }}
         >
           {/* Front wave — leading edge of fill (top in local frame) */}
           <svg
-            className="pointer-events-none absolute"
+            className={`pointer-events-none absolute${hovering ? ' wb-wave-front' : ''}`}
             style={{
               left: '-50%',
               top: '-9px',
               width: '200%',
               height: '12px',
-              animation: 'wb-ripple 2.6s linear infinite',
             }}
             viewBox="0 0 120 12"
             preserveAspectRatio="none"
@@ -61,13 +67,12 @@ export default function WildberriesButton({
           </svg>
           {/* Soft echo wave (slightly offset, subtler) — adds depth */}
           <svg
-            className="pointer-events-none absolute opacity-70"
+            className={`pointer-events-none absolute opacity-70${hovering ? ' wb-wave-back' : ''}`}
             style={{
               left: '-50%',
               top: '-5px',
               width: '200%',
               height: '8px',
-              animation: 'wb-ripple-back 3.4s linear infinite',
             }}
             viewBox="0 0 120 8"
             preserveAspectRatio="none"
