@@ -19,10 +19,12 @@ export type WhiteProduct = {
   careEn: string;
   careRu: string;
   colors: WhiteColor[];
-  // Real photo from the shared gradient-site asset base (/public/images/shop).
-  // Served same-origin (CSP img-src 'self'); swapped for editorial model-on-white
-  // shots when those land.
+  // The product's own presentable photo (real WB garment restyled onto the White
+  // studio). Same-origin under images/white/products, so CSP img-src 'self' covers it.
   image: string;
+  // Optional extra views OF THE SAME product for the PDP gallery. When absent the
+  // PDP shows the single `image` — never other products' shots dressed up as views.
+  gallery?: string[];
 };
 
 const IVORY: WhiteColor = {key: 'ivory', hex: '#ece6da', en: 'Ivory', ru: 'Слоновая кость'};

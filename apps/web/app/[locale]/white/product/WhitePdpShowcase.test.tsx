@@ -2,6 +2,7 @@ import {afterEach, describe, it, expect} from 'vitest';
 import {render, screen, cleanup, waitFor, fireEvent, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import WhitePdpShowcase from './WhitePdpShowcase';
+import {WHITE_PRODUCTS} from '../products';
 import {NextIntlClientProvider} from 'next-intl';
 import enMessages from '../../../../messages/en.json';
 
@@ -54,15 +55,16 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
   });
 }
 
-function renderPdp() {
+function renderPdp(product: (typeof WHITE_PRODUCTS)[number] | null = null) {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages as never}>
-      <WhitePdpShowcase locale="en" product={null} />
+      <WhitePdpShowcase locale="en" product={product} />
     </NextIntlClientProvider>,
   );
 }
 
-// The lightbox gallery is the demo product image + the 3 shared editorial views.
+// A product carrying extra views — the PDP gallery is its own photo + those views.
+const MULTI_PRODUCT = {...WHITE_PRODUCTS[0]!, gallery: ['/images/white/products/g2.jpg', '/images/white/products/g3.jpg', '/images/white/products/g4.jpg']};
 const GALLERY_LEN = 4;
 
 // Read the lightbox position indicator ("1 / 4") inside the open dialog.
@@ -81,7 +83,7 @@ afterEach(() => {
 describe('WhitePdpShowcase zoom lightbox keyboard navigation', () => {
   it('steps through the gallery with Arrow keys and clamps at both ends (WCAG 2.1.1)', async () => {
     const user = userEvent.setup();
-    renderPdp();
+    renderPdp(MULTI_PRODUCT);
 
     // Portal mounts after the mount-guard effect; the zoom trigger then exists.
     const zoom = await screen.findByRole('button', {name: /zoom image/i});
@@ -108,11 +110,19 @@ describe('WhitePdpShowcase zoom lightbox keyboard navigation', () => {
 
   it('still closes on Escape', async () => {
     const user = userEvent.setup();
-    renderPdp();
+    renderPdp(MULTI_PRODUCT);
     await user.click(await screen.findByRole('button', {name: /zoom image/i}));
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
     fireEvent.keyDown(document, {key: 'Escape'});
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('shows a single view — no cross-product filler — when the product has no extra images', async () => {
+    renderPdp(); // default product carries no `gallery`
+    // The zoom trigger (so the one photo is still viewable) exists...
+    await screen.findByRole('button', {name: /zoom image/i});
+    // ...but there are no gallery thumbnails, so no "view image 2" and no more.
+    expect(screen.queryByRole('button', {name: /view image 2/i})).not.toBeInTheDocument();
   });
 });

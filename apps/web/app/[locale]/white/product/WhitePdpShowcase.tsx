@@ -14,7 +14,7 @@ import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 import {WhiteFavHeart} from '../wv-icons';
-import {WHITE_PRODUCTS, WHITE_SIZES, WHITE_EDITORIAL, type WhiteProduct} from '../products';
+import {WHITE_PRODUCTS, WHITE_SIZES, type WhiteProduct} from '../products';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
 // the landing: a full-bleed white surface over the gradient chrome so the
@@ -29,9 +29,8 @@ const DEFAULT_COLORS = [
   {key: 'black', hex: '#2b2722', en: 'Black', ru: 'Чёрный'},
   {key: 'bordeaux', hex: '#6e2a2a', en: 'Bordeaux', ru: 'Бордовый'},
 ];
-// Gallery = the product photo first, then shared editorial views (gradient asset
-// base). Selecting a thumbnail swaps the main image. Built per-product below.
-const THUMBS = [0, 1, 2, 3];
+// Gallery is built per-product below: the product's own photo, plus any extra
+// views it carries — never other products' shots.
 // Demo measurements (cm) for the size-guide disclosure.
 const SIZE_GUIDE = [
   {size: 'XS', bust: 82, waist: 62, hips: 88},
@@ -68,8 +67,10 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const selectedColor = productColors.find((c) => c.key === color) ?? productColors[0]!;
   // Concrete product for the bag/wishlist — fall back to the demo dress (key 1).
   const bagProduct = product ?? WHITE_PRODUCTS[0]!;
-  // Product photo first, then shared editorial views — 4 gallery slots (THUMBS).
-  const gallery = [bagProduct.image, ...WHITE_EDITORIAL];
+  // The product's own photo, plus any extra views it carries. No cross-product
+  // editorial filler — a gallery slot on a PDP must be this garment.
+  const gallery = bagProduct.gallery?.length ? [bagProduct.image, ...bagProduct.gallery] : [bagProduct.image];
+  const multi = gallery.length > 1;
   const favourited = isFavourite(bagProduct.key);
   const handleAdd = () => {
     if (!size) return;
@@ -288,9 +289,10 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
 
         <div className="grid gap-10 pb-24 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
           {/* Gallery */}
-          <div className="wv-rise grid gap-4 sm:grid-cols-[64px_1fr]">
+          <div className={`wv-rise grid gap-4 ${multi ? 'sm:grid-cols-[64px_1fr]' : ''}`}>
+            {multi && (
             <div className="order-2 flex gap-3 sm:order-1 sm:flex-col">
-              {THUMBS.map((i) => (
+              {gallery.map((src, i) => (
                 <button
                   key={i}
                   type="button"
@@ -303,10 +305,11 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                     opacity: i === activeImg ? 1 : 0.55,
                   }}
                 >
-                  <Image src={gallery[i] ?? gallery[0]!} alt="" fill sizes="64px" className="object-cover" />
+                  <Image src={src ?? gallery[0]!} alt="" fill sizes="64px" className="object-cover" />
                 </button>
               ))}
             </div>
+            )}
             <div ref={galleryRef} className="relative order-1 aspect-[2/3] w-full touch-pan-y overflow-hidden sm:order-2">
               {/* Track — all frames in a row; follows the finger during a drag
                   (dragDelta), then snaps. The snap eases unless reduced-motion. */}
@@ -349,6 +352,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               {/* Editorial gallery index — immediate position for the mobile
                   swipe (thumbnails sit below on phones; desktop has the column).
                   Decorative: the thumbnails carry the accessible position. */}
+              {multi && (
               <span
                 aria-hidden="true"
                 className="absolute bottom-3 left-3 z-10 bg-white/85 px-2.5 py-1 font-display text-[13px] leading-none tabular-nums backdrop-blur-sm sm:hidden"
@@ -358,6 +362,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                 <span style={{color: MUTED}}>{' / '}</span>
                 {String(gallery.length).padStart(2, '0')}
               </span>
+              )}
             </div>
           </div>
 
