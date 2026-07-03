@@ -1,9 +1,12 @@
 import {useEffect, useState} from 'react';
+import {findWhiteProduct} from '../app/[locale]/white/products';
 
 // Variant 2 "White" — client-only wishlist, backed by localStorage. Mirrors
 // useWhiteBag (module store + pub/sub) so every useWhiteFavourites() instance on
 // a page stays in sync (header count, PDP heart, favourites list). Stores just
-// the product keys — the catalog (products.ts) is the source of the rest.
+// the product keys — the catalog (products.ts) is the source of the rest, and
+// `count` only counts keys that still resolve there, so the header badge always
+// matches what the favourites page can actually show.
 // Honest: the heart persists, so a saved item is still saved after navigation.
 
 const KEY = 'wv-favourites';
@@ -105,7 +108,7 @@ export function useWhiteFavourites() {
 
   return {
     keys: snapshot,
-    count: snapshot.length,
+    count: snapshot.filter((k) => findWhiteProduct(k) != null).length,
     has: (key: number) => snapshot.includes(key),
     toggle: toggleWhiteFavourite,
     remove: removeWhiteFavourite,
