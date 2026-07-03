@@ -9,15 +9,17 @@ import {MaskIcon} from './wv-icons';
 // Shared header right-slot. On mobile the full-text labels ("Избранное (0)",
 // "Корзина (0)") crowd the wordmark on a 375px header; the reference set
 // (Zara/Lichi/H&M) all collapse these to icons on mobile. So: thin-stroke
-// square-leaning icons < sm, the editorial text labels at sm+ (desktop
-// untouched). A non-zero count is a real signal → tiny SIGNAL-red number, only
+// square-leaning icons < md, the editorial text labels at md+. The breakpoint
+// matches the hamburger (WhiteHeader md:hidden) on purpose — revealing the
+// wide RU labels earlier, at sm, while the hamburger still showed overflowed
+// the 640-767px band. A non-zero count is a real signal → tiny SIGNAL-red number, only
 // when > 0. `current` marks the active page (renders a non-link span, like the
 // old inline slots did on /bag and /favourites). Icons are static — nothing for
 // reduced-motion to suppress.
 
 type ActionKey = 'favourites' | 'bag';
 
-const WRAP = 'relative flex h-11 w-11 shrink-0 items-center justify-center sm:h-auto sm:w-auto';
+const WRAP = 'relative flex h-11 w-11 shrink-0 items-center justify-center md:h-auto md:w-auto';
 
 function Action({
   href,
@@ -37,11 +39,11 @@ function Action({
   const inner = (
     <>
       {icon}
-      <span className="hidden sm:inline">
+      <span className="hidden md:inline">
         {label} ({count})
       </span>
       {count > 0 && (
-        <span className="absolute right-1 top-1 text-[10px] font-medium leading-none sm:hidden" style={{color: SIGNAL}}>
+        <span className="absolute right-1 top-1 text-[10px] font-medium leading-none md:hidden" style={{color: SIGNAL}}>
           {count}
         </span>
       )}
@@ -72,14 +74,14 @@ export default function WhiteHeaderActions({
   search?: boolean;
 }) {
   const t = useTranslations('white.header');
-  const icon = 'h-[18px] w-[18px] sm:hidden';
+  const icon = 'h-[18px] w-[18px] md:hidden';
   return (
-    <div className="flex shrink-0 items-center gap-1 sm:gap-6 sm:text-[12px] sm:uppercase sm:tracking-[0.18em]" style={{color: MUTED}}>
+    <div className="flex shrink-0 items-center gap-1 md:gap-6 md:text-[12px] md:uppercase md:tracking-[0.18em]" style={{color: MUTED}}>
       {search && (
         <a
           href={`/${locale}/white/shop?focus=search`}
           aria-label={t('searchCollection')}
-          className="hidden transition-opacity hover:opacity-60 sm:inline"
+          className="hidden transition-opacity hover:opacity-60 md:inline"
         >
           {t('search')}
         </a>
