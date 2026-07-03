@@ -119,7 +119,8 @@ describe('WhitePdpShowcase zoom lightbox keyboard navigation', () => {
   });
 
   it('shows a single view — no cross-product filler — when the product has no extra images', async () => {
-    renderPdp(); // default product carries no `gallery`
+    const single = WHITE_PRODUCTS.find((p) => !p.gallery)!;
+    renderPdp(single);
     // The zoom trigger (so the one photo is still viewable) exists...
     await screen.findByRole('button', {name: /zoom image/i});
     // ...but there are no gallery thumbnails, so no "view image 2" and no more.
