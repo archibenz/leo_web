@@ -8,9 +8,9 @@ type ProvidersProps = {
   children: ReactNode;
 };
 
-// No MotionConfig here on purpose: framer-motion is off the global critical
-// path. The only remaining framer-motion consumers (account page + its
-// DeleteAccountModal) set their own local <MotionConfig reducedMotion="user">.
+// No MotionConfig here on purpose: framer-motion has been fully removed from
+// the app. Its last consumers — the account page + DeleteAccountModal — now
+// animate via CSS transitions (see lib/useMountTransition).
 export default function Providers({children}: ProvidersProps) {
   return (
     <AuthProvider>

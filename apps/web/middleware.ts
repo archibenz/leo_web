@@ -14,9 +14,9 @@ const intlMiddleware = createIntlMiddleware({
 const apiBase = process.env.NEXT_PUBLIC_API_BASE?.trim();
 const connectSrc = apiBase && apiBase.length > 0 ? `'self' ${apiBase}` : "'self'";
 
-// style-src keeps 'unsafe-inline' because next/image inline sizing styles and
-// framer-motion's runtime style injection both require it. Script XSS is the
-// higher-impact vector and is closed via per-request nonce + 'strict-dynamic'.
+// style-src keeps 'unsafe-inline' because next/image inline sizing styles
+// require it. Script XSS is the higher-impact vector and is closed via
+// per-request nonce + 'strict-dynamic'.
 // img-src tightened from broad `https:` to the same allowlist we already trust in
 // next.config.mjs remotePatterns — stops an injected <img src="https://attacker"> from
 // leaking data via URL params or referrers. Keep in sync with remotePatterns.
