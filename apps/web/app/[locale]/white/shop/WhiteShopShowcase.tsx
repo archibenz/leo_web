@@ -89,7 +89,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
     const q = query.trim().toLowerCase();
     let filtered = cat === 'all' ? ITEMS : ITEMS.filter((i) => i.cat === cat);
     // Free-text match against both locales so "dress" and "платье" both work.
-    if (q) filtered = filtered.filter((i) => `${i.en} ${i.ru}`.toLowerCase().includes(q));
+    if (q) filtered = filtered.filter((i) => `${i.en} ${i.ru} ${whiteCatLabel(i.cat, 'en')} ${whiteCatLabel(i.cat, 'ru')}`.toLowerCase().includes(q));
     if (colour !== 'all') filtered = filtered.filter((i) => i.colors.some((c) => c.key === colour));
     const price = (i: Item) => i.sale ?? i.price;
     if (sort === 'asc') return [...filtered].sort((a, b) => price(a) - price(b));
