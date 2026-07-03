@@ -17,7 +17,7 @@ import {MaskIcon} from './wv-icons';
 
 type ActionKey = 'favourites' | 'bag';
 
-const WRAP = 'relative flex h-11 w-11 items-center justify-center sm:h-auto sm:w-auto';
+const WRAP = 'relative flex h-11 w-11 shrink-0 items-center justify-center sm:h-auto sm:w-auto';
 
 function Action({
   href,
@@ -74,7 +74,7 @@ export default function WhiteHeaderActions({
   const t = useTranslations('white.header');
   const icon = 'h-[18px] w-[18px] sm:hidden';
   return (
-    <div className="flex items-center gap-1 sm:gap-6 sm:text-[12px] sm:uppercase sm:tracking-[0.18em]" style={{color: MUTED}}>
+    <div className="flex shrink-0 items-center gap-1 sm:gap-6 sm:text-[12px] sm:uppercase sm:tracking-[0.18em]" style={{color: MUTED}}>
       {search && (
         <a
           href={`/${locale}/white/shop?focus=search`}

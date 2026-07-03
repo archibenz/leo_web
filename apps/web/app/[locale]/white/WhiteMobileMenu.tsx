@@ -65,7 +65,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
         onClick={() => setOpen(true)}
         aria-expanded={open}
         aria-label={t('openMenu')}
-        className="-ml-2 flex h-11 w-11 items-center justify-center"
+        className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center"
       >
         <svg width="20" height="12" viewBox="0 0 20 12" fill="none" stroke={INK} strokeWidth="1.3" strokeLinecap="square">
           <line x1="0" y1="1" x2="20" y2="1" />
