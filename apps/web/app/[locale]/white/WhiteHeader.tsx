@@ -3,6 +3,7 @@
 import type {ReactNode} from 'react';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
+import Image from 'next/image';
 import WhiteMobileMenu from './WhiteMobileMenu';
 import {INK, HAIR} from './wv-palette';
 
@@ -46,12 +47,11 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
             const root = e.currentTarget.closest('.wv-root');
             root?.scrollTo({top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
           }}
-          // The trailing letter-space after the final O widens the box to the right,
-          // so a negative right margin of one tracking unit re-centres the glyphs.
-          className="mr-[-0.3em] shrink-0 font-display text-[21px] font-medium tracking-[0.3em] sm:mr-[-0.42em] sm:text-[24px] sm:tracking-[0.42em]"
-          style={{color: INK}}
+          className="shrink-0"
+          aria-label="REINASLEO"
         >
-          REINASLEO
+          {/* The brand wordmark asset itself — not typed text. */}
+          <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} priority className="h-[16px] w-auto sm:h-[19px]" />
         </a>
         <div className="flex flex-1 items-center justify-end">{right}</div>
       </div>

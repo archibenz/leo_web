@@ -124,7 +124,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                       href={l.href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
-                      className="flex min-h-[52px] items-center font-display text-[33px] font-light tracking-[-0.01em] transition-opacity hover:opacity-60"
+                      className="wv-tap flex min-h-[52px] items-center font-display text-[33px] font-light tracking-[-0.01em] transition-opacity hover:opacity-60"
                       style={{color: active ? SIGNAL : INK}}
                     >
                       {l.label}

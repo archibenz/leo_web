@@ -331,7 +331,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                 type="button"
                 onClick={() => setZoomed(true)}
                 aria-label={t('zoomImage')}
-                className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center bg-white/85 backdrop-blur-sm transition-opacity hover:opacity-70"
+                className="wv-tap absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center bg-white/85 backdrop-blur-sm"
                 style={{border: `1px solid ${HAIR}`, color: INK}}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" aria-hidden="true">
@@ -412,11 +412,13 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                     type="button"
                     onClick={() => setSize(s)}
                     aria-pressed={size === s}
-                    className="h-11 min-w-11 px-3 text-[13px] tracking-wide transition-colors"
+                    className="wv-tap h-11 min-w-11 px-3 text-[13px] tracking-wide transition-colors"
                     style={{
                       border: `1px solid ${size === s ? INK : HAIR}`,
-                      background: size === s ? INK : 'transparent',
-                      color: size === s ? '#fff' : INK,
+                      // Selected reads as a warm grey fill (not a hard black block),
+                      // so the picked size highlights the way taps do everywhere.
+                      background: size === s ? '#e9e2d7' : undefined,
+                      color: INK,
                     }}
                   >
                     {s}

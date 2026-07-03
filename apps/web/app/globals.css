@@ -1553,6 +1553,19 @@ h2.font-display:not(.wv-root *),
   transform: scaleX(1);
 }
 
+/* Touch/selection feedback: interactive surfaces wash warm grey on hover and
+   press so it's always visible what's being tapped — white-on-white states
+   were unreadable. */
+.wv-tap {
+  transition: background-color 0.25s ease;
+}
+.wv-tap:hover {
+  background-color: #f1ece4;
+}
+.wv-tap:active {
+  background-color: #e9e2d7;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .wv-rise { animation: none; opacity: 1; }
   .wv-quickadd { transition: opacity 0.2s ease; transform: none; }
