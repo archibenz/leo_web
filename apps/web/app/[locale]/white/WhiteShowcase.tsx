@@ -81,7 +81,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
           season + line set over its base. The image is a placeholder; the
           Higgsfield model-on-white shots swap in via WHITE_HERO_IMAGE. */}
       <section className="relative h-[82vh] min-h-[540px] w-full overflow-hidden">
-        <Image src={WHITE_HERO_IMAGE} alt="" fill priority quality={92} sizes="100vw" className="wv-drift object-cover object-[50%_22%]" />
+        <Image src={WHITE_HERO_IMAGE} alt="" fill priority quality={95} sizes="100vw" className="wv-drift object-cover object-[50%_22%]" />
         {/* The scrim carries the text contrast on its own so any Higgsfield shot
             (however light in its lower third) keeps the white type AA-legible —
             it ramps to a firm base across the bottom band where the text sits,

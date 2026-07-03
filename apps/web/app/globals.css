@@ -1557,6 +1557,7 @@ h2.font-display:not(.wv-root *),
    press so it's always visible what's being tapped — white-on-white states
    were unreadable. */
 .wv-tap {
+  border-radius: 9999px;
   transition: background-color 0.25s ease;
 }
 .wv-tap:hover {
