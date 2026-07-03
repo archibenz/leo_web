@@ -11,7 +11,7 @@ import WhiteHeader from './WhiteHeader';
 import WhiteHeaderActions from './WhiteHeaderActions';
 import WhiteFooter from './WhiteFooter';
 import WhiteProductCard from './WhiteProductCard';
-import {INK, MUTED, HAIR, SIGNAL} from './wv-palette';
+import {INK, MUTED, HAIR} from './wv-palette';
 import {WHITE_PRODUCTS, WHITE_HERO_IMAGE, WHITE_ATELIER_IMAGE} from './products';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
@@ -58,10 +58,6 @@ export default function WhiteShowcase({locale}: {locale: string}) {
     {label: t('shop'), href: `/${locale}/white/shop`},
   ];
 
-  // Kinetic marquee segments — brand, tagline, season. Localized (via t) but the
-  // running band is decorative (aria-hidden); the same words live in the hero.
-  const marquee = ['REINASLEO', `${t('heroLine1')} ${t('heroLine2')}`, t('season')];
-
   return createPortal(
     <div
       className="wv-root fixed inset-0 z-[1000] overflow-y-auto bg-white font-sans antialiased"
@@ -81,28 +77,33 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       />
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}}>
-      {/* Hero — type-led editorial */}
-      <section className="mx-auto max-w-[1400px] px-6 sm:px-10">
-        <div className="grid items-end gap-10 py-20 sm:py-28 lg:grid-cols-[1.1fr_0.9fr] lg:py-36">
-          <div className="wv-rise">
-            <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>
-              {t('season')}
-            </p>
-            <h1 className="font-display text-[clamp(56px,calc(4.4vw_+_39.5px),88px)] font-light leading-[0.92] tracking-[-0.01em]">
-              {t('heroLine1')}
-              <br />
-              <span className="italic" style={{color: MUTED}}>{t('heroLine2')}</span>
-            </h1>
-            <p className="mt-9 max-w-md text-[15px] leading-relaxed" style={{color: MUTED}}>
-              {t('heroIntro')}
-            </p>
-            <a href={`/${locale}/white/shop`} className="wv-btn mt-11 inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
-              {t('shopCollection')}
-            </a>
-          </div>
-          <div className="wv-ph wv-rise wv-delay-1 relative aspect-[3/4] w-full overflow-hidden">
-            <Image src={WHITE_HERO_IMAGE} alt="" fill priority sizes="(max-width: 1024px) 100vw, 45vw" className="object-cover" />
-          </div>
+      {/* Hero — image-led editorial: a full-bleed model-on-white shot with the
+          season + line set over its base. The image is a placeholder; the
+          Higgsfield model-on-white shots swap in via WHITE_HERO_IMAGE. */}
+      <section className="relative h-[82vh] min-h-[540px] w-full overflow-hidden">
+        <Image src={WHITE_HERO_IMAGE} alt="" fill priority sizes="100vw" className="object-cover object-[50%_22%]" />
+        {/* The scrim carries the text contrast on its own so any Higgsfield shot
+            (however light in its lower third) keeps the white type AA-legible —
+            it ramps to a firm base across the bottom band where the text sits,
+            not just at the very edge. A soft text-shadow is a belt-and-braces
+            backstop. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-[linear-gradient(180deg,rgba(28,23,20,0.06)_0%,rgba(28,23,20,0)_22%,rgba(28,23,20,0.52)_58%,rgba(28,23,20,0.82)_100%)]"
+        />
+        <div className="wv-rise absolute inset-x-0 bottom-0 px-6 pb-12 [text-shadow:0_1px_26px_rgba(28,23,20,0.5)] sm:px-10 sm:pb-16">
+          <p className="text-[11px] uppercase tracking-[0.34em] text-white">{t('season')}</p>
+          <h1 className="mt-4 font-display text-[clamp(54px,15vw,96px)] font-light leading-[0.9] tracking-[-0.015em] text-white">
+            {t('heroLine1')}
+            <br />
+            <span className="italic text-white/85">{t('heroLine2')}</span>
+          </h1>
+          <a
+            href={`/${locale}/white/shop`}
+            className="wv-hero-cta mt-8 inline-flex items-center justify-center border border-white/80 px-9 py-4 text-[12px] uppercase tracking-[0.2em] text-white transition-colors [text-shadow:none] hover:bg-white hover:text-[#1c1714]"
+          >
+            {t('shopCollection')}
+          </a>
         </div>
       </section>
 
@@ -125,24 +126,12 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         </div>
       </section>
 
-      {/* Kinetic brand marquee — an oversized editorial type moment that breaks
-          the centered rhythm with a full-bleed drift. Decorative (aria-hidden);
-          reduced-motion holds it still. */}
-      <section aria-hidden="true" className="wv-marquee-band border-y py-7 sm:py-10" style={{borderColor: HAIR}}>
-        <div className="wv-marquee">
-          {[0, 1].map((copy) => (
-            <span key={copy} className="flex shrink-0 items-center">
-              {marquee.map((seg, i) => (
-                <span key={i} className="flex items-center">
-                  <span className="font-display text-[40px] font-light italic leading-none tracking-[-0.01em] sm:text-[58px]">
-                    {seg}
-                  </span>
-                  <span className="mx-7 text-[16px] sm:mx-11 sm:text-[20px]" style={{color: SIGNAL}}>✦</span>
-                </span>
-              ))}
-            </span>
-          ))}
-        </div>
+      {/* House line — one oversized editorial statement, the brand philosophy in
+          a single breath. Replaces the busy marquee; the calm is the point. */}
+      <section className="mx-auto max-w-[1100px] border-y px-6 py-24 sm:px-10 sm:py-32" style={{borderColor: HAIR}}>
+        <p className="mx-auto max-w-[760px] text-center font-display text-[clamp(30px,7.5vw,54px)] font-light italic leading-[1.12] tracking-[-0.01em]">
+          {t('houseLine')}
+        </p>
       </section>
 
       {/* Lookbook — editorial brand statement */}
