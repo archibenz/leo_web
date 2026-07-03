@@ -32,16 +32,20 @@ function normalise(raw: unknown): WhiteBagItem[] {
   if (!Array.isArray(raw)) return [];
   const byLine = new Map<string, WhiteBagItem>();
   for (const r of raw as WhiteBagItem[]) {
-    if (r == null || typeof r.key !== 'number' || typeof r.size !== 'string') continue;
+    // Drop rows without a finite price: they can't render a line total or bag
+    // total and would poison both with NaN (fmt(i.price * i.qty), reduce()).
+    if (r == null || typeof r.key !== 'number' || typeof r.size !== 'string' || !Number.isFinite(r.price)) continue;
     // Legacy rows (added before colour tracking) carry no colour — keep them as
     // an empty colourway so they survive the migration without merging.
     const colorEn = typeof r.colorEn === 'string' ? r.colorEn : '';
     const colorRu = typeof r.colorRu === 'string' ? r.colorRu : '';
+    const en = typeof r.en === 'string' ? r.en : '';
+    const ru = typeof r.ru === 'string' ? r.ru : '';
     const id = lineId(r.key, r.size, colorEn);
     const qty = Number.isFinite(r.qty) && r.qty > 0 ? Math.floor(r.qty) : 1;
     const existing = byLine.get(id);
     if (existing) existing.qty += qty;
-    else byLine.set(id, {id, key: r.key, en: r.en, ru: r.ru, price: r.price, size: r.size, colorEn, colorRu, qty});
+    else byLine.set(id, {id, key: r.key, en, ru, price: r.price, size: r.size, colorEn, colorRu, qty});
   }
   return [...byLine.values()];
 }

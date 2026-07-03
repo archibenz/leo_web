@@ -132,3 +132,47 @@ describe('useWhiteBag cross-tab sync', () => {
     expect(result.current.items[0]).toMatchObject({key: 2, size: 'L', qty: 2});
   });
 });
+
+describe('useWhiteBag normalise robustness', () => {
+  it('drops persisted rows with a non-finite price so the bag total never goes NaN', () => {
+    const {result} = renderHook(() => useWhiteBag());
+
+    act(() => {
+      // A corrupt/legacy persisted bag: one good row, one with a missing price,
+      // one with a string price. Only the good row must survive.
+      localStorage.setItem(
+        'wv-bag',
+        JSON.stringify([
+          {key: 1, en: 'Good', ru: 'Хорошее', price: 24500, size: 'M', colorEn: 'Black', colorRu: 'Чёрный'},
+          {key: 2, en: 'No price', ru: 'Без цены', size: 'L', colorEn: 'Ivory', colorRu: 'Слоновая кость'},
+          {key: 3, en: 'String price', ru: 'Строка', price: '1000' as unknown as number, size: 'S'},
+        ]),
+      );
+      window.dispatchEvent(new StorageEvent('storage', {key: 'wv-bag'}));
+    });
+
+    // Both bad-price rows are dropped; only the finite-price line remains.
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.items[0]).toMatchObject({key: 1, price: 24500});
+    // Every surviving line has a finite price, so the WhiteBagShowcase total
+    // (items.reduce((s, i) => s + i.price * i.qty, 0)) can never be NaN.
+    const total = result.current.items.reduce((s, i) => s + i.price * i.qty, 0);
+    expect(Number.isFinite(total)).toBe(true);
+    expect(total).toBe(24500);
+  });
+
+  it('defaults a non-string name to an empty string rather than rendering undefined', () => {
+    const {result} = renderHook(() => useWhiteBag());
+
+    act(() => {
+      localStorage.setItem(
+        'wv-bag',
+        JSON.stringify([{key: 4, en: 42 as unknown as string, ru: null as unknown as string, price: 5000, size: 'M'}]),
+      );
+      window.dispatchEvent(new StorageEvent('storage', {key: 'wv-bag'}));
+    });
+
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.items[0]).toMatchObject({en: '', ru: '', price: 5000});
+  });
+});
