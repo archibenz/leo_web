@@ -233,6 +233,13 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
     document.body.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setZoomed(false);
+      else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        setActiveImg((p) => Math.max(p - 1, 0));
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        setActiveImg((p) => Math.min(p + 1, gallery.length - 1));
+      }
     };
     document.addEventListener('keydown', onKey);
     const raf = window.requestAnimationFrame(() => lightboxRef.current?.focus());
@@ -241,7 +248,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
       document.removeEventListener('keydown', onKey);
       window.cancelAnimationFrame(raf);
     };
-  }, [zoomed]);
+  }, [zoomed, gallery.length]);
   // ?p selects the catalog product; fall back to the default demo dress.
   const name = product ? (ru ? product.ru : product.en) : t('nameFallback');
   const priceStr = product ? `${product.price.toLocaleString('ru-RU')} ₽` : '24 500 ₽';
@@ -549,7 +556,12 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             </div>
           </div>
           {gallery.length > 1 && (
-            <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[12px] tabular-nums tracking-[0.2em]" style={{color: MUTED}} aria-hidden="true">
+            <p
+              className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[12px] tabular-nums tracking-[0.2em]"
+              style={{color: MUTED}}
+              role="status"
+              aria-live="polite"
+            >
               {activeImg + 1} / {gallery.length}
             </p>
           )}
