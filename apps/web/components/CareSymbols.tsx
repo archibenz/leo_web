@@ -1,5 +1,3 @@
-'use client';
-
 import type {ReactNode} from 'react';
 
 const SYMBOLS: Record<string, { icon: ReactNode; label: { en: string; ru: string } }> = {

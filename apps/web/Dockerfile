@@ -9,8 +9,11 @@ RUN apk add --no-cache libc6-compat
 
 COPY package.json package-lock.json ./
 
+# --legacy-peer-deps: react@19 vs @react-spring's react ^16-18 peer range has
+# no react-19-compatible release; workspace installs at the repo root already
+# resolve in this mode, standalone npm ci here fails ERESOLVE without it.
 RUN --mount=type=cache,target=/root/.npm \
-    npm ci --no-audit --no-fund
+    npm ci --no-audit --no-fund --legacy-peer-deps
 
 # ---- build stage ----
 FROM node:20-alpine AS build

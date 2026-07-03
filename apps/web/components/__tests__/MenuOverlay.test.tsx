@@ -34,3 +34,25 @@ describe('MenuOverlay primary nav', () => {
     expect(screen.getAllByRole('link')[1]).toHaveAttribute('aria-current', 'page');
   });
 });
+
+describe('MenuOverlay labels', () => {
+  // useTranslations is mocked to echo keys, so assertions pin the i18n keys:
+  // menu.label for the dialog, header.closeMenu / header.catalog for the rest.
+  it('labels close controls as closeMenu, distinct from the dialog label', () => {
+    mockPathname.mockReturnValue('/ru');
+    render(<MenuOverlay isOpen onClose={vi.fn()} locale="ru" />);
+
+    expect(screen.getByRole('dialog')).toHaveAttribute('aria-label', 'label');
+    // Scrim + X button both announce closing, not "Menu".
+    expect(screen.getAllByRole('button', {name: 'closeMenu'})).toHaveLength(2);
+  });
+
+  it('gives the primary nav its own label instead of duplicating the dialog', () => {
+    mockPathname.mockReturnValue('/ru');
+    render(<MenuOverlay isOpen onClose={vi.fn()} locale="ru" />);
+
+    expect(screen.getByRole('navigation', {name: 'catalog'})).toBeInTheDocument();
+    expect(screen.getByRole('navigation', {name: 'sections.more'})).toBeInTheDocument();
+    expect(screen.queryByRole('navigation', {name: 'label'})).toBeNull();
+  });
+});

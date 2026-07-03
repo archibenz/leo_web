@@ -1,5 +1,3 @@
-'use client';
-
 interface SocialIconsProps {
   className?: string;
 }

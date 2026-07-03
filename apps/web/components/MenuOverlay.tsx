@@ -25,6 +25,8 @@ const CATEGORY_ITEMS = [
 export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps) {
   const t = useTranslations('menu');
   const nav = useTranslations('nav');
+  // header.* is shared with the hamburger trigger — same "Close menu" wording.
+  const tHeader = useTranslations('header');
   const pathname = usePathname();
 
   const menuRef = useRef<HTMLDivElement>(null);
@@ -90,7 +92,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
       {/* Scrim — tap to dismiss. */}
       <button
         type="button"
-        aria-label={t('label')}
+        aria-label={tHeader('closeMenu')}
         tabIndex={-1}
         onClick={handleClose}
         className={`absolute inset-0 h-full w-full cursor-default bg-[#0A0705]/70 backdrop-blur-[2px] transition-opacity duration-300 ease-out motion-reduce:transition-none ${
@@ -116,7 +118,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
           <button
             type="button"
             onClick={handleClose}
-            aria-label={t('label')}
+            aria-label={tHeader('closeMenu')}
             className="-mr-1.5 flex h-11 w-11 items-center justify-center text-inkSoft transition-colors hover:text-accent focus-visible:text-accent"
           >
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
@@ -125,8 +127,9 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
           </button>
         </div>
 
-        {/* Primary nav — scrollable list. */}
-        <nav className="flex flex-1 flex-col overflow-y-auto px-5 py-1" aria-label={t('label')}>
+        {/* Primary nav — scrollable list. Named "Catalog", not "Menu": the
+            dialog itself is already announced as "Menu". */}
+        <nav className="flex flex-1 flex-col overflow-y-auto px-5 py-1" aria-label={tHeader('catalog')}>
           {primary.map((item, index) => {
             const onShop = pathname === `/${locale}/shop`;
             const current = item.key === 'home'

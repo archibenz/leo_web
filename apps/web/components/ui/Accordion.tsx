@@ -66,7 +66,7 @@ export default function Accordion({
                 stroke="currentColor"
                 strokeWidth="1.5"
                 strokeLinecap="round"
-                className={`flex-shrink-0 text-[var(--ink-soft)] transition-transform duration-200 ${
+                className={`flex-shrink-0 text-[var(--ink-soft)] transition-transform duration-200 motion-reduce:transition-none ${
                   isOpen ? 'rotate-180' : ''
                 }`}
                 aria-hidden="true"

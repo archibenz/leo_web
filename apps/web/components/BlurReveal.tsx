@@ -65,9 +65,22 @@ export default function BlurReveal({
     }
 
     // --- Scroll-driven progressive reveal ---
+    // Reading getBoundingClientRect() and writing blur/opacity/transform on
+    // every scroll frame is layout thrash, and the home page mounts ~13-15 of
+    // these. So the rAF read/write loop is gated behind an IntersectionObserver:
+    // it only runs while the element is near the viewport, and once the reveal
+    // completes (progress === 1) everything tears down so a revealed element
+    // costs nothing on later scrolls. The progressive-reveal math — and the
+    // resulting blur→sharp + fade + translate — is unchanged.
     el.style.willChange = 'opacity, filter, transform';
 
-    const update = () => {
+    let raf = 0;
+    let listening = false;
+    let done = false;
+
+    // Read current viewport position, paint the matching frame, and report how
+    // far the reveal has progressed (0 = just entering, 1 = fully revealed).
+    const applyProgress = (): number => {
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight;
 
@@ -83,26 +96,65 @@ export default function BlurReveal({
       el.style.opacity = String(currentOpacity);
       el.style.filter = `blur(${currentBlur.toFixed(1)}px)`;
       el.style.transform = `translateY(${currentTranslateY.toFixed(1)}px)`;
+
+      return progress;
     };
 
-    // Initial state
-    update();
+    const update = () => {
+      if (applyProgress() >= 1) teardown();
+    };
 
-    let raf = 0;
     const onScroll = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(update);
     };
 
-    document.body.addEventListener('scroll', onScroll, {passive: true});
-    window.addEventListener('scroll', onScroll, {passive: true});
-    window.addEventListener('resize', onScroll, {passive: true});
+    const startListening = () => {
+      if (listening || done) return;
+      window.addEventListener('scroll', onScroll, {passive: true});
+      window.addEventListener('resize', onScroll, {passive: true});
+      listening = true;
+      onScroll(); // catch up to the current scroll position
+    };
+
+    const stopListening = () => {
+      if (!listening) return;
+      cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      listening = false;
+    };
+
+    // Fully revealed: stop the loop, drop listeners, disconnect the observer,
+    // and release the compositor hint. This element is finished for good.
+    const teardown = () => {
+      done = true;
+      stopListening();
+      observer.disconnect();
+      el.style.willChange = '';
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (done) return;
+        if (entry.isIntersecting) startListening();
+        else stopListening();
+      },
+      // Wake a little before the element scrolls in so the reveal never lags.
+      {rootMargin: '100px 0px'},
+    );
+
+    // Paint the initial frame for the element's current position; if it is
+    // already past the reveal threshold (e.g. above the fold) we stop here and
+    // never wire up scroll listeners at all.
+    update();
+    if (!done) observer.observe(el);
 
     return () => {
       cancelAnimationFrame(raf);
-      document.body.removeEventListener('scroll', onScroll);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
+      observer.disconnect();
     };
   }, [resolvedMode, blur, translateY, delay, duration]);
 
