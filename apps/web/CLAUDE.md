@@ -7,7 +7,7 @@ This file extends `../../CLAUDE.md`. Read root first, then these specifics.
 - Next.js 15 (App Router) + React 19 + TypeScript strict
 - Tailwind CSS (utility-first, no styled-components)
 - next-intl v3 for i18n — locales `en` and `ru`, files in `messages/`
-- framer-motion for animation
+- CSS transitions for animation (no animation library); `lib/useMountTransition` keeps overlays mounted through their exit transition
 - vitest + Testing Library for unit, Playwright for E2E
 
 ## File structure
@@ -54,7 +54,7 @@ i18n.ts, i18n-routing.ts       next-intl wiring
 
 - Use `next/image` (`<Image>`) for non-SVG raster images — never plain `<img>`.
 - `dynamic(() => import(...), { ssr: false })` for heavy client-only libs (e.g. shader backgrounds, lightbox).
-- Lazy-mount modals/overlays inside `<AnimatePresence>` so unused trees do not hydrate.
+- Gate modals/overlays on an open flag (mounted via `useMountTransition` for exit animations) so unused trees do not hydrate.
 - Sync localStorage writes inside `useSyncedList` — don't add a second source of truth.
 
 ## Accessibility
