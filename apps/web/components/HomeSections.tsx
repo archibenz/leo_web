@@ -125,7 +125,8 @@ function ScrollRow({children}: {children: React.ReactNode}) {
   const scroll = (dir: -1 | 1) => {
     const el = scrollRef.current;
     if (!el) return;
-    el.scrollBy({left: dir * 300, behavior: 'smooth'});
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el.scrollBy({left: dir * 300, behavior: reduce ? 'auto' : 'smooth'});
   };
 
   return (
