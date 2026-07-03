@@ -148,7 +148,10 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             </a>
 
             <div className="mx-6 mt-5 flex shrink-0 items-center justify-between border-t pb-9 pt-4" style={{borderColor: HAIR}}>
-              <div className="flex gap-6 text-[12px] uppercase tracking-[0.2em]" style={{color: MUTED}}>
+              {/* Jost runs wider than the serif this row was sized for — 11px,
+                  calmer tracking and tighter gaps keep all four ru labels inside
+                  the drawer edge. */}
+              <div className="flex gap-4 text-[11px] uppercase tracking-[0.1em]" style={{color: MUTED}}>
                 {secondary.map((s) => {
                   const active = pathname === s.href;
                   return (
@@ -157,7 +160,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                       href={s.href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
-                      className="-my-3 inline-flex min-h-11 items-center transition-opacity hover:opacity-60"
+                      className="wv-tap -mx-1 -my-3 inline-flex min-h-11 items-center px-1"
                       style={{color: active ? SIGNAL : MUTED}}
                     >
                       {s.label}
@@ -165,11 +168,11 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                   );
                 })}
               </div>
-              <div className="flex gap-5 text-[12px] uppercase tracking-[0.2em]" style={{color: INK}}>
-                <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="-my-3 inline-flex min-h-11 items-center transition-opacity hover:opacity-60">
+              <div className="flex gap-4 text-[11px] uppercase tracking-[0.1em]" style={{color: INK}}>
+                <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="wv-tap -mx-1 -my-3 inline-flex min-h-11 items-center px-1">
                   {t('saved')}
                 </a>
-                <a href={`/${locale}/white/bag`} onClick={() => setOpen(false)} className="-my-3 inline-flex min-h-11 items-center transition-opacity hover:opacity-60">
+                <a href={`/${locale}/white/bag`} onClick={() => setOpen(false)} className="wv-tap -mx-1 -my-3 inline-flex min-h-11 items-center px-1">
                   {t('bag')}
                 </a>
               </div>

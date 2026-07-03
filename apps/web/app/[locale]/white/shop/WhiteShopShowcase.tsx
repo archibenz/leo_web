@@ -208,10 +208,12 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
                 type="button"
                 onClick={() => pickCat(c)}
                 aria-pressed={cat === c}
-                className="inline-flex min-h-11 shrink-0 items-center px-3.5 text-[12px] uppercase tracking-[0.14em] transition-colors"
+                className="wv-tap inline-flex min-h-11 shrink-0 items-center px-3.5 text-[12px] uppercase tracking-[0.14em]"
                 style={{
                   color: cat === c ? '#fff' : INK,
-                  background: cat === c ? INK : 'transparent',
+                  // Inline background only when active — an always-set value
+                  // would sit above the wv-tap hover wash and swallow it.
+                  ...(cat === c ? {background: INK} : null),
                   border: `1px solid ${cat === c ? INK : HAIR}`,
                 }}
               >
@@ -246,10 +248,10 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
             type="button"
             onClick={() => pickColour('all')}
             aria-pressed={colour === 'all'}
-            className="inline-flex min-h-11 shrink-0 items-center px-3.5 text-[12px] uppercase tracking-[0.14em] transition-colors"
+            className="wv-tap inline-flex min-h-11 shrink-0 items-center px-3.5 text-[12px] uppercase tracking-[0.14em]"
             style={{
               color: colour === 'all' ? '#fff' : INK,
-              background: colour === 'all' ? INK : 'transparent',
+              ...(colour === 'all' ? {background: INK} : null),
               border: `1px solid ${colour === 'all' ? INK : HAIR}`,
             }}
           >
@@ -262,7 +264,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
               onClick={() => pickColour(c.key)}
               aria-pressed={colour === c.key}
               aria-label={ru ? c.ru : c.en}
-              className="flex h-11 w-11 shrink-0 items-center justify-center"
+              className="wv-tap flex h-11 w-11 shrink-0 items-center justify-center"
             >
               <span
                 className="h-6 w-6"
