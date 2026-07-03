@@ -15,7 +15,7 @@ import {MaskIcon} from './wv-icons';
 
 type ActionKey = 'favourites' | 'bag';
 
-const WRAP = 'relative flex h-11 w-11 shrink-0 items-center justify-center';
+const WRAP = 'wv-tap relative flex h-11 w-11 shrink-0 items-center justify-center';
 
 function Action({
   href,
@@ -45,7 +45,7 @@ function Action({
       {inner}
     </span>
   ) : (
-    <a href={href} aria-label={ariaLabel} className={`${WRAP} transition-opacity hover:opacity-60`}>
+    <a href={href} aria-label={ariaLabel} className={WRAP}>
       {inner}
     </a>
   );
@@ -74,7 +74,7 @@ export default function WhiteHeaderActions({
         <a
           href={`/${locale}/white/shop?focus=search`}
           aria-label={t('searchCollection')}
-          className={`${WRAP} hidden transition-opacity hover:opacity-60 md:flex`}
+          className={`${WRAP} hidden md:flex`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" aria-hidden="true">
             <circle cx="11" cy="11" r="7" />
