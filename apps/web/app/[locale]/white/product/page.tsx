@@ -1,4 +1,5 @@
 import type {Metadata} from 'next';
+import {notFound} from 'next/navigation';
 import WhitePdpShowcase from './WhitePdpShowcase';
 import {findWhiteProduct} from '../products';
 
@@ -22,9 +23,8 @@ export async function generateMetadata({params, searchParams}: Props): Promise<M
 
   // `absolute` opts out of the root layout's "REINASLEO · %s" template so the
   // brand name isn't doubled (e.g. "REINASLEO · … · REINASLEO — White").
-  if (!product) {
-    return {title: {absolute: ru ? 'Товар · REINASLEO — White' : 'Product · REINASLEO — White'}, robots};
-  }
+  // Unknown ?p renders the White 404 — never a stitched-together fallback PDP.
+  if (!product) notFound();
   const name = ru ? product.ru : product.en;
   return {
     title: {absolute: `${name} · REINASLEO — White`},
@@ -36,6 +36,7 @@ export async function generateMetadata({params, searchParams}: Props): Promise<M
 export default async function WhiteProductPage({params, searchParams}: Props) {
   const {locale} = await params;
   const {p} = await searchParams;
-  const product = findWhiteProduct(p) ?? null;
+  const product = findWhiteProduct(p);
+  if (!product) notFound();
   return <WhitePdpShowcase locale={locale} product={product} />;
 }

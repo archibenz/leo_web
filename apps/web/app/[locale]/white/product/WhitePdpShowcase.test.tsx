@@ -55,7 +55,7 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
   });
 }
 
-function renderPdp(product: (typeof WHITE_PRODUCTS)[number] | null = null) {
+function renderPdp(product: (typeof WHITE_PRODUCTS)[number]) {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages as never}>
       <WhitePdpShowcase locale="en" product={product} />

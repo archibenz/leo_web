@@ -17,18 +17,11 @@ import {WhiteFavHeart} from '../wv-icons';
 import {WHITE_PRODUCTS, WHITE_SIZES, type WhiteProduct} from '../products';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
-// the landing: a full-bleed white surface over the gradient chrome so the
-// minimalist direction can be reviewed at /<locale>/white/product. Placeholder
-// imagery (editorial shots via Higgsfield later). CSS-only, reduced-motion safe.
+// the landing: a full-bleed white surface over the gradient chrome, reviewed at
+// /<locale>/white/product?p=<key>. The route 404s on an unknown key, so the
+// product here is always a real catalogue entry. CSS-only, reduced-motion safe.
 
 const SIZES = WHITE_SIZES;
-// Fallback colourways for the default demo dress (no ?p) — mirrors the Silk
-// product. Real products carry their own per-product colours (products.ts).
-const DEFAULT_COLORS = [
-  {key: 'ivory', hex: '#ece6da', en: 'Ivory', ru: 'Слоновая кость'},
-  {key: 'black', hex: '#2b2722', en: 'Black', ru: 'Чёрный'},
-  {key: 'bordeaux', hex: '#6e2a2a', en: 'Bordeaux', ru: 'Бордовый'},
-];
 // Gallery is built per-product below: the product's own photo, plus any extra
 // views it carries — never other products' shots.
 // Demo measurements (cm) for the size-guide disclosure.
@@ -40,8 +33,8 @@ const SIZE_GUIDE = [
   {size: 'XL', bust: 102, waist: 82, hips: 108},
 ];
 
-export default function WhitePdpShowcase({locale, product}: {locale: string; product?: WhiteProduct | null}) {
-  const productColors = product?.colors ?? DEFAULT_COLORS;
+export default function WhitePdpShowcase({locale, product}: {locale: string; product: WhiteProduct}) {
+  const productColors = product.colors;
   const mounted = useWhitePortal();
   const [activeImg, setActiveImg] = useState(0);
   // Live horizontal drag offset of the gallery track (px). null = not dragging.
@@ -65,8 +58,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const ru = locale === 'ru';
   const t = useTranslations('white.pdp');
   const selectedColor = productColors.find((c) => c.key === color) ?? productColors[0]!;
-  // Concrete product for the bag/wishlist — fall back to the demo dress (key 1).
-  const bagProduct = product ?? WHITE_PRODUCTS[0]!;
+  const bagProduct = product;
   // The product's own photo, plus any extra views it carries. No cross-product
   // editorial filler — a gallery slot on a PDP must be this garment.
   const gallery = bagProduct.gallery?.length ? [bagProduct.image, ...bagProduct.gallery] : [bagProduct.image];
@@ -250,15 +242,12 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
       window.cancelAnimationFrame(raf);
     };
   }, [zoomed, gallery.length]);
-  // ?p selects the catalog product; fall back to the default demo dress.
-  const name = product ? (ru ? product.ru : product.en) : t('nameFallback');
-  const priceStr = product ? `${product.price.toLocaleString('ru-RU')} ₽` : '24 500 ₽';
-  const desc = product
-    ? (ru ? product.descRu : product.descEn)
-    : t('descFallback');
+  const name = ru ? product.ru : product.en;
+  const priceStr = `${product.price.toLocaleString('ru-RU')} ₽`;
+  const desc = ru ? product.descRu : product.descEn;
   // "You may also like" — same category first, then fill from the rest, current excluded.
-  const pool = WHITE_PRODUCTS.filter((p) => p.key !== product?.key);
-  const sameCat = product ? pool.filter((p) => p.cat === product.cat) : [];
+  const pool = WHITE_PRODUCTS.filter((p) => p.key !== product.key);
+  const sameCat = pool.filter((p) => p.cat === product.cat);
   const related = [...sameCat, ...pool.filter((p) => !sameCat.includes(p))].slice(0, 4);
 
   if (!mounted) return null;
