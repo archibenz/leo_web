@@ -174,7 +174,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
               spellCheck={false}
               enterKeyHint="search"
               placeholder={t('searchCollection')}
-              className="w-full border-b bg-transparent pb-2 pr-10 pt-3 text-[15px] outline-none placeholder:text-[#776e64] [&::-webkit-search-cancel-button]:hidden"
+              className="min-h-11 w-full border-b bg-transparent pb-2 pr-10 pt-3 text-[15px] outline-none placeholder:text-[#776e64] [&::-webkit-search-cancel-button]:hidden"
               style={{borderColor: HAIR, color: INK}}
             />
             {query && (

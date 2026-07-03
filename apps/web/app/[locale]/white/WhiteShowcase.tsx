@@ -72,8 +72,6 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         locale={locale}
         left={
           <nav className="flex items-center gap-7 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}} aria-label={t('primary')}>
-            {/* Mobile gets a single shop entry; desktop shows the full nav (parity) */}
-            <a href={`/${locale}/white/shop`} className="transition-opacity hover:opacity-60 md:hidden">{t('shop')}</a>
             {nav.map((n) => (
               <a key={n.href} href={n.href} className="hidden transition-opacity hover:opacity-60 md:inline">{n.label}</a>
             ))}
