@@ -1274,7 +1274,10 @@
       "bag": "Bag",
       "lookbook": "Lookbook",
       "atelier": "Atelier",
-      "contact": "Contact"
+      "contact": "Contact",
+      "delivery": "Delivery & returns",
+      "faq": "FAQ",
+      "care": "Care"
     },
     "bag": {
       "shop": "Shop",
@@ -1365,7 +1368,10 @@
       "subscribe": "Subscribe",
       "previewNote": "White variant — preview",
       "lookbook": "Lookbook",
-      "contact": "Contact"
+      "contact": "Contact",
+      "delivery": "Delivery & returns",
+      "faq": "FAQ",
+      "care": "Care"
     },
     "pdp": {
       "back": "Back",
@@ -1435,6 +1441,77 @@
     },
     "localeSwitch": {
       "label": "Language"
+    },
+    "info": {
+      "delivery": {
+        "eyebrow": "Service",
+        "title": "Delivery & returns",
+        "intro": "We ship across Russia and pack every piece with care.",
+        "sections": [
+          {
+            "h": "Timing",
+            "b": "Dispatched within 1–2 working days. Moscow and St Petersburg — 1–3 days, regions — 2–7 days."
+          },
+          {
+            "h": "Delivery options",
+            "b": "CDEK courier to the door, CDEK pickup points and Russian Post. The cost is calculated at checkout."
+          },
+          {
+            "h": "Returns",
+            "b": "14 days from delivery. The piece unworn, tags in place. Return through any CDEK point."
+          },
+          {
+            "h": "Exchanges",
+            "b": "The fastest way is a return plus a new order. Write to us — we'll help with sizing."
+          }
+        ]
+      },
+      "faq": {
+        "eyebrow": "Questions",
+        "title": "FAQ",
+        "intro": "Short answers to what we're asked most.",
+        "sections": [
+          {
+            "h": "How do I find my size?",
+            "b": "Every product page carries a size guide. Send us your measurements and we'll suggest the fit."
+          },
+          {
+            "h": "Can I try before buying?",
+            "b": "We're online-only. Fitting is available at pickup points with fitting rooms."
+          },
+          {
+            "h": "Are you on Wildberries?",
+            "b": "Yes — the collection is available in our official Wildberries store."
+          },
+          {
+            "h": "How do I care for the pieces?",
+            "b": "See the Care page and the garment label — fabric composition and advice for each material."
+          }
+        ]
+      },
+      "care": {
+        "eyebrow": "Care",
+        "title": "Garment care",
+        "intro": "The right care extends the life of the fabric. A few rules for our materials.",
+        "sections": [
+          {
+            "h": "Linen",
+            "b": "Wash at 30°, gentle spin. Dry flat, iron at medium heat while slightly damp."
+          },
+          {
+            "h": "Wool and drape wool",
+            "b": "Dry clean only. Air between wears instead of washing. Store on a hanger, covered."
+          },
+          {
+            "h": "Satin and lace",
+            "b": "Hand wash cold, no wringing. Iron inside out at low heat."
+          },
+          {
+            "h": "Suede",
+            "b": "Brush with a suede brush, use a protective spray. Keep away from water and wet weather."
+          }
+        ]
+      }
     }
   }
 }
