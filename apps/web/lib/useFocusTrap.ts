@@ -11,6 +11,7 @@ function getFocusableElements(container: HTMLElement): HTMLElement[] {
 export function useFocusTrap(
   containerRef: RefObject<HTMLElement | null>,
   isOpen: boolean,
+  {returnFocus = true}: {returnFocus?: boolean} = {},
 ): void {
   useEffect(() => {
     if (!isOpen) return;
@@ -54,7 +55,7 @@ export function useFocusTrap(
       document.removeEventListener('keydown', handleKeyDown);
       // preventScroll: the opener may sit in a sticky header whose static
       // position is the document top — a plain focus() would yank the page there.
-      previousFocus?.focus?.({preventScroll: true});
+      if (returnFocus) previousFocus?.focus?.({preventScroll: true});
     };
   }, [isOpen, containerRef]);
 }

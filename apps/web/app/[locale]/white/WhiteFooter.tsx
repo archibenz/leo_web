@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import {useEffect, useRef, useState, type FormEvent} from 'react';
 import {useTranslations} from 'next-intl';
 import {isValidEmail} from '../../../lib/validation';
@@ -76,7 +77,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
     <footer className="border-t" style={{borderColor: HAIR}}>
       <div className="mx-auto grid max-w-[1400px] gap-10 px-6 py-16 sm:grid-cols-2 sm:px-10 lg:grid-cols-4">
         <div className="lg:col-span-1">
-          <p className="font-display text-[20px] tracking-[0.3em]">REINASLEO</p>
+          <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-[14px] w-auto" />
           <p className="mt-3 text-[12px] leading-relaxed" style={{color: MUTED}}>{t('tagline')}</p>
         </div>
         {[

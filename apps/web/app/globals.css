@@ -1491,8 +1491,11 @@ h2.font-display:not(.wv-root *),
 .wv-root select:focus-visible,
 .wv-root textarea:focus,
 .wv-root textarea:focus-visible {
-  box-shadow: none;
   border-color: #1c1714;
+  /* Typing surfaces signal focus with a firmer ink underline, not a ring —
+     the ring around a field you are already writing in reads as noise. */
+  outline: none;
+  box-shadow: 0 1px 0 0 #1c1714;
 }
 /* The landing hero CTA sits over a dark image scrim, so the sitewide ink ring
    would be dark-on-dark. This one control gets a white ring (higher specificity
@@ -1602,6 +1605,16 @@ body:has(.wv-root)::after {
   }
 }
 
+/* Drawer rows step aside on hover instead of washing grey — an editorial
+   nudge, colour steady, reduced-motion keeps them still. */
+.wv-menu-link {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s ease;
+}
+.wv-menu-link:hover,
+.wv-menu-link:focus-visible {
+  transform: translateX(10px);
+}
+
 /* A single celebratory pop when something is saved. */
 @keyframes wv-pop {
   0% { transform: scale(1); }
@@ -1631,6 +1644,8 @@ body:has(.wv-root)::after {
   .wv-link::after { transition: none; }
   .wv-menu-item { animation: none; opacity: 1; }
   .wv-pop { animation: none; }
+  .wv-menu-link { transition: none; }
+  .wv-menu-link:hover, .wv-menu-link:focus-visible { transform: none; }
 }
 
 /* WildberriesButton — fill rise + ripple waves. Values live here rather than
