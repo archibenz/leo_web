@@ -5,7 +5,7 @@ import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import Image from 'next/image';
 import WhiteMobileMenu from './WhiteMobileMenu';
-import {INK, MUTED, HAIR} from './wv-palette';
+import {MUTED, HAIR} from './wv-palette';
 
 // Variant 2 "White" — shared sticky header. Owns the chrome (blur, hairline,
 // padding) and the flex-1 left/right slots that keep the REINASLEO wordmark

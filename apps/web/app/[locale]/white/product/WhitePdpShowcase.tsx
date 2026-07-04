@@ -57,7 +57,6 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   // The product's own photo, plus any extra views it carries. No cross-product
   // editorial filler — a gallery slot on a PDP must be this garment.
   const gallery = bagProduct.gallery?.length ? [bagProduct.image, ...bagProduct.gallery] : [bagProduct.image];
-  const multi = gallery.length > 1;
   const favourited = isFavourite(bagProduct.key);
   const handleAdd = () => {
     if (!size) return;
