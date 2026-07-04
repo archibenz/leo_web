@@ -1578,6 +1578,19 @@ body:has(.wv-root) {
   background-color: #e9e2d7;
 }
 
+/* Where the browser supports scroll-driven animations, the wv-rise entrances
+   play as each section scrolls into view instead of all at once on load —
+   below-the-fold blocks rise exactly when the reader reaches them. Others keep
+   the on-load behaviour; reduced-motion kills both. */
+@supports (animation-timeline: view()) {
+  .wv-root .wv-rise {
+    animation-timeline: view();
+    animation-range: entry 0% entry 45%;
+    animation-duration: auto;
+    animation-fill-mode: both;
+  }
+}
+
 /* Drawer items arrive one after another — a short slide from the panel's
    direction, cadence set inline per item. */
 @keyframes wv-menu-in {
