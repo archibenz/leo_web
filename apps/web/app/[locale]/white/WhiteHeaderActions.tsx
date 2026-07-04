@@ -41,8 +41,11 @@ function Action({
     </>
   );
   return isCurrent ? (
-    <span className={WRAP} style={{color: INK}} aria-current="page" aria-label={ariaLabel}>
+    // aria-label is prohibited on a plain span — the accessible name lives in
+    // visually-hidden text instead.
+    <span className={WRAP} style={{color: INK}} aria-current="page">
       {inner}
+      <span className="sr-only">{ariaLabel}</span>
     </span>
   ) : (
     <a href={href} aria-label={ariaLabel} className={WRAP}>
