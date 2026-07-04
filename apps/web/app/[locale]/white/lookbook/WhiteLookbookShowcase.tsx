@@ -38,7 +38,7 @@ export default function WhiteLookbookShowcase({locale}: {locale: string}) {
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="flex-1">
         {/* Intro */}
-        <section className="mx-auto max-w-[1400px] px-6 py-20 sm:px-10 sm:py-28">
+        <section className="mx-auto max-w-[1400px] px-6 py-14 sm:px-10 sm:py-28">
           <div className="wv-rise">
             <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('eyebrow')}</p>
             <h1 className="font-display text-[clamp(44px,calc(3.6vw_+_30px),72px)] font-light leading-[0.95] tracking-[-0.01em]">{t('title')}</h1>
