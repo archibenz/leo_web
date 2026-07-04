@@ -91,8 +91,8 @@ describe('WhitePdpShowcase zoom lightbox keyboard navigation', () => {
     const user = userEvent.setup();
     renderPdp(MULTI_PRODUCT);
 
-    // Portal mounts after the mount-guard effect; the zoom trigger then exists.
-    const zoom = await screen.findByRole('button', {name: /zoom image/i});
+    // Each album photo is its own zoom trigger; open at the first frame.
+    const zoom = (await screen.findAllByRole('button', {name: /zoom image/i}))[0]!;
     await user.click(zoom);
 
     const dialog = await screen.findByRole('dialog');
@@ -117,7 +117,7 @@ describe('WhitePdpShowcase zoom lightbox keyboard navigation', () => {
   it('still closes on Escape', async () => {
     const user = userEvent.setup();
     renderPdp(MULTI_PRODUCT);
-    await user.click(await screen.findByRole('button', {name: /zoom image/i}));
+    await user.click((await screen.findAllByRole('button', {name: /zoom image/i}))[0]!);
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
 
     fireEvent.keyDown(document, {key: 'Escape'});
@@ -127,9 +127,8 @@ describe('WhitePdpShowcase zoom lightbox keyboard navigation', () => {
   it('shows a single view — no cross-product filler — when the product has no extra images', async () => {
     const single = WHITE_PRODUCTS.find((p) => !p.gallery)!;
     renderPdp(single);
-    // The zoom trigger (so the one photo is still viewable) exists...
-    await screen.findByRole('button', {name: /zoom image/i});
-    // ...but there are no gallery thumbnails, so no "view image 2" and no more.
-    expect(screen.queryByRole('button', {name: /view image 2/i})).not.toBeInTheDocument();
+    // Exactly one album frame — its own zoom trigger and nothing else.
+    const zooms = await screen.findAllByRole('button', {name: /zoom image/i});
+    expect(zooms).toHaveLength(1);
   });
 });

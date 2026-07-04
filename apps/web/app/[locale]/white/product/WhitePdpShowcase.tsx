@@ -12,7 +12,7 @@ import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 import {WhiteFavHeart} from '../wv-icons';
-import {WHITE_PRODUCTS, WHITE_SIZES, type WhiteProduct} from '../products';
+import {WHITE_PRODUCTS, WHITE_SETS, WHITE_SIZES, type WhiteProduct} from '../products';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
 // the landing: a full-bleed white surface over the gradient chrome, reviewed at
@@ -34,8 +34,6 @@ const SIZE_GUIDE = [
 export default function WhitePdpShowcase({locale, product}: {locale: string; product: WhiteProduct}) {
   const productColors = product.colors;
   const [activeImg, setActiveImg] = useState(0);
-  // Live horizontal drag offset of the gallery track (px). null = not dragging.
-  const [dragDelta, setDragDelta] = useState<number | null>(null);
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState(productColors[0]!.key);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -101,61 +99,6 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   };
   const stickyPrice = `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
 
-  // Mobile: live-drag the gallery track horizontally — the frames follow the
-  // finger, then snap to the nearest. Rubber-band resistance at the clamped
-  // bounds (White keeps clamp, no wrap). The snap transition lives on the track
-  // and is disabled under reduced-motion; the drag itself is direct manipulation.
-  const galleryRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = galleryRef.current;
-    if (!el || gallery.length < 2) return;
-    let startX = 0;
-    let startY = 0;
-    let dx = 0;
-    let dir: 'h' | 'v' | null = null;
-    const onStart = (e: TouchEvent) => {
-      const tch = e.touches[0];
-      if (!tch) return;
-      startX = tch.clientX;
-      startY = tch.clientY;
-      dx = 0;
-      dir = null;
-    };
-    const onMove = (e: TouchEvent) => {
-      const tch = e.touches[0];
-      if (!tch) return;
-      const cdx = tch.clientX - startX;
-      const cdy = tch.clientY - startY;
-      if (!dir && (Math.abs(cdx) > 8 || Math.abs(cdy) > 8)) {
-        dir = Math.abs(cdx) > Math.abs(cdy) ? 'h' : 'v';
-      }
-      if (dir === 'h') {
-        e.preventDefault();
-        dx = cdx;
-        const atStart = activeImg === 0 && dx > 0;
-        const atEnd = activeImg === gallery.length - 1 && dx < 0;
-        setDragDelta(atStart || atEnd ? dx * 0.35 : dx);
-      }
-    };
-    const onEnd = () => {
-      const threshold = el.clientWidth * 0.18;
-      if (dx > threshold) setActiveImg((p) => Math.max(p - 1, 0));
-      else if (dx < -threshold) setActiveImg((p) => Math.min(p + 1, gallery.length - 1));
-      dx = 0;
-      dir = null;
-      setDragDelta(null);
-    };
-    el.addEventListener('touchstart', onStart, {passive: true});
-    el.addEventListener('touchmove', onMove, {passive: false});
-    el.addEventListener('touchend', onEnd);
-    el.addEventListener('touchcancel', onEnd);
-    return () => {
-      el.removeEventListener('touchstart', onStart);
-      el.removeEventListener('touchmove', onMove);
-      el.removeEventListener('touchend', onEnd);
-      el.removeEventListener('touchcancel', onEnd);
-    };
-  }, [gallery.length, activeImg]);
 
   // Lightbox: same live-drag track as the main gallery (consistency), attached
   // only while the zoom view is mounted. Non-passive touchmove → preventDefault.
@@ -261,6 +204,11 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const pool = WHITE_PRODUCTS.filter((p) => p.key !== product.key);
   const sameCat = pool.filter((p) => p.cat === product.cat);
   const related = [...sameCat, ...pool.filter((p) => !sameCat.includes(p))].slice(0, 4);
+  // The set this piece belongs to — its other items become "complete the look".
+  const look = WHITE_SETS.find((st) => st.productKeys.includes(product.key));
+  const lookItems = look
+    ? look.productKeys.filter((k) => k !== product.key).map((k) => WHITE_PRODUCTS.find((pr) => pr.key === k)).filter((pr): pr is NonNullable<typeof pr> => pr != null)
+    : [];
 
   return (
     <div className="wv-root relative min-h-screen bg-white font-sans antialiased" style={{color: INK}}>
@@ -288,85 +236,35 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
 
         <div className="grid gap-10 pb-24 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
           {/* Gallery */}
-          <div className={`wv-rise grid gap-4 ${multi ? 'sm:grid-cols-[64px_1fr]' : ''}`}>
-            {multi && (
-            <div className="order-2 flex gap-3 sm:order-1 sm:flex-col">
-              {gallery.map((src, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setActiveImg(i)}
-                  aria-label={t('viewImage', {n: i + 1})}
-                  aria-pressed={i === activeImg}
-                  className="relative aspect-[2/3] w-16 shrink-0 overflow-hidden transition-opacity"
-                  style={{
-                    outline: i === activeImg ? `1px solid ${INK}` : 'none',
-                    opacity: i === activeImg ? 1 : 0.55,
-                  }}
-                >
-                  <Image src={src ?? gallery[0]!} alt="" fill sizes="64px" className="object-cover" />
-                </button>
-              ))}
-            </div>
-            )}
-            <div ref={galleryRef} className="relative order-1 aspect-[2/3] w-full touch-pan-y overflow-hidden sm:order-2">
-              {/* Track — all frames in a row; follows the finger during a drag
-                  (dragDelta), then snaps. The snap eases unless reduced-motion. */}
-              <div
-                className={`absolute inset-0 flex h-full w-full ${
-                  dragDelta === null ? 'transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none' : ''
-                }`}
-                style={{transform: `translate3d(calc(${-activeImg * 100}% + ${dragDelta ?? 0}px), 0, 0)`, willChange: 'transform'}}
-              >
-                {gallery.map((src, i) => {
-                  const neighbour = Math.abs(i - activeImg) <= 1;
-                  return (
-                    <div key={i} className="relative h-full w-full flex-shrink-0">
-                      <Image
-                        src={src ?? gallery[0]!}
-                        alt={i === activeImg ? name : ''}
-                        fill
-                        draggable={false}
-                        {...(i === 0 ? {priority: true} : {loading: neighbour ? ('eager' as const) : ('lazy' as const)})}
-                        sizes="(max-width: 1024px) 100vw, 560px"
-                        className="object-cover"
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-              {/* Tap-to-zoom — always-visible square trigger (no hover gate), opens
-                  a full-screen view of the active photo. */}
+          {/* Photo album — the shots stack and read top to bottom; each opens
+              the zoom at its own frame. */}
+          <div className="wv-rise flex flex-col gap-2">
+            {gallery.map((src, i) => (
               <button
+                key={i}
                 type="button"
-                onClick={() => setZoomed(true)}
-                aria-label={t('zoomImage')}
-                className="wv-tap absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center bg-white/85 backdrop-blur-sm"
-                style={{border: `1px solid ${HAIR}`, color: INK}}
+                onClick={() => {
+                  setActiveImg(i);
+                  setZoomed(true);
+                }}
+                aria-label={`${t('zoomImage')} ${i + 1}`}
+                className="wv-zoom relative block aspect-[2/3] w-full overflow-hidden"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" aria-hidden="true">
-                  <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
-                </svg>
+                <Image
+                  src={src}
+                  alt={i === 0 ? name : ''}
+                  fill
+                  {...(i === 0 ? {priority: true} : {loading: 'lazy' as const})}
+                  quality={90}
+                  sizes="(max-width: 1024px) 100vw, 560px"
+                  className="object-cover"
+                />
               </button>
-              {/* Editorial gallery index — immediate position for the mobile
-                  swipe (thumbnails sit below on phones; desktop has the column).
-                  Decorative: the thumbnails carry the accessible position. */}
-              {multi && (
-              <span
-                aria-hidden="true"
-                className="absolute bottom-3 left-3 z-10 bg-white/85 px-2.5 py-1 font-display text-[13px] leading-none tabular-nums backdrop-blur-sm sm:hidden"
-                style={{border: `1px solid ${HAIR}`, color: INK}}
-              >
-                {String(activeImg + 1).padStart(2, '0')}
-                <span style={{color: MUTED}}>{' / '}</span>
-                {String(gallery.length).padStart(2, '0')}
-              </span>
-              )}
-            </div>
+            ))}
           </div>
 
           {/* Info */}
-          <div className="wv-rise wv-delay-1 lg:pt-6">
+          <div className="wv-rise wv-delay-1 lg:sticky lg:top-24 lg:self-start lg:pt-6">
             <p className="text-[11px] uppercase tracking-[0.3em]" style={{color: MUTED}}>{t('season')}</p>
             <h1 className="mt-4 font-display text-[34px] font-light leading-tight sm:text-[42px]">{name}</h1>
             <p className="mt-3 text-[18px]" style={{color: INK}}>{priceStr}</p>
@@ -495,6 +393,23 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
           </div>
         </div>
       </div>
+
+      {/* Complete the look — the rest of this piece's set */}
+      {lookItems.length > 0 && look && (
+        <section className="mx-auto w-full max-w-[1400px] border-t px-6 pb-4 pt-14 sm:px-10" style={{borderColor: HAIR}}>
+          <div className="flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="font-display text-[24px] font-light tracking-tight sm:text-[30px]">{t('completeLook')}</h2>
+            <a href={`/${locale}/white/sets`} className="wv-link text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
+              {ru ? look.ru : look.en} →
+            </a>
+          </div>
+          <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 pb-10 sm:gap-x-6 lg:grid-cols-4">
+            {lookItems.map((pr, i) => (
+              <WhiteProductCard key={pr.key} locale={locale} product={pr} index={i} quickAdd />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* You may also like — related products (same card pattern as shop/landing) */}
       {related.length > 0 && (

@@ -1402,7 +1402,8 @@
       "relatedHeading": "You may also like",
       "viewImage": "View image {n}",
       "zoomImage": "Zoom image",
-      "close": "Close"
+      "close": "Close",
+      "completeLook": "Complete the look"
     },
     "atelier": {
       "back": "Home",
