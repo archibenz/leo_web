@@ -1,17 +1,21 @@
 import type {Metadata} from 'next';
 import WhiteShowcase from './WhiteShowcase';
 
-// Variant 2 "White" — minimalist white-canvas direction (Lichi / Zara / H&M
-// reference). Pitch preview at /<locale>/white; the client showcase portals a
-// full-bleed white surface over the gradient chrome so leadership can compare
-// both directions on one deploy. noindex (preview only).
-
-export const metadata: Metadata = {
-  title: 'REINASLEO',
-  robots: {index: true, follow: true},
-};
+// The White storefront home — the site's landing page.
 
 type Props = {params: Promise<{locale: string}>};
+
+export async function generateMetadata({params}: Props): Promise<Metadata> {
+  const {locale} = await params;
+  const ru = locale === 'ru';
+  return {
+    title: 'REINASLEO',
+    description: ru
+      ? 'Премиальная женская одежда: платья, пальто, костюмы. Тихая точность кроя — коллекция REINASLEO.'
+      : 'Premium womenswear: dresses, coats, tailoring. Quiet precision of cut — the REINASLEO collection.',
+    robots: {index: true, follow: true},
+  };
+}
 
 export default async function WhiteVariantPage({params}: Props) {
   const {locale} = await params;

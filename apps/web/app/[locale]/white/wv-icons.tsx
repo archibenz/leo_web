@@ -33,12 +33,14 @@ export function MaskIcon({src, className, color}: {src: string; className?: stri
 // Favourite toggle heart: faceted brand outline (ink) when not saved, solid
 // brand heart (signal) when saved — same two assets the gradient favourite uses.
 // Opacity/dim is left to the calling button (which already owns the not-saved
-// dim + hover-brighten). Static fill swap; nothing for reduced-motion to suppress.
+// dim + hover-brighten). Saving pops the heart once (reduced-motion kills it).
 export function WhiteFavHeart({filled, size = 18}: {filled: boolean; size?: number}) {
   return (
     <span
+      // Remount on save so the pop keyframe replays for every new save.
+      key={filled ? 'saved' : 'idle'}
       aria-hidden="true"
-      className="inline-block"
+      className={`inline-block ${filled ? 'wv-pop' : ''}`}
       style={{
         width: size,
         height: size,
