@@ -41,16 +41,19 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
     // every White page, so restore whatever was there — writing '' would unlock
     // the page behind the still-mounted portal for the rest of the session.
     const prevOverflow = document.body.style.overflow;
+    const prevRootOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false);
     };
     document.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = prevOverflow;
+      document.documentElement.style.overflow = prevRootOverflow;
       document.removeEventListener('keydown', onKey);
       // WCAG 2.4.3 — focus order: hand focus back to the trigger on close.
-      trigger?.focus();
+      trigger?.focus({preventScroll: true});
     };
   }, [open]);
 

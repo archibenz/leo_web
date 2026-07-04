@@ -2,6 +2,12 @@ import {afterEach, describe, it, expect, vi} from 'vitest';
 import {render, screen, fireEvent, cleanup} from '@testing-library/react';
 import WhiteFooter from './WhiteFooter';
 
+// The footer's locale switch reads the router — give jsdom a stub.
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/en/white',
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 vi.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
 }));

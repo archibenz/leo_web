@@ -71,14 +71,26 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
 
   // Mobile sticky add-to-bag: reveal it once the inline CTA scrolls out of view.
   const inlineAddRef = useRef<HTMLButtonElement>(null);
-  const [showSticky, setShowSticky] = useState(false);
+  const pageEndRef = useRef<HTMLDivElement>(null);
+  const [pastInline, setPastInline] = useState(false);
+  const [nearEnd, setNearEnd] = useState(false);
   useEffect(() => {
     const el = inlineAddRef.current;
     if (!el) return;
-    const io = new IntersectionObserver(([entry]) => setShowSticky(!entry.isIntersecting), {rootMargin: '0px 0px -48px 0px'});
+    const io = new IntersectionObserver(([entry]) => setPastInline(!entry.isIntersecting), {rootMargin: '0px 0px -48px 0px'});
     io.observe(el);
     return () => io.disconnect();
   }, []);
+  // Slide the bar away at the page end so it never sits over the footer's
+  // links (the locale switch lives there).
+  useEffect(() => {
+    const el = pageEndRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([entry]) => setNearEnd(entry.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  const showSticky = pastInline && !nearEnd;
   const handleStickyAdd = () => {
     if (!size) {
       const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -220,7 +232,9 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   useEffect(() => {
     if (!zoomed) return;
     const prevOverflow = document.body.style.overflow;
+    const prevRootOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setZoomed(false);
       else if (e.key === 'ArrowLeft') {
@@ -235,6 +249,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
     const raf = window.requestAnimationFrame(() => lightboxRef.current?.focus());
     return () => {
       document.body.style.overflow = prevOverflow;
+      document.documentElement.style.overflow = prevRootOverflow;
       document.removeEventListener('keydown', onKey);
       window.cancelAnimationFrame(raf);
     };
@@ -559,6 +574,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
         </div>
       )}
 
+      <div ref={pageEndRef} aria-hidden="true" />
       <WhiteFooter locale={locale} />
 
       {/* Mobile sticky add-to-bag — slides up once the inline CTA scrolls away,
