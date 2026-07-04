@@ -22,11 +22,7 @@ export default function WhiteNotFoundShowcase({locale}: {locale: string}) {
     <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
       <WhiteHeader
         locale={locale}
-        left={
-          <a href={`/${locale}/white`} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>
-            ← {t('home')}
-          </a>
-        }
+        left={null}
         right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
       />
 

@@ -21,7 +21,6 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const t = useTranslations('white.sets');
-  const tc = useTranslations('white.contact');
   const ru = locale === 'ru';
   const [addedSet, setAddedSet] = useState<string | null>(null);
 
@@ -40,11 +39,7 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
     <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
       <WhiteHeader
         locale={locale}
-        left={
-          <a href={`/${locale}/white`} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>
-            ← {tc('back')}
-          </a>
-        }
+        left={null}
         right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
       />
 

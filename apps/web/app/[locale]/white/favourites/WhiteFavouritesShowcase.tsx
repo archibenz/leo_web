@@ -28,11 +28,7 @@ export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
     <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: '#1c1714'}}>
       <WhiteHeader
         locale={locale}
-        left={
-          <a href={`/${locale}/white/shop`} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>
-            ← {t('shop')}
-          </a>
-        }
+        left={null}
         right={<WhiteHeaderActions locale={locale} favCount={saved.length} count={count} current="favourites" />}
       />
 
