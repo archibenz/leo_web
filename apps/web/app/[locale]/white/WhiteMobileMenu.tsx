@@ -109,11 +109,10 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             aria-label={t('close')}
             style={{
               WebkitTapHighlightColor: 'transparent',
-              top: '20px',
               left: '4px',
               transform: entered ? 'translateX(calc(min(87vw, 420px) - 56px))' : 'translateX(0)',
             }}
-            className="fixed z-[1202] flex h-11 w-11 items-center justify-center transition-transform duration-[440ms] ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
+            className="fixed top-2.5 z-[1202] flex h-11 w-11 items-center justify-center sm:top-5 transition-transform duration-[440ms] ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
           >
             <svg viewBox="0 0 24 24" className={`h-5 w-5 ${entered ? 'hamburger-open' : 'hamburger-close'}`} fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="square">
               <line x1="4" y1="7" x2="20" y2="7" className="hamburger-line hamburger-top" />
@@ -139,7 +138,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
           >
             {/* The travelling burger (now an X at the drawer's edge) is the close
                 control; the head row carries the brand asset alone. */}
-            <div className="flex shrink-0 items-center px-6 pb-2 pt-7">
+            <div className="flex shrink-0 items-center px-6 pb-2 pt-5 sm:pt-7">
               <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-[13px] w-auto" />
             </div>
 

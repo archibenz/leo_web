@@ -49,7 +49,7 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
       />
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="flex-1">
-        <div className="mx-auto w-full max-w-[1400px] px-6 pb-6 pt-20 sm:px-10 sm:pt-28">
+        <div className="mx-auto w-full max-w-[1400px] px-6 pb-6 pt-14 sm:px-10 sm:pt-28">
           <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('eyebrow')}</p>
           <h1 className="wv-rise font-display text-[clamp(44px,calc(3.6vw_+_30px),72px)] font-light leading-[0.95] tracking-[-0.01em]">{t('title')}</h1>
           <p className="mt-8 max-w-xl text-[15px] leading-relaxed" style={{color: MUTED}}>{t('intro')}</p>

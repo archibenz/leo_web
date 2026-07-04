@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
@@ -10,7 +10,7 @@ import WhiteHeaderActions from './WhiteHeaderActions';
 import WhiteFooter from './WhiteFooter';
 import WhiteProductCard from './WhiteProductCard';
 import {INK, MUTED, HAIR} from './wv-palette';
-import {WHITE_PRODUCTS, WHITE_HERO_IMAGE, WHITE_ATELIER_IMAGE} from './products';
+import {WHITE_PRODUCTS, WHITE_ATELIER_IMAGE} from './products';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
 // fixed full-bleed surface escapes the gradient layout's `main.z-40` stacking
@@ -23,6 +23,7 @@ import {WHITE_PRODUCTS, WHITE_HERO_IMAGE, WHITE_ATELIER_IMAGE} from './products'
 const FEATURED = [2, 1, 3, 4, 5, 6].map((k) => WHITE_PRODUCTS.find((p) => p.key === k)!);
 
 export default function WhiteShowcase({locale}: {locale: string}) {
+  const heroVideoRef = useRef<HTMLVideoElement>(null);
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const t = useTranslations('white.landing');
@@ -45,6 +46,16 @@ export default function WhiteShowcase({locale}: {locale: string}) {
     return () => window.removeEventListener('hashchange', toHash);
   }, []);
 
+  // Reduced-motion keeps the banner still — the poster frame stays.
+  useEffect(() => {
+    const v = heroVideoRef.current;
+    if (!v) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      v.pause();
+      v.removeAttribute('autoplay');
+    }
+  }, []);
+
 
 
   return (
@@ -60,11 +71,23 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       />
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}}>
-      {/* Hero — image-led editorial: a full-bleed model-on-white shot with the
-          season + line set over its base. The image is a placeholder; the
-          Higgsfield model-on-white shots swap in via WHITE_HERO_IMAGE. */}
+      {/* Hero — a full-bleed fashion-film loop with the season + line set over
+          its base. */}
       <section className="relative h-[82vh] min-h-[540px] w-full overflow-hidden">
-        <Image src={WHITE_HERO_IMAGE} alt="" fill priority quality={95} sizes="100vw" className="wv-drift object-cover object-[50%_22%]" />
+        {/* The season banner is a quiet fashion-film loop; the still frame is
+            the poster, so slow networks and reduced-motion see the photo. */}
+        <video
+          ref={heroVideoRef}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          poster="/images/white/hero.jpg"
+          className="absolute inset-0 h-full w-full object-cover object-[50%_22%]"
+        >
+          <source src="/videos/white/hero.mp4" type="video/mp4" />
+        </video>
         {/* The scrim carries the text contrast on its own so any Higgsfield shot
             (however light in its lower third) keeps the white type AA-legible —
             it ramps to a firm base across the bottom band where the text sits,

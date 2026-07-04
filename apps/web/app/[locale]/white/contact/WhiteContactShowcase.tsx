@@ -37,7 +37,7 @@ export default function WhiteContactShowcase({locale}: {locale: string}) {
         right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
       />
 
-      <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto w-full max-w-[1400px] flex-1 px-6 py-20 sm:px-10 sm:py-28">
+      <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto w-full max-w-[1400px] flex-1 px-6 py-14 sm:px-10 sm:py-28">
         <div className="grid gap-14 lg:grid-cols-[1fr_0.9fr] lg:gap-20">
           <div className="wv-rise">
             <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('eyebrow')}</p>
