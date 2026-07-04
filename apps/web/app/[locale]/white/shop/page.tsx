@@ -26,8 +26,8 @@ export async function generateMetadata({params, searchParams}: Props): Promise<M
       ? ru ? 'Магазин' : 'Shop'
       : whiteCatLabel(catKey, locale);
   return {
-    title: {absolute: `${label} · REINASLEO — White`},
-    robots: {index: false, follow: false},
+    title: {absolute: `${label} · REINASLEO`},
+    robots: {index: true, follow: true},
   };
 }
 

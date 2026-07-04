@@ -21,7 +21,10 @@ function normalise(raw: unknown): number[] {
   if (!Array.isArray(raw)) return [];
   const seen = new Set<number>();
   const out: number[] = [];
+  // Same-origin storage can be hand-edited — don't accept an unbounded list.
+  const MAX_KEYS = 200;
   for (const r of raw) {
+    if (out.length >= MAX_KEYS) break;
     const n = typeof r === 'number' ? r : Number(r);
     if (Number.isFinite(n) && !seen.has(n)) {
       seen.add(n);

@@ -7,8 +7,8 @@ import WhiteShowcase from './WhiteShowcase';
 // both directions on one deploy. noindex (preview only).
 
 export const metadata: Metadata = {
-  title: 'REINASLEO — White',
-  robots: {index: false, follow: false},
+  title: 'REINASLEO',
+  robots: {index: true, follow: true},
 };
 
 type Props = {params: Promise<{locale: string}>};

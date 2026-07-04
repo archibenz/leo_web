@@ -10,8 +10,8 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
   const {locale} = await params;
   const ru = locale === 'ru';
   return {
-    title: {absolute: `${ru ? 'Ателье' : 'The Atelier'} · REINASLEO — White`},
-    robots: {index: false, follow: false},
+    title: {absolute: `${ru ? 'Ателье' : 'The Atelier'} · REINASLEO`},
+    robots: {index: true, follow: true},
   };
 }
 
