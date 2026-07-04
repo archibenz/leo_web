@@ -174,6 +174,16 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
                       <span className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('password')}</span>
                       <input type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={FIELD} style={{borderColor: HAIR}} />
                     </label>
+                    <p className="text-[11.5px] leading-relaxed" style={{color: MUTED}}>
+                      {t.rich('consent', {
+                        policy: (chunks) => (
+                          <a href={`/${locale}/privacy`} className="wv-link" style={{color: INK}}>{chunks}</a>
+                        ),
+                        offer: (chunks) => (
+                          <a href={`/${locale}/offer`} className="wv-link" style={{color: INK}}>{chunks}</a>
+                        ),
+                      })}
+                    </p>
                     <button type="submit" disabled={busy} className="wv-btn mt-4 inline-flex items-center justify-center self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
                       {t('signUpCta')}
                     </button>

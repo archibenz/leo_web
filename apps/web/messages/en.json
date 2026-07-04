@@ -1264,7 +1264,8 @@
       "saved": "Saved",
       "bag": "Bag",
       "skipToContent": "Skip to content",
-      "account": "Account"
+      "account": "Account",
+      "announce": "Russia-wide delivery in 2–5 days · 14-day returns"
     },
     "menu": {
       "shop": "Shop",
@@ -1374,7 +1375,10 @@
       "delivery": "Delivery & returns",
       "faq": "FAQ",
       "care": "Care",
-      "sets": "Sets"
+      "sets": "Sets",
+      "privacy": "Privacy",
+      "offer": "Offer",
+      "terms": "Terms"
     },
     "pdp": {
       "back": "Back",
@@ -1435,7 +1439,8 @@
       "eyebrow": "Contact",
       "title": "Get in touch",
       "intro": "For orders, sizing, collaboration or anything else — write to us directly.",
-      "responseTime": "We reply within one business day."
+      "responseTime": "We reply within one business day.",
+      "requisites": "Requisites"
     },
     "notFound": {
       "eyebrow": "404",
@@ -1556,7 +1561,8 @@
       "errRegister": "Couldn't create the account. Check the code and details.",
       "errPassword": "Password: at least 8 characters, letters and digits.",
       "errName": "Enter a name (2–40 characters).",
-      "intro": "Sign in or create an account — favourites and orders stay with you."
+      "intro": "Sign in or create an account — favourites and orders stay with you.",
+      "consent": "By creating an account you accept the <policy>Privacy Policy</policy> and the <offer>Offer</offer>."
     }
   }
 }
