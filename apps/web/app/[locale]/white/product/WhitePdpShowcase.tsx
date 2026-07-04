@@ -97,6 +97,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
     }
     handleAdd();
   };
+  const wbUrl = `https://www.wildberries.ru/catalog/${bagProduct.nm}/detail.aspx`;
   const stickyPrice = `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
 
 
@@ -376,6 +377,17 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                 <WhiteFavHeart filled={favourited} size={18} />
               </button>
             </div>
+
+            {/* The same piece on Wildberries — the brand's primary sales channel. */}
+            <a
+              href={wbUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="wv-link mt-5 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.18em]"
+              style={{color: MUTED}}
+            >
+              {t('buyOnWb')} ↗
+            </a>
 
             {/* Details */}
             <dl className="mt-10 divide-y" style={{borderColor: HAIR}}>

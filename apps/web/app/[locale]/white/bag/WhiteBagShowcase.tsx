@@ -74,6 +74,11 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                     <p className="truncate text-[15px]">{(ru ? i.ru : i.en)}</p>
                     <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>
                       <span>{t('size')}: {i.size}</span>
+                      {findWhiteProduct(i.key)?.nm && (
+                        <a href={`https://www.wildberries.ru/catalog/${findWhiteProduct(i.key)!.nm}/detail.aspx`} target="_blank" rel="noopener noreferrer" className="wv-link" style={{color: MUTED}}>
+                          · WB ↗
+                        </a>
+                      )}
                       {(ru ? i.colorRu : i.colorEn) && (
                         <>
                           <span aria-hidden="true">·</span>
