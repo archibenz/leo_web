@@ -1500,6 +1500,11 @@ h2.font-display:not(.wv-root *),
 .wv-root a.wv-hero-cta:focus-visible {
   outline-color: #ffffff;
 }
+/* Card image links fill an overflow-hidden frame — an outside ring is clipped
+   invisible, so theirs draws inward. */
+.wv-root a.wv-card-link:focus-visible {
+  outline-offset: -2px;
+}
 
 /* Editorial image placeholder. One canonical warm off-white so every empty
    image slot reads the same; swap these .wv-ph blocks for <Image> once the

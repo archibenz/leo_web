@@ -111,7 +111,7 @@ export default function WhiteProductCard({
           className="pointer-events-none object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />
         {/* Image is its own link so Quick Add can sit outside the anchor. */}
-        <a href={href} aria-label={name} className="absolute inset-0 z-[1]" />
+        <a href={href} aria-label={name} className="wv-card-link absolute inset-0 z-[1]" />
 
         {product.sale && (
           <span className="pointer-events-none absolute left-3 top-3 z-10 text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>

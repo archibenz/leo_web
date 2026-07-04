@@ -194,7 +194,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
           <div
             ref={catRef}
             onScroll={syncEdge}
-            className="-mx-1 flex gap-1 overflow-x-auto sm:mx-0 sm:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="-mx-1 -my-1 flex gap-1 overflow-x-auto py-1 sm:mx-0 sm:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             style={edgeMask ? {maskImage: edgeMask, WebkitMaskImage: edgeMask} : undefined}
           >
             {cats.map((c) => (
@@ -237,7 +237,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         <div
           role="group"
           aria-label={t('colour')}
-          className="-mx-1 flex items-center gap-1.5 overflow-x-auto pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="-mx-1 -mb-1 flex items-center gap-1.5 overflow-x-auto pb-1 pt-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           <button
             type="button"
