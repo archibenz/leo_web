@@ -1,8 +1,6 @@
 'use client';
 
-import {createPortal} from 'react-dom';
 import {useTranslations} from 'next-intl';
-import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
@@ -23,15 +21,12 @@ const CHANNELS = [
 ];
 
 export default function WhiteContactShowcase({locale}: {locale: string}) {
-  const mounted = useWhitePortal();
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const t = useTranslations('white.contact');
 
-  if (!mounted) return null;
-
-  return createPortal(
-    <div className="wv-root fixed inset-0 z-[1000] flex min-h-full flex-col overflow-y-auto bg-white font-sans antialiased" style={{color: INK}}>
+  return (
+    <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
       <WhiteHeader
         locale={locale}
         left={
@@ -78,7 +73,6 @@ export default function WhiteContactShowcase({locale}: {locale: string}) {
       </main>
 
       <WhiteFooter locale={locale} />
-    </div>,
-    document.body,
+    </div>
   );
 }

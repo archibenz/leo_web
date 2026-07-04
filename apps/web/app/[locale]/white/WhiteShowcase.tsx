@@ -2,9 +2,7 @@
 
 import Image from 'next/image';
 import {useEffect} from 'react';
-import {createPortal} from 'react-dom';
 import {useTranslations} from 'next-intl';
-import {useWhitePortal} from '../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import WhiteHeader from './WhiteHeader';
@@ -25,7 +23,6 @@ import {WHITE_PRODUCTS, WHITE_HERO_IMAGE, WHITE_ATELIER_IMAGE} from './products'
 const FEATURED = [2, 1, 3, 4, 5, 6].map((k) => WHITE_PRODUCTS.find((p) => p.key === k)!);
 
 export default function WhiteShowcase({locale}: {locale: string}) {
-  const mounted = useWhitePortal();
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const t = useTranslations('white.landing');
@@ -35,8 +32,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
   // container — scrollIntoView does. Run on mount (deep-link) + on hashchange
   // (same-page footer clicks). Reduced-motion → instant.
   useEffect(() => {
-    if (!mounted) return;
-    const toHash = () => {
+        const toHash = () => {
       const id = window.location.hash.slice(1);
       const el = id ? document.getElementById(id) : null;
       if (!el) return;
@@ -46,9 +42,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
     toHash();
     window.addEventListener('hashchange', toHash);
     return () => window.removeEventListener('hashchange', toHash);
-  }, [mounted]);
-
-  if (!mounted) return null;
+  }, []);
 
   // Two truthful, distinct entries — not two links to the same /shop. "The edit"
   // deep-links to the curated section on this landing (the scrollIntoView effect
@@ -58,9 +52,9 @@ export default function WhiteShowcase({locale}: {locale: string}) {
     {label: t('shop'), href: `/${locale}/white/shop`},
   ];
 
-  return createPortal(
+  return (
     <div
-      className="wv-root fixed inset-0 z-[1000] overflow-y-auto bg-white font-sans antialiased"
+      className="wv-root relative min-h-screen bg-white font-sans antialiased"
       style={{color: INK}}
     >
       {/* Header — thin, centered wordmark */}
@@ -160,7 +154,6 @@ export default function WhiteShowcase({locale}: {locale: string}) {
 
       {/* Footer */}
       <WhiteFooter locale={locale} />
-    </div>,
-    document.body,
+    </div>
   );
 }

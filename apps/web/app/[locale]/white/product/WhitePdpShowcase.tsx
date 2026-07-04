@@ -2,10 +2,8 @@
 
 import Image from 'next/image';
 import {useState, useEffect, useRef} from 'react';
-import {createPortal} from 'react-dom';
 import {useTranslations} from 'next-intl';
 import {useFocusTrap} from '../../../../lib/useFocusTrap';
-import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
@@ -35,7 +33,6 @@ const SIZE_GUIDE = [
 
 export default function WhitePdpShowcase({locale, product}: {locale: string; product: WhiteProduct}) {
   const productColors = product.colors;
-  const mounted = useWhitePortal();
   const [activeImg, setActiveImg] = useState(0);
   // Live horizontal drag offset of the gallery track (px). null = not dragging.
   const [dragDelta, setDragDelta] = useState<number | null>(null);
@@ -81,7 +78,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
     const io = new IntersectionObserver(([entry]) => setShowSticky(!entry.isIntersecting), {rootMargin: '0px 0px -48px 0px'});
     io.observe(el);
     return () => io.disconnect();
-  }, [mounted]);
+  }, []);
   const handleStickyAdd = () => {
     if (!size) {
       const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -146,7 +143,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
       el.removeEventListener('touchend', onEnd);
       el.removeEventListener('touchcancel', onEnd);
     };
-  }, [mounted, gallery.length, activeImg]);
+  }, [gallery.length, activeImg]);
 
   // Lightbox: same live-drag track as the main gallery (consistency), attached
   // only while the zoom view is mounted. Non-passive touchmove → preventDefault.
@@ -250,10 +247,8 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const sameCat = pool.filter((p) => p.cat === product.cat);
   const related = [...sameCat, ...pool.filter((p) => !sameCat.includes(p))].slice(0, 4);
 
-  if (!mounted) return null;
-
-  return createPortal(
-    <div className="wv-root fixed inset-0 z-[1000] overflow-y-auto bg-white font-sans antialiased" style={{color: INK}}>
+  return (
+    <div className="wv-root relative min-h-screen bg-white font-sans antialiased" style={{color: INK}}>
       {/* Header */}
       <WhiteHeader
         locale={locale}
@@ -587,7 +582,6 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
           </button>
         </div>
       </div>
-    </div>,
-    document.body,
+    </div>
   );
 }

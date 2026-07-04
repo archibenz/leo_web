@@ -40,18 +40,20 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
           href={home}
           onClick={(e) => {
             // On the home page the wordmark scrolls to top instead of a no-op
-            // navigation. The showcase scrolls inside the .wv-root portal
-            // (overflow-y-auto), not window — so scroll that container.
+            // navigation.
             if (pathname !== home) return;
             e.preventDefault();
-            const root = e.currentTarget.closest('.wv-root');
-            root?.scrollTo({top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+            window.scrollTo({top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
           }}
           className="shrink-0"
           aria-label="REINASLEO"
         >
-          {/* The brand wordmark asset itself — not typed text. */}
-          <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} priority className="h-[16px] w-auto sm:h-[19px]" />
+          {/* The brand lockup from the asset files — the cube icon, then the
+              name set to the cube's height. */}
+          <span className="flex items-center gap-2.5 sm:gap-3">
+            <Image src="/logos/icon-black.svg" alt="" width={100} height={100} priority className="h-[20px] w-auto sm:h-[24px]" />
+            <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} priority className="h-[20px] w-auto sm:h-[24px]" />
+          </span>
         </a>
         <div className="flex flex-1 items-center justify-end">{right}</div>
       </div>
