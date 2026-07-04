@@ -107,3 +107,27 @@ export function whiteCatLabel(cat: WhiteCat, locale: string): string {
   const [en, ru] = WHITE_CAT_LABELS[cat];
   return locale === 'ru' ? ru : en;
 }
+
+// Curated sets — looks assembled from the real catalogue, sold together or
+// piece by piece. The image is the set's editorial mood; the items below it
+// are the actual products (each with its own card and sizes).
+export type WhiteSet = {
+  key: string;
+  en: string;
+  ru: string;
+  descEn: string;
+  descRu: string;
+  image: string;
+  productKeys: number[];
+};
+
+export const WHITE_SETS: WhiteSet[] = [
+  {key: 'office', en: 'The Office Edit', ru: 'В офис', descEn: 'Sharp tailoring that works the whole week: the peplum vest over draped trousers, the striped coat on top.', descRu: 'Строгий тайлоринг на всю неделю: жилет с баской поверх брюк алладинов, сверху — пальто в полоску.', image: '/images/white/editorial-2.jpg', productKeys: [3, 7, 13]},
+  {key: 'summer', en: 'Summer in the City', ru: 'Лето в городе', descEn: 'Linen for the heat: the maxi suit, a lace shirt thrown over, the suede skort for lighter days.', descRu: 'Лён для жары: костюм с юбкой макси, поверх — рубашка с кружевом, на лёгкие дни — замшевая юбка-шорты.', image: '/images/white/atelier.jpg', productKeys: [1, 9, 10]},
+  {key: 'evening', en: 'The Evening Out', ru: 'Вечерний выход', descEn: 'The corset with the lace pencil skirt, the fitted coat over the shoulders on the way home.', descRu: 'Корсет с юбкой-карандашом в кружеве, по дороге домой — приталенное пальто на плечи.', image: '/images/white/editorial-1.jpg', productKeys: [6, 5, 2]},
+  {key: 'everyday', en: 'Everyday Ease', ru: 'На каждый день', descEn: 'The bow sweatshirt with the balloon skirt, the short kimono coat when it cools down.', descRu: 'Свитшот с бантиками и юбка-баллон, когда холодает — короткое пальто кимоно.', image: '/images/white/editorial-3.jpg', productKeys: [4, 8, 16]},
+];
+
+export function findWhiteSet(key?: string | null): WhiteSet | undefined {
+  return WHITE_SETS.find((s) => s.key === key);
+}

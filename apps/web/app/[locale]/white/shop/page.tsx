@@ -9,7 +9,7 @@ import {normalizeWhiteCat, whiteCatLabel} from '../products';
 
 type Props = {
   params: Promise<{locale: string}>;
-  searchParams: Promise<{cat?: string; q?: string; focus?: string; sort?: string; colour?: string}>;
+  searchParams: Promise<{cat?: string; q?: string; focus?: string; sort?: string}>;
 };
 
 // Title reflects the shared view (category or search), mirroring the per-product
@@ -36,7 +36,7 @@ export async function generateMetadata({params, searchParams}: Props): Promise<M
 
 export default async function WhiteShopPage({params, searchParams}: Props) {
   const {locale} = await params;
-  const {cat, q, focus, sort, colour} = await searchParams;
+  const {cat, q, focus, sort} = await searchParams;
   // Sort is shareable/bookmarkable like cat & q; anything unknown falls to 'new'.
   const initialSort = sort === 'asc' || sort === 'desc' ? sort : 'new';
   return (
@@ -45,7 +45,6 @@ export default async function WhiteShopPage({params, searchParams}: Props) {
       initialCat={normalizeWhiteCat(cat)}
       initialQuery={typeof q === 'string' ? q : ''}
       initialSort={initialSort}
-      initialColour={typeof colour === 'string' ? colour : 'all'}
       focusSearch={focus === 'search'}
     />
   );

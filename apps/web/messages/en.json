@@ -1277,7 +1277,8 @@
       "contact": "Contact",
       "delivery": "Delivery & returns",
       "faq": "FAQ",
-      "care": "Care"
+      "care": "Care",
+      "sets": "Sets"
     },
     "bag": {
       "shop": "Shop",
@@ -1371,7 +1372,8 @@
       "contact": "Contact",
       "delivery": "Delivery & returns",
       "faq": "FAQ",
-      "care": "Care"
+      "care": "Care",
+      "sets": "Sets"
     },
     "pdp": {
       "back": "Back",
@@ -1512,6 +1514,20 @@
           }
         ]
       }
+    },
+    "sets": {
+      "eyebrow": "Sets",
+      "title": "Ready looks",
+      "intro": "Looks assembled from the collection: for the season, the occasion, the pace. Take the whole look — or only what you need.",
+      "items": "Pieces in this look",
+      "wholeLook": "The whole look",
+      "addAll": "Add the whole look",
+      "addedAll": "The look is in your bag — size M, adjust per piece",
+      "piece": "item",
+      "landingTitle1": "Assembled looks,",
+      "landingTitle2": "ready to walk out",
+      "landingBody": "Sets built from the collection — for the office, the evening, the everyday. Together or piece by piece.",
+      "explore": "View the sets"
     }
   }
 }

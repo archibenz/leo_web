@@ -69,12 +69,13 @@ const SESSION_COOKIE = 'rl_session';
 // Gradient public routes and their White equivalents (White-only mode). Legal
 // pages (privacy/terms/offer), account, auth, admin and previews stay put.
 const WHITE_LOCALE_PATH = new RegExp(`^/(${locales.join('|')})(/.*)?$`);
+const WHITE_ATELIER_PATH = new RegExp(`^/(${locales.join('|')})/white/atelier/?$`);
 const GRADIENT_TO_WHITE: Record<string, string> = {
   '/shop': '/white/shop',
   '/cart': '/white/bag',
   '/favorites': '/white/favourites',
   '/collections': '/white/shop',
-  '/about': '/white/atelier',
+  '/about': '/white/sets',
   '/contact': '/white/contact',
   '/care': '/white/care',
   '/delivery': '/white/delivery',
@@ -92,6 +93,13 @@ export default function middleware(request: NextRequest) {
   // Let Server Components know which route they serve (the locale layout drops
   // the gradient chrome on /white routes). Same mechanism as the nonce.
   request.headers.set('x-pathname', pathname);
+
+  // The atelier section became Sets — permanent, real 308 at the edge (a
+  // page-level redirect can't change the status once the shell streams).
+  const atelier = pathname.match(WHITE_ATELIER_PATH);
+  if (atelier) {
+    return NextResponse.redirect(new URL(`/${atelier[1]}/white/sets`, request.url), 308);
+  }
 
   // White-only mode: the gradient's public pages hand over to the White
   // variant so the server renders one site. Reversible without a rollback —

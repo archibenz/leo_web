@@ -26,6 +26,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const t = useTranslations('white.landing');
+  const ts = useTranslations('white.sets');
 
   // The landing renders in a fixed overflow-y-auto portal, so native hash
   // scrolling (#wv-atelier / #wv-edit from the footer) doesn't move the inner
@@ -44,29 +45,17 @@ export default function WhiteShowcase({locale}: {locale: string}) {
     return () => window.removeEventListener('hashchange', toHash);
   }, []);
 
-  // Two truthful, distinct entries — not two links to the same /shop. "The edit"
-  // deep-links to the curated section on this landing (the scrollIntoView effect
-  // above handles it, same as the footer deep-links); "Shop" is the full catalog.
-  const nav = [
-    {label: t('theEdit'), href: `/${locale}/white#wv-edit`},
-    {label: t('shop'), href: `/${locale}/white/shop`},
-  ];
+
 
   return (
     <div
       className="wv-root relative min-h-screen bg-white font-sans antialiased"
       style={{color: INK}}
     >
-      {/* Header — thin, centered wordmark */}
+      {/* Header — the drawer carries the navigation, the lockup sits centre. */}
       <WhiteHeader
         locale={locale}
-        left={
-          <nav className="flex items-center gap-7 text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}} aria-label={t('primary')}>
-            {nav.map((n) => (
-              <a key={n.href} href={n.href} className="wv-link hidden md:inline">{n.label}</a>
-            ))}
-          </nav>
-        }
+        left={null}
         right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} search />}
       />
 
@@ -135,17 +124,17 @@ export default function WhiteShowcase({locale}: {locale: string}) {
             <Image src={WHITE_ATELIER_IMAGE} alt="" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
           </div>
           <div className="wv-rise wv-scrub wv-delay-1 flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-20 lg:py-24">
-            <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('atelier')}</p>
+            <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{ts('eyebrow')}</p>
             <h2 className="font-display text-[30px] font-light leading-[1.1] tracking-tight sm:text-[40px]">
-              {t('atelierLine1')}
+              {ts('landingTitle1')}
               <br />
-              <span className="italic" style={{color: MUTED}}>{t('atelierLine2')}</span>
+              <span className="italic" style={{color: MUTED}}>{ts('landingTitle2')}</span>
             </h2>
             <p className="mt-8 max-w-md text-[15px] leading-relaxed" style={{color: MUTED}}>
-              {t('atelierBody')}
+              {ts('landingBody')}
             </p>
-            <a href={`/${locale}/white/atelier`} className="wv-btn mt-10 inline-flex items-center justify-center self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
-              {t('exploreAtelier')}
+            <a href={`/${locale}/white/sets`} className="wv-btn mt-10 inline-flex items-center justify-center self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
+              {ts('explore')}
             </a>
           </div>
         </div>

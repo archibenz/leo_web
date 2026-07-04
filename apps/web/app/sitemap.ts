@@ -11,7 +11,7 @@ const locales = ['en', 'ru'] as const;
 const staticRoutes = [
   '/white',
   '/white/shop',
-  '/white/atelier',
+  '/white/sets',
   '/white/lookbook',
   '/white/contact',
   '/white/delivery',
