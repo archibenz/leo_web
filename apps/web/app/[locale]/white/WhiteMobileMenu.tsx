@@ -8,7 +8,7 @@ import {useTranslations} from 'next-intl';
 import {useFocusTrap} from '../../../lib/useFocusTrap';
 import {useMountTransition} from '../../../lib/useMountTransition';
 import {WHITE_CATS, whiteCatLabel} from './products';
-import {INK, MUTED, SIGNAL, HAIR} from './wv-palette';
+import {INK, MUTED, HAIR} from './wv-palette';
 
 // Variant 2 "White" — a left side drawer (owner redesign). Slides in over a
 // dimmed home rather than a full-screen list: reads as a boutique, keeps the
@@ -121,8 +121,10 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
               WebkitTapHighlightColor: 'transparent',
               left: '4px',
               transform: entered ? 'translateX(calc(min(87vw, 420px) - 56px))' : 'translateX(0)',
+              transitionDuration: entered ? '560ms' : '480ms',
+              transitionTimingFunction: entered ? 'cubic-bezier(0.16, 1, 0.3, 1)' : 'cubic-bezier(0.55, 0.06, 0.68, 0.19)',
             }}
-            className="fixed top-2.5 z-[1202] flex h-11 w-11 items-center justify-center sm:top-5 transition-transform duration-[440ms] ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
+            className="fixed top-2.5 z-[1202] flex h-11 w-11 items-center justify-center sm:top-5 transition-transform active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
           >
             <svg viewBox="0 0 24 24" className={`h-5 w-5 ${entered ? 'hamburger-open' : everEntered.current ? 'hamburger-close' : ''}`} fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="square">
               <line x1="4" y1="7" x2="20" y2="7" className="hamburger-line hamburger-top" />
@@ -135,16 +137,21 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
           <div
             aria-hidden="true"
             onClick={() => setOpen(false)}
-            className="fixed inset-0 z-[1200] bg-[rgba(28,23,20,0.30)] backdrop-blur-[1px] transition-opacity duration-[560ms] ease-out motion-reduce:transition-none"
-            style={{opacity: entered ? 1 : 0}}
+            className="fixed inset-0 z-[1200] bg-[rgba(28,23,20,0.30)] backdrop-blur-[1px] transition-opacity ease-out motion-reduce:transition-none"
+            style={{opacity: entered ? 1 : 0, transitionDuration: entered ? '560ms' : '480ms'}}
           />
           <aside
             ref={panelRef}
             role="dialog"
             aria-modal="true"
             aria-label={t('menu')}
-            className="wv-root fixed inset-y-0 left-0 z-[1201] flex w-[87%] max-w-[420px] flex-col bg-white font-sans antialiased shadow-[30px_0_60px_-30px_rgba(28,23,20,0.5)] transition-transform duration-[560ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
-            style={{color: INK, transform: entered ? 'translateX(0)' : 'translateX(-100%)'}}
+            className="wv-root fixed inset-y-0 left-0 z-[1201] flex w-[87%] max-w-[420px] flex-col bg-white font-sans antialiased shadow-[30px_0_60px_-30px_rgba(28,23,20,0.5)] transition-transform motion-reduce:transition-none"
+            style={{
+              color: INK,
+              transform: entered ? 'translateX(0)' : 'translateX(-100%)',
+              transitionDuration: entered ? '560ms' : '480ms',
+              transitionTimingFunction: entered ? 'cubic-bezier(0.16, 1, 0.3, 1)' : 'cubic-bezier(0.55, 0.06, 0.68, 0.19)',
+            }}
           >
             {/* The travelling burger (now an X at the drawer's edge) is the close
                 control; the head row carries the brand asset alone. */}
@@ -165,7 +172,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
                       className="wv-menu-item wv-menu-link flex min-h-11 items-center font-display text-[26px] font-light tracking-[-0.01em]"
-                      style={{color: active ? SIGNAL : INK, animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
+                      style={{color: INK, textDecoration: active ? 'underline' : 'none', textUnderlineOffset: '8px', textDecorationThickness: '1px', animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
                     >
                       {l.label}
                     </a>
@@ -186,7 +193,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                     onClick={() => setOpen(false)}
                     aria-current={active ? 'page' : undefined}
                     className="wv-menu-item wv-link inline-flex min-h-9 items-center self-start text-[11px] uppercase tracking-[0.12em]"
-                    style={{color: active ? SIGNAL : MUTED, animationDelay: `${360 + i * 40}ms`}}
+                    style={{color: active ? INK : MUTED, textDecoration: active ? 'underline' : 'none', textUnderlineOffset: '6px', animationDelay: `${360 + i * 40}ms`}}
                   >
                     {sc.label}
                   </a>

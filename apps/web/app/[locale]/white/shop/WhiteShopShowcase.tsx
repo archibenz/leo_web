@@ -187,10 +187,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
                 aria-pressed={cat === c}
                 className="wv-tap inline-flex min-h-11 shrink-0 items-center px-3.5 text-[12px] uppercase tracking-[0.14em]"
                 style={{
-                  color: cat === c ? '#fff' : INK,
-                  // Inline background only when active — an always-set value
-                  // would sit above the wv-tap hover wash and swallow it.
-                  ...(cat === c ? {background: INK} : null),
+                  color: cat === c ? INK : MUTED,
                   border: `1px solid ${cat === c ? INK : HAIR}`,
                 }}
               >

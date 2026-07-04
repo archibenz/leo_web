@@ -28,19 +28,28 @@ export function useMountTransition(
   // already-closed doesn't briefly run the exit window on first render.
   const wasOpen = useRef(false);
 
+  // The exit flag must flip during render, not in an effect: an effect lands a
+  // commit late, and that one commit computes `mounted` as false — the node
+  // unmounts for a frame, remounts already in its closed pose, and the exit
+  // transition never plays.
+  if (isOpen && !wasOpen.current) {
+    wasOpen.current = true;
+  }
+  if (!isOpen && wasOpen.current) {
+    wasOpen.current = false;
+    setExiting(true);
+  }
+
   useEffect(() => {
     if (isOpen) {
-      wasOpen.current = true;
       setExiting(false);
       // Paint the "from" state first, then flip so the enter transition runs.
       const raf = window.requestAnimationFrame(() => setEntered(true));
       return () => window.cancelAnimationFrame(raf);
     }
-
-    if (!wasOpen.current) return;
-    wasOpen.current = false;
+    // Drop `entered` a commit after the close render: the node paints its open
+    // pose once more, then transitions to the exit pose instead of snapping.
     setEntered(false);
-    setExiting(true);
     const timer = window.setTimeout(() => setExiting(false), durationMs);
     return () => window.clearTimeout(timer);
   }, [isOpen, durationMs]);
