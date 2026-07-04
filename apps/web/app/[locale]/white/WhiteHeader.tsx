@@ -16,7 +16,7 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
   const t = useTranslations('white.header');
   const home = `/${locale}/white`;
   return (
-    <header className="sticky top-0 z-10 bg-white/85 backdrop-blur-md" style={{borderBottom: `1px solid ${HAIR}`}}>
+    <header className="sticky top-0 z-10 bg-white/70 backdrop-blur-md" style={{borderBottom: `1px solid ${HAIR}`}}>
       {/* Skip-link: first focusable element so keyboard users bypass the repeated
           nav straight to <main id="wv-main"> (WCAG 2.4.1). */}
       <a
@@ -28,7 +28,7 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
       {/* px-6 through the md band: the wordmark's wide tracking leaves the
           equal-split side slots ~178px each at 768, and the ru action labels
           need every pixel of it — full px-10 returns at lg. */}
-      <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-5 sm:px-6 lg:px-10">
+      <div className="flex items-center justify-between px-3 py-5 sm:px-4 lg:px-5">
         <div className="flex flex-1 items-center justify-start">
           {/* The side drawer is the navigation at every width. */}
           <WhiteMobileMenu locale={locale} activeCat={activeCat} />

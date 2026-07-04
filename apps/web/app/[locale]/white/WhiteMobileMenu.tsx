@@ -25,11 +25,14 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [portalReady, setPortalReady] = useState(false);
+  // Focus returns to the burger only for keyboard closes; a pointer close would
+  // paint the focus ring for no reason.
+  const closedByKeyboard = useRef(false);
   const {mounted: shown, entered} = useMountTransition(open, SLIDE_MS);
   const t = useTranslations('white.menu');
   const pathname = usePathname();
 
-  useFocusTrap(panelRef, open);
+  useFocusTrap(panelRef, open, {returnFocus: false});
   useEffect(() => setPortalReady(true), []);
 
   useEffect(() => {
@@ -45,15 +48,20 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') {
+        closedByKeyboard.current = true;
+        setOpen(false);
+      }
     };
     document.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = prevOverflow;
       document.documentElement.style.overflow = prevRootOverflow;
       document.removeEventListener('keydown', onKey);
-      // WCAG 2.4.3 — focus order: hand focus back to the trigger on close.
-      trigger?.focus({preventScroll: true});
+      // WCAG 2.4.3 — focus order: hand focus back to the trigger, but only for
+      // keyboard closes; pointer users would just see a ring appear.
+      if (closedByKeyboard.current) trigger?.focus({preventScroll: true});
+      closedByKeyboard.current = false;
     };
   }, [open]);
 
@@ -79,16 +87,41 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
         onClick={() => setOpen(true)}
         aria-expanded={open}
         aria-label={t('openMenu')}
-        className="-ml-2 flex h-11 w-11 shrink-0 items-center justify-center"
+        style={{WebkitTapHighlightColor: 'transparent'}}
+        className={`-ml-2 flex h-11 w-11 shrink-0 items-center justify-center transition-opacity duration-200 active:scale-90 motion-reduce:active:scale-100 ${shown ? 'pointer-events-none opacity-0' : ''}`}
       >
-        <svg width="20" height="12" viewBox="0 0 20 12" fill="none" stroke={INK} strokeWidth="1.3" strokeLinecap="square">
-          <line x1="0" y1="1" x2="20" y2="1" />
-          <line x1="0" y1="11" x2="20" y2="11" />
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="square">
+          <line x1="4" y1="7" x2="20" y2="7" />
+          <line x1="4" y1="12" x2="20" y2="12" />
+          <line x1="4" y1="17" x2="20" y2="17" />
         </svg>
       </button>
 
       {portalReady && shown && createPortal(
         <>
+          {/* The burger's travelling twin: rides to the drawer's edge while
+              morphing into an X, slides home on close. Lives in the portal so
+              it can paint above the panel (the header's own stacking context
+              can't). */}
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label={t('close')}
+            style={{
+              WebkitTapHighlightColor: 'transparent',
+              top: '20px',
+              left: '4px',
+              transform: entered ? 'translateX(calc(min(87vw, 420px) - 56px))' : 'translateX(0)',
+            }}
+            className="fixed z-[1202] flex h-11 w-11 items-center justify-center transition-transform duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
+          >
+            <svg viewBox="0 0 24 24" className={`h-5 w-5 ${entered ? 'hamburger-open' : 'hamburger-close'}`} fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="square">
+              <line x1="4" y1="7" x2="20" y2="7" className="hamburger-line hamburger-top" />
+              <line x1="4" y1="12" x2="20" y2="12" className="hamburger-line hamburger-middle" />
+              <line x1="4" y1="17" x2="20" y2="17" className="hamburger-line hamburger-bottom" />
+            </svg>
+          </button>
+
           {/* Scrim — dims the home behind and closes on tap. */}
           <div
             aria-hidden="true"
@@ -104,18 +137,10 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             className="wv-root fixed inset-y-0 left-0 z-[1201] flex w-[87%] max-w-[420px] flex-col bg-white font-sans antialiased shadow-[30px_0_60px_-30px_rgba(28,23,20,0.5)] transition-transform duration-[320ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
             style={{color: INK, transform: entered ? 'translateX(0)' : 'translateX(-100%)'}}
           >
-            <div className="flex shrink-0 items-center justify-between px-6 pb-2 pt-6">
-              <span className="font-display text-[19px] font-medium tracking-[0.34em]">REINASLEO</span>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label={t('close')}
-                className="-mr-2 flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-60"
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.3" strokeLinecap="square">
-                  <path d="M5 5l14 14M19 5L5 19" />
-                </svg>
-              </button>
+            {/* The travelling burger (now an X at the drawer's edge) is the close
+                control; the head row carries the brand asset alone. */}
+            <div className="flex shrink-0 items-center px-6 pb-2 pt-7">
+              <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-[13px] w-auto" />
             </div>
 
             {/* Primary nav — centres when it fits, scrolls from the top when the
@@ -130,7 +155,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                       href={l.href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
-                      className="wv-tap wv-menu-item flex min-h-[52px] items-center px-2 font-display text-[33px] font-light tracking-[-0.01em]"
+                      className="wv-menu-item wv-menu-link flex min-h-[52px] items-center font-display text-[33px] font-light tracking-[-0.01em]"
                       style={{color: active ? SIGNAL : INK, animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
                     >
                       {l.label}
@@ -151,7 +176,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                     href={sc.href}
                     onClick={() => setOpen(false)}
                     aria-current={active ? 'page' : undefined}
-                    className="wv-tap wv-menu-item flex min-h-10 items-center px-2 text-[12px] uppercase tracking-[0.12em]"
+                    className="wv-menu-item wv-link inline-flex min-h-10 items-center self-start text-[12px] uppercase tracking-[0.12em]"
                     style={{color: active ? SIGNAL : MUTED, animationDelay: `${360 + i * 40}ms`}}
                   >
                     {sc.label}
@@ -175,10 +200,10 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             </a>
 
             <div className="mx-6 mt-4 flex shrink-0 items-center gap-4 border-t pb-8 pt-3 text-[12px] uppercase tracking-[0.12em]" style={{borderColor: HAIR, color: INK}}>
-              <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="wv-tap -my-2 inline-flex min-h-11 items-center px-2">
+              <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
                 {t('saved')}
               </a>
-              <a href={`/${locale}/white/bag`} onClick={() => setOpen(false)} className="wv-tap -my-2 inline-flex min-h-11 items-center px-2">
+              <a href={`/${locale}/white/bag`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
                 {t('bag')}
               </a>
             </div>
