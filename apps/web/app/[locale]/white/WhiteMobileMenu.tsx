@@ -7,7 +7,7 @@ import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {useFocusTrap} from '../../../lib/useFocusTrap';
 import {useMountTransition} from '../../../lib/useMountTransition';
-import {WHITE_CATS, whiteCatLabel, WHITE_EDITORIAL} from './products';
+import {WHITE_CATS, whiteCatLabel} from './products';
 import {INK, MUTED, SIGNAL, HAIR} from './wv-palette';
 
 // Variant 2 "White" — a left side drawer (owner redesign). Slides in over a
@@ -73,6 +73,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
   // Secondary tier — brand and service pages, stacked under the categories.
   const secondary = [
     {key: 'sets', label: t('sets'), href: `/${locale}/white/sets`},
+    {key: 'lookbook', label: t('lookbook'), href: `/${locale}/white/lookbook`},
     {key: 'contact', label: t('contact'), href: `/${locale}/white/contact`},
     {key: 'delivery', label: t('delivery'), href: `/${locale}/white/delivery`},
     {key: 'faq', label: t('faq'), href: `/${locale}/white/faq`},
@@ -154,7 +155,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                       href={l.href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
-                      className="wv-menu-item wv-menu-link flex min-h-[52px] items-center font-display text-[33px] font-light tracking-[-0.01em]"
+                      className="wv-menu-item wv-menu-link flex min-h-11 items-center font-display text-[26px] font-light tracking-[-0.01em]"
                       style={{color: active ? SIGNAL : INK, animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
                     >
                       {l.label}
@@ -175,7 +176,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                     href={sc.href}
                     onClick={() => setOpen(false)}
                     aria-current={active ? 'page' : undefined}
-                    className="wv-menu-item wv-link inline-flex min-h-10 items-center self-start text-[12px] uppercase tracking-[0.12em]"
+                    className="wv-menu-item wv-link inline-flex min-h-9 items-center self-start text-[11px] uppercase tracking-[0.12em]"
                     style={{color: active ? SIGNAL : MUTED, animationDelay: `${360 + i * 40}ms`}}
                   >
                     {sc.label}
@@ -184,21 +185,11 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
               })}
             </div>
 
-            {/* Lookbook — the drawer's one editorial image, a real entry not decor. */}
-            <a
-              href={`/${locale}/white/lookbook`}
-              onClick={() => setOpen(false)}
-              className="wv-menu-item relative mx-6 block aspect-[16/6] overflow-hidden"
-              style={{animationDelay: '560ms'}}
-            >
-              <Image src={WHITE_EDITORIAL[0]} alt="" fill sizes="420px" className="object-cover" />
-              <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,rgba(28,23,20,0.34))]" />
-              <span className="absolute bottom-3 left-4 font-display text-[18px] font-light italic text-white">
-                {t('lookbook')}
-              </span>
-            </a>
 
             <div className="mx-6 mt-4 flex shrink-0 items-center gap-4 border-t pb-8 pt-3 text-[12px] uppercase tracking-[0.12em]" style={{borderColor: HAIR, color: INK}}>
+              <a href={`/${locale}/white/account`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
+                {t('account')}
+              </a>
               <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
                 {t('saved')}
               </a>
