@@ -88,7 +88,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
           {h: t('brand'), items: [
             // Real, distinct destinations — Atelier and Lookbook are standalone
             // pages; The edit deep-links to the curated section on the landing.
-            {label: t('atelier'), href: `/${locale}/white/atelier`},
+            {label: t('sets'), href: `/${locale}/white/sets`},
             {label: t('lookbook'), href: `/${locale}/white/lookbook`},
             {label: t('theEdit'), href: `/${locale}/white#wv-edit`},
             {label: t('contact'), href: `/${locale}/white/contact`},

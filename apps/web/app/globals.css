@@ -1526,6 +1526,12 @@ h2.font-display:not(.wv-root *),
 body:has(.wv-root) {
   background: #fff;
 }
+/* ...and its grain/vignette overlays stay off White pages — without the old
+   full-cover portal they'd wash a grey sheen over the storefront. */
+body:has(.wv-root)::before,
+body:has(.wv-root)::after {
+  content: none;
+}
 
 .wv-root .font-display {
   font-family: var(--font-body), 'Helvetica Neue', Helvetica, Arial, sans-serif;

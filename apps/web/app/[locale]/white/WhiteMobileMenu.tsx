@@ -64,7 +64,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
 
   // Secondary tier — brand and service pages, stacked under the categories.
   const secondary = [
-    {key: 'atelier', label: t('atelier'), href: `/${locale}/white/atelier`},
+    {key: 'sets', label: t('sets'), href: `/${locale}/white/sets`},
     {key: 'contact', label: t('contact'), href: `/${locale}/white/contact`},
     {key: 'delivery', label: t('delivery'), href: `/${locale}/white/delivery`},
     {key: 'faq', label: t('faq'), href: `/${locale}/white/faq`},
