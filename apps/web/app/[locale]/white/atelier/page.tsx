@@ -11,6 +11,9 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
   const ru = locale === 'ru';
   return {
     title: {absolute: `${ru ? 'Ателье' : 'The Atelier'} · REINASLEO`},
+    description: ru
+      ? 'Ателье REINASLEO: продуманные ткани, ручная доводка, одежда для долгого гардероба.'
+      : 'The REINASLEO atelier: considered fabrics, hand finishing, clothes for a long wardrobe.',
     robots: {index: true, follow: true},
   };
 }
