@@ -85,6 +85,13 @@ export default function WhiteHeaderActions({
           </svg>
         </a>
       )}
+      {/* Account — desktop only; the phone reaches it through the drawer. */}
+      <a href={`/${locale}/white/account`} aria-label={t('account')} className={`${WRAP} hidden md:flex`}>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" aria-hidden="true">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
+        </svg>
+      </a>
       <Action
         href={`/${locale}/white/favourites`}
         ariaLabel={`${t('saved')}, ${favCount} ${whiteItemNoun(favCount, locale)}`}
