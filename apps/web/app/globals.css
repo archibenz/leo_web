@@ -1511,6 +1511,17 @@ h2.font-display:not(.wv-root *),
 /* White reads sans-serif: inside the wv-root the display face re-points at the
    body grotesk, so the wordmark, headings and prices lose their serifs while
    the gradient site keeps Cormorant untouched. */
+/* The skip-link lands on #wv-main — give it headroom for the sticky header. */
+#wv-main {
+  scroll-margin-top: 96px;
+}
+
+/* When a White page is on screen the page background is white — the gradient
+   site's dark paper would flash on rubber-band overscroll. */
+body:has(.wv-root) {
+  background: #fff;
+}
+
 .wv-root .font-display {
   font-family: var(--font-body), 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }

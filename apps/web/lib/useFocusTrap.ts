@@ -52,7 +52,9 @@ export function useFocusTrap(
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      previousFocus?.focus?.();
+      // preventScroll: the opener may sit in a sticky header whose static
+      // position is the document top — a plain focus() would yank the page there.
+      previousFocus?.focus?.({preventScroll: true});
     };
   }, [isOpen, containerRef]);
 }

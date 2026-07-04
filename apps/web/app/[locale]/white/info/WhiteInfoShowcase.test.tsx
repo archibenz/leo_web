@@ -1,8 +1,14 @@
-import {afterEach, describe, it, expect} from 'vitest';
+import {afterEach, describe, it, expect, vi} from 'vitest';
 import {render, screen, cleanup} from '@testing-library/react';
 import WhiteInfoShowcase from './WhiteInfoShowcase';
 import {NextIntlClientProvider} from 'next-intl';
 import enMessages from '../../../../messages/en.json';
+
+// The footer's locale switch reads the router — give jsdom a stub.
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/en/white',
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 // jsdom has no localStorage; the White bag/favourites hooks read it on mount.
 const lsStore = new Map<string, string>();
