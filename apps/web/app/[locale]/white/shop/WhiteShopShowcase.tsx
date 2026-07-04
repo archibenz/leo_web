@@ -1,9 +1,7 @@
 'use client';
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {createPortal} from 'react-dom';
 import {useTranslations} from 'next-intl';
-import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
@@ -28,7 +26,6 @@ const COLOURS: Colour[] = (() => {
 type Sort = 'new' | 'asc' | 'desc';
 
 export default function WhiteShopShowcase({locale, initialCat = 'all', initialQuery = '', initialSort = 'new', initialColour = 'all', focusSearch = false}: {locale: string; initialCat?: Cat | 'all'; initialQuery?: string; initialSort?: Sort; initialColour?: string; focusSearch?: boolean}) {
-  const mounted = useWhitePortal();
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const ru = locale === 'ru';
@@ -40,10 +37,10 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
   const t = useTranslations('white.shop');
 
   // Deep-link intent (?focus=search, e.g. from the landing "Search" link):
-  // the portal mounts client-side, so focus the field once it has painted.
+  // focus the field once it has painted.
   useEffect(() => {
-    if (focusSearch && mounted) searchRef.current?.focus();
-  }, [focusSearch, mounted]);
+    if (focusSearch) searchRef.current?.focus();
+  }, [focusSearch]);
 
   // Keep the URL in sync with the active filters so a view can be shared or
   // bookmarked (history.replaceState — no navigation, no reload).
@@ -118,7 +115,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
     if (typeof document !== 'undefined' && document.fonts) document.fonts.ready.then(syncEdge);
     window.addEventListener('resize', syncEdge);
     return () => window.removeEventListener('resize', syncEdge);
-  }, [syncEdge, cat, shown.length, mounted]);
+  }, [syncEdge, cat, shown.length]);
   const FADE = 28;
   const edgeMask =
     edge === 'right'
@@ -129,12 +126,10 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
           ? `linear-gradient(to right, transparent, #000 ${FADE}px, #000 calc(100% - ${FADE}px), transparent)`
           : undefined;
 
-  if (!mounted) return null;
-
   const cats: (Cat | 'all')[] = ['all', 'dresses', 'outerwear', 'knitwear', 'tailoring', 'skirts'];
 
-  return createPortal(
-    <div className="wv-root fixed inset-0 z-[1000] overflow-y-auto bg-white font-sans antialiased" style={{color: INK}}>
+  return (
+    <div className="wv-root relative min-h-screen bg-white font-sans antialiased" style={{color: INK}}>
       {/* Header */}
       <WhiteHeader
         locale={locale}
@@ -318,7 +313,6 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
       </main>
 
       <WhiteFooter locale={locale} />
-    </div>,
-    document.body,
+    </div>
   );
 }

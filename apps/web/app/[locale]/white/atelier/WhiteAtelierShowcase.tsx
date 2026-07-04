@@ -1,9 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import {createPortal} from 'react-dom';
 import {useTranslations} from 'next-intl';
-import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
@@ -18,12 +16,9 @@ import {INK, MUTED, HAIR} from '../wv-palette';
 // motif). noindex (prototype). CSS-only reveal (wv-rise, reduced-motion-safe).
 
 export default function WhiteAtelierShowcase({locale}: {locale: string}) {
-  const mounted = useWhitePortal();
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const t = useTranslations('white.atelier');
-
-  if (!mounted) return null;
 
   const principles = [
     {n: '01', label: t('p1Label'), body: t('p1Body')},
@@ -31,8 +26,8 @@ export default function WhiteAtelierShowcase({locale}: {locale: string}) {
     {n: '03', label: t('p3Label'), body: t('p3Body')},
   ];
 
-  return createPortal(
-    <div className="wv-root fixed inset-0 z-[1000] flex min-h-full flex-col overflow-y-auto bg-white font-sans antialiased" style={{color: INK}}>
+  return (
+    <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
       <WhiteHeader
         locale={locale}
         left={
@@ -81,7 +76,6 @@ export default function WhiteAtelierShowcase({locale}: {locale: string}) {
       </main>
 
       <WhiteFooter locale={locale} />
-    </div>,
-    document.body,
+    </div>
   );
 }

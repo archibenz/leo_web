@@ -1,8 +1,6 @@
 'use client';
 
-import {createPortal} from 'react-dom';
 import {useTranslations} from 'next-intl';
-import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
@@ -19,18 +17,15 @@ import {findWhiteProduct} from '../products';
 // lets a saved piece move straight to the bag.
 
 export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
-  const mounted = useWhitePortal();
   const {count} = useWhiteBag();
   const {keys} = useWhiteFavourites();
   const t = useTranslations('white.favourites');
 
-  if (!mounted) return null;
-
   // Preserve the order items were saved in; drop any stale keys.
   const saved = keys.map((k) => findWhiteProduct(k)).filter((p): p is NonNullable<typeof p> => p != null);
 
-  return createPortal(
-    <div className="wv-root fixed inset-0 z-[1000] flex min-h-full flex-col overflow-y-auto bg-white font-sans antialiased" style={{color: '#1c1714'}}>
+  return (
+    <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: '#1c1714'}}>
       <WhiteHeader
         locale={locale}
         left={
@@ -78,7 +73,6 @@ export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
       </main>
 
       <WhiteFooter locale={locale} />
-    </div>,
-    document.body,
+    </div>
   );
 }

@@ -47,7 +47,13 @@ export default async function LocaleLayout({
   const messages = await getMessages();
   // Per-request CSP nonce, generated in middleware.ts. Falls back to undefined
   // in dev / unit-test contexts where the middleware isn't wired up.
-  const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const requestHeaders = await headers();
+  const nonce = requestHeaders.get('x-nonce') ?? undefined;
+  // The White variant renders its own complete chrome, so its routes skip the
+  // gradient header/footer/providers entirely — nothing to hide behind an
+  // overlay, nothing extra to render on the server.
+  const pathname = requestHeaders.get('x-pathname') ?? '';
+  const isWhite = /^\/(?:[a-z-]+)\/white(?:\/|$)/i.test(pathname);
 
   const orgJsonLd = {
     '@context': 'https://schema.org',
@@ -57,6 +63,15 @@ export default async function LocaleLayout({
     logo: `${siteUrl}/logos/logo-white.svg`,
     sameAs: ['https://instagram.com/reinasleo', 'https://t.me/reinasleo'],
   };
+
+  if (isWhite) {
+    return (
+      <NextIntlClientProvider locale={locale} messages={messages}>
+        <Metrika nonce={nonce} />
+        {children}
+      </NextIntlClientProvider>
+    );
+  }
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>

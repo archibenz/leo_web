@@ -1,9 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import {createPortal} from 'react-dom';
 import {useTranslations} from 'next-intl';
-import {useWhitePortal} from '../../../../hooks/useWhitePortal';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
@@ -18,7 +16,6 @@ import {MaskIcon} from '../wv-icons';
 // prototype holds the user's selection locally; it does not claim a purchase.
 
 export default function WhiteBagShowcase({locale}: {locale: string}) {
-  const mounted = useWhitePortal();
   const {items, count, remove, setQty} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const ru = locale === 'ru';
@@ -26,10 +23,8 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
   const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
   const total = items.reduce((sum, i) => sum + i.price * i.qty, 0);
 
-  if (!mounted) return null;
-
-  return createPortal(
-    <div className="wv-root fixed inset-0 z-[1000] flex min-h-full flex-col overflow-y-auto bg-white font-sans antialiased" style={{color: INK}}>
+  return (
+    <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
       <WhiteHeader
         locale={locale}
         left={
@@ -146,7 +141,6 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
       </main>
 
       <WhiteFooter locale={locale} />
-    </div>,
-    document.body,
+    </div>
   );
 }

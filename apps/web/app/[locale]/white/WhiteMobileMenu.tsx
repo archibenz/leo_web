@@ -37,7 +37,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
     // The hamburger is always mounted, so capturing it here is stable; copying to
     // a local keeps the cleanup honest (no stale-ref lint warning).
     const trigger = triggerRef.current;
-    // The white showcase portal (useWhitePortal) already owns body scroll-lock on
+    // The page itself scrolls the window, so the drawer owns body scroll-lock on
     // every White page, so restore whatever was there — writing '' would unlock
     // the page behind the still-mounted portal for the rest of the session.
     const prevOverflow = document.body.style.overflow;

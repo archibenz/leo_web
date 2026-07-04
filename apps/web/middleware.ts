@@ -66,6 +66,20 @@ function generateNonce(): string {
 const ADMIN_PATH = new RegExp(`^/(${locales.join('|')})/admin(/|$)`);
 const SESSION_COOKIE = 'rl_session';
 
+// Gradient public routes and their White equivalents (White-only mode). Legal
+// pages (privacy/terms/offer), account, auth, admin and previews stay put.
+const WHITE_LOCALE_PATH = new RegExp(`^/(${locales.join('|')})(/.*)?$`);
+const GRADIENT_TO_WHITE: Record<string, string> = {
+  '/shop': '/white/shop',
+  '/cart': '/white/bag',
+  '/favorites': '/white/favourites',
+  '/collections': '/white/shop',
+  '/about': '/white/atelier',
+  '/contact': '/white/contact',
+  '/care': '/white/care',
+  '/delivery': '/white/delivery',
+};
+
 export default function middleware(request: NextRequest) {
   const nonce = generateNonce();
   // Mutate request headers so Server Components can read the nonce via
@@ -75,6 +89,24 @@ export default function middleware(request: NextRequest) {
   request.headers.set('x-nonce', nonce);
 
   const pathname = request.nextUrl.pathname;
+  // Let Server Components know which route they serve (the locale layout drops
+  // the gradient chrome on /white routes). Same mechanism as the nonce.
+  request.headers.set('x-pathname', pathname);
+
+  // White-only mode: the gradient's public pages hand over to the White
+  // variant so the server renders one site. Reversible without a rollback —
+  // set WHITE_ONLY=0 in the environment and restart.
+  if (process.env.WHITE_ONLY !== '0') {
+    const m = pathname.match(WHITE_LOCALE_PATH);
+    if (m) {
+      const rest = m[2] ?? '';
+      let target: string | null = null;
+      if (rest === '' || rest === '/') target = '/white';
+      else if (rest in GRADIENT_TO_WHITE) target = GRADIENT_TO_WHITE[rest]!;
+      else if (rest.startsWith('/product/') || rest.startsWith('/shop/')) target = '/white/shop';
+      if (target) return NextResponse.redirect(new URL(`/${m[1]}${target}`, request.url), 307);
+    }
+  }
 
   // Defense-in-depth: anonymous users get redirected to the account/login
   // page instead of receiving the admin RSC payload. Authenticated non-admin
