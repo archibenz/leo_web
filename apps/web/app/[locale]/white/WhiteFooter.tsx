@@ -6,6 +6,7 @@ import {useTranslations} from 'next-intl';
 import {isValidEmail} from '../../../lib/validation';
 import {INK, MUTED, HAIR, SIGNAL} from './wv-palette';
 import WhiteLocaleSwitch from './WhiteLocaleSwitch';
+import WhiteCookieNotice from './WhiteCookieNotice';
 
 // Variant 2 "White" — shared editorial footer. Rendered on the landing, shop
 // and PDP so every page of the prototype closes on the same brand chrome.
@@ -168,6 +169,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
           <WhiteLocaleSwitch locale={locale} />
         </span>
       </div>
+      <WhiteCookieNotice locale={locale} />
     </footer>
   );
 }

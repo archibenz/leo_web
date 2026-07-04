@@ -1378,7 +1378,10 @@
       "sets": "Sets",
       "privacy": "Privacy",
       "offer": "Offer",
-      "terms": "Terms"
+      "terms": "Terms",
+      "cookieText": "We use cookies and Yandex Metrica to run the site and make it better.",
+      "cookieMore": "Learn more",
+      "cookieOk": "Okay"
     },
     "pdp": {
       "back": "Back",
