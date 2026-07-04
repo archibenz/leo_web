@@ -21,7 +21,13 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
   const ru = locale === 'ru';
   const t = useTranslations('white.bag');
   const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
-  const total = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+  // Prices come from the catalogue, not from the persisted line (storage is
+  // hand-editable) — the stored value only covers items the catalogue dropped.
+  const linePrice = (i: (typeof items)[number]) => {
+    const p = findWhiteProduct(i.key);
+    return p ? (p.sale ?? p.price) : i.price;
+  };
+  const total = items.reduce((sum, i) => sum + linePrice(i) * i.qty, 0);
 
   return (
     <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
@@ -110,7 +116,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                       </button>
                     </div>
                     <div className="flex items-center gap-3">
-                      <p className="w-24 shrink-0 text-right text-[14px] tabular-nums">{fmt(i.price * i.qty)}</p>
+                      <p className="w-24 shrink-0 text-right text-[14px] tabular-nums">{fmt(linePrice(i) * i.qty)}</p>
                       <button
                         type="button"
                         onClick={() => remove(i.id)}

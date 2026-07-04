@@ -27,7 +27,7 @@ export async function generateMetadata({params, searchParams}: Props): Promise<M
   if (!product) notFound();
   const name = ru ? product.ru : product.en;
   return {
-    title: {absolute: `${name} · REINASLEO — White`},
+    title: {absolute: `${name} · REINASLEO`},
     description: ru ? product.descRu : product.descEn,
     robots,
   };

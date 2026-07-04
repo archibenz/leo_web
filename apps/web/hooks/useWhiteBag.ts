@@ -28,6 +28,11 @@ const listeners = new Set<(_next: readonly WhiteBagItem[]) => void>();
 
 // Normalise persisted data: legacy rows may lack qty or use old composite ids,
 // and duplicates must merge into a single line keyed by product+size.
+// Storage is same-origin writable — cap what we accept so a hand-edited value
+// can't render an unbounded list or an Infinity total.
+const MAX_LINES = 100;
+const MAX_QTY = 99;
+
 function normalise(raw: unknown): WhiteBagItem[] {
   if (!Array.isArray(raw)) return [];
   const byLine = new Map<string, WhiteBagItem>();
@@ -42,9 +47,10 @@ function normalise(raw: unknown): WhiteBagItem[] {
     const en = typeof r.en === 'string' ? r.en : '';
     const ru = typeof r.ru === 'string' ? r.ru : '';
     const id = lineId(r.key, r.size, colorEn);
-    const qty = Number.isFinite(r.qty) && r.qty > 0 ? Math.floor(r.qty) : 1;
+    const qty = Number.isFinite(r.qty) && r.qty > 0 ? Math.min(Math.floor(r.qty), MAX_QTY) : 1;
     const existing = byLine.get(id);
-    if (existing) existing.qty += qty;
+    if (byLine.size >= MAX_LINES && !existing) continue;
+    if (existing) existing.qty = Math.min(existing.qty + qty, MAX_QTY);
     else byLine.set(id, {id, key: r.key, en, ru, price: r.price, size: r.size, colorEn, colorRu, qty});
   }
   return [...byLine.values()];
@@ -98,15 +104,16 @@ export function addToWhiteBag(item: Omit<WhiteBagItem, 'id' | 'qty'>): void {
   const id = lineId(item.key, item.size, item.colorEn);
   const existing = items.find((i) => i.id === id);
   if (existing) {
-    items = items.map((i) => (i.id === id ? {...i, qty: i.qty + 1} : i));
+    items = items.map((i) => (i.id === id ? {...i, qty: Math.min(i.qty + 1, MAX_QTY)} : i));
   } else {
+    if (items.length >= MAX_LINES) return;
     items = [...items, {...item, id, qty: 1}];
   }
   persist();
 }
 
 export function setWhiteBagQty(id: string, qty: number): void {
-  const next = Math.max(1, Math.floor(qty));
+  const next = Math.min(Math.max(1, Math.floor(qty)), MAX_QTY);
   let changed = false;
   items = items.map((i) => {
     if (i.id !== id || i.qty === next) return i;
