@@ -19,18 +19,13 @@ export default function WhiteInfoShowcase({locale, ns}: {locale: string; ns: Whi
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const t = useTranslations(`white.info.${ns}`);
-  const tc = useTranslations('white.contact');
   const sections = t.raw('sections') as {h: string; b: string}[];
 
   return (
     <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
       <WhiteHeader
         locale={locale}
-        left={
-          <a href={`/${locale}/white`} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>
-            ← {tc('back')}
-          </a>
-        }
+        left={null}
         right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
       />
 

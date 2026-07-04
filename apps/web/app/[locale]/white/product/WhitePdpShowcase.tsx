@@ -215,11 +215,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
       {/* Header */}
       <WhiteHeader
         locale={locale}
-        left={
-          <a href={`/${locale}/white`} className="text-[12px] uppercase tracking-[0.18em] transition-opacity hover:opacity-60" style={{color: MUTED}}>
-            ← {t('back')}
-          </a>
-        }
+        left={null}
         right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
       />
 
