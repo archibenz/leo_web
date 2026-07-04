@@ -318,11 +318,9 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                     aria-pressed={size === s}
                     className="wv-tap h-11 min-w-11 px-3 text-[13px] tracking-wide transition-colors"
                     style={{
+                      // Selected is a quiet ink outline — no fill anywhere.
                       border: `1px solid ${size === s ? INK : HAIR}`,
-                      // Selected reads as a warm grey fill (not a hard black block),
-                      // so the picked size highlights the way taps do everywhere.
-                      background: size === s ? '#e9e2d7' : undefined,
-                      color: INK,
+                      color: size === s ? INK : MUTED,
                     }}
                   >
                     {s}
