@@ -17,6 +17,7 @@ type NlStatus = 'idle' | 'loading' | 'success' | 'already' | 'error' | 'invalid'
 
 export default function WhiteFooter({locale}: {locale: string}) {
   const t = useTranslations('white.footer');
+  const tf = useTranslations('footer');
 
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<NlStatus>('idle');
@@ -154,6 +155,10 @@ export default function WhiteFooter({locale}: {locale: string}) {
           </p>
         </div>
       </div>
+      {/* Seller identity — distance-selling rules put it on the site itself. */}
+      <p className="mx-auto max-w-[1400px] px-6 pb-3 text-[10.5px] leading-relaxed sm:px-10" style={{color: MUTED}}>
+        {tf('legalEntity')}
+      </p>
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-6 pb-10 text-[11px] uppercase tracking-[0.14em] sm:px-10" style={{color: MUTED}}>
         <span>© 2026 REINASLEO · {t('previewNote')}</span>
         <span className="flex flex-wrap items-center gap-x-5 gap-y-2">

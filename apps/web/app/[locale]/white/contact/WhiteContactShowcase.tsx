@@ -24,6 +24,7 @@ export default function WhiteContactShowcase({locale}: {locale: string}) {
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const t = useTranslations('white.contact');
+  const tf = useTranslations('footer');
 
   return (
     <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
@@ -70,6 +71,12 @@ export default function WhiteContactShowcase({locale}: {locale: string}) {
             </p>
           </div>
         </div>
+
+        {/* Seller requisites — the legal identity behind the boutique. */}
+        <section className="mx-auto w-full max-w-[760px] border-t px-6 pb-20 pt-10 sm:px-10" style={{borderColor: HAIR}}>
+          <p className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('requisites')}</p>
+          <p className="mt-3 text-[13px] leading-relaxed" style={{color: MUTED}}>{tf('legalEntity')}</p>
+        </section>
       </main>
 
       <WhiteFooter locale={locale} />
