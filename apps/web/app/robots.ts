@@ -18,6 +18,7 @@ export default function robots(): MetadataRoute.Robots {
           '/*/favorites/',
           // White utility pages — personal state, nothing to index.
           '/*/white/bag',
+          '/*/white/account',
           '/*/white/favourites',
           '/*/splash-preview',
           '/*/loader-preview',

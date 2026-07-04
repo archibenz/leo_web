@@ -1263,7 +1263,8 @@
       "searchCollection": "Search the collection",
       "saved": "Saved",
       "bag": "Bag",
-      "skipToContent": "Skip to content"
+      "skipToContent": "Skip to content",
+      "account": "Account"
     },
     "menu": {
       "shop": "Shop",
@@ -1530,6 +1531,32 @@
       "landingTitle2": "ready to walk out",
       "landingBody": "Sets built from the collection — for the office, the evening, the everyday. Together or piece by piece.",
       "explore": "View the sets"
+    },
+    "account": {
+      "title": "Account",
+      "eyebrow": "Account",
+      "signIn": "Sign in",
+      "signUp": "Sign up",
+      "email": "Email",
+      "password": "Password",
+      "code": "Code from the email",
+      "firstName": "First name",
+      "sendCode": "Send the code",
+      "codeSent": "Code sent — check your inbox",
+      "signInCta": "Sign in",
+      "signUpCta": "Create account",
+      "signOut": "Sign out",
+      "hello": "Hello,",
+      "loggedInAs": "Signed in as",
+      "links": "Yours",
+      "favourites": "Favourites",
+      "bag": "Bag",
+      "errCredentials": "Wrong email or password.",
+      "errCode": "Couldn't send the code. Check the email.",
+      "errRegister": "Couldn't create the account. Check the code and details.",
+      "errPassword": "Password: at least 8 characters, letters and digits.",
+      "errName": "Enter a name (2–40 characters).",
+      "intro": "Sign in or create an account — favourites and orders stay with you."
     }
   }
 }
