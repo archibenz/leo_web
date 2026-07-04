@@ -18,7 +18,7 @@ import {INK, MUTED, SIGNAL, HAIR} from './wv-palette';
 // reduced-motion safe. Focus-trapped; ESC + scroll-lock (restores the white
 // portal's own lock); focus returns to the hamburger on close (WCAG 2.4.3).
 
-const SLIDE_MS = 440;
+const SLIDE_MS = 560;
 
 export default function WhiteMobileMenu({locale, activeCat}: {locale: string; activeCat?: string | null}) {
   const [open, setOpen] = useState(false);
@@ -126,7 +126,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
           <div
             aria-hidden="true"
             onClick={() => setOpen(false)}
-            className="fixed inset-0 z-[1200] bg-[rgba(28,23,20,0.30)] backdrop-blur-[1px] transition-opacity duration-[400ms] ease-out motion-reduce:transition-none"
+            className="fixed inset-0 z-[1200] bg-[rgba(28,23,20,0.30)] backdrop-blur-[1px] transition-opacity duration-[560ms] ease-out motion-reduce:transition-none"
             style={{opacity: entered ? 1 : 0}}
           />
           <aside
@@ -134,7 +134,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             role="dialog"
             aria-modal="true"
             aria-label={t('menu')}
-            className="wv-root fixed inset-y-0 left-0 z-[1201] flex w-[87%] max-w-[420px] flex-col bg-white font-sans antialiased shadow-[30px_0_60px_-30px_rgba(28,23,20,0.5)] transition-transform duration-[440ms] ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none"
+            className="wv-root fixed inset-y-0 left-0 z-[1201] flex w-[87%] max-w-[420px] flex-col bg-white font-sans antialiased shadow-[30px_0_60px_-30px_rgba(28,23,20,0.5)] transition-transform duration-[560ms] ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none"
             style={{color: INK, transform: entered ? 'translateX(0)' : 'translateX(-100%)'}}
           >
             {/* The travelling burger (now an X at the drawer's edge) is the close

@@ -1628,12 +1628,12 @@ body:has(.wv-root)::after {
 /* Drawer items arrive one after another — a short slide from the panel's
    direction, cadence set inline per item. */
 @keyframes wv-menu-in {
-  from { opacity: 0; transform: translateX(-16px); }
+  from { opacity: 0; transform: translateX(-10px); }
   to { opacity: 1; transform: none; }
 }
 .wv-menu-item {
   opacity: 0;
-  animation: wv-menu-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: wv-menu-in 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @media (prefers-reduced-motion: reduce) {
