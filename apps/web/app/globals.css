@@ -1578,14 +1578,14 @@ body:has(.wv-root) {
   background-color: #e9e2d7;
 }
 
-/* Where the browser supports scroll-driven animations, the wv-rise entrances
-   play as each section scrolls into view instead of all at once on load —
-   below-the-fold blocks rise exactly when the reader reaches them. Others keep
-   the on-load behaviour; reduced-motion kills both. */
+/* Opt-in scroll-driven entrance (add wv-scrub next to wv-rise): the block
+   rises as it scrolls into view. Kept away from reading surfaces — a partially
+   entered text column would sit half-transparent under the reader's eyes.
+   Non-supporting browsers keep the on-load rise; reduced-motion kills both. */
 @supports (animation-timeline: view()) {
-  .wv-root .wv-rise {
+  .wv-root .wv-scrub {
     animation-timeline: view();
-    animation-range: entry 0% entry 45%;
+    animation-range: entry 0% entry 35%;
     animation-duration: auto;
     animation-fill-mode: both;
   }
