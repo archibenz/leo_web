@@ -17,14 +17,6 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
   const home = `/${locale}/white`;
   return (
     <header className="sticky top-0 z-10 bg-white/70 backdrop-blur-md" style={{borderBottom: `1px solid ${HAIR}`}}>
-      {/* Announcement line — one quiet service fact, the boutique way. */}
-      <a
-        href={`/${locale}/white/delivery`}
-        className="block border-b px-3 py-1.5 text-center text-[10px] uppercase tracking-[0.16em] transition-opacity hover:opacity-70"
-        style={{borderColor: HAIR, color: MUTED}}
-      >
-        {t('announce')}
-      </a>
       {/* Skip-link: first focusable element so keyboard users bypass the repeated
           nav straight to <main id="wv-main"> (WCAG 2.4.1). */}
       <a
