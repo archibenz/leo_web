@@ -28,11 +28,20 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
   // Focus returns to the burger only for keyboard closes; a pointer close would
   // paint the focus ring for no reason.
   const closedByKeyboard = useRef(false);
+  // The twin's morph must not fire on mount — closing plays only after the
+  // drawer has actually been open, otherwise the two keyframes race and the
+  // icon collapses into a single bar for the first frames.
+  const everEntered = useRef(false);
   const {mounted: shown, entered} = useMountTransition(open, SLIDE_MS);
   const t = useTranslations('white.menu');
   const pathname = usePathname();
 
   useFocusTrap(panelRef, open, {returnFocus: false});
+
+  useEffect(() => {
+    if (entered) everEntered.current = true;
+    if (!shown) everEntered.current = false;
+  }, [entered, shown]);
   useEffect(() => setPortalReady(true), []);
 
   useEffect(() => {
@@ -115,7 +124,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             }}
             className="fixed top-2.5 z-[1202] flex h-11 w-11 items-center justify-center sm:top-5 transition-transform duration-[440ms] ease-[cubic-bezier(0.32,0.72,0,1)] active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
           >
-            <svg viewBox="0 0 24 24" className={`h-5 w-5 ${entered ? 'hamburger-open' : 'hamburger-close'}`} fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="square">
+            <svg viewBox="0 0 24 24" className={`h-5 w-5 ${entered ? 'hamburger-open' : everEntered.current ? 'hamburger-close' : ''}`} fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="square">
               <line x1="4" y1="7" x2="20" y2="7" className="hamburger-line hamburger-top" />
               <line x1="4" y1="12" x2="20" y2="12" className="hamburger-line hamburger-middle" />
               <line x1="4" y1="17" x2="20" y2="17" className="hamburger-line hamburger-bottom" />
@@ -186,7 +195,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             </div>
 
 
-            <div className="mx-6 mt-4 flex shrink-0 items-center gap-4 border-t pb-8 pt-3 text-[12px] uppercase tracking-[0.12em]" style={{borderColor: HAIR, color: INK}}>
+            <div className="wv-menu-item mx-6 mt-4 flex shrink-0 items-center gap-4 border-t pb-8 pt-3 text-[12px] uppercase tracking-[0.12em]" style={{animationDelay: '620ms', borderColor: HAIR, color: INK}}>
               <a href={`/${locale}/white/account`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
                 {t('account')}
               </a>
