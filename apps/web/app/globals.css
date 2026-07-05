@@ -1617,10 +1617,10 @@ body:has(.wv-root)::after {
    X unfolds back into lines over the whole ride home, not in a blink. */
 .wv-twin .hamburger-close .hamburger-top,
 .wv-twin .hamburger-close .hamburger-bottom {
-  animation-duration: 480ms;
+  animation-duration: 560ms;
 }
 .wv-twin .hamburger-close .hamburger-middle {
-  animation-duration: 320ms;
+  animation-duration: 360ms;
 }
 
 /* The dialog container takes focus on open (instead of its first link) —
