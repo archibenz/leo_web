@@ -63,7 +63,7 @@ export function WhiteBagGlyph({count, size = 19}: {count: number; size?: number}
         <path d="M4.8 8.2h14.4l1.1 12.2H3.7Z" fill={filled ? INK : 'none'} />
       </svg>
       {filled && (
-        <span className="absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2 text-[9px] font-medium leading-none text-white tabular-nums">
+        <span className="absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2 font-display text-[8px] font-normal leading-none tracking-[0.02em] text-white tabular-nums">
           {count > 9 ? '9+' : count}
         </span>
       )}
