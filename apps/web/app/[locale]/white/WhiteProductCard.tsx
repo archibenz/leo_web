@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import Image from 'next/image';
 import {useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
@@ -123,7 +124,7 @@ export default function WhiteProductCard({
           />
         )}
         {/* Image is its own link so Quick Add can sit outside the anchor. */}
-        <a href={href} aria-label={name} className="wv-card-link absolute inset-0 z-[1]" />
+        <Link href={href} aria-label={name} className="wv-card-link absolute inset-0 z-[1]" />
 
         {product.sale && (
           <span className="pointer-events-none absolute left-3 top-3 z-[5] text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>
@@ -205,7 +206,7 @@ export default function WhiteProductCard({
       </div>
 
       {/* Name + price — a second link to the same PDP. */}
-      <a href={href} className="mt-4 block text-center">
+      <Link href={href} className="mt-4 block text-center">
         <p className="text-[14px] tracking-wide transition-opacity group-hover:opacity-60">{name}</p>
         <p className="mt-1 text-[13px]" style={{color: product.sale ? SIGNAL : MUTED}}>
           {product.sale ? (
@@ -223,7 +224,7 @@ export default function WhiteProductCard({
             fmt(product.price)
           )}
         </p>
-      </a>
+      </Link>
     </div>
   );
 }

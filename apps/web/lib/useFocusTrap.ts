@@ -20,8 +20,13 @@ export function useFocusTrap(
 
     const previousFocus = document.activeElement as HTMLElement | null;
 
-    const focusables = getFocusableElements(container);
-    focusables[0]?.focus();
+    // Focus the dialog itself, not its first link — a programmatic focus on a
+    // link paints the platform focus ring (iOS draws a heavy rounded box) on
+    // every open. Containers without tabindex fall back to the first control.
+    container.focus({preventScroll: true});
+    if (document.activeElement !== container) {
+      getFocusableElements(container)[0]?.focus();
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Tab') return;

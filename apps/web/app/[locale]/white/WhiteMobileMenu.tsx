@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import Image from 'next/image';
 import {useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
@@ -143,6 +144,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
           <aside
             ref={panelRef}
             role="dialog"
+            tabIndex={-1}
             aria-modal="true"
             aria-label={t('menu')}
             className="wv-root fixed inset-y-0 left-0 z-[1201] flex w-[87%] max-w-[420px] flex-col bg-white font-sans antialiased shadow-[30px_0_60px_-30px_rgba(28,23,20,0.5)] transition-transform motion-reduce:transition-none"
@@ -167,16 +169,16 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                 {links.map((l) => {
                   const active = activeCat != null && l.key === activeCat;
                   return (
-                    <a
+                    <Link
                       key={l.key}
                       href={l.href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
                       className="wv-menu-item wv-menu-link flex min-h-11 items-center font-display text-[26px] font-light tracking-[-0.01em]"
-                      style={{color: INK, textDecoration: active ? 'underline' : 'none', textUnderlineOffset: '8px', textDecorationThickness: '1px', animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
+                      style={{color: active ? INK : MUTED, animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
                     >
                       {l.label}
-                    </a>
+                    </Link>
                   );
                 })}
               </div>
@@ -188,31 +190,31 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
               {secondary.map((sc, i) => {
                 const active = pathname === sc.href;
                 return (
-                  <a
+                  <Link
                     key={sc.key}
                     href={sc.href}
                     onClick={() => setOpen(false)}
                     aria-current={active ? 'page' : undefined}
                     className="wv-menu-item wv-link inline-flex min-h-9 items-center self-start text-[11px] uppercase tracking-[0.12em]"
-                    style={{color: active ? INK : MUTED, textDecoration: active ? 'underline' : 'none', textUnderlineOffset: '6px', animationDelay: `${360 + i * 40}ms`}}
+                    style={{color: active ? INK : MUTED, animationDelay: `${360 + i * 40}ms`}}
                   >
                     {sc.label}
-                  </a>
+                  </Link>
                 );
               })}
             </div>
 
 
             <div className="wv-menu-item mx-6 mt-4 flex shrink-0 items-center gap-4 border-t pb-8 pt-3 text-[12px] uppercase tracking-[0.12em]" style={{animationDelay: '620ms', borderColor: HAIR, color: INK}}>
-              <a href={`/${locale}/white/account`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
+              <Link href={`/${locale}/white/account`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
                 {t('account')}
-              </a>
-              <a href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
+              </Link>
+              <Link href={`/${locale}/white/favourites`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
                 {t('saved')}
-              </a>
-              <a href={`/${locale}/white/bag`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
+              </Link>
+              <Link href={`/${locale}/white/bag`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
                 {t('bag')}
-              </a>
+              </Link>
             </div>
           </aside>
         </>,

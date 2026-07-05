@@ -115,14 +115,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
   const cats: (Cat | 'all')[] = ['all', 'dresses', 'outerwear', 'knitwear', 'tailoring', 'skirts'];
 
   return (
-    <div className="wv-root relative min-h-screen bg-white font-sans antialiased" style={{color: INK}}>
-      {/* Header */}
-      <WhiteHeader
-        locale={locale}
-        activeCat={cat}
-        left={null}
-        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
-      />
+    <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto max-w-[1400px] px-6 sm:px-10">
         {/* Title */}
@@ -185,11 +178,8 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
                 type="button"
                 onClick={() => pickCat(c)}
                 aria-pressed={cat === c}
-                className="wv-tap inline-flex min-h-11 shrink-0 items-center px-3.5 text-[12px] uppercase tracking-[0.14em]"
-                style={{
-                  color: cat === c ? INK : MUTED,
-                  border: `1px solid ${cat === c ? INK : HAIR}`,
-                }}
+                className="inline-flex min-h-11 shrink-0 items-center pr-5 text-[12px] uppercase tracking-[0.16em] transition-colors"
+                style={{color: cat === c ? INK : MUTED, fontWeight: cat === c ? 500 : 400}}
               >
                 {catLabel(c)}
               </button>
@@ -226,7 +216,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         )}
 
         {/* Grid */}
-        <div className="grid grid-cols-2 gap-x-4 gap-y-12 py-12 sm:gap-x-6 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-y-14 py-10 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3 lg:gap-x-8">
           {shown.map((p, i) => (
             <WhiteProductCard key={p.key} locale={locale} product={p} index={i} priority={i < 2} quickAdd rise />
           ))}
@@ -249,8 +239,6 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
           </div>
         )}
       </main>
-
-      <WhiteFooter locale={locale} />
-    </div>
+    </>
   );
 }

@@ -19,12 +19,7 @@ export default function WhiteNotFoundShowcase({locale}: {locale: string}) {
   const t = useTranslations('white.notFound');
 
   return (
-    <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
-      <WhiteHeader
-        locale={locale}
-        left={null}
-        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
-      />
+    <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center">
         <p className="wv-rise text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('eyebrow')}</p>
@@ -43,8 +38,6 @@ export default function WhiteNotFoundShowcase({locale}: {locale: string}) {
           </a>
         </div>
       </main>
-
-      <WhiteFooter locale={locale} />
-    </div>
+    </>
   );
 }

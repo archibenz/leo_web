@@ -68,12 +68,7 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
   };
 
   return (
-    <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
-      <WhiteHeader
-        locale={locale}
-        left={null}
-        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
-      />
+    <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto w-full max-w-[560px] flex-1 px-6 py-14 sm:px-10 sm:py-24">
         <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('eyebrow')}</p>
@@ -193,8 +188,6 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
           </div>
         )}
       </main>
-
-      <WhiteFooter locale={locale} />
-    </div>
+    </>
   );
 }

@@ -27,12 +27,7 @@ export default function WhiteContactShowcase({locale}: {locale: string}) {
   const tf = useTranslations('footer');
 
   return (
-    <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
-      <WhiteHeader
-        locale={locale}
-        left={null}
-        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
-      />
+    <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto w-full max-w-[1400px] flex-1 px-6 py-14 sm:px-10 sm:py-28">
         <div className="grid gap-14 lg:grid-cols-[1fr_0.9fr] lg:gap-20">
@@ -74,8 +69,6 @@ export default function WhiteContactShowcase({locale}: {locale: string}) {
           <p className="mt-3 text-[13px] leading-relaxed" style={{color: MUTED}}>{tf('legalEntity')}</p>
         </section>
       </main>
-
-      <WhiteFooter locale={locale} />
-    </div>
+    </>
   );
 }

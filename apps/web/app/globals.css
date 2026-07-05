@@ -1615,6 +1615,13 @@ body:has(.wv-root)::after {
   animation-duration: 320ms;
 }
 
+/* The dialog container takes focus on open (instead of its first link) —
+   it needs no ring of its own. */
+.wv-root aside[role="dialog"]:focus,
+.wv-root aside[role="dialog"]:focus-visible {
+  outline: none;
+}
+
 /* Drawer rows step aside on hover instead of washing grey — an editorial
    nudge, colour steady, reduced-motion keeps them still. */
 .wv-menu-link {
