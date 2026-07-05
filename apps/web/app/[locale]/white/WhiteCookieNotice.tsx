@@ -43,7 +43,7 @@ export default function WhiteCookieNotice({locale}: {locale: string}) {
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-x-6 gap-y-2">
         <p className="text-[12px] leading-relaxed" style={{color: MUTED}}>
           {t('cookieText')}{' '}
-          <a href={`/${locale}/privacy`} className="wv-link" style={{color: INK}}>
+          <a href={`/${locale}/privacy`} className="wv-link -my-3 inline-flex min-h-11 items-center" style={{color: INK}}>
             {t('cookieMore')}
           </a>
         </p>

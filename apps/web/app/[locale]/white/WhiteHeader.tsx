@@ -55,7 +55,7 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
       {/* px-6 through the md band: the wordmark's wide tracking leaves the
           equal-split side slots ~178px each at 768, and the ru action labels
           need every pixel of it — full px-10 returns at lg. */}
-      <div className="flex items-center justify-between px-3 py-2.5 sm:px-4 sm:py-5 lg:px-5">
+      <div className="-my-2 flex items-center py-2 justify-between px-3 py-2.5 sm:px-4 sm:py-5 lg:px-5">
         <div className="flex flex-1 items-center justify-start">
           {/* The side drawer is the navigation at every width. */}
           <WhiteMobileMenu locale={locale} activeCat={activeCat} />

@@ -401,7 +401,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
         <section className="mx-auto w-full max-w-[1400px] border-t px-6 pb-4 pt-14 sm:px-10" style={{borderColor: HAIR}}>
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="font-display text-[24px] font-light tracking-tight sm:text-[30px]">{t('completeLook')}</h2>
-            <a href={`/${locale}/white/sets`} className="wv-link text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
+            <a href={`/${locale}/white/sets`} className="wv-link -my-3 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
               {ru ? look.ru : look.en} →
             </a>
           </div>
