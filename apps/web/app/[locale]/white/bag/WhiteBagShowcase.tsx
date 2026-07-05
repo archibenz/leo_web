@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import Image from 'next/image';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
@@ -53,77 +54,76 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
 
             <ul className="mt-10 border-t" style={{borderColor: HAIR}}>
               {items.map((i) => (
-                <li key={i.id} className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b py-5" style={{borderColor: HAIR}}>
-                  <a
+                <li key={i.id} className="grid grid-cols-[88px_1fr_auto] gap-x-4 border-b py-6 sm:grid-cols-[96px_1fr_auto]" style={{borderColor: HAIR}}>
+                  <Link
                     href={`/${locale}/white/product?p=${i.key}`}
                     aria-label={(ru ? i.ru : i.en)}
-                    className="wv-ph relative aspect-[2/3] w-16 shrink-0 overflow-hidden"
+                    className="wv-ph relative row-span-2 aspect-[3/4] w-[88px] overflow-hidden sm:w-24"
                   >
-                    <Image src={findWhiteProduct(i.key)?.image ?? '/images/shop/editorial-clean.jpg'} alt="" fill sizes="64px" className="object-cover" />
-                  </a>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-[15px]">{(ru ? i.ru : i.en)}</p>
-                    <p className="mt-1 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>
-                      <span>{t('size')}: {i.size}</span>
-                      {findWhiteProduct(i.key)?.nm && (
-                        <a href={`https://www.wildberries.ru/catalog/${findWhiteProduct(i.key)!.nm}/detail.aspx`} target="_blank" rel="noopener noreferrer" className="wv-link" style={{color: MUTED}}>
-                          · WB ↗
-                        </a>
-                      )}
+                    <Image src={findWhiteProduct(i.key)?.image ?? '/images/shop/editorial-clean.jpg'} alt="" fill sizes="96px" className="object-cover" />
+                  </Link>
+
+                  <div className="min-w-0">
+                    <p className="text-[14px] leading-snug sm:text-[15px]">{(ru ? i.ru : i.en)}</p>
+                    <p className="mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[11px] uppercase tracking-[0.14em]" style={{color: MUTED}}>
+                      <span>{i.size}</span>
                       {(ru ? i.colorRu : i.colorEn) && (
                         <>
                           <span aria-hidden="true">·</span>
-                          {(() => {
-                            const hex = findWhiteProduct(i.key)?.colors.find((c) => c.en === i.colorEn)?.hex;
-                            return hex ? (
-                              <span aria-hidden="true" className="inline-block h-2.5 w-2.5 shrink-0" style={{background: hex, border: `1px solid ${HAIR}`}} />
-                            ) : null;
-                          })()}
                           <span>{ru ? i.colorRu : i.colorEn}</span>
                         </>
                       )}
                     </p>
                   </div>
-                  {/* Controls — own full-width row on phones so the product name
-                      above keeps the whole line (it was truncating to ~103px);
-                      inline single row on sm+. */}
-                  <div className="flex w-full items-center justify-between gap-4 sm:w-auto sm:justify-end">
-                    {/* Quantity stepper — min 1 (× removes); 44px tap targets, square. */}
-                    <div className="flex shrink-0 items-center" role="group" aria-label={t('quantity')}>
+
+                  <button
+                    type="button"
+                    onClick={() => remove(i.id)}
+                    aria-label={t('removeFromBag', {name: ru ? i.ru : i.en})}
+                    className="wv-tap-sm -mr-2 -mt-2 flex h-10 w-10 items-start justify-end self-start pr-2 pt-2 text-[18px] leading-none transition-opacity hover:opacity-60"
+                    style={{color: MUTED}}
+                  >
+                    ×
+                  </button>
+
+                  <div className="col-start-2 flex items-end justify-between gap-4 self-end">
+                    {/* Quantity — bare glyph stepper, no boxes. */}
+                    <div className="-ml-3 flex items-center" role="group" aria-label={t('quantity')}>
                       <button
                         type="button"
                         onClick={() => setQty(i.id, i.qty - 1)}
                         disabled={i.qty <= 1}
                         aria-label={t('decreaseQty')}
-                        className="flex h-11 w-11 items-center justify-center text-[16px] leading-none transition-colors disabled:opacity-[0.45]"
-                        style={{border: `1px solid ${HAIR}`, color: INK}}
+                        className="wv-tap-sm flex h-10 w-10 items-center justify-center text-[16px] leading-none disabled:opacity-30"
+                        style={{color: INK}}
                       >
                         −
                       </button>
-                      <span aria-live="polite" className="min-w-10 text-center text-[14px] tabular-nums">{i.qty}</span>
+                      <span aria-live="polite" className="min-w-7 text-center text-[13px] tabular-nums">{i.qty}</span>
                       <button
                         type="button"
                         onClick={() => setQty(i.id, i.qty + 1)}
                         aria-label={t('increaseQty')}
-                        className="flex h-11 w-11 items-center justify-center text-[16px] leading-none transition-colors"
-                        style={{border: `1px solid ${HAIR}`, color: INK}}
+                        className="wv-tap-sm flex h-10 w-10 items-center justify-center text-[16px] leading-none"
+                        style={{color: INK}}
                       >
                         +
                       </button>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <p className="w-24 shrink-0 text-right text-[14px] tabular-nums">{fmt(linePrice(i) * i.qty)}</p>
-                      <button
-                        type="button"
-                        onClick={() => remove(i.id)}
-                        aria-label={t('removeFromBag', {name: ru ? i.ru : i.en})}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center text-[20px] leading-none transition-opacity hover:opacity-60"
-                        style={{color: MUTED}}
-                      >
-                        ×
-                      </button>
-                    </div>
+                    <p className="text-[14px] tabular-nums">{fmt(linePrice(i) * i.qty)}</p>
                   </div>
+
+                  {findWhiteProduct(i.key)?.nm && (
+                    <a
+                      href={`https://www.wildberries.ru/catalog/${findWhiteProduct(i.key)!.nm}/detail.aspx`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="wv-link col-start-2 mt-2 justify-self-start text-[10px] uppercase tracking-[0.16em]"
+                      style={{color: MUTED}}
+                    >
+                      Wildberries ↗
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>
