@@ -1313,7 +1313,8 @@
       "close": "Close",
       "selectSize": "Select size",
       "regularPrice": "Regular price",
-      "salePrice": "Sale price"
+      "salePrice": "Sale price",
+      "coloursCount": "{count} colours"
     },
     "favourites": {
       "shop": "Shop",
