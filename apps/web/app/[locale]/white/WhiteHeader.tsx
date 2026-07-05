@@ -74,7 +74,7 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
           aria-label="REINASLEO"
         >
           {/* The brand mark — the name with the diamond set in the O. */}
-          <Image src="/logos/name-mark-black.svg" alt="REINASLEO" width={1038} height={174} priority className="h-[26px] w-auto sm:h-[30px]" />
+          <Image src="/logos/name-mark-black.svg" alt="REINASLEO" width={1038} height={174} priority className="h-[19px] w-auto sm:h-[23px]" />
         </Link>
         <div className="flex flex-1 items-center justify-end">{right}</div>
       </div>

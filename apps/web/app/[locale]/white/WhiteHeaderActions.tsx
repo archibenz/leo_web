@@ -5,7 +5,7 @@ import type {ReactNode} from 'react';
 import {useTranslations} from 'next-intl';
 import {MUTED, INK, SIGNAL} from './wv-palette';
 import {whiteItemNoun} from './wv-i18n';
-import {MaskIcon} from './wv-icons';
+import {MaskIcon, WhiteFavHeart} from './wv-icons';
 
 // Shared header right-slot. The thin-stroke heart and bag glyphs carry the
 // actions at every width — quieter than spelled-out labels and they never
@@ -97,8 +97,8 @@ export default function WhiteHeaderActions({
         href={`/${locale}/white/favourites`}
         ariaLabel={`${t('saved')}, ${favCount} ${whiteItemNoun(favCount, locale)}`}
         isCurrent={current === 'favourites'}
-        icon={<MaskIcon src="/icons/heart.svg" className={icon} />}
-        count={favCount}
+        icon={<WhiteFavHeart filled={favCount > 0} size={18} />}
+        count={0}
       />
       <Action
         href={`/${locale}/white/bag`}
