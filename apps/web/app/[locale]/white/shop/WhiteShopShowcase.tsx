@@ -9,7 +9,6 @@ import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR} from '../wv-palette';
-import {whiteItemNoun} from '../wv-i18n';
 import {WHITE_PRODUCTS as ITEMS, whiteCatLabel, type WhiteProduct as Item, type WhiteCat as Cat, type WhiteColor as Colour} from '../products';
 
 // Variant 2 "White" — shop / catalog grid with filters + sort. Same portal
@@ -123,9 +122,6 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         <div className="flex items-center justify-between gap-3 px-6 pt-6 pb-4 sm:items-baseline sm:px-0 sm:pt-12 sm:pb-6">
           <h1 className="font-display text-[28px] font-light tracking-tight sm:text-[44px]">{t('shop')}</h1>
           <span className="flex items-center gap-1">
-            <span aria-live="polite" aria-atomic="true" className="shrink-0 text-[11px] uppercase tracking-[0.14em] tabular-nums sm:text-[12px]" style={{color: MUTED}}>
-              {shown.length} {whiteItemNoun(shown.length, locale)}
-            </span>
             <button
               type="button"
               onClick={() => {
@@ -209,16 +205,21 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
           </div>
           <label className="flex shrink-0 items-center gap-2 text-[12px] uppercase tracking-[0.14em]" style={{color: MUTED}}>
             <span className="hidden sm:inline">{t('sort')}</span>
+            <span className="relative inline-flex items-center">
             <select
               value={sort}
               onChange={(e) => pickSort(e.target.value as Sort)}
-              className="min-h-11 cursor-pointer border-b bg-transparent py-1 text-[12px] uppercase tracking-[0.14em] outline-none"
-              style={{color: INK, borderColor: MUTED}}
+              className="min-h-11 cursor-pointer appearance-none rounded-none border-0 border-b bg-transparent py-1 pl-0 pr-6 text-[12px] uppercase tracking-[0.14em] outline-none"
+              style={{color: INK, borderColor: HAIR}}
             >
               <option value="new">{t('sortNewest')}</option>
               <option value="asc">{t('sortAsc')}</option>
               <option value="desc">{t('sortDesc')}</option>
             </select>
+            <svg aria-hidden="true" width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="1.2" className="pointer-events-none absolute right-1 top-1/2 -translate-y-1/2" style={{color: '#776e64'}}>
+              <path d="m1 1 4 4 4-4" />
+            </svg>
+            </span>
           </label>
         </div>
 
