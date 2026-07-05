@@ -20,7 +20,7 @@ import {INK, MUTED, HAIR} from './wv-palette';
 // reduced-motion safe. Focus-trapped; ESC + scroll-lock (restores the white
 // portal's own lock); focus returns to the hamburger on close (WCAG 2.4.3).
 
-const SLIDE_MS = 560;
+const SLIDE_MS = 640;
 
 export default function WhiteMobileMenu({locale, activeCat}: {locale: string; activeCat?: string | null}) {
   const [open, setOpen] = useState(false);
@@ -101,7 +101,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
         aria-expanded={open}
         aria-label={t('openMenu')}
         style={{WebkitTapHighlightColor: 'transparent'}}
-        className={`-ml-2 flex h-11 w-11 shrink-0 items-center justify-center transition-opacity duration-200 active:scale-90 motion-reduce:active:scale-100 ${shown ? 'pointer-events-none opacity-0' : ''}`}
+        className={`-ml-2 flex h-11 w-11 shrink-0 items-center justify-center transition-opacity duration-200 active:scale-90 motion-reduce:active:scale-100 ${shown ? 'opacity-0' : ''}`}
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="square">
           <line x1="4" y1="7" x2="20" y2="7" />
@@ -118,8 +118,8 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
               can't). */}
           <button
             type="button"
-            onClick={() => setOpen(false)}
-            aria-label={t('close')}
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? t('close') : t('openMenu')}
             style={{
               WebkitTapHighlightColor: 'transparent',
               left: '4px',
