@@ -59,16 +59,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
 
 
   return (
-    <div
-      className="wv-root relative min-h-screen bg-white font-sans antialiased"
-      style={{color: INK}}
-    >
-      {/* Header — the drawer carries the navigation, the lockup sits centre. */}
-      <WhiteHeader
-        locale={locale}
-        left={null}
-        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} search />}
-      />
+    <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}}>
       {/* Hero — a full-bleed fashion-film loop with the season + line set over
@@ -163,9 +154,6 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         </div>
       </section>
       </main>
-
-      {/* Footer */}
-      <WhiteFooter locale={locale} />
-    </div>
+    </>
   );
 }

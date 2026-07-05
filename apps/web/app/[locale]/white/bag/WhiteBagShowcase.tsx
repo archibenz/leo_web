@@ -30,12 +30,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
   const total = items.reduce((sum, i) => sum + linePrice(i) * i.qty, 0);
 
   return (
-    <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
-      <WhiteHeader
-        locale={locale}
-        left={null}
-        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} current="bag" />}
-      />
+    <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 py-12 sm:px-10">
         {items.length === 0 ? (
@@ -146,8 +141,6 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
           </div>
         )}
       </main>
-
-      <WhiteFooter locale={locale} />
-    </div>
+    </>
   );
 }

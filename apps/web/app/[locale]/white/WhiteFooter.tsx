@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import Image from 'next/image';
 import {useEffect, useRef, useState, type FormEvent} from 'react';
 import {useTranslations} from 'next-intl';
@@ -107,7 +108,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
             <ul className="space-y-1 text-[13px]" style={{color: MUTED}}>
               {col.items.map((it) => (
                 <li key={it.label}>
-                  <a href={it.href} className="flex min-h-11 items-center transition-opacity hover:opacity-60">{it.label}</a>
+                  <Link href={it.href} className="flex min-h-11 items-center transition-opacity hover:opacity-60">{it.label}</Link>
                 </li>
               ))}
             </ul>
@@ -163,9 +164,9 @@ export default function WhiteFooter({locale}: {locale: string}) {
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-6 pb-10 text-[11px] uppercase tracking-[0.14em] sm:px-10" style={{color: MUTED}}>
         <span>© 2026 REINASLEO · {t('previewNote')}</span>
         <span className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <a href={`/${locale}/privacy`} className="wv-link">{t('privacy')}</a>
-          <a href={`/${locale}/offer`} className="wv-link">{t('offer')}</a>
-          <a href={`/${locale}/terms`} className="wv-link">{t('terms')}</a>
+          <Link href={`/${locale}/privacy`} className="wv-link">{t('privacy')}</Link>
+          <Link href={`/${locale}/offer`} className="wv-link">{t('offer')}</Link>
+          <Link href={`/${locale}/terms`} className="wv-link">{t('terms')}</Link>
           <WhiteLocaleSwitch locale={locale} />
         </span>
       </div>

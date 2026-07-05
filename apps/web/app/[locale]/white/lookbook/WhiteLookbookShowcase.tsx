@@ -25,12 +25,7 @@ export default function WhiteLookbookShowcase({locale}: {locale: string}) {
   const t = useTranslations('white.lookbook');
 
   return (
-    <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
-      <WhiteHeader
-        locale={locale}
-        left={null}
-        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
-      />
+    <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="flex-1">
         {/* Intro */}
@@ -79,8 +74,6 @@ export default function WhiteLookbookShowcase({locale}: {locale: string}) {
           );
         })}
       </main>
-
-      <WhiteFooter locale={locale} />
-    </div>
+    </>
   );
 }

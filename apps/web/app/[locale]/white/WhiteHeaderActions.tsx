@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import type {ReactNode} from 'react';
 import {useTranslations} from 'next-intl';
 import {MUTED, INK, SIGNAL} from './wv-palette';
@@ -48,9 +49,9 @@ function Action({
       <span className="sr-only">{ariaLabel}</span>
     </span>
   ) : (
-    <a href={href} aria-label={ariaLabel} className={WRAP}>
+    <Link href={href} aria-label={ariaLabel} className={WRAP}>
       {inner}
-    </a>
+    </Link>
   );
 }
 
@@ -74,7 +75,7 @@ export default function WhiteHeaderActions({
       {search && (
         /* Same glyph language as the heart/bag; the shop page carries its own
            search field, this is the landing shortcut to it. */
-        <a
+        <Link
           href={`/${locale}/white/shop?focus=search`}
           aria-label={t('searchCollection')}
           className={`${WRAP} hidden md:flex`}
@@ -83,15 +84,15 @@ export default function WhiteHeaderActions({
             <circle cx="11" cy="11" r="7" />
             <path d="M16.5 16.5 21 21" />
           </svg>
-        </a>
+        </Link>
       )}
       {/* Account — desktop only; the phone reaches it through the drawer. */}
-      <a href={`/${locale}/white/account`} aria-label={t('account')} className={`${WRAP} hidden md:flex`}>
+      <Link href={`/${locale}/white/account`} aria-label={t('account')} className={`${WRAP} hidden md:flex`}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" aria-hidden="true">
           <circle cx="12" cy="8" r="4" />
           <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" />
         </svg>
-      </a>
+      </Link>
       <Action
         href={`/${locale}/white/favourites`}
         ariaLabel={`${t('saved')}, ${favCount} ${whiteItemNoun(favCount, locale)}`}

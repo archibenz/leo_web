@@ -36,12 +36,7 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
   };
 
   return (
-    <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
-      <WhiteHeader
-        locale={locale}
-        left={null}
-        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
-      />
+    <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="flex-1">
         <div className="mx-auto w-full max-w-[1400px] px-6 pb-6 pt-14 sm:px-10 sm:pt-28">
@@ -91,8 +86,6 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
           );
         })}
       </main>
-
-      <WhiteFooter locale={locale} />
-    </div>
+    </>
   );
 }

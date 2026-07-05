@@ -22,12 +22,7 @@ export default function WhiteInfoShowcase({locale, ns}: {locale: string; ns: Whi
   const sections = t.raw('sections') as {h: string; b: string}[];
 
   return (
-    <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: INK}}>
-      <WhiteHeader
-        locale={locale}
-        left={null}
-        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
-      />
+    <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto w-full max-w-[1400px] flex-1 px-6 py-14 sm:px-10 sm:py-28">
         <div className="grid gap-14 lg:grid-cols-[1fr_0.9fr] lg:gap-20">
@@ -47,8 +42,6 @@ export default function WhiteInfoShowcase({locale, ns}: {locale: string; ns: Whi
           </div>
         </div>
       </main>
-
-      <WhiteFooter locale={locale} />
-    </div>
+    </>
   );
 }

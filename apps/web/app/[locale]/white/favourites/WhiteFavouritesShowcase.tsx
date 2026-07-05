@@ -25,12 +25,7 @@ export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
   const saved = keys.map((k) => findWhiteProduct(k)).filter((p): p is NonNullable<typeof p> => p != null);
 
   return (
-    <div className="wv-root relative flex min-h-screen flex-col bg-white font-sans antialiased" style={{color: '#1c1714'}}>
-      <WhiteHeader
-        locale={locale}
-        left={null}
-        right={<WhiteHeaderActions locale={locale} favCount={saved.length} count={count} current="favourites" />}
-      />
+    <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 py-12 sm:px-10">
         {saved.length === 0 ? (
@@ -67,8 +62,6 @@ export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
           </>
         )}
       </main>
-
-      <WhiteFooter locale={locale} />
-    </div>
+    </>
   );
 }

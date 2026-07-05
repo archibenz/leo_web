@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import type {ReactNode} from 'react';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
@@ -45,12 +46,12 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
     <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-md transition-transform duration-300 ease-out motion-reduce:transition-none" style={{borderBottom: `1px solid ${HAIR}`, transform: hidden ? 'translateY(-100%)' : 'translateY(0)'}}>
       {/* Skip-link: first focusable element so keyboard users bypass the repeated
           nav straight to <main id="wv-main"> (WCAG 2.4.1). */}
-      <a
+      <Link
         href="#wv-main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:bg-[#1c1714] focus:px-4 focus:py-2 focus:text-[11px] focus:uppercase focus:tracking-[0.18em] focus:text-white"
       >
         {t('skipToContent')}
-      </a>
+      </Link>
       {/* px-6 through the md band: the wordmark's wide tracking leaves the
           equal-split side slots ~178px each at 768, and the ru action labels
           need every pixel of it — full px-10 returns at lg. */}
@@ -60,7 +61,7 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
           <WhiteMobileMenu locale={locale} activeCat={activeCat} />
           <div className="hidden items-center md:flex">{left}</div>
         </div>
-        <a
+        <Link
           href={home}
           onClick={(e) => {
             // On the home page the wordmark scrolls to top instead of a no-op
@@ -78,7 +79,7 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
             <Image src="/logos/icon-black.svg" alt="" width={100} height={100} priority className="h-[26px] w-auto sm:h-[31px]" />
             <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} priority className="h-[20px] w-auto sm:h-[24px]" />
           </span>
-        </a>
+        </Link>
         <div className="flex flex-1 items-center justify-end">{right}</div>
       </div>
     </header>

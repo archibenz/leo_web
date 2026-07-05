@@ -211,13 +211,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
     : [];
 
   return (
-    <div className="wv-root relative min-h-screen bg-white font-sans antialiased" style={{color: INK}}>
-      {/* Header */}
-      <WhiteHeader
-        locale={locale}
-        left={null}
-        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} />}
-      />
+    <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}}>
       <div className="mx-auto max-w-[1400px] px-6 sm:px-10">
@@ -495,7 +489,6 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
       )}
 
       <div ref={pageEndRef} aria-hidden="true" />
-      <WhiteFooter locale={locale} />
 
       {/* Mobile sticky add-to-bag — slides up once the inline CTA scrolls away,
           keeping the action within thumb reach on a long PDP. */}
@@ -518,6 +511,6 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
