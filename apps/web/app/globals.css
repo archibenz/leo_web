@@ -1600,6 +1600,32 @@ body:has(.wv-root)::after {
   background-color: #e9e2d7;
 }
 
+/* Bar icons: the same wash, drawn smaller — a 34px disc centred inside the
+   44px hit area, so the touch target stays full-size while the highlight
+   whispers. */
+.wv-tap-sm {
+  position: relative;
+}
+.wv-tap-sm::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34px;
+  height: 34px;
+  transform: translate(-50%, -50%);
+  border-radius: 9999px;
+  background-color: transparent;
+  transition: background-color 0.25s ease;
+  z-index: -1;
+}
+.wv-tap-sm:hover::after {
+  background-color: #f1ece4;
+}
+.wv-tap-sm:active::after {
+  background-color: #e9e2d7;
+}
+
 /* Opt-in scroll-driven entrance (add wv-scrub next to wv-rise): the block
    rises as it scrolls into view. Kept away from reading surfaces — a partially
    entered text column would sit half-transparent under the reader's eyes.
