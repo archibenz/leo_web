@@ -52,18 +52,14 @@ export function WhiteFavHeart({filled, size = 18, fillColor = SIGNAL}: {filled: 
 }
 
 
-// Bag glyph for the header: an outline while empty; with items it fills ink
-// and carries a white count inside the body (the handle stays a stroke).
-export function WhiteBagGlyph({count, size = 19}: {count: number; size?: number}) {
-  const filled = count > 0;
+// Bag glyph for the header: the house cart icon as ever; with items in the
+// bag a small ink count sits inside the body.
+export function WhiteBagGlyph({count, size = 18}: {count: number; size?: number}) {
   return (
     <span aria-hidden="true" className="relative inline-flex items-center justify-center" style={{width: size, height: size}}>
-      <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="square">
-        <path d="M8.2 8.2V7a3.8 3.8 0 0 1 7.6 0v1.2" />
-        <path d="M4.8 8.2h14.4l1.1 12.2H3.7Z" fill={filled ? INK : 'none'} />
-      </svg>
-      {filled && (
-        <span className="absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2 font-display text-[8px] font-normal leading-none tracking-[0.02em] text-white tabular-nums">
+      <span style={{width: size, height: size, backgroundColor: INK, ...maskStyle('/icons/cart.svg')}} />
+      {count > 0 && (
+        <span className="absolute left-1/2 top-[60%] -translate-x-1/2 -translate-y-1/2 font-display text-[8px] font-medium leading-none tabular-nums" style={{color: INK}}>
           {count > 9 ? '9+' : count}
         </span>
       )}
