@@ -1451,11 +1451,11 @@
       "requisites": "Requisites"
     },
     "notFound": {
-      "eyebrow": "404",
-      "title": "Page not found",
-      "intro": "The link may be outdated, or the piece has sold out.",
+      "eyebrow": "Error 404",
+      "title": "This page left the runway",
+      "intro": "The address may have changed, or the piece left the window. The collection is right here.",
       "home": "Home",
-      "shop": "Shop the collection"
+      "shop": "Shop"
     },
     "localeSwitch": {
       "label": "Language"
@@ -1571,6 +1571,13 @@
       "errName": "Enter a name (2–40 characters).",
       "intro": "Sign in or create an account — favourites and orders stay with you.",
       "consent": "By creating an account you accept the <policy>Privacy Policy</policy> and the <offer>Offer</offer>."
+    },
+    "error": {
+      "eyebrow": "Error",
+      "title": "A brief pause backstage",
+      "intro": "Something went wrong on our side. Try again — we are already on it.",
+      "retry": "Try again",
+      "home": "Home"
     }
   }
 }

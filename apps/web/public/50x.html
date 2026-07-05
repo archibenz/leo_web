@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>REINASLEO — пауза за кулисами</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: #fff; color: #1c1714; text-align: center; padding: 24px;
+    font-family: "Jost", "Helvetica Neue", Arial, sans-serif;
+  }
+  .figure { display: flex; align-items: center; justify-content: center; gap: clamp(10px, 2vw, 16px); }
+  .digit { font-weight: 300; font-size: clamp(88px, 20vw, 150px); line-height: 1; letter-spacing: -0.02em; }
+  .gem { width: clamp(44px, 9vw, 74px); height: auto; animation: turn 18s linear infinite; }
+  @media (prefers-reduced-motion: reduce) { .gem { animation: none; } }
+  @keyframes turn { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+  .eyebrow { margin-top: 34px; font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: #776e64; }
+  h1 { margin-top: 14px; font-weight: 300; font-size: clamp(26px, 5vw, 40px); letter-spacing: -0.01em; }
+  p { margin-top: 20px; max-width: 420px; font-size: 15px; line-height: 1.6; color: #776e64; }
+  a { display: inline-block; margin-top: 36px; padding: 15px 34px; border: 1px solid #1c1714; color: #1c1714;
+      text-decoration: none; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; }
+  a:hover { background: #1c1714; color: #fff; }
+  .en { margin-top: 28px; font-size: 12px; color: #a39a8f; }
+</style>
+</head>
+<body>
+  <div class="figure" aria-hidden="true">
+    <span class="digit">5</span>
+    <svg class="gem" viewBox="0 0 42.18 42.18" xmlns="http://www.w3.org/2000/svg"><g transform="translate(-592.68 -255.5)"><path fill="#aa000d" d="M592.68,255.5v42.19h42.19V255.5Zm33.57,29.73a39.89,39.89,0,0,1,8.51,12.38,41.81,41.81,0,0,1-21-21h0l0,0,0,0a41.83,41.83,0,0,1-21,21,41.83,41.83,0,0,1,21-21,41.76,41.76,0,0,1-21-21,41.76,41.76,0,0,1,21,21h0a41.73,41.73,0,0,1,21-21,41.75,41.75,0,0,1-21,21A39.94,39.94,0,0,1,634.86,297.61Z"/></g></svg>
+    <span class="digit">X</span>
+  </div>
+  <p class="eyebrow">Сервис недоступен</p>
+  <h1>Небольшая пауза за кулисами</h1>
+  <p>Мы обновляем сцену. Вернитесь через минуту — коллекция никуда не уходит.</p>
+  <a href="/">Обновить</a>
+  <p class="en">A brief pause backstage — please retry in a minute.</p>
+</body>
+</html>

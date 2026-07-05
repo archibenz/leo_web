@@ -6,7 +6,8 @@ import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import WhiteHeader from './WhiteHeader';
 import WhiteHeaderActions from './WhiteHeaderActions';
 import WhiteFooter from './WhiteFooter';
-import {INK, MUTED} from './wv-palette';
+import {MUTED} from './wv-palette';
+import WhiteErrorFigure from './WhiteErrorFigure';
 
 // Variant 2 "White" — 404. An unmatched /white/* URL would otherwise fall to the
 // dark gradient not-found, breaking the White experience. This keeps the segment
@@ -22,8 +23,11 @@ export default function WhiteNotFoundShowcase({locale}: {locale: string}) {
     <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center">
-        <p className="wv-rise text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('eyebrow')}</p>
-        <h1 className="wv-rise wv-delay-1 mt-6 font-display text-[clamp(40px,calc(3vw_+_28px),64px)] font-light leading-[1.0] tracking-[-0.01em]">{t('title')}</h1>
+        <div className="wv-rise">
+          <WhiteErrorFigure left="4" right="4" />
+        </div>
+        <p className="wv-rise wv-delay-1 mt-8 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('eyebrow')}</p>
+        <h1 className="wv-rise wv-delay-1 mt-4 font-display text-[clamp(30px,calc(2vw_+_22px),44px)] font-light leading-[1.05] tracking-[-0.01em]">{t('title')}</h1>
         <p className="wv-rise wv-delay-2 mt-7 max-w-sm text-[15px] leading-relaxed" style={{color: MUTED}}>{t('intro')}</p>
         <div className="wv-rise wv-delay-3 mt-11 flex flex-col items-center gap-5">
           <a href={`/${locale}/white`} className="wv-btn inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
