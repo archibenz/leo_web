@@ -1661,6 +1661,15 @@ body:has(.wv-root)::after {
   outline: none;
 }
 
+/* The error pages' diamond turns slowly on its axis — one quiet flourish. */
+@keyframes wv-gem-turn {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.wv-gem {
+  animation: wv-gem-turn 18s linear infinite;
+}
+
 /* Drawer rows step aside on hover instead of washing grey — an editorial
    nudge, colour steady, reduced-motion keeps them still. */
 .wv-menu-link {
@@ -1700,6 +1709,7 @@ body:has(.wv-root)::after {
   .wv-link::after { transition: none; }
   .wv-menu-item { animation: none; opacity: 1; }
   .wv-pop { animation: none; }
+  .wv-gem { animation: none; }
   .wv-menu-link { transition: none; }
   .wv-menu-link:hover, .wv-menu-link:focus-visible { transform: none; }
 }
