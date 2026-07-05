@@ -132,7 +132,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       </section>
 
       {/* Lookbook — editorial brand statement */}
-      <section id="wv-atelier" className="scroll-mt-24 border-t" style={{borderColor: HAIR}}>
+      <section id="wv-atelier" className="mt-8 scroll-mt-24 border-t sm:mt-12" style={{borderColor: HAIR}}>
         <div className="mx-auto grid max-w-[1400px] items-center gap-0 lg:grid-cols-2">
           <div className="wv-rise wv-scrub wv-zoom relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto lg:min-h-[620px]">
             <Image src={WHITE_ATELIER_IMAGE} alt="" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />

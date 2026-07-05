@@ -1560,10 +1560,15 @@ body:has(.wv-root)::after {
 
 /* Editorial stills ease closer on hover — pointer devices only, transform-only. */
 .wv-zoom img {
+  /* A hair of permanent overscan: fractional layout sizes leave sub-pixel
+     slivers around a scaling image — starting at 1.01 keeps every edge
+     covered through the whole zoom. */
+  transform: scale(1.01);
   transition: transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  backface-visibility: hidden;
 }
 @media (hover: hover) {
-  .wv-zoom:hover img { transform: scale(1.045); }
+  .wv-zoom:hover img { transform: scale(1.05); }
 }
 
 /* Quiet text links draw a hairline underline. */
@@ -1691,7 +1696,7 @@ body:has(.wv-root)::after {
   .wv-rise { animation: none; opacity: 1; }
   .wv-quickadd { transition: opacity 0.2s ease; transform: none; }
   .wv-drift { animation: none; }
-  .wv-zoom img { transition: none; transform: none; }
+  .wv-zoom img { transition: none; transform: scale(1.01); }
   .wv-link::after { transition: none; }
   .wv-menu-item { animation: none; opacity: 1; }
   .wv-pop { animation: none; }
