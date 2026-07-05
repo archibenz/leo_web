@@ -54,7 +54,7 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
               <p className="mx-auto max-w-[1400px] px-6 pt-10 text-[11px] uppercase tracking-[0.3em] sm:px-12 lg:px-16" style={{color: MUTED}}>
                 {String(idx + 1).padStart(2, '0')} — {t('eyebrow')}
               </p>
-              <div className={`mx-auto grid max-w-[1400px] gap-0 lg:grid-cols-2 ${idx % 2 ? 'lg:[&>*:first-child]:order-2' : ''}`}>
+              <div className={`mx-auto grid max-w-[1400px] gap-0 lg:grid-cols-[1fr_1.2fr] ${idx % 2 ? 'lg:[&>*:first-child]:order-2' : ''}`}>
                 <div className="wv-zoom relative aspect-[4/5] w-full overflow-hidden sm:aspect-[16/10] lg:aspect-auto lg:min-h-[560px]">
                   <Image src={set.image} alt="" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
                 </div>
@@ -63,7 +63,7 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
                   <p className="mt-5 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>{ru ? set.descRu : set.descEn}</p>
 
                   <p className="mt-10 text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('items')}</p>
-                  <div className="mt-4 grid grid-cols-3 gap-3">
+                  <div className="mt-5 grid grid-cols-3 gap-4 sm:gap-5">
                     {items.map((p, i) => (
                       <WhiteProductCard key={p.key} locale={locale} product={p} index={i} quickAdd />
                     ))}
