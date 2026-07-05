@@ -8,6 +8,7 @@ import {useWhiteBag} from '../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import {WHITE_SIZES, type WhiteProduct} from './products';
 import {MUTED, SIGNAL} from './wv-palette';
+import {WHITE_LQIP} from './products-lqip';
 import {WhiteFavHeart} from './wv-icons';
 
 // Variant 2 "White" — shared product card for the landing edit, the shop grid
@@ -109,6 +110,8 @@ export default function WhiteProductCard({
           priority={priority}
           loading={priority ? 'eager' : 'lazy'}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 460px"
+          placeholder={WHITE_LQIP[product.image] ? 'blur' : 'empty'}
+          blurDataURL={WHITE_LQIP[product.image]}
           className="pointer-events-none object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />
         {/* Second view crossfades in on hover where the product carries one —

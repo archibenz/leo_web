@@ -13,6 +13,7 @@ import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 import {WhiteFavHeart} from '../wv-icons';
 import {WHITE_PRODUCTS, WHITE_SETS, WHITE_SIZES, type WhiteProduct} from '../products';
+import {WHITE_LQIP} from '../products-lqip';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
 // the landing: a full-bleed white surface over the gradient chrome, reviewed at
@@ -245,6 +246,8 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   alt={i === 0 ? name : ''}
                   fill
                   {...(i === 0 ? {priority: true} : {loading: 'lazy' as const})}
+                  placeholder={WHITE_LQIP[src] ? 'blur' : 'empty'}
+                  blurDataURL={WHITE_LQIP[src]}
                   quality={90}
                   sizes="(max-width: 1024px) 100vw, 560px"
                   className="object-cover"
