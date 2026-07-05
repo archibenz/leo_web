@@ -7,7 +7,7 @@ import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import {WHITE_SIZES, type WhiteProduct} from './products';
-import {MUTED, SIGNAL} from './wv-palette';
+import {MUTED, SIGNAL, HAIR} from './wv-palette';
 import {WHITE_LQIP} from './products-lqip';
 import {WhiteFavHeart} from './wv-icons';
 
@@ -231,6 +231,18 @@ export default function WhiteProductCard({
             fmt(product.price)
           )}
         </p>
+        {product.colors.length > 1 && (
+          <span className="mt-2 flex items-center justify-center gap-1.5" aria-label={t('coloursCount', {count: product.colors.length})}>
+            {product.colors.slice(0, 5).map((c) => (
+              <span
+                key={c.key}
+                aria-hidden="true"
+                className="inline-block h-[7px] w-[7px] rounded-full"
+                style={{background: c.hex, boxShadow: `0 0 0 1px ${HAIR}`}}
+              />
+            ))}
+          </span>
+        )}
       </Link>
     </div>
   );

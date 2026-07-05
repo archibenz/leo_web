@@ -1313,7 +1313,8 @@
       "close": "Закрыть",
       "selectSize": "Размер",
       "regularPrice": "Обычная цена",
-      "salePrice": "Цена со скидкой"
+      "salePrice": "Цена со скидкой",
+      "coloursCount": "{count} цвета"
     },
     "favourites": {
       "shop": "Магазин",
