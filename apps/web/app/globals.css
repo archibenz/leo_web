@@ -1605,6 +1605,16 @@ body:has(.wv-root)::after {
   }
 }
 
+/* The closing accent belongs to the burger: inside the drawer's twin the
+   X unfolds back into lines over the whole ride home, not in a blink. */
+.wv-twin .hamburger-close .hamburger-top,
+.wv-twin .hamburger-close .hamburger-bottom {
+  animation-duration: 480ms;
+}
+.wv-twin .hamburger-close .hamburger-middle {
+  animation-duration: 320ms;
+}
+
 /* Drawer rows step aside on hover instead of washing grey — an editorial
    nudge, colour steady, reduced-motion keeps them still. */
 .wv-menu-link {

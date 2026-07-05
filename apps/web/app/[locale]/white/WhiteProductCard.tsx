@@ -126,7 +126,7 @@ export default function WhiteProductCard({
         <a href={href} aria-label={name} className="wv-card-link absolute inset-0 z-[1]" />
 
         {product.sale && (
-          <span className="pointer-events-none absolute left-3 top-3 z-10 text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>
+          <span className="pointer-events-none absolute left-3 top-3 z-[5] text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>
             {t('sale')}
           </span>
         )}
@@ -140,13 +140,13 @@ export default function WhiteProductCard({
           onClick={() => toggle(product.key)}
           aria-pressed={favourited}
           aria-label={favourited ? t('removeFavourite', {name}) : t('addFavourite', {name})}
-          className="absolute right-1 top-1 z-10 flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-100"
+          className="absolute right-1 top-1 z-[5] flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-100"
           style={{opacity: favourited ? 1 : 0.75}}
         >
           {/* Subtle plate so the ink heart stays legible over dark editorial
               photos — same bg-white/backdrop-blur idiom as the quick-add pill.
               Near-invisible over light imagery, lifts the glyph over dark. */}
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/60 backdrop-blur-sm">
+          <span className="flex h-8 w-8 items-center justify-center [filter:drop-shadow(0_1px_6px_rgba(255,255,255,0.9))]">
             <WhiteFavHeart filled={favourited} size={18} />
           </span>
         </button>
@@ -159,7 +159,7 @@ export default function WhiteProductCard({
             aria-haspopup="true"
             aria-expanded={open}
             aria-label={t('quickAddNamed', {name})}
-            className="wv-quickadd absolute inset-x-0 bottom-0 z-10 flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm"
+            className="wv-quickadd absolute inset-x-0 bottom-0 z-[5] flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm"
           >
             {added ? t('added') : t('quickAdd')}
           </button>
@@ -170,7 +170,7 @@ export default function WhiteProductCard({
             ref={panelRef}
             role="group"
             aria-label={t('selectSizeFor', {name})}
-            className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-white/95 px-3"
+            className="absolute inset-0 z-[6] flex flex-col items-center justify-center gap-3 bg-white/95 px-3"
           >
             <button
               type="button"
