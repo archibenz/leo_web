@@ -187,7 +187,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         </div>
 
         {/* Filter bar */}
-        <div className="flex items-center justify-between gap-3 border-y px-6 py-2.5 sm:px-0 sm:py-4" style={{borderColor: HAIR}}>
+        <div className="flex items-center justify-between gap-3 border-y px-6 py-2.5 sm:items-start sm:px-0 sm:py-4" style={{borderColor: HAIR}}>
           <div
             ref={catRef}
             onScroll={syncEdge}
@@ -240,7 +240,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         {/* Grid */}
         <div className="grid grid-cols-1 gap-y-8 pt-4 pb-12 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 sm:pt-10 lg:grid-cols-3 lg:gap-x-8">
           {shown.map((p, i) => (
-            <WhiteProductCard key={p.key} locale={locale} product={p} index={i} priority={i < 4} quickAdd rise />
+            <WhiteProductCard key={p.key} locale={locale} product={p} index={i} priority={i < 4} rise bleed />
           ))}
         </div>
 
