@@ -25,6 +25,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
   const [cat, setCat] = useState<Cat | 'all'>(initialCat);
   const [sort, setSort] = useState<Sort>(initialSort);
   const [query, setQuery] = useState(initialQuery);
+  const [searchOpen, setSearchOpen] = useState(Boolean(focusSearch) || Boolean(initialQuery));
   const searchRef = useRef<HTMLInputElement>(null);
   const t = useTranslations('white.shop');
 
@@ -117,17 +118,38 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
   return (
     <>
 
-      <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto max-w-[1400px] px-6 sm:px-10">
+      <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto max-w-[1400px] sm:px-10">
         {/* Title */}
-        <div className="flex items-baseline justify-between pt-12 pb-6">
-          <h1 className="font-display text-[34px] font-light tracking-tight sm:text-[44px]">{t('shop')}</h1>
-          <span aria-live="polite" aria-atomic="true" className="shrink-0 text-[12px] uppercase tracking-[0.16em] tabular-nums" style={{color: MUTED}}>
-            {shown.length} {whiteItemNoun(shown.length, locale)}
+        <div className="flex items-center justify-between gap-3 px-6 pt-6 pb-4 sm:items-baseline sm:px-0 sm:pt-12 sm:pb-6">
+          <h1 className="font-display text-[28px] font-light tracking-tight sm:text-[44px]">{t('shop')}</h1>
+          <span className="flex items-center gap-1">
+            <span aria-live="polite" aria-atomic="true" className="shrink-0 text-[11px] uppercase tracking-[0.14em] tabular-nums sm:text-[12px]" style={{color: MUTED}}>
+              {shown.length} {whiteItemNoun(shown.length, locale)}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setSearchOpen((v) => {
+                  if (v && query) pickQuery('');
+                  return !v;
+                });
+                window.setTimeout(() => searchRef.current?.focus(), 60);
+              }}
+              aria-label={t('searchProducts')}
+              aria-expanded={searchOpen}
+              className="flex h-10 w-10 items-center justify-center sm:hidden"
+              style={{color: INK}}
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="M16.5 16.5 21 21" />
+              </svg>
+            </button>
           </span>
         </div>
 
         {/* Search — free-text filter by product name (en+ru). Hairline underline, square. */}
-        <div className="pb-6">
+        <div className={`${searchOpen ? 'block' : 'hidden'} px-6 pb-5 sm:block sm:px-0 sm:pb-6`}>
           <label htmlFor="wv-shop-search" className="sr-only">{t('searchProducts')}</label>
           <div className="relative">
             {/* placeholder uses the MUTED token value (#776e64, 5.0:1 on #fff); the
@@ -165,11 +187,11 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         </div>
 
         {/* Filter bar */}
-        <div className="flex flex-col gap-4 border-y py-4 sm:flex-row sm:items-center sm:justify-between" style={{borderColor: HAIR}}>
+        <div className="flex items-center justify-between gap-3 border-y px-6 py-2.5 sm:px-0 sm:py-4" style={{borderColor: HAIR}}>
           <div
             ref={catRef}
             onScroll={syncEdge}
-            className="-mx-1 -my-1 flex gap-1 overflow-x-auto py-1 sm:mx-0 sm:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="-mx-1 -my-1 flex min-w-0 flex-1 gap-1 overflow-x-auto py-1 sm:mx-0 sm:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             style={edgeMask ? {maskImage: edgeMask, WebkitMaskImage: edgeMask} : undefined}
           >
             {cats.map((c) => (
@@ -185,8 +207,8 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
               </button>
             ))}
           </div>
-          <label className="flex items-center gap-2 text-[12px] uppercase tracking-[0.14em]" style={{color: MUTED}}>
-            {t('sort')}
+          <label className="flex shrink-0 items-center gap-2 text-[12px] uppercase tracking-[0.14em]" style={{color: MUTED}}>
+            <span className="hidden sm:inline">{t('sort')}</span>
             <select
               value={sort}
               onChange={(e) => pickSort(e.target.value as Sort)}
@@ -203,7 +225,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         {/* Clear filters — shown when any filter is active, so a refined search
             is one tap to undo (no need to reset each chip). */}
         {hasFilters && (
-          <div className="pt-4">
+          <div className="hidden px-6 pt-4 sm:block sm:px-0">
             <button
               type="button"
               onClick={clearFilters}
@@ -216,14 +238,14 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         )}
 
         {/* Grid */}
-        <div className="grid grid-cols-1 gap-y-14 py-10 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3 lg:gap-x-8">
+        <div className="grid grid-cols-1 gap-y-8 pt-4 pb-12 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 sm:pt-10 lg:grid-cols-3 lg:gap-x-8">
           {shown.map((p, i) => (
             <WhiteProductCard key={p.key} locale={locale} product={p} index={i} priority={i < 4} quickAdd rise />
           ))}
         </div>
 
         {shown.length === 0 && (
-          <div className="flex flex-col items-center py-24 text-center">
+          <div className="flex flex-col items-center px-6 py-24 text-center sm:px-0">
             <p className="max-w-sm text-[14px] leading-relaxed" style={{color: MUTED}}>
               {query.trim() ? t('nothingFound', {query: query.trim()}) : hasFilters ? t('noMatch') : t('nothingHere')}
             </p>

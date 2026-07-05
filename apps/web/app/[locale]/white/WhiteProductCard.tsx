@@ -27,6 +27,7 @@ export default function WhiteProductCard({
   quickAdd = false,
   rise = false,
   priority = false,
+  bleed = false,
 }: {
   locale: string;
   product: WhiteProduct;
@@ -34,6 +35,7 @@ export default function WhiteProductCard({
   quickAdd?: boolean;
   rise?: boolean;
   priority?: boolean;
+  bleed?: boolean;
 }) {
   const t = useTranslations('white.card');
   const {add} = useWhiteBag();
@@ -211,7 +213,7 @@ export default function WhiteProductCard({
       </div>
 
       {/* Name + price — a second link to the same PDP. */}
-      <Link href={href} className="mt-4 block text-center">
+      <Link href={href} className={`mt-3 block text-center ${bleed ? 'px-5 sm:px-0' : ''}`}>
         <p className="text-[14px] tracking-wide transition-opacity group-hover:opacity-60">{name}</p>
         <p className="mt-1 text-[13px]" style={{color: product.sale ? SIGNAL : MUTED}}>
           {product.sale ? (
