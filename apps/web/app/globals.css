@@ -1520,6 +1520,14 @@ h2.font-display:not(.wv-root *),
    body grotesk, so the wordmark, headings and prices lose their serifs while
    the gradient site keeps Cormorant untouched. */
 /* The skip-link lands on #wv-main — give it headroom for the sticky header. */
+/* The chrome stacks column-flex containers; without an explicit minimum the
+   category strip's min-content width would prop the whole page open on the
+   phone (flex items refuse to shrink past content by default). */
+.wv-root main {
+  min-width: 0;
+  width: 100%;
+}
+
 #wv-main {
   scroll-margin-top: 96px;
 }

@@ -1281,7 +1281,11 @@
       "faq": "FAQ",
       "care": "Care",
       "sets": "Sets",
-      "account": "Account"
+      "account": "Account",
+      "welcome": "Welcome",
+      "welcomeName": "Welcome, {name}",
+      "toAccount": "Account",
+      "signIn": "Sign in"
     },
     "bag": {
       "shop": "Shop",

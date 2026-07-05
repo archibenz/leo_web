@@ -7,6 +7,7 @@ import {createPortal} from 'react-dom';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {useFocusTrap} from '../../../lib/useFocusTrap';
+import {useWhiteAuth} from '../../../hooks/useWhiteAuth';
 import {useMountTransition} from '../../../lib/useMountTransition';
 import {WHITE_CATS, whiteCatLabel} from './products';
 import {INK, MUTED, HAIR} from './wv-palette';
@@ -35,6 +36,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
   const everEntered = useRef(false);
   const {mounted: shown, entered} = useMountTransition(open, SLIDE_MS);
   const t = useTranslations('white.menu');
+  const {user} = useWhiteAuth();
   const pathname = usePathname();
 
   useFocusTrap(panelRef, open, {returnFocus: false});
@@ -158,8 +160,22 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
           >
             {/* The travelling burger (now an X at the drawer's edge) is the close
                 control; the head row carries the brand asset alone. */}
-            <div className="flex shrink-0 items-center px-6 pb-2 pt-5 sm:pt-7">
-              <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-[13px] w-auto" />
+            <div className="flex shrink-0 flex-col px-6 pb-2 pt-5 sm:pt-7">
+              <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-6 w-auto self-start" />
+              {/* A personal hello right under the brand — the account is one tap away. */}
+              <div className="wv-menu-item mt-4 flex items-center justify-between gap-3" style={{animationDelay: '60ms'}}>
+                <span className="text-[12px]" style={{color: MUTED}}>
+                  {user ? t('welcomeName', {name: user.name}) : t('welcome')}
+                </span>
+                <Link
+                  href={`/${locale}/white/account`}
+                  onClick={() => setOpen(false)}
+                  className="shrink-0 border px-3.5 py-1.5 text-[10px] uppercase tracking-[0.16em] transition-colors hover:bg-[#f5f2ed]"
+                  style={{borderColor: HAIR, color: INK}}
+                >
+                  {user ? t('toAccount') : t('signIn')}
+                </Link>
+              </div>
             </div>
 
             {/* Primary nav — centres when it fits, scrolls from the top when the

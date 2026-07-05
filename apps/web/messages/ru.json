@@ -1281,7 +1281,11 @@
       "faq": "FAQ",
       "care": "Уход",
       "sets": "Сеты",
-      "account": "Аккаунт"
+      "account": "Аккаунт",
+      "welcome": "Добро пожаловать",
+      "welcomeName": "Добро пожаловать, {name}",
+      "toAccount": "В аккаунт",
+      "signIn": "Войти"
     },
     "bag": {
       "shop": "Магазин",
