@@ -50,11 +50,15 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
           const total = items.reduce((sum, p) => sum + (p.sale ?? p.price), 0);
           return (
             <section key={set.key} className="border-t" style={{borderColor: HAIR}}>
+              {/* A numbered pause between the looks keeps them from blurring together. */}
+              <p className="mx-auto max-w-[1400px] px-6 pt-10 text-[11px] uppercase tracking-[0.3em] sm:px-12 lg:px-16" style={{color: MUTED}}>
+                {String(idx + 1).padStart(2, '0')} — {t('eyebrow')}
+              </p>
               <div className={`mx-auto grid max-w-[1400px] gap-0 lg:grid-cols-2 ${idx % 2 ? 'lg:[&>*:first-child]:order-2' : ''}`}>
                 <div className="wv-zoom relative aspect-[4/5] w-full overflow-hidden sm:aspect-[16/10] lg:aspect-auto lg:min-h-[560px]">
                   <Image src={set.image} alt="" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
                 </div>
-                <div className="flex flex-col justify-center px-6 py-14 sm:px-12 lg:px-16 lg:py-20">
+                <div className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 lg:py-16">
                   <h2 className="font-display text-[30px] font-light leading-[1.05] tracking-tight sm:text-[38px]">{ru ? set.ru : set.en}</h2>
                   <p className="mt-5 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>{ru ? set.descRu : set.descEn}</p>
 
