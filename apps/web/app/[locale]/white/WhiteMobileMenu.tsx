@@ -124,8 +124,8 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
               WebkitTapHighlightColor: 'transparent',
               left: '4px',
               transform: entered ? 'translateX(calc(min(87vw, 420px) - 56px))' : 'translateX(0)',
-              transitionDuration: entered ? '560ms' : '480ms',
-              transitionTimingFunction: entered ? 'cubic-bezier(0.16, 1, 0.3, 1)' : 'cubic-bezier(0.55, 0.06, 0.68, 0.19)',
+              transitionDuration: '560ms',
+              transitionTimingFunction: entered ? 'cubic-bezier(0.16, 1, 0.3, 1)' : 'cubic-bezier(0.55, 0.05, 0.25, 1)',
             }}
             className="wv-twin fixed top-2.5 z-[1202] flex h-11 w-11 items-center justify-center sm:top-5 transition-transform active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
           >
@@ -141,7 +141,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             aria-hidden="true"
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-[1200] bg-[rgba(28,23,20,0.30)] backdrop-blur-[1px] transition-opacity ease-out motion-reduce:transition-none"
-            style={{opacity: entered ? 1 : 0, transitionDuration: entered ? '560ms' : '480ms', transitionDelay: entered ? '0ms' : '60ms'}}
+            style={{opacity: entered ? 1 : 0, transitionDuration: '560ms', transitionDelay: '40ms'}}
           />
           <aside
             ref={panelRef}
@@ -153,9 +153,9 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             style={{
               color: INK,
               transform: entered ? 'translateX(0)' : 'translateX(-100%)',
-              transitionDuration: entered ? '560ms' : '480ms',
-              transitionDelay: entered ? '0ms' : '60ms',
-              transitionTimingFunction: entered ? 'cubic-bezier(0.16, 1, 0.3, 1)' : 'cubic-bezier(0.55, 0.06, 0.68, 0.19)',
+              transitionDuration: '560ms',
+              transitionDelay: '70ms',
+              transitionTimingFunction: entered ? 'cubic-bezier(0.16, 1, 0.3, 1)' : 'cubic-bezier(0.55, 0.05, 0.25, 1)',
             }}
           >
             {/* The travelling burger (now an X at the drawer's edge) is the close
