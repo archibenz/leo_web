@@ -16,7 +16,7 @@ import {MaskIcon, WhiteFavHeart} from './wv-icons';
 
 type ActionKey = 'favourites' | 'bag';
 
-const WRAP = 'wv-tap relative flex h-11 w-11 shrink-0 items-center justify-center';
+const WRAP = 'wv-tap-sm relative flex h-11 w-11 shrink-0 items-center justify-center';
 
 function Action({
   href,
