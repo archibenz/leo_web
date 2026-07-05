@@ -164,9 +164,9 @@ export default function WhiteFooter({locale}: {locale: string}) {
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-4 px-6 pb-10 text-[11px] uppercase tracking-[0.14em] sm:px-10" style={{color: MUTED}}>
         <span>© 2026 REINASLEO · {t('previewNote')}</span>
         <span className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <Link href={`/${locale}/privacy`} className="wv-link">{t('privacy')}</Link>
-          <Link href={`/${locale}/offer`} className="wv-link">{t('offer')}</Link>
-          <Link href={`/${locale}/terms`} className="wv-link">{t('terms')}</Link>
+          <Link href={`/${locale}/privacy`} className="wv-link -my-3 inline-flex min-h-11 items-center">{t('privacy')}</Link>
+          <Link href={`/${locale}/offer`} className="wv-link -my-3 inline-flex min-h-11 items-center">{t('offer')}</Link>
+          <Link href={`/${locale}/terms`} className="wv-link -my-3 inline-flex min-h-11 items-center">{t('terms')}</Link>
           <WhiteLocaleSwitch locale={locale} />
         </span>
       </div>
