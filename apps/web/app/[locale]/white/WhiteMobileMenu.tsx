@@ -170,7 +170,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                 <Link
                   href={`/${locale}/white/account`}
                   onClick={() => setOpen(false)}
-                  className="shrink-0 border px-3.5 py-1.5 text-[10px] uppercase tracking-[0.16em] transition-colors hover:bg-[#f5f2ed]"
+                  className="shrink-0 border px-5 py-2.5 text-[11px] uppercase tracking-[0.18em] transition-colors hover:bg-[#f5f2ed]"
                   style={{borderColor: HAIR, color: INK}}
                 >
                   {user ? t('toAccount') : t('signIn')}
@@ -191,7 +191,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
                       className="wv-menu-item wv-menu-link flex min-h-11 items-center font-display text-[26px] font-light tracking-[-0.01em]"
-                      style={{color: active ? INK : MUTED, animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
+                      style={{color: active ? INK : MUTED, fontWeight: active ? 500 : 300, textDecoration: active ? 'underline' : 'none', textUnderlineOffset: '5px', textDecorationThickness: '1px', animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
                     >
                       {l.label}
                     </Link>
@@ -212,7 +212,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                     onClick={() => setOpen(false)}
                     aria-current={active ? 'page' : undefined}
                     className="wv-menu-item wv-link inline-flex min-h-9 items-center self-start text-[11px] uppercase tracking-[0.12em]"
-                    style={{color: active ? INK : MUTED, animationDelay: `${360 + i * 40}ms`}}
+                    style={{color: active ? INK : MUTED, fontWeight: active ? 600 : 400, textDecoration: active ? 'underline' : 'none', textUnderlineOffset: '4px', textDecorationThickness: '1px', animationDelay: `${360 + i * 40}ms`}}
                   >
                     {sc.label}
                   </Link>

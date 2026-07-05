@@ -25,6 +25,19 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
   const [sort, setSort] = useState<Sort>(initialSort);
   const [query, setQuery] = useState(initialQuery);
   const [searchOpen, setSearchOpen] = useState(Boolean(focusSearch) || Boolean(initialQuery));
+
+  // Client navigations (the drawer links) re-render this page with new
+  // searchParams but never remount it — the filters must follow the URL.
+  useEffect(() => {
+    setCat(initialCat);
+  }, [initialCat]);
+  useEffect(() => {
+    setQuery(initialQuery);
+    if (initialQuery) setSearchOpen(true);
+  }, [initialQuery]);
+  useEffect(() => {
+    setSort(initialSort);
+  }, [initialSort]);
   const searchRef = useRef<HTMLInputElement>(null);
   const t = useTranslations('white.shop');
 
@@ -197,7 +210,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
                 onClick={() => pickCat(c)}
                 aria-pressed={cat === c}
                 className="inline-flex min-h-11 shrink-0 items-center pr-5 text-[12px] uppercase tracking-[0.16em] transition-colors"
-                style={{color: cat === c ? INK : MUTED, fontWeight: cat === c ? 500 : 400}}
+                style={{color: cat === c ? INK : MUTED, fontWeight: cat === c ? 600 : 400}}
               >
                 {catLabel(c)}
               </button>
