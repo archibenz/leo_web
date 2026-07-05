@@ -35,7 +35,7 @@ function Action({
     <>
       {icon}
       {count > 0 && (
-        <span className="absolute right-1 top-1 text-[10px] font-medium leading-none" style={{color: SIGNAL}}>
+        <span className="absolute right-[8px] top-[5px] text-[10px] font-medium leading-none" style={{color: SIGNAL}}>
           {count}
         </span>
       )}
