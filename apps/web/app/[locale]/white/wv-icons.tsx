@@ -59,7 +59,7 @@ export function WhiteBagGlyph({count, size = 18}: {count: number; size?: number}
     <span aria-hidden="true" className="relative inline-flex items-center justify-center" style={{width: size, height: size}}>
       <span style={{width: size, height: size, backgroundColor: INK, ...maskStyle('/icons/cart.svg')}} />
       {count > 0 && (
-        <span className="absolute left-1/2 top-[60%] -translate-x-1/2 -translate-y-1/2 font-display text-[8px] font-medium leading-none tabular-nums" style={{color: INK}}>
+        <span className="absolute left-1/2 top-[65%] -translate-x-1/2 -translate-y-1/2 font-display text-[8px] font-medium leading-none tabular-nums" style={{color: INK}}>
           {count > 9 ? '9+' : count}
         </span>
       )}
