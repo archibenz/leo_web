@@ -1298,7 +1298,8 @@
       "decreaseQty": "Уменьшить количество",
       "increaseQty": "Увеличить количество",
       "total": "Итого",
-      "removeFromBag": "Убрать {name} из корзины"
+      "removeFromBag": "Убрать {name} из корзины",
+      "viewCollection": "Смотреть коллекцию"
     },
     "card": {
       "sale": "Скидка",

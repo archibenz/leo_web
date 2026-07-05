@@ -80,7 +80,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                     type="button"
                     onClick={() => remove(i.id)}
                     aria-label={t('removeFromBag', {name: ru ? i.ru : i.en})}
-                    className="wv-tap-sm -mr-2 -mt-2 flex h-10 w-10 items-start justify-end self-start pr-2 pt-2 text-[18px] leading-none transition-opacity hover:opacity-60"
+                    className="-mr-2 -mt-2 flex h-10 w-10 items-start justify-end self-start pr-2 pt-2 text-[18px] leading-none transition-opacity hover:opacity-60"
                     style={{color: MUTED}}
                   >
                     ×
@@ -94,7 +94,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                         onClick={() => setQty(i.id, i.qty - 1)}
                         disabled={i.qty <= 1}
                         aria-label={t('decreaseQty')}
-                        className="wv-tap-sm flex h-10 w-10 items-center justify-center text-[16px] leading-none disabled:opacity-30"
+                        className="flex h-10 w-10 items-center justify-center text-[16px] leading-none transition-opacity hover:opacity-60 disabled:opacity-30"
                         style={{color: INK}}
                       >
                         −
@@ -104,7 +104,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                         type="button"
                         onClick={() => setQty(i.id, i.qty + 1)}
                         aria-label={t('increaseQty')}
-                        className="wv-tap-sm flex h-10 w-10 items-center justify-center text-[16px] leading-none"
+                        className="flex h-10 w-10 items-center justify-center text-[16px] leading-none transition-opacity hover:opacity-60"
                         style={{color: INK}}
                       >
                         +
@@ -135,8 +135,8 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
 
             {/* min-h-11 → 44px tap floor (this is the bag's only nav affordance
                 besides qty/remove); mt-4 trims the gap the taller box adds. */}
-            <a href={`/${locale}/white/shop`} className="mt-4 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.18em] underline-offset-4 transition-opacity hover:opacity-60" style={{color: MUTED}}>
-              ← {t('continueShopping')}
+            <a href={`/${locale}/white/shop`} className="wv-btn mt-8 inline-flex items-center justify-center self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
+              {t('viewCollection')}
             </a>
           </div>
         )}

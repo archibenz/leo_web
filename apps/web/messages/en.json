@@ -1298,7 +1298,8 @@
       "decreaseQty": "Decrease quantity",
       "increaseQty": "Increase quantity",
       "total": "Total",
-      "removeFromBag": "Remove {name} from bag"
+      "removeFromBag": "Remove {name} from bag",
+      "viewCollection": "View the collection"
     },
     "card": {
       "sale": "Sale",
