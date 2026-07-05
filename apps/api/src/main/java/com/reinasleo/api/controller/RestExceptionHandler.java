@@ -197,6 +197,15 @@ public class RestExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDataIntegrity(org.springframework.dao.DataIntegrityViolationException ex) {
+        // Two registrations racing on one email both pass the service check;
+        // the unique index rejects the loser — answer 409 like the check does.
+        log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
+        Map<String, Object> body = Map.of("message", "email_exists");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
         log.error("Unhandled exception", ex);
