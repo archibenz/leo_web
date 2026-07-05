@@ -218,7 +218,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
         {/* Grid */}
         <div className="grid grid-cols-1 gap-y-14 py-10 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3 lg:gap-x-8">
           {shown.map((p, i) => (
-            <WhiteProductCard key={p.key} locale={locale} product={p} index={i} priority={i < 2} quickAdd rise />
+            <WhiteProductCard key={p.key} locale={locale} product={p} index={i} priority={i < 4} quickAdd rise />
           ))}
         </div>
 
