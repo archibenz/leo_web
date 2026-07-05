@@ -1598,8 +1598,10 @@ body:has(.wv-root)::after {
   border-radius: 9999px;
   transition: background-color 0.25s ease;
 }
-.wv-tap:hover {
-  background-color: #f1ece4;
+@media (hover: hover) {
+  .wv-tap:hover {
+    background-color: #f1ece4;
+  }
 }
 .wv-tap:active {
   background-color: #e9e2d7;
@@ -1624,8 +1626,10 @@ body:has(.wv-root)::after {
   transition: background-color 0.25s ease;
   z-index: -1;
 }
-.wv-tap-sm:hover::after {
-  background-color: #f1ece4;
+@media (hover: hover) {
+  .wv-tap-sm:hover::after {
+    background-color: #f1ece4;
+  }
 }
 .wv-tap-sm:active::after {
   background-color: #e9e2d7;
