@@ -124,7 +124,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
               transitionDuration: entered ? '560ms' : '480ms',
               transitionTimingFunction: entered ? 'cubic-bezier(0.16, 1, 0.3, 1)' : 'cubic-bezier(0.55, 0.06, 0.68, 0.19)',
             }}
-            className="fixed top-2.5 z-[1202] flex h-11 w-11 items-center justify-center sm:top-5 transition-transform active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
+            className="wv-twin fixed top-2.5 z-[1202] flex h-11 w-11 items-center justify-center sm:top-5 transition-transform active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
           >
             <svg viewBox="0 0 24 24" className={`h-5 w-5 ${entered ? 'hamburger-open' : everEntered.current ? 'hamburger-close' : ''}`} fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="square">
               <line x1="4" y1="7" x2="20" y2="7" className="hamburger-line hamburger-top" />
@@ -138,7 +138,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             aria-hidden="true"
             onClick={() => setOpen(false)}
             className="fixed inset-0 z-[1200] bg-[rgba(28,23,20,0.30)] backdrop-blur-[1px] transition-opacity ease-out motion-reduce:transition-none"
-            style={{opacity: entered ? 1 : 0, transitionDuration: entered ? '560ms' : '480ms'}}
+            style={{opacity: entered ? 1 : 0, transitionDuration: entered ? '560ms' : '480ms', transitionDelay: entered ? '0ms' : '60ms'}}
           />
           <aside
             ref={panelRef}
@@ -150,6 +150,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
               color: INK,
               transform: entered ? 'translateX(0)' : 'translateX(-100%)',
               transitionDuration: entered ? '560ms' : '480ms',
+              transitionDelay: entered ? '0ms' : '60ms',
               transitionTimingFunction: entered ? 'cubic-bezier(0.16, 1, 0.3, 1)' : 'cubic-bezier(0.55, 0.06, 0.68, 0.19)',
             }}
           >

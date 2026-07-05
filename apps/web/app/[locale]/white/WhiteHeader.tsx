@@ -3,6 +3,7 @@
 import type {ReactNode} from 'react';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
+import {useEffect, useRef, useState} from 'react';
 import Image from 'next/image';
 import WhiteMobileMenu from './WhiteMobileMenu';
 import {MUTED, HAIR} from './wv-palette';
@@ -15,8 +16,33 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
   const pathname = usePathname();
   const t = useTranslations('white.header');
   const home = `/${locale}/white`;
+  // Dynamic bar: hides on scroll down past the hero's edge, returns the moment
+  // the reader scrolls up. rAF-throttled; the drawer keeps it pinned via the
+  // body scroll-lock (no scroll events while open).
+  const [hidden, setHidden] = useState(false);
+  const lastY = useRef(0);
+  useEffect(() => {
+    let raf = 0;
+    const onScroll = () => {
+      if (raf) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = 0;
+        const y = window.scrollY;
+        const delta = y - lastY.current;
+        if (y < 96) setHidden(false);
+        else if (delta > 6) setHidden(true);
+        else if (delta < -6) setHidden(false);
+        lastY.current = y;
+      });
+    };
+    window.addEventListener('scroll', onScroll, {passive: true});
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, []);
   return (
-    <header className="sticky top-0 z-10 bg-white/70 backdrop-blur-md" style={{borderBottom: `1px solid ${HAIR}`}}>
+    <header className="sticky top-0 z-50 bg-white/70 backdrop-blur-md transition-transform duration-300 ease-out motion-reduce:transition-none" style={{borderBottom: `1px solid ${HAIR}`, transform: hidden ? 'translateY(-100%)' : 'translateY(0)'}}>
       {/* Skip-link: first focusable element so keyboard users bypass the repeated
           nav straight to <main id="wv-main"> (WCAG 2.4.1). */}
       <a
