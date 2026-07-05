@@ -32,6 +32,7 @@ public record RegisterRequest(
         )
         String password,
 
+        @jakarta.validation.constraints.Past(message = "date_of_birth_invalid")
         LocalDate dateOfBirth,
 
         boolean newsletter,

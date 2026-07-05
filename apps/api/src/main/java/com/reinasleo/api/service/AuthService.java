@@ -45,6 +45,11 @@ import java.util.List;
 @Service
 public class AuthService {
 
+    // A syntactically valid bcrypt hash of a random throwaway string — burned
+    // on unknown-email logins so both branches cost one bcrypt verify.
+    private static final String DUMMY_BCRYPT_HASH =
+            "$2a$10$7EqJtq98hPqEX7fNZaFWoOhi5B0aN1P1L0YhVYQvW9pXKcGkzOEyu";
+
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private static final String DELETE_CONFIRMATION_TOKEN = "DELETE";
@@ -169,8 +174,14 @@ public class AuthService {
     public LoginResponse login(LoginRequest request) {
         String normalizedEmail = request.email().trim().toLowerCase();
 
-        User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
-                .orElseThrow(InvalidCredentialsException::new);
+        User user = userRepository.findByEmailIgnoreCase(normalizedEmail).orElse(null);
+
+        if (user == null) {
+            // Unknown email costs the same as a wrong password — no timing
+            // oracle for enumeration.
+            passwordEncoder.matches(request.password(), DUMMY_BCRYPT_HASH);
+            throw new InvalidCredentialsException();
+        }
 
         if (user.getPasswordHash() == null || !passwordEncoder.matches(request.password(), user.getPasswordHash())) {
             throw new InvalidCredentialsException();

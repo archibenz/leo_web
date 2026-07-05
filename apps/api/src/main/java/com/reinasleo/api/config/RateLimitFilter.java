@@ -150,6 +150,15 @@ public class RateLimitFilter implements Filter {
         // attacker-controllable and were causing rate-limit bypass when the
         // first XFF entry was trusted. Must stay in sync with
         // apps/web/app/api/newsletter/subscribe/route.ts::clientIp.
+        // Proxy headers are only meaningful when the request actually came
+        // through the local nginx — a direct hit must not spoof its way past
+        // the limiter.
+        String remote = request.getRemoteAddr();
+        boolean fromTrustedProxy = "127.0.0.1".equals(remote) || "::1".equals(remote)
+                || "0:0:0:0:0:0:0:1".equals(remote);
+        if (!fromTrustedProxy) {
+            return remote;
+        }
         String realIp = request.getHeader("X-Real-IP");
         if (realIp != null && !realIp.isEmpty()) {
             return realIp.trim();
