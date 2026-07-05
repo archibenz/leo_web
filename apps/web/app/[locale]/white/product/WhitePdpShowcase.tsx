@@ -37,6 +37,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const [activeImg, setActiveImg] = useState(0);
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState(productColors[0]!.key);
+  const activeColor = productColors.find((c) => c.key === color) ?? productColors[0]!;
   const [guideOpen, setGuideOpen] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   // Tap-to-zoom lightbox for the active gallery image.
@@ -57,7 +58,13 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const bagProduct = product;
   // The product's own photo, plus any extra views it carries. No cross-product
   // editorial filler — a gallery slot on a PDP must be this garment.
-  const gallery = bagProduct.gallery?.length ? [bagProduct.image, ...bagProduct.gallery] : [bagProduct.image];
+  // A colourway with its own photography swaps the whole album; otherwise the
+  // base garment shots stand in — no colour is ever left with a blank frame.
+  const gallery = activeColor.image
+    ? [activeColor.image, ...(activeColor.gallery ?? [])]
+    : bagProduct.gallery?.length
+      ? [bagProduct.image, ...bagProduct.gallery]
+      : [bagProduct.image];
   const favourited = isFavourite(bagProduct.key);
   const handleAdd = () => {
     if (!size) return;
@@ -276,7 +283,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   <button
                     key={c.key}
                     type="button"
-                    onClick={() => setColor(c.key)}
+                    onClick={() => { setColor(c.key); setActiveImg(0); }}
                     aria-label={(ru ? c.ru : c.en)}
                     aria-pressed={color === c.key}
                     className="group flex h-11 w-11 items-center justify-center"
