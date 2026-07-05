@@ -108,20 +108,22 @@ export default function WhiteProductCard({
           fill
           priority={priority}
           loading={priority ? 'eager' : 'lazy'}
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 460px"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 460px"
           className="pointer-events-none object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />
         {/* Second view crossfades in on hover where the product carries one —
             the same alternate-angle reveal the big retail grids use. */}
         {product.gallery?.[0] && (
+          <span className="pointer-events-none absolute inset-0 hidden [@media(hover:hover)]:block">
           <Image
             src={product.gallery[0]}
             alt=""
             fill
             loading="lazy"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 460px"
+            sizes="(max-width: 1024px) 50vw, 460px"
             className="pointer-events-none object-cover opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100 motion-reduce:transition-none motion-reduce:group-hover:opacity-0"
           />
+          </span>
         )}
         {/* Image is its own link so Quick Add can sit outside the anchor. */}
         <Link href={href} aria-label={name} className="wv-card-link absolute inset-0 z-[1]" />
