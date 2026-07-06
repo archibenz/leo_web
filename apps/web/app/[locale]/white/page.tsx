@@ -1,4 +1,7 @@
 import type {Metadata} from 'next';
+import {headers} from 'next/headers';
+import {safeJsonLd} from '../../../lib/jsonLd';
+import {SITE_URL} from '../../../lib/siteUrl';
 import WhiteShowcase from './WhiteShowcase';
 
 // The White storefront home — the site's landing page.
@@ -29,5 +32,32 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 
 export default async function WhiteVariantPage({params}: Props) {
   const {locale} = await params;
-  return <WhiteShowcase locale={locale} />;
+  const ru = locale === 'ru';
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const orgJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'REINASLEO',
+    description: ru ? 'Премиальная женская одежда' : 'Premium womenswear',
+    url: `${SITE_URL}/${locale}/white`,
+    logo: `${SITE_URL}/logos/logo-square.svg`,
+  };
+  const siteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'REINASLEO',
+    url: `${SITE_URL}/${locale}/white`,
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {'@type': 'EntryPoint', urlTemplate: `${SITE_URL}/${locale}/white/shop?q={search_term_string}`},
+      'query-input': 'required name=search_term_string',
+    },
+  };
+  return (
+    <>
+      <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}} />
+      <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(siteJsonLd)}} />
+      <WhiteShowcase locale={locale} />
+    </>
+  );
 }

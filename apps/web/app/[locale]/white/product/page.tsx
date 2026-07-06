@@ -3,7 +3,7 @@ import {headers} from 'next/headers';
 import {notFound} from 'next/navigation';
 import WhitePdpShowcase from './WhitePdpShowcase';
 import {findWhiteProduct} from '../products';
-import {safeJsonLd} from '../../../../lib/jsonLd';
+import {safeJsonLd, buildBreadcrumbJsonLd} from '../../../../lib/jsonLd';
 import {SITE_URL} from '../../../../lib/siteUrl';
 
 // Product page. The ?p key selects the catalogue product, read server-side;
@@ -59,9 +59,15 @@ export default async function WhiteProductPage({params, searchParams}: Props) {
       url: `${SITE_URL}/${locale}/white/product?p=${product.key}`,
     },
   };
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    {name: 'REINASLEO', url: `${SITE_URL}/${locale}/white`},
+    {name: ru ? 'Магазин' : 'Shop', url: `${SITE_URL}/${locale}/white/shop`},
+    {name: ru ? product.ru : product.en, url: `${SITE_URL}/${locale}/white/product?p=${product.key}`},
+  ]);
   return (
     <>
       <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(productJsonLd)}} />
+      <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(breadcrumbJsonLd)}} />
       <WhitePdpShowcase locale={locale} product={product} />
     </>
   );
