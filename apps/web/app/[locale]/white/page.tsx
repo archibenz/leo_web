@@ -25,7 +25,6 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
         ? 'Премиальная женская одежда: платья, пальто, костюмы. Тихая точность кроя — коллекция REINASLEO.'
         : 'Premium womenswear: dresses, coats, tailoring. Quiet precision of cut — the REINASLEO collection.',
       url: `/${locale}/white`,
-      images: [{url: '/images/white/hero.jpg', width: 1400, height: 1867, alt: 'REINASLEO'}],
     },
   };
 }

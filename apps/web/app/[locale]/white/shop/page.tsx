@@ -38,7 +38,6 @@ export async function generateMetadata({params, searchParams}: Props): Promise<M
         ? 'Каталог REINASLEO — платья, верхняя одежда, трикотаж, костюмы и юбки.'
         : 'The REINASLEO catalogue — dresses, outerwear, knitwear, tailoring and skirts.',
       url: `/${locale}/white/shop`,
-      images: [{url: '/images/white/hero.jpg', width: 1400, height: 1867, alt: 'REINASLEO'}],
     },
   };
 }
