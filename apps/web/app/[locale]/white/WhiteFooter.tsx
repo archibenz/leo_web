@@ -81,7 +81,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
       <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-x-6 gap-y-8 px-6 py-10 sm:gap-10 sm:px-10 sm:py-16 lg:grid-cols-4">
         <div className="col-span-2 lg:col-span-1">
           <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-[14px] w-auto" />
-          <p className="mt-3 text-[12px] leading-relaxed" style={{color: MUTED}}>{t('tagline')}</p>
+          <p className="mt-3 text-[12px] leading-relaxed lg:text-[14px]" style={{color: MUTED}}>{t('tagline')}</p>
         </div>
         {[
           {h: t('shop'), items: [
@@ -102,10 +102,10 @@ export default function WhiteFooter({locale}: {locale: string}) {
           ]},
         ].map((col) => (
           <div key={col.h}>
-            <p className="mb-2 text-[11px] uppercase tracking-[0.2em] sm:mb-4" style={{color: INK}}>{col.h}</p>
+            <p className="mb-2 text-[11px] uppercase tracking-[0.2em] sm:mb-4 lg:text-[12px]" style={{color: INK}}>{col.h}</p>
             {/* py-3 → 44px tap height (project a11y floor); space-y-1 keeps the
                 column from ballooning while the targets clear 44px each. */}
-            <ul className="space-y-1 text-[13px]" style={{color: MUTED}}>
+            <ul className="space-y-1 text-[13px] lg:space-y-1.5 lg:text-[15px]" style={{color: MUTED}}>
               {col.items.map((it) => (
                 <li key={it.label}>
                   <Link href={it.href} className="flex min-h-10 items-center transition-opacity hover:opacity-60 sm:min-h-11">{it.label}</Link>
@@ -115,7 +115,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
           </div>
         ))}
         <div className="col-span-2 sm:col-span-1">
-          <p className="mb-3 text-[11px] uppercase tracking-[0.2em] sm:mb-4" style={{color: INK}}>{t('newsletter')}</p>
+          <p className="mb-3 text-[11px] uppercase tracking-[0.2em] sm:mb-4 lg:text-[12px]" style={{color: INK}}>{t('newsletter')}</p>
           <form onSubmit={onSubscribe} noValidate className="flex items-center border-b pb-1.5" style={{borderColor: MUTED}}>
             <label htmlFor="wv-newsletter" className="sr-only">{t('emailLabel')}</label>
             <input
@@ -132,7 +132,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
               aria-invalid={status === 'invalid' ? true : undefined}
               aria-describedby="wv-newsletter-status"
               placeholder={t('email')}
-              className="min-h-11 w-full bg-transparent py-2.5 text-[13px] outline-none placeholder:text-[#7a7167] disabled:opacity-50"
+              className="min-h-11 w-full bg-transparent py-2.5 text-[13px] outline-none placeholder:text-[#7a7167] disabled:opacity-50 lg:text-[15px]"
               style={{color: INK}}
             />
             <button
@@ -161,7 +161,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
       <p className="mx-auto max-w-[1400px] px-6 pb-3 text-[10.5px] leading-relaxed sm:px-10" style={{color: MUTED}}>
         {tf('legalEntity')}
       </p>
-      <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-3 px-6 pb-8 text-[11px] uppercase tracking-[0.14em] sm:gap-4 sm:px-10 sm:pb-10" style={{color: MUTED}}>
+      <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-3 px-6 pb-8 text-[11px] uppercase tracking-[0.14em] sm:gap-4 sm:px-10 sm:pb-10 lg:text-[12px]" style={{color: MUTED}}>
         <span>© 2026 REINASLEO · {t('previewNote')}</span>
         <span className="flex flex-wrap items-center gap-x-5 gap-y-2">
           <Link href={`/${locale}/privacy`} className="wv-link -my-3 inline-flex min-h-11 items-center">{t('privacy')}</Link>
