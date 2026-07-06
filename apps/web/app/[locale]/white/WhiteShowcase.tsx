@@ -133,11 +133,14 @@ export default function WhiteShowcase({locale}: {locale: string}) {
 
       {/* Lookbook — editorial brand statement */}
       <section id="wv-atelier" className="mt-8 scroll-mt-24 border-t sm:mt-12" style={{borderColor: HAIR}}>
-        <div className="mx-auto grid max-w-[1400px] items-center gap-0 lg:grid-cols-2">
-          <div className="wv-rise wv-scrub wv-zoom relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto lg:min-h-[620px]">
+        {/* Full-width: the photograph runs to the left edge of the screen with no
+            frame around it; the copy column keeps its own padding so it stays
+            readable however wide the display. */}
+        <div className="grid items-stretch gap-0 lg:grid-cols-2">
+          <div className="wv-rise wv-scrub wv-zoom relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto lg:min-h-[640px]">
             <Image src={WHITE_ATELIER_IMAGE} alt="" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
           </div>
-          <div className="wv-rise wv-scrub wv-delay-1 flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-20 lg:py-24">
+          <div className="wv-rise wv-scrub wv-delay-1 flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-20 lg:py-24 xl:px-28">
             <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{ts('eyebrow')}</p>
             <h2 className="font-display text-[30px] font-light leading-[1.1] tracking-tight sm:text-[40px]">
               {ts('landingTitle1')}

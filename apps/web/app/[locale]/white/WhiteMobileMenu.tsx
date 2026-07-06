@@ -162,16 +162,18 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                 control; the head row carries the brand asset alone. */}
             <div className="flex shrink-0 flex-col px-6 pb-2 pt-5 sm:pt-7">
               <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-6 w-auto self-start" />
-              {/* A personal hello right under the brand — the account is one tap away. */}
-              <div className="wv-menu-item mt-4 flex items-center justify-between gap-3" style={{animationDelay: '60ms'}}>
-                <span className="text-[12px]" style={{color: MUTED}}>
+              {/* A personal hello right under the brand — the account is one tap
+                  away. The greeting reads larger and the sign-in sits below it on
+                  its own line, roomier to the touch. */}
+              <div className="wv-menu-item mt-5 flex flex-col gap-3" style={{animationDelay: '60ms'}}>
+                <span className="text-[17px] leading-snug" style={{color: INK}}>
                   {user ? t('welcomeName', {name: user.name}) : t('welcome')}
                 </span>
                 <Link
                   href={`/${locale}/white/account`}
                   onClick={() => setOpen(false)}
-                  className="shrink-0 border px-5 py-2.5 text-[11px] uppercase tracking-[0.18em] transition-colors hover:bg-[#f5f2ed]"
-                  style={{borderColor: HAIR, color: INK}}
+                  className="inline-flex w-full items-center justify-center border px-6 py-3.5 text-[12px] uppercase tracking-[0.2em] transition-colors hover:bg-[#f5f2ed]"
+                  style={{borderColor: INK, color: INK}}
                 >
                   {user ? t('toAccount') : t('signIn')}
                 </Link>
