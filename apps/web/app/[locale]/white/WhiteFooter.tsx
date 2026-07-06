@@ -12,7 +12,7 @@ import WhiteCookieNotice from './WhiteCookieNotice';
 // Variant 2 "White" — shared editorial footer. Rendered on the landing, shop
 // and PDP so every page of the prototype closes on the same brand chrome.
 // Prototype destinations stay inside /white (no leak to the gradient site).
-// The newsletter is real & honest: it posts to /api/newsletter/subscribe (the
+// The newsletter is real & honest: it posts to /newsletter (outside /api/ so nginx routes it to Next, not Spring) (the
 // same endpoint the gradient footer uses) and reports the true outcome.
 
 type NlStatus = 'idle' | 'loading' | 'success' | 'already' | 'error' | 'invalid';
@@ -44,7 +44,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
     submittingRef.current = true;
     setStatus('loading');
     try {
-      const res = await fetch('/api/newsletter/subscribe', {
+      const res = await fetch('/newsletter', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({email: email.trim(), locale}),

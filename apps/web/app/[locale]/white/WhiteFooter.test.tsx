@@ -34,7 +34,7 @@ describe('WhiteFooter newsletter double-submit guard', () => {
     fireEvent.submit(form);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock).toHaveBeenCalledWith('/api/newsletter/subscribe', expect.objectContaining({method: 'POST'}));
+    expect(fetchMock).toHaveBeenCalledWith('/newsletter', expect.objectContaining({method: 'POST'}));
   });
 
   it('does not POST an invalid email', () => {
