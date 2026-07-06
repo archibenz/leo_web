@@ -38,6 +38,26 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const [size, setSize] = useState<string | null>(null);
   const [color, setColor] = useState(productColors[0]!.key);
   const activeColor = productColors.find((c) => c.key === color) ?? productColors[0]!;
+  const galleryRef = useRef<HTMLDivElement>(null);
+
+  // Picking a colour swaps the whole album, and a colour with fewer frames
+  // shrinks the gallery above the scroll position — which yanks the page. When
+  // the reader has scrolled past the gallery to reach the swatches, bring them
+  // back to the top of the album so they see the piece in the new colour at
+  // once instead of hunting for what changed. If they're already looking at the
+  // gallery, leave the scroll where it is.
+  const pickColour = (key: string) => {
+    setColor(key);
+    setActiveImg(0);
+    const el = galleryRef.current;
+    if (!el) return;
+    if (el.getBoundingClientRect().top < 0) {
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.requestAnimationFrame(() =>
+        el.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'start'})
+      );
+    }
+  };
   const [guideOpen, setGuideOpen] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   // Tap-to-zoom lightbox for the active gallery image.
@@ -236,7 +256,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
           {/* Gallery */}
           {/* Photo album — the shots stack and read top to bottom; each opens
               the zoom at its own frame. */}
-          <div className="wv-rise flex flex-col gap-2">
+          <div ref={galleryRef} className="wv-rise flex scroll-mt-20 flex-col gap-2">
             {gallery.map((src, i) => (
               <button
                 key={i}
@@ -283,7 +303,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   <button
                     key={c.key}
                     type="button"
-                    onClick={() => { setColor(c.key); setActiveImg(0); }}
+                    onClick={() => pickColour(c.key)}
                     aria-label={(ru ? c.ru : c.en)}
                     aria-pressed={color === c.key}
                     className="group flex h-11 w-11 items-center justify-center"
