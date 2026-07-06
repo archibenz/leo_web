@@ -9,11 +9,12 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
   const {locale} = await params;
   const ru = locale === 'ru';
   return {
-    title: 'REINASLEO',
+    title: {absolute: ru ? 'REINASLEO — Премиальная женская одежда' : 'REINASLEO — Premium womenswear'},
     description: ru
       ? 'Премиальная женская одежда: платья, пальто, костюмы. Тихая точность кроя — коллекция REINASLEO.'
       : 'Premium womenswear: dresses, coats, tailoring. Quiet precision of cut — the REINASLEO collection.',
     robots: {index: true, follow: true},
+    alternates: {canonical: `/${locale}/white`},
   };
 }
 

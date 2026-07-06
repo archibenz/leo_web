@@ -27,6 +27,7 @@ export async function generateMetadata({params, searchParams}: Props): Promise<M
       : whiteCatLabel(catKey, locale);
   return {
     title: {absolute: `${label} · REINASLEO`},
+    alternates: {canonical: `/${locale}/white/shop`},
     description: ru
       ? 'Каталог REINASLEO — платья, верхняя одежда, трикотаж, костюмы и юбки. Реальные цены, доставка по России.'
       : 'The REINASLEO catalogue — dresses, outerwear, knitwear, tailoring and skirts.',
