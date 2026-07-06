@@ -25,6 +25,7 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
         ? 'Премиальная женская одежда: платья, пальто, костюмы. Тихая точность кроя — коллекция REINASLEO.'
         : 'Premium womenswear: dresses, coats, tailoring. Quiet precision of cut — the REINASLEO collection.',
       url: `/${locale}/white`,
+      images: [{url: `${SITE_URL}/opengraph-image`, width: 1200, height: 630, alt: 'REINASLEO'}],
     },
   };
 }

@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import WhiteShopShowcase from './WhiteShopShowcase';
 import {normalizeWhiteCat, whiteCatLabel} from '../products';
+import {SITE_URL} from '../../../../lib/siteUrl';
 
 // Variant 2 "White" — shop / catalog showcase (pitch preview at
 // /<locale>/white/shop?cat=<category>&q=<query>). noindex. ?cat and ?q are read
@@ -38,6 +39,7 @@ export async function generateMetadata({params, searchParams}: Props): Promise<M
         ? 'Каталог REINASLEO — платья, верхняя одежда, трикотаж, костюмы и юбки.'
         : 'The REINASLEO catalogue — dresses, outerwear, knitwear, tailoring and skirts.',
       url: `/${locale}/white/shop`,
+      images: [{url: `${SITE_URL}/opengraph-image`, width: 1200, height: 630, alt: 'REINASLEO'}],
     },
   };
 }
