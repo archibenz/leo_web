@@ -76,7 +76,7 @@ export const WHITE_PRODUCTS: WhiteProduct[] = [
 // REINASLEO Soul), used for the hero, the atelier/lookbook block and as
 // alternate PDP gallery views. Same-origin, so CSP img-src 'self' covers them.
 export const WHITE_HERO_IMAGE = '/images/white/hero.jpg';
-export const WHITE_ATELIER_IMAGE = '/images/white/atelier.jpg';
+export const WHITE_ATELIER_IMAGE = '/images/white/editorial-1.jpg';
 export const WHITE_EDITORIAL = ['/images/white/editorial-1.jpg', '/images/white/editorial-2.jpg', '/images/white/editorial-3.jpg'];
 
 export function findWhiteProduct(key?: string | number | null): WhiteProduct | undefined {
