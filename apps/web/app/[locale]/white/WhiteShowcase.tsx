@@ -137,7 +137,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
             frame around it; the copy column keeps its own padding so it stays
             readable however wide the display. */}
         <div className="grid items-stretch gap-0 lg:grid-cols-2">
-          <div className="wv-rise wv-scrub wv-zoom relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto lg:min-h-[640px]">
+          <div className="wv-rise wv-scrub relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto lg:min-h-[640px]">
             <Image src={WHITE_ATELIER_IMAGE} alt="" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
           </div>
           <div className="wv-rise wv-scrub wv-delay-1 flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-20 lg:py-24 xl:px-28">
