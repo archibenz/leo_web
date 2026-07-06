@@ -256,7 +256,11 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
           {/* Gallery */}
           {/* Photo album — the shots stack and read top to bottom; each opens
               the zoom at its own frame. */}
-          <div ref={galleryRef} className="wv-rise flex scroll-mt-20 flex-col gap-2">
+          {/* On phones the album runs edge-to-edge: it breaks out of the page's
+              px-6 gutter (-mx-6) and the frames butt together seamlessly
+              (gap-0). The gutter and the small gap return at sm, where the
+              gallery sits inside the two-column layout. */}
+          <div ref={galleryRef} className="wv-rise -mx-6 flex scroll-mt-20 flex-col gap-0 sm:mx-0 sm:gap-2">
             {gallery.map((src, i) => (
               <button
                 key={i}
