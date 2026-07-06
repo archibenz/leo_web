@@ -1,6 +1,6 @@
 import {NextResponse, type NextRequest} from 'next/server';
-import {isValidEmail} from '../../../../lib/validation';
-import {subscribeToNewsletter} from '../../../../lib/resend';
+import {isValidEmail} from '../../lib/validation';
+import {subscribeToNewsletter} from '../../lib/resend';
 
 const RATE_LIMIT = 5;
 const WINDOW_MS = 60 * 60 * 1000;
