@@ -26,6 +26,7 @@ export async function generateMetadata({params, searchParams}: Props): Promise<M
   // brand name isn't doubled.
   return {
     title: {absolute: `${name} · REINASLEO`},
+    alternates: {canonical: `/${locale}/white/product?p=${product.key}`},
     description,
     robots: {index: true, follow: true},
     openGraph: {
