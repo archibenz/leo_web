@@ -6,6 +6,7 @@ import {useTranslations} from 'next-intl';
 import Link from 'next/link';
 import type {MobileShopItem} from './types';
 import MobileShopCard from './MobileShopCard';
+import {isRenderableImageSrc} from '../../../../lib/imageHost';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? '';
 
@@ -22,7 +23,8 @@ function firstImage(item: MobileShopItem): string | null {
       if (Array.isArray(parsed)) {
         for (const img of parsed) {
           if (img && typeof img === 'object' && 'src' in img && typeof (img as {src: unknown}).src === 'string') {
-            return resolveAssetUrl((img as {src: string}).src);
+            const url = resolveAssetUrl((img as {src: string}).src);
+            if (isRenderableImageSrc(url)) return url;
           }
         }
       }
@@ -30,7 +32,11 @@ function firstImage(item: MobileShopItem): string | null {
       /* fall through */
     }
   }
-  return item.image ? resolveAssetUrl(item.image) : null;
+  if (item.image) {
+    const url = resolveAssetUrl(item.image);
+    if (isRenderableImageSrc(url)) return url;
+  }
+  return null;
 }
 
 const CATEGORY_OPTIONS = ['dresses', 'outerwear', 'tailoring', 'knitwear', 'blouses', 'skirts', 'trousers'] as const;

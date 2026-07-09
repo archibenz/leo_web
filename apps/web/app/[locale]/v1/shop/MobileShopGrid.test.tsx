@@ -106,3 +106,35 @@ describe('MobileShopGrid image resolution + memoization', () => {
     parseSpy.mockRestore();
   });
 });
+
+// Product image srcs come from admin-editable data. next/image throws
+// synchronously at render for a host outside next.config remotePatterns, which
+// would crash the whole grid. firstImage() now drops off-list hosts so the card
+// falls back to its placeholder block instead.
+describe('MobileShopGrid untrusted image host guard', () => {
+  const withImages = (id: string, src: string): MobileShopItem =>
+    mk(id, {image: null, images: `[{"src":"${src}"}]`});
+
+  it('renders no <img> (and does not throw) when the only image host is off-list', () => {
+    const products = [withImages('a', 'https://evil.example/x.jpg')];
+
+    expect(() => render(<MobileShopGrid products={products} locale="en" />)).not.toThrow();
+    expect(screen.queryAllByRole('img')).toHaveLength(0);
+  });
+
+  it('skips an off-list host and renders the first allow-listed image', () => {
+    const products = [
+      mk('a', {
+        image: null,
+        images:
+          '[{"src":"https://evil.example/bad.jpg"},{"src":"https://reinasleo.com/uploads/good.jpg"}]',
+      }),
+    ];
+
+    render(<MobileShopGrid products={products} locale="en" />);
+
+    const imgs = screen.getAllByRole('img');
+    expect(imgs).toHaveLength(1);
+    expect(imgs[0].getAttribute('src')).toContain(encodeURIComponent('https://reinasleo.com/uploads/good.jpg'));
+  });
+});

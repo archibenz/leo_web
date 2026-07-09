@@ -23,6 +23,7 @@ import {WILDBERRIES_SELLER_URL} from '../lib/wildberries';
 import {BrandHeart} from './icons';
 
 import { API_BASE } from '../lib/api';
+import { isRenderableImageSrc } from '../lib/imageHost';
 /* ── Types ── */
 
 interface ApiProduct {
@@ -144,19 +145,25 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
       try {
         const parsed = JSON.parse(product.images);
         if (Array.isArray(parsed)) {
-          images = parsed.map((img: {src?: string; alt?: string}, i: number) => ({
-            id: String(i + 1),
-            src: img.src ? (img.src.startsWith('/') ? `${API_BASE}${img.src}` : img.src) : '',
-            alt: img.alt ?? `${product.title} — ${i + 1}`,
-            gradient: GRADIENTS[product.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]',
-          }));
+          images = parsed.map((img: {src?: string; alt?: string}, i: number) => {
+            const resolved = img.src ? (img.src.startsWith('/') ? `${API_BASE}${img.src}` : img.src) : '';
+            return {
+              id: String(i + 1),
+              // Blank an off-list/untrusted host so GalleryImage shows its
+              // gradient instead of handing next/image a src that throws.
+              src: isRenderableImageSrc(resolved) ? resolved : '',
+              alt: img.alt ?? `${product.title} — ${i + 1}`,
+              gradient: GRADIENTS[product.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]',
+            };
+          });
         }
       } catch { /* ignore */ }
     }
     if (images.length === 0) {
+      const resolved = product.image ? (product.image.startsWith('/') ? `${API_BASE}${product.image}` : product.image) : '';
       images = [{
         id: '1',
-        src: product.image ? (product.image.startsWith('/') ? `${API_BASE}${product.image}` : product.image) : '',
+        src: isRenderableImageSrc(resolved) ? resolved : '',
         alt: product.title,
         gradient: GRADIENTS[product.occasion ?? ''] ?? 'from-[#4a4a4a] to-[#7a7a7a]',
       }];

@@ -4,6 +4,7 @@ import {useMemo} from 'react';
 import PhotoCarousel from './PhotoCarousel';
 import SlideOverlay from './SlideOverlay';
 import type {MobileShopItem} from './types';
+import {isRenderableImageSrc} from '../../../../lib/imageHost';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? '';
 
@@ -34,13 +35,17 @@ function pickImages(item: MobileShopItem): string[] {
             'src' in img &&
             typeof (img as {src: unknown}).src === 'string'
           ) {
-            all.push(resolveAssetUrl((img as {src: string}).src));
+            const url = resolveAssetUrl((img as {src: string}).src);
+            if (isRenderableImageSrc(url)) all.push(url);
           }
         }
       }
     } catch { /* fall through */ }
   }
-  if (all.length === 0 && item.image) all.push(resolveAssetUrl(item.image));
+  if (all.length === 0 && item.image) {
+    const url = resolveAssetUrl(item.image);
+    if (isRenderableImageSrc(url)) all.push(url);
+  }
   return all;
 }
 
