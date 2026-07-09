@@ -22,7 +22,7 @@ export const ALLOWED_IMAGE_HOSTS: readonly ImageHostPattern[] = [
 // (root-relative), or an absolute http(s) URL whose protocol+host is allow-listed.
 // Everything else — unknown host, non-http scheme, protocol-relative to an
 // off-list host, bare-relative, unparseable, empty — is treated as unrenderable.
-export function isRenderableImageSrc(src: string | null | undefined): boolean {
+export function isRenderableImageSrc(src: string | null | undefined): src is string {
   if (!src) return false;
   const s = src.trim();
   if (s === '') return false;

@@ -10,6 +10,7 @@ import {useAuth} from '../../../contexts/AuthContext';
 import {track} from '../../../lib/analytics';
 import {formatPrice} from '../../../lib/formatPrice';
 import {WILDBERRIES_SELLER_URL} from '../../../lib/wildberries';
+import {isRenderableImageSrc} from '../../../lib/imageHost';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
 import LoaderSplash from '../../../components/LoaderSplash';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
@@ -102,7 +103,7 @@ export default function CartPage() {
                     key={item.id}
                     className="paper-card flex items-start gap-4 p-4 sm:items-center sm:p-5"
                   >
-                    {item.image ? (
+                    {isRenderableImageSrc(item.image) ? (
                       <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-paperMuted">
                         <Image
                           src={item.image}
@@ -265,7 +266,7 @@ export default function CartPage() {
                   className="group flex-shrink-0 w-40 space-y-3"
                 >
                   <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-gradient-to-br from-paperMuted to-paper transition-transform duration-300 group-hover:scale-[1.02]">
-                    {item.image ? (
+                    {isRenderableImageSrc(item.image) ? (
                       <Image
                         src={item.image}
                         alt={item.title}

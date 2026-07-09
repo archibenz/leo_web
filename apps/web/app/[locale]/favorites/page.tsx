@@ -10,6 +10,7 @@ import HeroShaderBackgroundClient from '../../../components/HeroShaderBackground
 import LoaderSplash from '../../../components/LoaderSplash';
 import ConfirmDialog from '../../../components/ui/ConfirmDialog';
 import {BrandHeart} from '../../../components/icons';
+import {isRenderableImageSrc} from '../../../lib/imageHost';
 
 export default function FavoritesPage() {
   const t = useTranslations('favorites');
@@ -78,7 +79,7 @@ export default function FavoritesPage() {
               >
                 {/* Image container */}
                 <div className="relative aspect-[3/4] overflow-hidden rounded-2xl bg-paperMuted">
-                  {item.image ? (
+                  {isRenderableImageSrc(item.image) ? (
                     <Image
                       src={item.image}
                       alt={item.title}
