@@ -120,7 +120,10 @@ export function useWhiteAuth(): {user: WhiteUser | null; ready: boolean} {
   useEffect(() => {
     const listener = () => force((n) => n + 1);
     listeners.add(listener);
-    void resolveUser();
+    // Fire-and-forget: resolveUser owns its own error handling, but catch here
+    // too so nothing can escape as an unhandled rejection if it throws before
+    // its internal chain is set up.
+    resolveUser().catch(() => {});
     return () => {
       listeners.delete(listener);
     };

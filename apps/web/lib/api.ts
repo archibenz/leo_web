@@ -11,17 +11,35 @@ export const API_BASE =
 
 const TOKEN_KEY = 'reinasleo_token';
 
+// localStorage access can throw, not just return null: Safari private mode,
+// storage disabled by policy, or blocked third-party cookies all raise
+// SecurityError/QuotaExceededError. Swallow it so a read degrades to
+// "signed out" and a write is best-effort, rather than throwing synchronously
+// into callers (e.g. the async resolveUser, where it would surface as an
+// unhandled rejection).
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(TOKEN_KEY);
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
 }
 
 export function setToken(token: string): void {
-  localStorage.setItem(TOKEN_KEY, token);
+  try {
+    localStorage.setItem(TOKEN_KEY, token);
+  } catch {
+    /* storage unavailable — best-effort */
+  }
 }
 
 export function clearToken(): void {
-  localStorage.removeItem(TOKEN_KEY);
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    /* storage unavailable — best-effort */
+  }
 }
 
 type UnauthorizedHandler = () => void;
