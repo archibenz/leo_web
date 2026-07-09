@@ -446,7 +446,7 @@ export default function ProductDetailClient({initialProduct}: ProductDetailClien
             {recommendations.map(rec => (
               <Link key={rec.id} href={`/${locale}/product/${rec.id}`} className="group block">
                 <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-[var(--paper-muted)]">
-                  {rec.image ? (
+                  {isRenderableImageSrc(rec.image) ? (
                     <Image
                       src={rec.image}
                       alt={rec.title}

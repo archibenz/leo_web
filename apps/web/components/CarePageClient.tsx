@@ -8,6 +8,7 @@ import BlurReveal from './BlurReveal';
 import {CareSymbolsRow} from './CareSymbols';
 
 import { API_BASE } from '../lib/api';
+import { isRenderableImageSrc } from '../lib/imageHost';
 interface CareGuide {
   id: string;
   title: string;
@@ -131,7 +132,7 @@ export default function CarePageClient({initialGuides, locale}: CarePageClientPr
             {guides.map((guide, i) => (
               <BlurReveal key={guide.id} delay={i * 80}>
                 <article className="group relative rounded-2xl border border-accent/[0.08] bg-gradient-to-b from-[#1a100c]/40 to-transparent p-8 transition-all duration-500 hover:border-accent/20 hover:shadow-[0_8px_40px_rgba(212,165,116,0.06)]">
-                  {guide.image && (
+                  {isRenderableImageSrc(guide.image) && (
                     <div className="relative mb-6 aspect-[16/9] rounded-xl overflow-hidden">
                       <Image
                         src={guide.image}

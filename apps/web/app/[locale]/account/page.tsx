@@ -8,6 +8,7 @@ import {useAuth, useFavorites} from '../../../contexts';
 import {useRecentlyViewed} from '../../../hooks/useRecentlyViewed';
 import {apiFetch} from '../../../lib/api';
 import {isValidTelegramDeepLink} from '../../../lib/validation';
+import {isRenderableImageSrc} from '../../../lib/imageHost';
 import {useFocusTrap} from '../../../lib/useFocusTrap';
 import {useMountTransition} from '../../../lib/useMountTransition';
 import HeroShaderBackgroundClient from '../../../components/HeroShaderBackgroundClient';
@@ -731,7 +732,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                   {recentItems.map((item) => (
                     <Link key={item.id} href={`/${locale}/product/${item.id}`} className="group block">
                       <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-paperMuted">
-                        {item.image ? (
+                        {isRenderableImageSrc(item.image) ? (
                           <Image
                             src={item.image}
                             alt={item.title}
@@ -775,7 +776,7 @@ function AuthenticatedProfile({user, locale, isAdmin, logout, memberSinceDate, t
                     <div key={item.id} className="group relative">
                       <Link href={`/${locale}/product/${item.id}`} className="block">
                         <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-paperMuted">
-                          {item.image ? (
+                          {isRenderableImageSrc(item.image) ? (
                             <Image
                               src={item.image}
                               alt={item.title}
