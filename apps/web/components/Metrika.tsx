@@ -1,3 +1,6 @@
+import {Suspense} from 'react';
+import MetrikaRouteTracker from './MetrikaRouteTracker';
+
 const YM_ID = process.env.NEXT_PUBLIC_YM_ID?.trim();
 
 // Yandex.Metrika bootstrap. Renders nothing unless NEXT_PUBLIC_YM_ID is set.
@@ -25,6 +28,11 @@ export default function Metrika({nonce}: {nonce?: string}) {
           />
         </div>
       </noscript>
+      {/* Client-side pageview tracking for SPA navigations. Suspense is required
+          because the tracker reads useSearchParams. */}
+      <Suspense fallback={null}>
+        <MetrikaRouteTracker ymId={YM_ID} />
+      </Suspense>
     </>
   );
 }
