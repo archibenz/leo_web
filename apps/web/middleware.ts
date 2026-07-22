@@ -33,12 +33,17 @@ const ymHosts = process.env.NEXT_PUBLIC_YM_ID?.trim()
   ? ' https://mc.yandex.ru https://mc.yandex.com'
   : '';
 
+// Next's dev runtime (Fast Refresh) evaluates code via eval, which the strict
+// production CSP forbids — without this, dev hydration dies with an EvalError
+// and every client component renders blank. Production builds never get it.
+const devEval = process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : '';
+
 function buildCsp(nonce: string): string {
   return [
     "default-src 'self'",
     `img-src 'self' data: blob: ${imgHosts}${ymHosts}`,
     "style-src 'self' 'unsafe-inline'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${ymHosts}`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${devEval}${ymHosts}`,
     "font-src 'self' data:",
     `connect-src ${connectSrc}${ymHosts}`,
     "frame-ancestors 'none'",
