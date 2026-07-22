@@ -9,7 +9,10 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('next-intl', () => ({
-  useTranslations: () => (key: string) => key,
+  // The consent line renders via t.rich — the mock needs it alongside plain t().
+  useTranslations: () => Object.assign((key: string) => key, {
+    rich: (key: string) => key,
+  }),
 }));
 
 afterEach(() => {

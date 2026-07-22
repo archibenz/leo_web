@@ -49,6 +49,42 @@ describe('token helpers', () => {
     clearToken();
     expect(getToken()).toBeNull();
   });
+
+  it('degrades instead of throwing when localStorage is unavailable', () => {
+    // Safari private mode / disabled storage raise SecurityError on any access.
+    // A synchronous throw here would surface as an unhandled rejection in the
+    // async resolveUser (useWhiteAuth). getToken must read as signed-out and
+    // set/clear must be best-effort no-ops.
+    const throwing = {
+      get length(): number {
+        throw new Error('SecurityError');
+      },
+      getItem: () => {
+        throw new Error('SecurityError');
+      },
+      setItem: () => {
+        throw new Error('SecurityError');
+      },
+      removeItem: () => {
+        throw new Error('SecurityError');
+      },
+      clear: () => {
+        throw new Error('SecurityError');
+      },
+      key: () => {
+        throw new Error('SecurityError');
+      },
+    };
+    Object.defineProperty(globalThis, 'localStorage', {value: throwing, configurable: true, writable: true});
+    if (typeof window !== 'undefined') {
+      Object.defineProperty(window, 'localStorage', {value: throwing, configurable: true, writable: true});
+    }
+
+    expect(() => getToken()).not.toThrow();
+    expect(getToken()).toBeNull();
+    expect(() => setToken('abc')).not.toThrow();
+    expect(() => clearToken()).not.toThrow();
+  });
 });
 
 describe('apiFetch', () => {

@@ -166,7 +166,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                   away. The greeting reads larger and the sign-in sits below it on
                   its own line, roomier to the touch. */}
               <div className="wv-menu-item mt-5 flex flex-col gap-3" style={{animationDelay: '60ms'}}>
-                <span className="text-[17px] leading-snug" style={{color: INK}}>
+                <span className="text-[17px] leading-snug md:text-[19px]" style={{color: INK}}>
                   {user ? t('welcomeName', {name: user.name}) : t('welcome')}
                 </span>
                 <Link
@@ -192,7 +192,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                       href={l.href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
-                      className="wv-menu-item wv-menu-link flex min-h-11 items-center font-display text-[26px] font-light tracking-[-0.01em]"
+                      className="wv-menu-item wv-menu-link flex min-h-11 items-center font-display text-[26px] font-light tracking-[-0.01em] md:min-h-[56px] md:text-[34px]"
                       style={{color: active ? INK : MUTED, fontWeight: active ? 500 : 300, textDecoration: active ? 'underline' : 'none', textUnderlineOffset: '5px', textDecorationThickness: '1px', animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
                     >
                       {l.label}
@@ -213,7 +213,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                     href={sc.href}
                     onClick={() => setOpen(false)}
                     aria-current={active ? 'page' : undefined}
-                    className="wv-menu-item wv-link inline-flex min-h-9 items-center self-start text-[11px] uppercase tracking-[0.12em]"
+                    className="wv-menu-item wv-link inline-flex min-h-9 items-center self-start text-[11px] uppercase tracking-[0.12em] md:min-h-10 md:text-[12px]"
                     style={{color: active ? INK : MUTED, fontWeight: active ? 600 : 400, textDecoration: active ? 'underline' : 'none', textUnderlineOffset: '4px', textDecorationThickness: '1px', animationDelay: `${360 + i * 40}ms`}}
                   >
                     {sc.label}
@@ -223,7 +223,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             </div>
 
 
-            <div className="wv-menu-item mx-6 mt-4 flex shrink-0 items-center gap-4 border-t pb-8 pt-3 text-[12px] uppercase tracking-[0.12em]" style={{animationDelay: '620ms', borderColor: HAIR, color: INK}}>
+            <div className="wv-menu-item mx-6 mt-4 flex shrink-0 items-center gap-4 border-t pb-8 pt-3 text-[12px] uppercase tracking-[0.12em] md:gap-6 md:text-[13px]" style={{animationDelay: '620ms', borderColor: HAIR, color: INK}}>
               <Link href={`/${locale}/white/account`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
                 {t('account')}
               </Link>

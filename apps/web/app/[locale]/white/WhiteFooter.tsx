@@ -155,6 +155,15 @@ export default function WhiteFooter({locale}: {locale: string}) {
           >
             {nlMessage}
           </p>
+          {/* 152-ФЗ: собираем e-mail — под формой living-строка согласия со
+              ссылкой на политику; сабмит и есть подтверждающее действие. */}
+          <p className="mt-1.5 text-[10.5px] leading-relaxed" style={{color: MUTED}}>
+            {t.rich('newsletterConsent', {
+              policy: (chunks) => (
+                <Link href={`/${locale}/privacy`} className="wv-link" style={{color: INK}}>{chunks}</Link>
+              ),
+            })}
+          </p>
         </div>
       </div>
       {/* Seller identity — distance-selling rules put it on the site itself. */}

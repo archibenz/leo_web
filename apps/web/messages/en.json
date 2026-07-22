@@ -1044,7 +1044,7 @@
       },
       {
         "heading": "6. Orders and Payments",
-        "body": "All orders are subject to availability and confirmation. Prices are displayed in euros and include applicable taxes. We reserve the right to refuse or cancel orders in cases of pricing errors, suspected fraud, or stock unavailability. Payment is processed securely through our authorized payment providers."
+        "body": "All orders are subject to availability and confirmation. Prices on the site are displayed in Russian rubles and include applicable taxes. At present, purchases are made in the official REINASLEO store on Wildberries; the marketplace’s own payment and delivery terms apply there. Once on-site payments launch, they will be processed by an authorised payment provider with a fiscal receipt issued in accordance with Russian law. We reserve the right to refuse or cancel orders in cases of pricing errors, suspected fraud, or stock unavailability."
       },
       {
         "heading": "7. Changes to Terms",
@@ -1388,7 +1388,8 @@
       "terms": "Terms",
       "cookieText": "We use cookies and Yandex Metrica to run the site and make it better.",
       "cookieMore": "Learn more",
-      "cookieOk": "Okay"
+      "cookieOk": "Okay",
+      "newsletterConsent": "By pressing “→” you consent to the processing of your personal data and to receiving the newsletter — <policy>privacy policy</policy>."
     },
     "pdp": {
       "back": "Back",
@@ -1572,7 +1573,7 @@
       "errPassword": "Password: at least 8 characters, letters and digits.",
       "errName": "Enter a name (2–40 characters).",
       "intro": "Sign in or create an account — favourites and orders stay with you.",
-      "consent": "By creating an account you accept the <policy>Privacy Policy</policy> and the <offer>Offer</offer>."
+      "consent": "I consent to the processing of my personal data under the <policy>Privacy Policy</policy> and accept the <offer>Offer</offer>."
     },
     "error": {
       "eyebrow": "Error",

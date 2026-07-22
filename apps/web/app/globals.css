@@ -1679,7 +1679,14 @@ body:has(.wv-root)::after {
 .wv-menu-link {
   transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s ease;
 }
-.wv-menu-link:hover,
+/* The nudge is a pointer affordance — on touch, :hover latches after a tap
+   and the link sticks shifted (same trap as the tap discs). Keyboard focus
+   keeps it unconditionally. */
+@media (hover: hover) {
+  .wv-menu-link:hover {
+    transform: translateX(10px);
+  }
+}
 .wv-menu-link:focus-visible {
   transform: translateX(10px);
 }

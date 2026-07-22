@@ -32,6 +32,9 @@ async function resolveUser(): Promise<void> {
   if (resolved || inflight) return inflight ?? Promise.resolve();
   if (!getToken()) {
     resolved = true;
+    // Notify subscribers just like the token path does — a guest's first
+    // render sees ready=false, and without this no re-render ever follows.
+    broadcast();
     return;
   }
   inflight = apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true})
@@ -90,6 +93,9 @@ export async function whiteRegister(data: {email: string; code: string; firstNam
         code: data.code.trim(),
         firstName: data.firstName.trim(),
         password: data.password,
+        // The sign-up form gates submit on a required consent checkbox, so a
+        // request reaching here always carries an explicit consent action.
+        privacyAccepted: true,
         newsletter: false,
         newsletterPromos: false,
         newsletterCollections: false,
@@ -120,7 +126,10 @@ export function useWhiteAuth(): {user: WhiteUser | null; ready: boolean} {
   useEffect(() => {
     const listener = () => force((n) => n + 1);
     listeners.add(listener);
-    void resolveUser();
+    // Fire-and-forget: resolveUser owns its own error handling, but catch here
+    // too so nothing can escape as an unhandled rejection if it throws before
+    // its internal chain is set up.
+    resolveUser().catch(() => {});
     return () => {
       listeners.delete(listener);
     };

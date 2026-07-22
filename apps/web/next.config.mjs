@@ -21,6 +21,10 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    // Keep this allow-list in sync with lib/imageHost.ts (ALLOWED_IMAGE_HOSTS).
+    // next/image throws synchronously at render for a host that isn't listed
+    // here, so the image resolvers guard admin-supplied srcs against the same
+    // list and drop off-list hosts to a placeholder instead of crashing.
     remotePatterns: [
       {protocol: 'https', hostname: 'images.unsplash.com'},
       {protocol: 'http', hostname: 'localhost'},

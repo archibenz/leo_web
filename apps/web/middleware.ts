@@ -33,12 +33,17 @@ const ymHosts = process.env.NEXT_PUBLIC_YM_ID?.trim()
   ? ' https://mc.yandex.ru https://mc.yandex.com'
   : '';
 
+// Next's dev runtime (Fast Refresh) evaluates code via eval, which the strict
+// production CSP forbids — without this, dev hydration dies with an EvalError
+// and every client component renders blank. Production builds never get it.
+const devEval = process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : '';
+
 function buildCsp(nonce: string): string {
   return [
     "default-src 'self'",
     `img-src 'self' data: blob: ${imgHosts}${ymHosts}`,
     "style-src 'self' 'unsafe-inline'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${ymHosts}`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${devEval}${ymHosts}`,
     "font-src 'self' data:",
     `connect-src ${connectSrc}${ymHosts}`,
     "frame-ancestors 'none'",
@@ -101,9 +106,11 @@ export default function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL(`/${atelier[1]}/white/sets`, request.url), 308);
   }
 
-  // White-only mode: the gradient's public pages hand over to the White
-  // variant so the server renders one site. Reversible without a rollback —
-  // set WHITE_ONLY=0 in the environment and restart.
+  // White-only site: the gradient storefront is retired (its source lives under
+  // gradient-archive/, excluded from the build), so its old public URLs hand
+  // over to the White variant with a permanent 308. The WHITE_ONLY guard stays
+  // as a kill-switch for the redirects, but WHITE_ONLY=0 no longer restores a
+  // working gradient — those routes are no longer built.
   if (process.env.WHITE_ONLY !== '0') {
     const m = pathname.match(WHITE_LOCALE_PATH);
     if (m) {
@@ -112,7 +119,7 @@ export default function middleware(request: NextRequest) {
       if (rest === '' || rest === '/') target = '/white';
       else if (rest in GRADIENT_TO_WHITE) target = GRADIENT_TO_WHITE[rest]!;
       else if (rest.startsWith('/product/') || rest.startsWith('/shop/')) target = '/white/shop';
-      if (target) return NextResponse.redirect(new URL(`/${m[1]}${target}`, request.url), 307);
+      if (target) return NextResponse.redirect(new URL(`/${m[1]}${target}`, request.url), 308);
     }
   }
 

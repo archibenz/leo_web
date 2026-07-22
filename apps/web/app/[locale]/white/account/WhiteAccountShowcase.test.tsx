@@ -61,4 +61,38 @@ describe('WhiteAccountShowcase', () => {
     // Name/password arrive only after the code is sent.
     expect(screen.queryByLabelText(/first name/i)).not.toBeInTheDocument();
   });
+
+  it('sign-up gates on a required consent checkbox and sends privacyAccepted', async () => {
+    const calls: {url: string; body: Record<string, unknown> | null}[] = [];
+    global.fetch = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      const u = String(url);
+      calls.push({url: u, body: init?.body ? JSON.parse(String(init.body)) : null});
+      const ok = (body: unknown) => ({ok: true, status: 200, json: async () => body});
+      if (u.includes('/api/auth/send-code')) return ok({message: 'sent'}) as unknown as Response;
+      if (u.includes('/api/auth/register')) return ok({token: 'tok'}) as unknown as Response;
+      if (u.includes('/api/auth/me')) return ok({id: 1, email: 'anna@test.dev', name: 'Anna'}) as unknown as Response;
+      return {ok: false, status: 404, json: async () => ({})} as unknown as Response;
+    }) as unknown as typeof fetch;
+
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole('tab', {name: /sign up/i}));
+    await user.type(screen.getByLabelText(/email/i), 'anna@test.dev');
+    await user.click(screen.getByRole('button', {name: /send the code/i}));
+
+    // The consent checkbox is part of the final step and must be required —
+    // 152-ФЗ needs a recorded consent action, not just a line of text.
+    const consent = await screen.findByRole('checkbox');
+    expect(consent).toBeRequired();
+
+    await user.type(screen.getByLabelText(/code from the email/i), '123456');
+    await user.type(screen.getByLabelText(/first name/i), 'Anna');
+    await user.type(screen.getByLabelText(/password/i), 'Passw0rd123');
+    await user.click(consent);
+    await user.click(screen.getByRole('button', {name: /create account/i}));
+
+    const register = calls.find((c) => c.url.includes('/api/auth/register'));
+    expect(register).toBeDefined();
+    expect(register!.body).toMatchObject({privacyAccepted: true});
+  });
 });

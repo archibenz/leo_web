@@ -9,6 +9,7 @@ import Image from 'next/image';
 
 import { API_BASE } from '../lib/api';
 import { formatPrice } from '../lib/formatPrice';
+import { isRenderableImageSrc } from '../lib/imageHost';
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
@@ -90,14 +91,16 @@ function useProductImages(item: ShopItem): string[] {
         if (Array.isArray(parsed)) {
           for (const img of parsed) {
             if (img && typeof img === 'object' && typeof img.src === 'string') {
-              imgs.push(resolveAssetUrl(img.src));
+              const url = resolveAssetUrl(img.src);
+              if (isRenderableImageSrc(url)) imgs.push(url);
             }
           }
         }
       } catch { /* ignore */ }
     }
     if (imgs.length === 0 && item.image) {
-      imgs.push(resolveAssetUrl(item.image));
+      const url = resolveAssetUrl(item.image);
+      if (isRenderableImageSrc(url)) imgs.push(url);
     }
     return imgs;
   }, [item.images, item.image]);

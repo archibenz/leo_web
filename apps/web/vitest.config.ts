@@ -15,6 +15,7 @@ export default defineConfig({
     globals: true,
     exclude: [
       'e2e/**',
+      'gradient-archive/**',
       'node_modules/**',
       'dist/**',
       '.next/**',
