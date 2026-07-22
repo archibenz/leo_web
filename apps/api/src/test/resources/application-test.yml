@@ -30,3 +30,8 @@ app:
     secret: test-metrics-secret
   telegram:
     bot-token: test-bot-token
+yookassa:
+  shop-id: test-shop-id
+  secret-key: test-secret-key
+  enabled: false
+  return-url-base: http://localhost:3000

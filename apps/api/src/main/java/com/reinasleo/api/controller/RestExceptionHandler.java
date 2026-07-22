@@ -1,6 +1,8 @@
 package com.reinasleo.api.controller;
 
+import com.reinasleo.api.client.YooKassaApiException;
 import com.reinasleo.api.exception.BadRequestException;
+import com.reinasleo.api.exception.CheckoutDisabledException;
 import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.exception.EmailDeliveryException;
@@ -184,6 +186,27 @@ public class RestExceptionHandler {
                 "error", ex.getCode()
         );
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
+    @ExceptionHandler(CheckoutDisabledException.class)
+    public ResponseEntity<Map<String, Object>> handleCheckoutDisabled(CheckoutDisabledException ex) {
+        Map<String, Object> body = Map.of(
+                "message", "Checkout is temporarily unavailable",
+                "error", "checkout_disabled"
+        );
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(body);
+    }
+
+    @ExceptionHandler(YooKassaApiException.class)
+    public ResponseEntity<Map<String, Object>> handleYooKassaApi(YooKassaApiException ex) {
+        // Детали (статус провайдера) уходят в лог; клиенту — только generic
+        // сообщение. 502: наш запрос корректен, upstream провайдер недоступен.
+        log.error("YooKassa API error (status {}): {}", ex.getStatus(), ex.getMessage());
+        Map<String, Object> body = Map.of(
+                "message", "Payment provider is unavailable, please try again later",
+                "error", "payment_provider_error"
+        );
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(body);
     }
 
     @ExceptionHandler(IllegalStateTransitionException.class)
