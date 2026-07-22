@@ -82,6 +82,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/care-guides", "/api/care-guides/**").permitAll()
                         // Public POST APIs (rate-limited or secret-protected at controller layer)
                         .requestMatchers("/api/contact").permitAll()
+                        // Guest checkout: аноним разрешён, лимитируется в RateLimitFilter,
+                        // feature-flag CHECKOUT_ENABLED проверяется в CheckoutService (503).
+                        .requestMatchers("/api/checkout").permitAll()
+                        // YooKassa webhook: без auth — тело не trusted, статус
+                        // перепроверяется verify-by-fetch в PaymentWebhookService.
+                        .requestMatchers("/api/payments/yookassa/webhook").permitAll()
                         // Authenticated /api/auth/* endpoints — must be listed BEFORE the
                         // public /api/auth/** matcher (Spring picks first match). These
                         // controllers read @AuthenticationPrincipal User and assume non-null;

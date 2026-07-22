@@ -13,13 +13,12 @@ export default function robots(): MetadataRoute.Robots {
           // and never blocks `/ru/admin/`. Use the `/*/` locale wildcard.
           '/*/admin/',
           '/*/auth/',
-          '/*/account/',
           '/*/cart/',
           '/*/favorites/',
           // White utility pages — personal state, nothing to index.
-          '/*/white/bag',
-          '/*/white/account',
-          '/*/white/favourites',
+          '/*/bag',
+          '/*/account',
+          '/*/favourites',
           '/*/splash-preview',
           '/*/loader-preview',
           '/*/v1/',

@@ -41,17 +41,17 @@ describe('MenuOverlay body scroll-lock', () => {
   });
 
   it('does not clobber an existing scroll-lock when it mounts closed (white portal owns it)', () => {
-    // On /white routes useWhitePortal locks the body before this always-mounted
+    // On storefront routes useWhitePortal locks the body before this always-mounted
     // gradient drawer renders; mounting closed must not steal that lock.
     document.body.style.overflow = 'hidden';
-    mockPathname.mockReturnValue('/ru/white/shop');
+    mockPathname.mockReturnValue('/ru/shop');
     render(<MenuOverlay isOpen={false} onClose={vi.fn()} locale="ru" />);
     expect(document.body.style.overflow).toBe('hidden');
   });
 
   it('restores the previous lock on close instead of forcing it open (white route)', () => {
     document.body.style.overflow = 'hidden';
-    mockPathname.mockReturnValue('/ru/white/shop');
+    mockPathname.mockReturnValue('/ru/shop');
     const {rerender} = render(<MenuOverlay isOpen onClose={vi.fn()} locale="ru" />);
     expect(document.body.style.overflow).toBe('hidden');
     rerender(<MenuOverlay isOpen={false} onClose={vi.fn()} locale="ru" />);

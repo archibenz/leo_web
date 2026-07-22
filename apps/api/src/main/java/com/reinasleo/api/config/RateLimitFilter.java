@@ -32,12 +32,14 @@ public class RateLimitFilter implements Filter {
     private final Cache<String, Bucket> deleteChallengeBuckets = buildCache();
     private final Cache<String, Bucket> botBuckets = buildCache();
     private final Cache<String, Bucket> contactBuckets = buildCache();
+    private final Cache<String, Bucket> checkoutBuckets = buildCache();
 
     private final Counter authHitCounter;
     private final Counter telegramHitCounter;
     private final Counter deleteChallengeHitCounter;
     private final Counter botHitCounter;
     private final Counter contactHitCounter;
+    private final Counter checkoutHitCounter;
 
     public RateLimitFilter(MeterRegistry meters) {
         this.authHitCounter = hitCounter(meters, "auth");
@@ -45,6 +47,7 @@ public class RateLimitFilter implements Filter {
         this.deleteChallengeHitCounter = hitCounter(meters, "delete_challenge");
         this.botHitCounter = hitCounter(meters, "bot");
         this.contactHitCounter = hitCounter(meters, "contact");
+        this.checkoutHitCounter = hitCounter(meters, "checkout");
     }
 
     private static Counter hitCounter(MeterRegistry meters, String bucket) {
@@ -85,6 +88,10 @@ public class RateLimitFilter implements Filter {
             if (isRateLimited(botBuckets, ip, res, this::createBotBucket, botHitCounter)) return;
         } else if (path.equals("/api/contact") && "POST".equalsIgnoreCase(req.getMethod())) {
             if (isRateLimited(contactBuckets, ip, res, this::createContactBucket, contactHitCounter)) return;
+        } else if (path.equals("/api/checkout") && "POST".equalsIgnoreCase(req.getMethod())) {
+            // Webhook /api/payments/yookassa/webhook намеренно НЕ лимитируется:
+            // лимит по IP мог бы дропнуть легитимные ретраи YooKassa.
+            if (isRateLimited(checkoutBuckets, ip, res, this::createCheckoutBucket, checkoutHitCounter)) return;
         }
 
         chain.doFilter(request, response);
@@ -140,6 +147,14 @@ public class RateLimitFilter implements Filter {
     private Bucket createContactBucket() {
         return Bucket.builder()
                 .addLimit(Bandwidth.simple(3, Duration.ofMinutes(1)))
+                .build();
+    }
+
+    private Bucket createCheckoutBucket() {
+        // Каждый вызов создаёт платёж у YooKassa и декрементит сток — 5/мин
+        // на IP хватает легитимному покупателю (ретраи карт), фарм дорог.
+        return Bucket.builder()
+                .addLimit(Bandwidth.simple(5, Duration.ofMinutes(1)))
                 .build();
     }
 

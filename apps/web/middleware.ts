@@ -71,19 +71,19 @@ function generateNonce(): string {
 const ADMIN_PATH = new RegExp(`^/(${locales.join('|')})/admin(/|$)`);
 const SESSION_COOKIE = 'rl_session';
 
-// Gradient public routes and their White equivalents (White-only mode). Legal
-// pages (privacy/terms/offer), account, auth, admin and previews stay put.
-const WHITE_LOCALE_PATH = new RegExp(`^/(${locales.join('|')})(/.*)?$`);
+// The White storefront moved from /<locale>/white/* to the locale root. Old
+// /white URLs stay alive as permanent 308s so external links and indexed pages
+// keep resolving; retired gradient URLs that have no root page anymore
+// (cart/favorites/collections/about, path-style /product/<id>) 308 to their
+// White successors. Legal pages (privacy/terms/offer), auth and admin stay put.
+const WHITE_LEGACY_PATH = new RegExp(`^/(${locales.join('|')})/white(/.*)?$`);
 const WHITE_ATELIER_PATH = new RegExp(`^/(${locales.join('|')})/white/atelier/?$`);
-const GRADIENT_TO_WHITE: Record<string, string> = {
-  '/shop': '/white/shop',
-  '/cart': '/white/bag',
-  '/favorites': '/white/favourites',
-  '/collections': '/white/shop',
-  '/about': '/white/sets',
-  '/contact': '/white/contact',
-  '/care': '/white/care',
-  '/delivery': '/white/delivery',
+const LEGACY_ALIAS_PATH = new RegExp(`^/(${locales.join('|')})(/.*)?$`);
+const LEGACY_ALIASES: Record<string, string> = {
+  '/cart': '/bag',
+  '/favorites': '/favourites',
+  '/collections': '/shop',
+  '/about': '/sets',
 };
 
 export default function middleware(request: NextRequest) {
@@ -95,31 +95,45 @@ export default function middleware(request: NextRequest) {
   request.headers.set('x-nonce', nonce);
 
   const pathname = request.nextUrl.pathname;
-  // Let Server Components know which route they serve (the locale layout drops
-  // the gradient chrome on /white routes). Same mechanism as the nonce.
+  // Let Server Components know which route they serve (the locale layout keeps
+  // the gradient chrome only on privacy/terms/offer/admin/auth; everything else
+  // renders the White storefront chrome). Same mechanism as the nonce.
   request.headers.set('x-pathname', pathname);
 
   // The atelier section became Sets — permanent, real 308 at the edge (a
   // page-level redirect can't change the status once the shell streams).
+  // Checked before the generic /white rule so /white/atelier lands on /sets.
   const atelier = pathname.match(WHITE_ATELIER_PATH);
   if (atelier) {
-    return NextResponse.redirect(new URL(`/${atelier[1]}/white/sets`, request.url), 308);
+    return NextResponse.redirect(new URL(`/${atelier[1]}/sets`, request.url), 308);
   }
 
-  // White-only site: the gradient storefront is retired (its source lives under
-  // gradient-archive/, excluded from the build), so its old public URLs hand
-  // over to the White variant with a permanent 308. The WHITE_ONLY guard stays
-  // as a kill-switch for the redirects, but WHITE_ONLY=0 no longer restores a
-  // working gradient — those routes are no longer built.
-  if (process.env.WHITE_ONLY !== '0') {
-    const m = pathname.match(WHITE_LOCALE_PATH);
-    if (m) {
-      const rest = m[2] ?? '';
-      let target: string | null = null;
-      if (rest === '' || rest === '/') target = '/white';
-      else if (rest in GRADIENT_TO_WHITE) target = GRADIENT_TO_WHITE[rest]!;
-      else if (rest.startsWith('/product/') || rest.startsWith('/shop/')) target = '/white/shop';
-      if (target) return NextResponse.redirect(new URL(`/${m[1]}${target}`, request.url), 308);
+  // Old /<locale>/white/* addresses → the same path at the locale root, query
+  // intact (/ru/white/product?p=key must keep its ?p).
+  const whiteLegacy = pathname.match(WHITE_LEGACY_PATH);
+  if (whiteLegacy) {
+    const rest = whiteLegacy[2] === '/' ? '' : (whiteLegacy[2] ?? '');
+    return NextResponse.redirect(
+      new URL(`/${whiteLegacy[1]}${rest}${request.nextUrl.search}`, request.url),
+      308
+    );
+  }
+
+  // Retired gradient URLs. The old PDPs were path-style /product/<id>; the
+  // White PDP lives at /product?p=<key> with no extra segment, so only paths
+  // WITH a segment after /product/ (or the old /shop/<collection>) fall back
+  // to the shop.
+  const legacy = pathname.match(LEGACY_ALIAS_PATH);
+  if (legacy) {
+    const rest = legacy[2] ?? '';
+    let target: string | null = null;
+    if (rest in LEGACY_ALIASES) target = LEGACY_ALIASES[rest]!;
+    else if (/^\/(?:product|shop)\/[^/?]/.test(rest)) target = '/shop';
+    if (target) {
+      return NextResponse.redirect(
+        new URL(`/${legacy[1]}${target}${request.nextUrl.search}`, request.url),
+        308
+      );
     }
   }
 

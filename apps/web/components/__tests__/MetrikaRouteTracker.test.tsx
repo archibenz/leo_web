@@ -1,7 +1,7 @@
 import {render} from '@testing-library/react';
 import {describe, it, expect, vi, beforeEach} from 'vitest';
 
-let mockPathname = '/ru/white';
+let mockPathname = '/ru';
 let mockSearch = new URLSearchParams();
 vi.mock('next/navigation', () => ({
   usePathname: () => mockPathname,
@@ -14,7 +14,7 @@ type Win = {ym?: ReturnType<typeof vi.fn>};
 
 describe('MetrikaRouteTracker', () => {
   beforeEach(() => {
-    mockPathname = '/ru/white';
+    mockPathname = '/ru';
     mockSearch = new URLSearchParams();
     (window as unknown as Win).ym = vi.fn();
   });
@@ -26,23 +26,23 @@ describe('MetrikaRouteTracker', () => {
 
   it('fires ym hit with the new url on client navigation', () => {
     const {rerender} = render(<MetrikaRouteTracker ymId="109810843" />);
-    mockPathname = '/ru/white/shop';
+    mockPathname = '/ru/shop';
     rerender(<MetrikaRouteTracker ymId="109810843" />);
-    expect((window as unknown as Win).ym).toHaveBeenCalledWith(109810843, 'hit', '/ru/white/shop');
+    expect((window as unknown as Win).ym).toHaveBeenCalledWith(109810843, 'hit', '/ru/shop');
   });
 
   it('includes the query string (White PDP ?p=...)', () => {
     const {rerender} = render(<MetrikaRouteTracker ymId="109810843" />);
-    mockPathname = '/ru/white/product';
+    mockPathname = '/ru/product';
     mockSearch = new URLSearchParams('p=key5');
     rerender(<MetrikaRouteTracker ymId="109810843" />);
-    expect((window as unknown as Win).ym).toHaveBeenCalledWith(109810843, 'hit', '/ru/white/product?p=key5');
+    expect((window as unknown as Win).ym).toHaveBeenCalledWith(109810843, 'hit', '/ru/product?p=key5');
   });
 
   it('is a no-op when ym is not on window yet', () => {
     (window as unknown as Win).ym = undefined;
     const {rerender} = render(<MetrikaRouteTracker ymId="109810843" />);
-    mockPathname = '/ru/white/bag';
+    mockPathname = '/ru/bag';
     expect(() => rerender(<MetrikaRouteTracker ymId="109810843" />)).not.toThrow();
   });
 });

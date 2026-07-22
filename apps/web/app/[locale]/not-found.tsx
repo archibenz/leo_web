@@ -1,9 +1,11 @@
 'use client';
 
 import {useLocale} from 'next-intl';
-import NotFoundTag from '../../components/error/NotFoundTag';
+import WhiteNotFoundShowcase from './WhiteNotFoundShowcase';
 
-export default function LocaleNotFound() {
+// Segment-level not-found for /[locale]/* — unmatched White URLs render the
+// White 404 instead of bubbling up to the dark gradient not-found.
+export default function WhiteNotFound() {
   const locale = useLocale();
-  return <NotFoundTag locale={locale} />;
+  return <WhiteNotFoundShowcase locale={locale} />;
 }

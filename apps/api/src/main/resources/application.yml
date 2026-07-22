@@ -77,3 +77,12 @@ app:
     dir: ${UPLOAD_DIR:uploads}
   metrics:
     secret: ${METRICS_SECRET}
+# Пустые фолбэки для shop-id/secret-key — осознанное исключение из правила
+# «секреты без :default»: фича выключена по умолчанию и приложение обязано
+# стартовать без YooKassa credentials. При CHECKOUT_ENABLED=true пустые
+# credentials валят старт (fail-fast в YooKassaProperties).
+yookassa:
+  shop-id: ${YOOKASSA_SHOP_ID:}
+  secret-key: ${YOOKASSA_SECRET_KEY:}
+  enabled: ${CHECKOUT_ENABLED:false}
+  return-url-base: ${PUBLIC_BASE_URL:https://reinasleo.com}
