@@ -10,6 +10,7 @@ import WhiteHeader from '../WhiteHeader';
 import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
+import WildberriesButton from '../../../../components/WildberriesButton';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 import {WhiteFavHeart} from '../wv-icons';
 import {WHITE_PRODUCTS, WHITE_SETS, WHITE_SIZES, type WhiteProduct} from '../products';
@@ -399,16 +400,18 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               </button>
             </div>
 
-            {/* The same piece on Wildberries — the brand's primary sales channel. */}
-            <a
-              href={wbUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="wv-link mt-5 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.18em]"
-              style={{color: MUTED}}
-            >
-              {t('buyOnWb')} ↗
-            </a>
+            {/* The same piece on Wildberries — the brand's primary sales channel.
+                The gradient's wave-fill button, recoloured for the white ground:
+                violet outline at rest, the WB-violet ripple floods it on hover
+                and the label flips to white. */}
+            <div className="mt-5">
+              <WildberriesButton
+                href={wbUrl}
+                className="relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden border-2 border-[#CB11AB] text-[13px] font-medium uppercase tracking-[0.18em] text-[#CB11AB] transition-colors duration-300 hover:text-white active:scale-[0.98] motion-reduce:active:scale-100"
+              >
+                {t('buyOnWb')}
+              </WildberriesButton>
+            </div>
 
             {/* Details */}
             <dl className="mt-10 divide-y" style={{borderColor: HAIR}}>
