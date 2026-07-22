@@ -47,7 +47,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
       setIsAnimating(true);
       setActiveCat(new URLSearchParams(window.location.search).get('category'));
       // Restore whatever lock was already there (the white portal holds
-      // overflow:hidden on /white routes) instead of hardcoding '', so closing
+      // overflow:hidden on storefront routes) instead of hardcoding '', so closing
       // this drawer never unlocks a scroll another owner still holds.
       const prevOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
@@ -66,7 +66,7 @@ export default function MenuOverlay({isOpen, onClose, locale}: MenuOverlayProps)
       };
     } else {
       // Closed: only run the slide-out timer. Do NOT touch body overflow — this
-      // drawer is not the lock owner while closed, and on /white routes the
+      // drawer is not the lock owner while closed, and on storefront routes the
       // white portal's scroll-lock must survive this mount.
       const timer = setTimeout(() => setIsAnimating(false), 380);
       return () => clearTimeout(timer);

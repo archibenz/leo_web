@@ -8,6 +8,7 @@ import SmartHeader from '../../components/SmartHeader';
 import Footer from '../../components/Footer';
 import Providers from '../../components/Providers';
 import Metrika from '../../components/Metrika';
+import WhiteChrome from './WhiteChrome';
 import {safeJsonLd} from '../../lib/jsonLd';
 import {SITE_URL as siteUrl} from '../../lib/siteUrl';
 
@@ -32,6 +33,10 @@ export async function generateMetadata({
     description: isRu
       ? 'REINASLEO — премиальная женская одежда. Скульптурные силуэты, ручная работа, редакционная подача.'
       : 'REINASLEO — premium womenswear with sculpted silhouettes, precision craftsmanship, and editorial storytelling.',
+    // Telegram/X read twitter:card next to the og: tags; without it some
+    // clients fall back to a bare-link preview. Pages inherit this unless they
+    // declare their own `twitter` block (none do).
+    twitter: {card: 'summary_large_image'},
   };
 }
 
@@ -49,11 +54,12 @@ export default async function LocaleLayout({
   // in dev / unit-test contexts where the middleware isn't wired up.
   const requestHeaders = await headers();
   const nonce = requestHeaders.get('x-nonce') ?? undefined;
-  // The White variant renders its own complete chrome, so its routes skip the
-  // gradient header/footer/providers entirely — nothing to hide behind an
-  // overlay, nothing extra to render on the server.
+  // The White storefront lives at the locale root and is the default chrome.
+  // Only the legal/infra pages (privacy, terms, offer, admin, auth) still use
+  // the gradient header/footer/providers; everything else renders inside
+  // WhiteChrome — one header and footer that persist across navigations.
   const pathname = requestHeaders.get('x-pathname') ?? '';
-  const isWhite = /^\/(?:[a-z-]+)\/white(?:\/|$)/i.test(pathname);
+  const isGradientChrome = /^\/(?:[a-z-]+)\/(?:privacy|terms|offer|admin|auth)(?:\/|$)/i.test(pathname);
 
   const orgJsonLd = {
     '@context': 'https://schema.org',
@@ -64,11 +70,11 @@ export default async function LocaleLayout({
     sameAs: ['https://instagram.com/reinasleo', 'https://t.me/reinasleo'],
   };
 
-  if (isWhite) {
+  if (!isGradientChrome) {
     return (
       <NextIntlClientProvider locale={locale} messages={messages}>
         <Metrika nonce={nonce} />
-        {children}
+        <WhiteChrome locale={locale}>{children}</WhiteChrome>
       </NextIntlClientProvider>
     );
   }

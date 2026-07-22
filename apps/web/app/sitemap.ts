@@ -1,22 +1,22 @@
 import type {MetadataRoute} from 'next';
 import {SITE_URL} from '../lib/siteUrl';
-import {WHITE_PRODUCTS} from './[locale]/white/products';
+import {WHITE_PRODUCTS} from './[locale]/products';
 
-// The White variant is the site: the sitemap lists its routes (the old
-// gradient paths 307-redirect there and stay out), plus the legal pages that
-// still live at their original addresses.
+// The White storefront lives at the locale root: the sitemap lists its routes
+// (the retired /white and gradient paths 308-redirect there and stay out),
+// plus the legal pages that still live at their original addresses.
 
 const locales = ['en', 'ru'] as const;
 
 const staticRoutes = [
-  '/white',
-  '/white/shop',
-  '/white/sets',
-  '/white/lookbook',
-  '/white/contact',
-  '/white/delivery',
-  '/white/faq',
-  '/white/care',
+  '',
+  '/shop',
+  '/sets',
+  '/lookbook',
+  '/contact',
+  '/delivery',
+  '/faq',
+  '/care',
   '/offer',
   '/privacy',
   '/terms',
@@ -38,13 +38,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       entries.push({
         url: `${SITE_URL}/${locale}${route}`,
         lastModified: now,
-        changeFrequency: route === '/white' ? 'daily' : 'weekly',
-        priority: route === '/white' ? 1.0 : 0.8,
+        changeFrequency: route === '' ? 'daily' : 'weekly',
+        priority: route === '' ? 1.0 : 0.8,
         alternates: {languages: altLanguages(route)},
       });
     }
     for (const product of WHITE_PRODUCTS) {
-      const route = `/white/product?p=${product.key}`;
+      const route = `/product?p=${product.key}`;
       entries.push({
         url: `${SITE_URL}/${locale}${route}`,
         lastModified: now,

@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {findWhiteProduct} from '../app/[locale]/white/products';
+import {findWhiteProduct} from '../app/[locale]/products';
 
 // Variant 2 "White" — client-only wishlist, backed by localStorage. Mirrors
 // useWhiteBag (module store + pub/sub) so every useWhiteFavourites() instance on

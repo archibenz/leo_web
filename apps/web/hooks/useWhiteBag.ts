@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 
-// Variant 2 "White" — client-only bag, backed by localStorage. The /white
+// Variant 2 "White" — client-only bag, backed by localStorage. The storefront
 // portals are client-mount-gated (useWhitePortal), so there is no SSR of this
 // state and no hydration mismatch. A module-level store + pub/sub keeps every
 // useWhiteBag() instance on a page in sync (header count, PDP add, bag list).
