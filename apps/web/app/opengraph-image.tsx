@@ -1,6 +1,9 @@
 import {ImageResponse} from 'next/og';
 import {renderOgCard, ogAlt, OG_SIZE, OG_CONTENT_TYPE} from '../lib/ogCard';
-import {defaultLocale} from '../i18n';
+// Import the plain locale const from i18n-routing, not i18n: i18n.ts calls
+// getRequestConfig(next-intl/server) at module scope, which the edge bundle
+// would otherwise pull in just for defaultLocale.
+import {defaultLocale} from '../i18n-routing';
 
 export const runtime = 'edge';
 export const alt = ogAlt(defaultLocale);

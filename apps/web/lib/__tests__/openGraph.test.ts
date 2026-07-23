@@ -1,9 +1,12 @@
 import {describe, it, expect} from 'vitest';
 import {ogLocale, brandCardUrl, brandMeta} from '../openGraph';
+import {SITE_URL} from '../siteUrl';
 
-// NEXT_PUBLIC_SITE_URL is unset under vitest, so SITE_URL falls back to the
-// production origin (see siteUrl.test.ts). Absolute URLs are asserted against it.
-const ORIGIN = 'https://reinasleo.com';
+// Absolute OG URLs are built from SITE_URL — NEXT_PUBLIC_SITE_URL when set,
+// otherwise the production fallback (see siteUrl.test.ts). Assert against the
+// same resolved origin so the suite is green whether the env var is set (CI
+// exports http://localhost:3000) or unset (local dev).
+const ORIGIN = SITE_URL;
 
 describe('ogLocale', () => {
   it('maps the app locales to OG locale codes', () => {

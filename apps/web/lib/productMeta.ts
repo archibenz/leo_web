@@ -22,6 +22,7 @@ export function buildProductMeta(input: ProductMetaInput): Pick<Metadata, 'openG
       type: 'website',
       siteName: 'REINASLEO',
       locale: ogLocale(input.locale),
+      alternateLocale: ogLocale(input.locale === 'ru' ? 'en' : 'ru'),
       url: input.url,
       title: ogTitle,
       description: input.description,

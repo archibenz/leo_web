@@ -36,6 +36,11 @@ describe('buildProductMeta', () => {
     expect(buildProductMeta({...base, locale: 'en'}).openGraph?.locale).toBe('en_US');
   });
 
+  it('declares the other locale as alternateLocale so PDPs match the brand pages', () => {
+    expect(buildProductMeta({...base, locale: 'ru'}).openGraph?.alternateLocale).toBe('en_US');
+    expect(buildProductMeta({...base, locale: 'en'}).openGraph?.alternateLocale).toBe('ru_RU');
+  });
+
   it('falls back to en_US for an unknown locale', () => {
     expect(buildProductMeta({...base, locale: 'fr'}).openGraph?.locale).toBe('en_US');
   });
