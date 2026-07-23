@@ -1573,7 +1573,13 @@
       "errPassword": "Password: at least 8 characters, letters and digits.",
       "errName": "Enter a name (2–40 characters).",
       "intro": "Sign in or create an account — favourites and orders stay with you.",
-      "consent": "I consent to the processing of my personal data under the <policy>Privacy Policy</policy> and accept the <offer>Offer</offer>."
+      "consent": "I consent to the processing of my personal data under the <policy>Privacy Policy</policy> and accept the <offer>Offer</offer>.",
+      "orDivider": "or",
+      "tgSignIn": "Sign in with Telegram",
+      "tgWaiting": "Waiting for Telegram…",
+      "tgHint": "We opened our bot — press “Start” there. Sign-in completes here automatically.",
+      "tgExpired": "The sign-in link has expired. Press the button again.",
+      "tgError": "Could not reach Telegram. Please try again."
     },
     "error": {
       "eyebrow": "Error",

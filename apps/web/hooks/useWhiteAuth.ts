@@ -54,6 +54,16 @@ async function resolveUser(): Promise<void> {
   return inflight;
 }
 
+// Adopt a JWT minted elsewhere (the Telegram bot flow hands one over via
+// /api/auth/telegram/poll) and refresh the cached user from it.
+export async function whiteAdoptToken(token: string): Promise<{ok: boolean}> {
+  setToken(token);
+  resolved = false;
+  cachedUser = null;
+  await resolveUser();
+  return {ok: cachedUser != null};
+}
+
 export async function whiteLogin(email: string, password: string): Promise<{ok: boolean; error?: string}> {
   try {
     const data = await apiFetch<LoginApiResponse>('/api/auth/login', {

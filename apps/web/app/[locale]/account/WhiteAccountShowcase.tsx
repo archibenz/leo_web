@@ -8,6 +8,7 @@ import {useWhiteAuth, whiteLogin, whiteSendCode, whiteRegister, whiteLogout, WHI
 import WhiteHeader from '../WhiteHeader';
 import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
+import WhiteTelegramLogin from '../WhiteTelegramLogin';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 
 // Account over the existing auth backend: sign-in (email + password) and
@@ -197,6 +198,8 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
             <p aria-live="polite" className="mt-5 min-h-5 text-[13px]" style={{color: SIGNAL}}>
               {error ?? ''}
             </p>
+
+            <WhiteTelegramLogin />
           </div>
         )}
       </main>
