@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import {headers} from 'next/headers';
 import {safeJsonLd} from '../../lib/jsonLd';
 import {SITE_URL} from '../../lib/siteUrl';
+import {brandMeta} from '../../lib/openGraph';
 import WhiteShowcase from './WhiteShowcase';
 
 // The White storefront home — the site's landing page.
@@ -11,22 +12,16 @@ type Props = {params: Promise<{locale: string}>};
 export async function generateMetadata({params}: Props): Promise<Metadata> {
   const {locale} = await params;
   const ru = locale === 'ru';
+  const title = ru ? 'REINASLEO — Премиальная женская одежда' : 'REINASLEO — Premium womenswear';
+  const description = ru
+    ? 'Премиальная женская одежда: платья, пальто, костюмы. Тихая точность кроя — коллекция REINASLEO.'
+    : 'Premium womenswear: dresses, coats, tailoring. Quiet precision of cut — the REINASLEO collection.';
   return {
-    title: {absolute: ru ? 'REINASLEO — Премиальная женская одежда' : 'REINASLEO — Premium womenswear'},
-    description: ru
-      ? 'Премиальная женская одежда: платья, пальто, костюмы. Тихая точность кроя — коллекция REINASLEO.'
-      : 'Premium womenswear: dresses, coats, tailoring. Quiet precision of cut — the REINASLEO collection.',
+    title: {absolute: title},
+    description,
     robots: {index: true, follow: true},
     alternates: {canonical: `/${locale}`},
-    openGraph: {
-      type: 'website',
-      title: ru ? 'REINASLEO — Премиальная женская одежда' : 'REINASLEO — Premium womenswear',
-      description: ru
-        ? 'Премиальная женская одежда: платья, пальто, костюмы. Тихая точность кроя — коллекция REINASLEO.'
-        : 'Premium womenswear: dresses, coats, tailoring. Quiet precision of cut — the REINASLEO collection.',
-      url: `/${locale}`,
-      images: [{url: `${SITE_URL}/opengraph-image`, width: 1200, height: 630, alt: 'REINASLEO'}],
-    },
+    ...brandMeta({locale, path: '', title, description}),
   };
 }
 
