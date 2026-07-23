@@ -1,4 +1,5 @@
 import type {Metadata} from 'next';
+import {ogLocale} from './openGraph';
 
 export type ProductMetaInput = {
   brandPrefix: string;
@@ -8,8 +9,6 @@ export type ProductMetaInput = {
   locale: string; // 'en' | 'ru'
   image?: string | null; // first product image (relative ok — metadataBase absolutises)
 };
-
-const OG_LOCALE: Record<string, string> = {en: 'en_US', ru: 'ru_RU'};
 
 // Next replaces (does not deep-merge) the parent openGraph when a child segment
 // declares its own, so the PDP must re-state type/siteName/url/locale here or
@@ -22,7 +21,8 @@ export function buildProductMeta(input: ProductMetaInput): Pick<Metadata, 'openG
     openGraph: {
       type: 'website',
       siteName: 'REINASLEO',
-      locale: OG_LOCALE[input.locale] ?? OG_LOCALE.en,
+      locale: ogLocale(input.locale),
+      alternateLocale: ogLocale(input.locale === 'ru' ? 'en' : 'ru'),
       url: input.url,
       title: ogTitle,
       description: input.description,

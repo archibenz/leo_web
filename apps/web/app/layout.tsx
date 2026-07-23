@@ -60,12 +60,15 @@ export const metadata: Metadata = {
     title: 'REINASLEO · Atelier',
     description: 'Premium womenswear with sculpted silhouettes, precision craftsmanship, and editorial storytelling.',
     url: siteUrl,
-    images: [{url: '/logos/logo-white.svg', width: 480, height: 480, alt: 'REINASLEO'}],
+    // Raster 1200x630 card, not the SVG logo — Telegram/WhatsApp/VK scrapers
+    // reject SVG og:image. Locale pages override with a localised card.
+    images: [{url: `${siteUrl}/opengraph-image`, width: 1200, height: 630, alt: 'REINASLEO'}],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'REINASLEO · Atelier',
     description: 'Premium womenswear with sculpted silhouettes and precision craftsmanship.',
+    images: [`${siteUrl}/opengraph-image`],
   },
   robots: {
     index: true,

@@ -1,7 +1,7 @@
 import type {Metadata} from 'next';
 import WhiteShopShowcase from './WhiteShopShowcase';
 import {normalizeWhiteCat, whiteCatLabel} from '../products';
-import {SITE_URL} from '../../../lib/siteUrl';
+import {brandMeta} from '../../../lib/openGraph';
 
 // Variant 2 "White" — shop / catalog showcase (pitch preview at
 // /<locale>/shop?cat=<category>&q=<query>). noindex. ?cat and ?q are read
@@ -26,21 +26,18 @@ export async function generateMetadata({params, searchParams}: Props): Promise<M
     : catKey === 'all'
       ? ru ? 'Магазин' : 'Shop'
       : whiteCatLabel(catKey, locale);
+  const ogTitle = `${label} · REINASLEO`;
+  const ogDescription = ru
+    ? 'Каталог REINASLEO — платья, верхняя одежда, трикотаж, костюмы и юбки.'
+    : 'The REINASLEO catalogue — dresses, outerwear, knitwear, tailoring and skirts.';
   return {
-    title: {absolute: `${label} · REINASLEO`},
+    title: {absolute: ogTitle},
     alternates: {canonical: `/${locale}/shop`},
     description: ru
       ? 'Каталог REINASLEO — платья, верхняя одежда, трикотаж, костюмы и юбки. Реальные цены, доставка по России.'
       : 'The REINASLEO catalogue — dresses, outerwear, knitwear, tailoring and skirts.',
     robots: {index: true, follow: true},
-    openGraph: {
-      title: `${label} · REINASLEO`,
-      description: ru
-        ? 'Каталог REINASLEO — платья, верхняя одежда, трикотаж, костюмы и юбки.'
-        : 'The REINASLEO catalogue — dresses, outerwear, knitwear, tailoring and skirts.',
-      url: `/${locale}/shop`,
-      images: [{url: `${SITE_URL}/opengraph-image`, width: 1200, height: 630, alt: 'REINASLEO'}],
-    },
+    ...brandMeta({locale, path: '/shop', title: ogTitle, description: ogDescription}),
   };
 }
 

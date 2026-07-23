@@ -34,8 +34,9 @@ export async function generateMetadata({
       ? 'REINASLEO — премиальная женская одежда. Скульптурные силуэты, ручная работа, редакционная подача.'
       : 'REINASLEO — premium womenswear with sculpted silhouettes, precision craftsmanship, and editorial storytelling.',
     // Telegram/X read twitter:card next to the og: tags; without it some
-    // clients fall back to a bare-link preview. Pages inherit this unless they
-    // declare their own `twitter` block (none do).
+    // clients fall back to a bare-link preview. The preview pages (home, shop,
+    // product, info/legal) declare a fuller `twitter` block that replaces this;
+    // any route without one inherits this baseline card.
     twitter: {card: 'summary_large_image'},
   };
 }

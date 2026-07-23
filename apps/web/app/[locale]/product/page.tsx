@@ -5,6 +5,8 @@ import WhitePdpShowcase from './WhitePdpShowcase';
 import {findWhiteProduct} from '../products';
 import {safeJsonLd, buildBreadcrumbJsonLd} from '../../../lib/jsonLd';
 import {SITE_URL} from '../../../lib/siteUrl';
+import {buildProductMeta} from '../../../lib/productMeta';
+import {brandCardUrl} from '../../../lib/openGraph';
 
 // Product page. The ?p key selects the catalogue product, read server-side;
 // an unknown key renders the White 404. Indexable — this is the storefront.
@@ -22,18 +24,25 @@ export async function generateMetadata({params, searchParams}: Props): Promise<M
   if (!product) notFound();
   const name = ru ? product.ru : product.en;
   const description = ru ? product.descRu : product.descEn;
+  // og:image is the product's first photo; the localised brand card stands in if
+  // a garment ever ships without one. og:title is the garment name (site_name
+  // carries the brand) and the description omits the price by decision.
+  const ogImage = product.image ? `${SITE_URL}${product.image}` : brandCardUrl(locale);
   // `absolute` opts out of the root layout's "REINASLEO · %s" template so the
-  // brand name isn't doubled.
+  // brand name isn't doubled in the browser tab.
   return {
     title: {absolute: `${name} · REINASLEO`},
     alternates: {canonical: `/${locale}/product?p=${product.key}`},
     description,
     robots: {index: true, follow: true},
-    openGraph: {
-      title: `${name} · REINASLEO`,
+    ...buildProductMeta({
+      brandPrefix: '',
+      title: name,
       description,
-      images: [{url: `${SITE_URL}${product.image}`, width: 1050, height: 1400, alt: name}],
-    },
+      url: `${SITE_URL}/${locale}/product?p=${product.key}`,
+      locale,
+      image: ogImage,
+    }),
   };
 }
 
