@@ -28,6 +28,7 @@ export default function WhiteProductCard({
   rise = false,
   priority = false,
   bleed = false,
+  hideFav = false,
 }: {
   locale: string;
   product: WhiteProduct;
@@ -36,6 +37,7 @@ export default function WhiteProductCard({
   rise?: boolean;
   priority?: boolean;
   bleed?: boolean;
+  hideFav?: boolean;
 }) {
   const t = useTranslations('white.card');
   const {add} = useWhiteBag();
@@ -142,22 +144,25 @@ export default function WhiteProductCard({
         {/* Favourite — a sibling of the image link (a button nested in <a> is
             invalid). Always visible (mobile has no hover); 44px hit area, the
             heart fills with the signal colour when saved. Persists via the same
-            store as the PDP heart, so the two stay in sync. */}
-        <button
-          type="button"
-          onClick={() => toggle(product.key)}
-          aria-pressed={favourited}
-          aria-label={favourited ? t('removeFavourite', {name}) : t('addFavourite', {name})}
-          className="absolute right-1 top-1 z-[5] flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-100"
-          style={{opacity: favourited ? 1 : 0.75}}
-        >
-          {/* Subtle plate so the ink heart stays legible over dark editorial
-              photos — same bg-white/backdrop-blur idiom as the quick-add pill.
-              Near-invisible over light imagery, lifts the glyph over dark. */}
-          <span className="flex h-8 w-8 items-center justify-center [filter:drop-shadow(0_1px_6px_rgba(255,255,255,0.9))]">
-            <WhiteFavHeart filled={favourited} size={18} />
-          </span>
-        </button>
+            store as the PDP heart, so the two stay in sync. hideFav drops it on
+            tiny grids (sets' 3-up items) where the 44px target eats the photo. */}
+        {!hideFav && (
+          <button
+            type="button"
+            onClick={() => toggle(product.key)}
+            aria-pressed={favourited}
+            aria-label={favourited ? t('removeFavourite', {name}) : t('addFavourite', {name})}
+            className="absolute right-1 top-1 z-[5] flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-100"
+            style={{opacity: favourited ? 1 : 0.75}}
+          >
+            {/* Subtle plate so the ink heart stays legible over dark editorial
+                photos — same bg-white/backdrop-blur idiom as the quick-add pill.
+                Near-invisible over light imagery, lifts the glyph over dark. */}
+            <span className="flex h-8 w-8 items-center justify-center [filter:drop-shadow(0_1px_6px_rgba(255,255,255,0.9))]">
+              <WhiteFavHeart filled={favourited} size={18} />
+            </span>
+          </button>
+        )}
 
         {quickAdd && !open && (
           <button

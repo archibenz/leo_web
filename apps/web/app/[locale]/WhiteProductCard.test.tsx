@@ -179,4 +179,9 @@ describe('WhiteProductCard favourite heart', () => {
     await user.click(screen.getByRole('button', {name: /favourites/i}));
     await waitFor(() => expect(readFavs()).toEqual([]));
   });
+
+  it('renders no heart when hideFav is set (tiny set-grid cards)', () => {
+    renderCard(<WhiteProductCard locale="en" product={PRODUCT} hideFav />);
+    expect(screen.queryByRole('button', {name: /favourites/i})).toBeNull();
+  });
 });

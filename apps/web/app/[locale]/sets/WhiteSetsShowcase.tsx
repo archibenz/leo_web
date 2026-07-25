@@ -65,7 +65,7 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
                   <p className="mt-10 text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('items')}</p>
                   <div className="mt-5 grid grid-cols-3 gap-4 sm:gap-5">
                     {items.map((p, i) => (
-                      <WhiteProductCard key={p.key} locale={locale} product={p} index={i} quickAdd />
+                      <WhiteProductCard key={p.key} locale={locale} product={p} index={i} quickAdd hideFav />
                     ))}
                   </div>
 
