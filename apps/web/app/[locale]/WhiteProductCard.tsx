@@ -217,8 +217,9 @@ export default function WhiteProductCard({
         )}
       </div>
 
-      {/* Name + price — a second link to the same PDP. */}
-      <Link href={href} className={`mt-3 block text-center ${bleed ? 'px-5 sm:px-0' : ''}`}>
+      {/* Name + price — a second link to the same PDP. px-1 keeps the caption
+          off the physical screen edge when the photo grid runs full-bleed. */}
+      <Link href={href} className={`mt-3 block text-center ${bleed ? 'px-5 sm:px-0' : 'px-1'}`}>
         <p className="text-[14px] tracking-wide transition-opacity group-hover:opacity-60">{name}</p>
         <p className="mt-1 text-[13px]" style={{color: product.sale ? SIGNAL : MUTED}}>
           {product.sale ? (

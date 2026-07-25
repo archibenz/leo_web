@@ -14,8 +14,8 @@ import {WHITE_SETS, findWhiteProduct} from '../products';
 
 // Curated sets: each look is an editorial image plus the real products it is
 // made of. One button takes the whole look (size M — the bag line names the
-// size, and every piece can be re-added individually in another one); the
-// product cards below carry their own Quick Add for piece-by-piece sizes.
+// size); the mini cards below are display-only (photo + name + price, linking
+// to the PDP) — no heart or Quick Add, the tiles are too small for controls.
 
 export default function WhiteSetsShowcase({locale}: {locale: string}) {
   const {count} = useWhiteBag();
@@ -63,9 +63,13 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
                   <p className="mt-5 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>{ru ? set.descRu : set.descEn}</p>
 
                   <p className="mt-10 text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('items')}</p>
-                  <div className="mt-5 grid grid-cols-3 gap-4 sm:gap-5">
+                  {/* Mobile: the three photos break out of the column gutter and
+                      sit flush (gap-0, -mx-6 cancels px-6) — a seamless triptych
+                      that reads as one look, not a list. sm:+ returns to the
+                      inset spaced grid. */}
+                  <div className="-mx-6 mt-5 grid grid-cols-3 gap-0 sm:mx-0 sm:gap-5">
                     {items.map((p, i) => (
-                      <WhiteProductCard key={p.key} locale={locale} product={p} index={i} quickAdd hideFav />
+                      <WhiteProductCard key={p.key} locale={locale} product={p} index={i} hideFav />
                     ))}
                   </div>
 
