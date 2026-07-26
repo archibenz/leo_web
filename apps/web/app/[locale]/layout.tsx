@@ -56,11 +56,11 @@ export default async function LocaleLayout({
   const requestHeaders = await headers();
   const nonce = requestHeaders.get('x-nonce') ?? undefined;
   // The White storefront lives at the locale root and is the default chrome.
-  // Only the legal/infra pages (privacy, terms, offer, admin, auth) still use
-  // the gradient header/footer/providers; everything else renders inside
-  // WhiteChrome — one header and footer that persist across navigations.
+  // Only the infra pages (admin, auth) still use the gradient
+  // header/footer/providers; everything else — legal pages included — renders
+  // inside WhiteChrome, one header and footer that persist across navigations.
   const pathname = requestHeaders.get('x-pathname') ?? '';
-  const isGradientChrome = /^\/(?:[a-z-]+)\/(?:privacy|terms|offer|admin|auth)(?:\/|$)/i.test(pathname);
+  const isGradientChrome = /^\/(?:[a-z-]+)\/(?:admin|auth)(?:\/|$)/i.test(pathname);
 
   const orgJsonLd = {
     '@context': 'https://schema.org',
