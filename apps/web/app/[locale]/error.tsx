@@ -27,7 +27,7 @@ export default function WhiteError({reset}: {error: Error & {digest?: string}; r
           {t('retry')}
         </button>
         <Link href={`/${locale}`} className="wv-link text-[12px] uppercase tracking-[0.2em]" style={{color: MUTED}}>
-          {t('home')}
+          <span className="wv-link-ink">{t('home')}</span>
         </Link>
       </div>
     </main>

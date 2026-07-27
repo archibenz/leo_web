@@ -44,7 +44,7 @@ export default function WhiteCookieNotice({locale}: {locale: string}) {
         <p className="text-[12px] leading-relaxed" style={{color: MUTED}}>
           {t('cookieText')}{' '}
           <a href={`/${locale}/privacy`} className="wv-link -my-3 inline-flex min-h-11 items-center" style={{color: INK}}>
-            {t('cookieMore')}
+            <span className="wv-link-ink">{t('cookieMore')}</span>
           </a>
         </p>
         <button

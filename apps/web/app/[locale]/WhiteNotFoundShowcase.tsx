@@ -35,7 +35,7 @@ export default function WhiteNotFoundShowcase({locale}: {locale: string}) {
           </a>
           <a
             href={`/${locale}/shop`}
-            className="text-[12px] uppercase tracking-[0.2em] underline-offset-4 transition-opacity hover:opacity-60"
+            className="text-[12px] uppercase tracking-[0.2em] transition-opacity hover:opacity-60"
             style={{color: MUTED}}
           >
             {t('shop')}

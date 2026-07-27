@@ -100,7 +100,7 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
               className="wv-link mt-10 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.18em]"
               style={{color: MUTED}}
             >
-              {t('signOut')}
+              <span className="wv-link-ink">{t('signOut')}</span>
             </button>
           </div>
         ) : (
@@ -179,10 +179,10 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
                       <span>
                         {t.rich('consent', {
                           policy: (chunks) => (
-                            <a href={`/${locale}/privacy`} className="wv-link" style={{color: INK}}>{chunks}</a>
+                            <a href={`/${locale}/privacy`} className="wv-link-inline" style={{color: INK}}>{chunks}</a>
                           ),
                           offer: (chunks) => (
-                            <a href={`/${locale}/offer`} className="wv-link" style={{color: INK}}>{chunks}</a>
+                            <a href={`/${locale}/offer`} className="wv-link-inline" style={{color: INK}}>{chunks}</a>
                           ),
                         })}
                       </span>

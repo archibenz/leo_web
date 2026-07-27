@@ -121,7 +121,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                       className="wv-link col-start-2 mt-2 justify-self-start text-[10px] uppercase tracking-[0.16em]"
                       style={{color: MUTED}}
                     >
-                      Wildberries ↗
+                      <span className="wv-link-ink">Wildberries</span> ↗
                     </a>
                   )}
                 </li>

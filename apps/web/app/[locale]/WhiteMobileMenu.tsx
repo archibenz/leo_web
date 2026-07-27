@@ -214,9 +214,9 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                     onClick={() => setOpen(false)}
                     aria-current={active ? 'page' : undefined}
                     className="wv-menu-item wv-link inline-flex min-h-9 items-center self-start text-[11px] uppercase tracking-[0.12em] md:min-h-10 md:text-[12px]"
-                    style={{color: active ? INK : MUTED, fontWeight: active ? 600 : 400, textDecoration: active ? 'underline' : 'none', textUnderlineOffset: '4px', textDecorationThickness: '1px', animationDelay: `${360 + i * 40}ms`}}
+                    style={{color: active ? INK : MUTED, fontWeight: active ? 600 : 400, textDecoration: active ? 'underline' : 'none', textUnderlineOffset: '3px', textDecorationThickness: '1px', animationDelay: `${360 + i * 40}ms`}}
                   >
-                    {sc.label}
+                    <span className="wv-link-ink">{sc.label}</span>
                   </Link>
                 );
               })}
@@ -225,13 +225,13 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
 
             <div className="wv-menu-item mx-6 mt-4 flex shrink-0 items-center gap-4 border-t pb-8 pt-3 text-[12px] uppercase tracking-[0.12em] md:gap-6 md:text-[13px]" style={{animationDelay: '620ms', borderColor: HAIR, color: INK}}>
               <Link href={`/${locale}/account`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
-                {t('account')}
+                <span className="wv-link-ink">{t('account')}</span>
               </Link>
               <Link href={`/${locale}/favourites`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
-                {t('saved')}
+                <span className="wv-link-ink">{t('saved')}</span>
               </Link>
               <Link href={`/${locale}/bag`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
-                {t('bag')}
+                <span className="wv-link-ink">{t('bag')}</span>
               </Link>
             </div>
           </aside>

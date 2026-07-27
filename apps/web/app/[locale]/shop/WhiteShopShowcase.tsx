@@ -243,7 +243,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
             <button
               type="button"
               onClick={clearFilters}
-              className="-my-3 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.16em] underline underline-offset-4 transition-opacity hover:opacity-60"
+              className="-my-3 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.16em] underline decoration-1 underline-offset-2 transition-opacity hover:opacity-60"
               style={{color: INK}}
             >
               {t('clearFilters')} ×

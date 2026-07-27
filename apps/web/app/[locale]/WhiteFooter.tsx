@@ -161,7 +161,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
           <p className="mt-1.5 text-[10.5px] leading-relaxed" style={{color: MUTED}}>
             {t.rich('newsletterConsent', {
               policy: (chunks) => (
-                <Link href={`/${locale}/privacy`} className="wv-link" style={{color: INK}}>{chunks}</Link>
+                <Link href={`/${locale}/privacy`} className="wv-link-inline" style={{color: INK}}>{chunks}</Link>
               ),
             })}
           </p>
@@ -174,9 +174,9 @@ export default function WhiteFooter({locale}: {locale: string}) {
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-6 pb-6 text-[11px] uppercase tracking-[0.14em] sm:gap-4 sm:px-10 sm:pb-10 lg:text-[12px]" style={{color: MUTED}}>
         <span>© 2026 REINASLEO · {t('previewNote')}</span>
         <span className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <Link href={`/${locale}/privacy`} className="wv-link -my-3 inline-flex min-h-11 items-center">{t('privacy')}</Link>
-          <Link href={`/${locale}/offer`} className="wv-link -my-3 inline-flex min-h-11 items-center">{t('offer')}</Link>
-          <Link href={`/${locale}/terms`} className="wv-link -my-3 inline-flex min-h-11 items-center">{t('terms')}</Link>
+          <Link href={`/${locale}/privacy`} className="wv-link -my-3 inline-flex min-h-11 items-center"><span className="wv-link-ink">{t('privacy')}</span></Link>
+          <Link href={`/${locale}/offer`} className="wv-link -my-3 inline-flex min-h-11 items-center"><span className="wv-link-ink">{t('offer')}</span></Link>
+          <Link href={`/${locale}/terms`} className="wv-link -my-3 inline-flex min-h-11 items-center"><span className="wv-link-ink">{t('terms')}</span></Link>
           <WhiteLocaleSwitch locale={locale} />
         </span>
       </div>

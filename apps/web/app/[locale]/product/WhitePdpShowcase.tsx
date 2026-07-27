@@ -332,10 +332,10 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   onClick={() => setGuideOpen((o) => !o)}
                   aria-expanded={guideOpen}
                   aria-controls="wv-size-guide"
-                  className="-my-3.5 py-3.5 text-[11px] uppercase tracking-[0.16em] underline-offset-4 hover:underline"
+                  className="wv-link -my-3.5 py-3.5 text-[11px] uppercase tracking-[0.16em]"
                   style={{color: MUTED}}
                 >
-                  {t('sizeGuide')}
+                  <span className="wv-link-ink">{t('sizeGuide')}</span>
                 </button>
               </div>
               <div className="flex flex-wrap gap-2.5">
@@ -436,7 +436,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="font-display text-[24px] font-light tracking-tight sm:text-[30px]">{t('completeLook')}</h2>
             <a href={`/${locale}/sets`} className="wv-link -my-3 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
-              {ru ? look.ru : look.en} →
+              <span className="wv-link-ink">{ru ? look.ru : look.en}</span> →
             </a>
           </div>
           <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 pb-10 sm:gap-x-6 lg:grid-cols-4">

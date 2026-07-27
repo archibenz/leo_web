@@ -1571,24 +1571,61 @@ body:has(.wv-root)::after {
   .wv-zoom:hover img { transform: scale(1.05); }
 }
 
-/* Quiet text links draw a hairline underline. */
-.wv-link {
+/* Quiet text links draw a hairline underline. The rule lives on the inner
+   .wv-link-ink span, never on the anchor: most of these anchors are 44px tap
+   targets wrapped around 11-12px text, and a rule anchored to that box lands
+   ~16px below the glyphs instead of hugging them. The span IS the text box, so
+   the offset comes out identical whether the link is padded, bare, or
+   blockified by a flex/grid parent — no font constant, no layout guesswork. */
+.wv-link-ink {
   position: relative;
 }
-.wv-link::after {
+.wv-link-ink::after {
   content: '';
   position: absolute;
   inset-inline: 0;
-  bottom: -3px;
+  /* Sits on the line-box floor, which is ~2px clear of the deepest Cyrillic
+     descender — tight under the caps these labels use without striking щ/у/р. */
+  bottom: -1px;
   height: 1px;
   background: currentColor;
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.wv-link:hover::after,
-.wv-link:focus-visible::after {
+/* Touch has no real hover; without the guard a tap latches the wipe on. */
+@media (hover: hover) {
+  .wv-link:hover .wv-link-ink::after {
+    transform: scaleX(1);
+  }
+}
+.wv-link:focus-visible .wv-link-ink::after {
   transform: scaleX(1);
+}
+/* The drawer underlines the current page natively — don't stack two rules. */
+.wv-link[aria-current='page'] .wv-link-ink::after {
+  content: none;
+}
+
+/* A link sitting inside a sentence can break across lines, and one absolutely
+   positioned rule cannot follow a wrap — its box collapses to zero width and
+   the underline vanishes entirely. Those links use a real text-decoration,
+   which fragments per line; the wipe degrades to a fade, the honest trade for
+   text that reflows. */
+.wv-link-inline {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: transparent;
+  transition: text-decoration-color 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (hover: hover) {
+  .wv-link-inline:hover {
+    text-decoration-color: currentColor;
+  }
+}
+.wv-link-inline:focus-visible {
+  text-decoration-color: currentColor;
 }
 
 /* Touch/selection feedback: interactive surfaces wash warm grey on hover and
@@ -1717,7 +1754,8 @@ body:has(.wv-root)::after {
   .wv-quickadd { transition: opacity 0.2s ease; transform: none; }
   .wv-drift { animation: none; }
   .wv-zoom img { transition: none; transform: scale(1.01); }
-  .wv-link::after { transition: none; }
+  .wv-link-ink::after { transition: none; }
+  .wv-link-inline { transition: none; }
   .wv-menu-item { animation: none; opacity: 1; }
   .wv-pop { animation: none; }
   .wv-gem { animation: none; }

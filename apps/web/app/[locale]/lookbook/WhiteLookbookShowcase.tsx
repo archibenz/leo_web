@@ -63,7 +63,7 @@ export default function WhiteLookbookShowcase({locale}: {locale: string}) {
                       CTA); mt-4 trims the visual gap the taller box would add. */}
                   <a
                     href={href}
-                    className="mt-4 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.2em] underline-offset-4 transition-opacity hover:opacity-60"
+                    className="mt-4 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.2em] transition-opacity hover:opacity-60"
                     style={{color: INK}}
                   >
                     {t('shopLook')} →
