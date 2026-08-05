@@ -56,7 +56,7 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
               </p>
               <div className={`mx-auto grid max-w-[1400px] gap-0 lg:grid-cols-[1fr_1.2fr] ${idx % 2 ? 'lg:[&>*:first-child]:order-2' : ''}`}>
                 <div className="wv-zoom relative aspect-[4/5] w-full overflow-hidden sm:aspect-[16/10] lg:aspect-auto lg:min-h-[560px]">
-                  <Image src={set.image} alt="" fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+                  <Image src={set.image} alt={ru ? set.ru : set.en} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
                 </div>
                 <div className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 lg:py-16">
                   <h2 className="font-display text-[30px] font-light leading-[1.05] tracking-tight sm:text-[38px]">{ru ? set.ru : set.en}</h2>

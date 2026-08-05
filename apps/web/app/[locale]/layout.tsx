@@ -68,12 +68,41 @@ export default async function LocaleLayout({
     name: 'REINASLEO',
     url: siteUrl,
     logo: `${siteUrl}/logos/logo-white.svg`,
+    description:
+      locale === 'ru'
+        ? 'REINASLEO — премиальная женская одежда: пальто, костюмы, платья, юбки и трикотаж.'
+        : 'REINASLEO — premium womenswear: coats, suits, dresses, skirts and knitwear.',
     sameAs: ['https://instagram.com/reinasleo', 'https://t.me/reinasleo'],
+  };
+
+  // Declares the on-site search so engines can offer it straight in the result
+  // and know the query format. Paired with Organization it also anchors the
+  // brand name to this domain.
+  const siteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'REINASLEO',
+    url: `${siteUrl}/${locale}`,
+    inLanguage: locale,
+    publisher: {'@type': 'Organization', name: 'REINASLEO'},
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: `${siteUrl}/${locale}/shop?q={search_term_string}`,
+      },
+      'query-input': 'required name=search_term_string',
+    },
   };
 
   if (!isGradientChrome) {
     return (
       <NextIntlClientProvider locale={locale} messages={messages}>
+        {/* The storefront is the part of the site search actually sees, yet the
+            Organization block only ever rendered on the admin/auth branch below
+            — every shop page shipped without it. */}
+        <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}} />
+        <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(siteJsonLd)}} />
         <Metrika nonce={nonce} />
         <WhiteChrome locale={locale}>{children}</WhiteChrome>
       </NextIntlClientProvider>

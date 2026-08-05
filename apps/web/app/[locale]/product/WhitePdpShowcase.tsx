@@ -229,6 +229,17 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const name = ru ? product.ru : product.en;
   const priceStr = `${product.price.toLocaleString('ru-RU')} ₽`;
   const desc = ru ? product.descRu : product.descEn;
+  const story = ru ? product.storyRu : product.storyEn;
+  // Every album frame gets a real alt naming the garment and its colourway.
+  // Only the opening shot used to be described and the rest shipped alt="" —
+  // which hid ~280 photographs from image search and told a screen reader
+  // nothing about what it was skipping.
+  const frameAlt = (i: number) => {
+    const colour = ru ? selectedColor.ru : selectedColor.en;
+    const subject = `${name} — ${colour}`;
+    if (i === 0) return subject;
+    return ru ? `${subject}, вид ${i + 1}` : `${subject}, view ${i + 1}`;
+  };
   // "You may also like" — same category first, then fill from the rest, current excluded.
   const pool = WHITE_PRODUCTS.filter((p) => p.key !== product.key);
   const sameCat = pool.filter((p) => p.cat === product.cat);
@@ -275,7 +286,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               >
                 <Image
                   src={src}
-                  alt={i === 0 ? name : ''}
+                  alt={frameAlt(i)}
                   fill
                   {...(i === 0 ? {priority: true} : {loading: 'lazy' as const})}
                   placeholder={WHITE_LQIP[src] ? 'blur' : 'empty'}
@@ -413,6 +424,18 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               </WildberriesButton>
             </div>
 
+            {/* The long read. Search needs prose on the page, and a shopper
+                deciding on a cut needs more than the two lines above — this is
+                where the garment is actually described. */}
+            {story && (
+              <section className="mt-10 border-t pt-8" style={{borderColor: HAIR}} aria-labelledby="wv-pdp-about">
+                <h2 id="wv-pdp-about" className="mb-4 text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>
+                  {t('about')}
+                </h2>
+                <p className="max-w-prose text-[14px] leading-[1.75]" style={{color: INK}}>{story}</p>
+              </section>
+            )}
+
             {/* Details */}
             <dl className="mt-10 divide-y" style={{borderColor: HAIR}}>
               {[
@@ -507,7 +530,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             >
               {gallery.map((src, i) => (
                 <div key={i} className="relative h-full w-full flex-shrink-0">
-                  <Image src={src ?? gallery[0]!} alt={i === activeImg ? name : ''} fill sizes="100vw" className="object-contain" />
+                  <Image src={src ?? gallery[0]!} alt={frameAlt(i)} fill sizes="100vw" className="object-contain" />
                 </div>
               ))}
             </div>
