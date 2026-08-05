@@ -1420,6 +1420,7 @@ h2.font-display:not(.wv-root *),
   background: #1c1714;
   color: #fff;
   border: 1px solid #1c1714;
+  border-radius: 999px;
   transition: background 0.4s cubic-bezier(0.4, 0, 0, 1), color 0.4s cubic-bezier(0.4, 0, 0, 1), opacity 0.18s ease;
 }
 /* Hover only on hover-capable devices — otherwise iOS sticky-hover leaves the

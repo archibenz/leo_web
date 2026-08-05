@@ -315,8 +315,8 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                   >
                     <span
                       aria-hidden="true"
-                      className="h-8 w-8 transition-transform motion-safe:group-hover:scale-105"
-                      style={{background: c.hex, outline: color === c.key ? `1px solid ${INK}` : `1px solid ${HAIR}`, outlineOffset: '2px'}}
+                      className="h-8 w-8 rounded-full transition-transform motion-safe:group-hover:scale-105"
+                      style={{background: c.hex, outline: color === c.key ? `1.5px solid ${INK}` : `1px solid ${HAIR}`, outlineOffset: '3px'}}
                     />
                   </button>
                 ))}
@@ -345,11 +345,11 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                     type="button"
                     onClick={() => setSize(s)}
                     aria-pressed={size === s}
-                    className="wv-tap h-11 min-w-11 px-3 text-[13px] tracking-wide transition-colors"
+                    className="wv-tap h-11 min-w-11 rounded-full px-4 text-[13px] tracking-wide transition-colors"
                     style={{
-                      // Selected is a quiet ink outline — no fill anywhere.
                       border: `1px solid ${size === s ? INK : HAIR}`,
-                      color: size === s ? INK : MUTED,
+                      background: size === s ? INK : 'transparent',
+                      color: size === s ? '#fff' : MUTED,
                     }}
                   >
                     {s}
@@ -393,7 +393,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                 onClick={() => toggleFavourite(bagProduct.key)}
                 aria-pressed={favourited}
                 aria-label={favourited ? t('removeFav') : t('addFav')}
-                className="flex h-[52px] w-[52px] items-center justify-center transition-colors hover:bg-[#f5f2ed]"
+                className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#f5f2ed]"
                 style={{border: `1px solid ${favourited ? SIGNAL : HAIR}`}}
               >
                 <WhiteFavHeart filled={favourited} size={18} />
@@ -407,7 +407,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             <div className="mt-5">
               <WildberriesButton
                 href={wbUrl}
-                className="relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden border-2 border-[#CB11AB] text-[13px] font-medium uppercase tracking-[0.18em] text-[#CB11AB] transition-colors duration-300 hover:text-white active:scale-[0.98] motion-reduce:active:scale-100"
+                className="relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border-2 border-[#CB11AB] bg-[#CB11AB]/[0.06] text-[13px] font-medium uppercase tracking-[0.18em] text-[#CB11AB] transition-colors duration-300 hover:text-white active:scale-[0.98] motion-reduce:active:scale-100"
               >
                 {t('buyOnWb')}
               </WildberriesButton>
