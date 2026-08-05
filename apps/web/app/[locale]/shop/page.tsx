@@ -1,7 +1,10 @@
 import type {Metadata} from 'next';
+import {headers} from 'next/headers';
 import WhiteShopShowcase from './WhiteShopShowcase';
-import {normalizeWhiteCat, whiteCatLabel} from '../products';
+import {normalizeWhiteCat, whiteCatLabel, WHITE_PRODUCTS, whiteProductHref} from '../products';
 import {brandMeta} from '../../../lib/openGraph';
+import {safeJsonLd, buildBreadcrumbJsonLd} from '../../../lib/jsonLd';
+import {SITE_URL} from '../../../lib/siteUrl';
 
 // Variant 2 "White" — shop / catalog showcase (pitch preview at
 // /<locale>/shop?cat=<category>&q=<query>). noindex. ?cat and ?q are read
@@ -46,13 +49,41 @@ export default async function WhiteShopPage({params, searchParams}: Props) {
   const {cat, q, focus, sort} = await searchParams;
   // Sort is shareable/bookmarkable like cat & q; anything unknown falls to 'new'.
   const initialSort = sort === 'asc' || sort === 'desc' ? sort : 'new';
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const ru = locale === 'ru';
+
+  // Tells search this page is the catalogue and names what is in it, so the
+  // garments can be understood as a set rather than 18 unrelated links. Listed
+  // in catalogue order and never filtered — the markup describes the shop, not
+  // whatever ?cat / ?q the visitor happens to be looking at.
+  const listJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: ru ? 'Каталог REINASLEO' : 'REINASLEO catalogue',
+    numberOfItems: WHITE_PRODUCTS.length,
+    itemListElement: WHITE_PRODUCTS.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: ru ? p.ru : p.en,
+      url: `${SITE_URL}${whiteProductHref(locale, p)}`,
+    })),
+  };
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    {name: 'REINASLEO', url: `${SITE_URL}/${locale}`},
+    {name: ru ? 'Магазин' : 'Shop', url: `${SITE_URL}/${locale}/shop`},
+  ]);
+
   return (
-    <WhiteShopShowcase
-      locale={locale}
-      initialCat={normalizeWhiteCat(cat)}
-      initialQuery={typeof q === 'string' ? q : ''}
-      initialSort={initialSort}
-      focusSearch={focus === 'search'}
-    />
+    <>
+      <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(listJsonLd)}} />
+      <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(breadcrumbJsonLd)}} />
+      <WhiteShopShowcase
+        locale={locale}
+        initialCat={normalizeWhiteCat(cat)}
+        initialQuery={typeof q === 'string' ? q : ''}
+        initialSort={initialSort}
+        focusSearch={focus === 'search'}
+      />
+    </>
   );
 }

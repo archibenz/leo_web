@@ -46,6 +46,18 @@ export const metadata: Metadata = {
   applicationName: 'REINASLEO',
   manifest: '/manifest.json',
   metadataBase: new URL(siteUrl),
+  // Ownership proof for Yandex.Webmaster and Google Search Console. Both are
+  // read-only meta tags, but without them nobody can see how the site indexes
+  // or ask for a recrawl. Set the codes in the web env and redeploy; absent,
+  // Next simply omits the tags.
+  verification: {
+    ...(process.env.NEXT_PUBLIC_YANDEX_VERIFICATION && {
+      yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
+    }),
+    ...(process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION && {
+      google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,
+    }),
+  },
   alternates: {
     canonical: '/',
     languages: {
