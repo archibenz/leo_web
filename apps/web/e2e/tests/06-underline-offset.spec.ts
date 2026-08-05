@@ -7,7 +7,7 @@ import {test, expect} from '@playwright/test';
 // These tests measure the rendered geometry rather than the CSS source, and
 // guard the pattern so a new call site cannot silently reintroduce the gap.
 
-const PAGES = ['/ru/product?p=1', '/ru/bag', '/ru/account', '/ru/privacy', '/ru/shop'];
+const PAGES = ['/ru/product/lnyanoy-kostyum-s-yubkoy-maksi', '/ru/bag', '/ru/account', '/ru/privacy', '/ru/shop'];
 const VIEWPORTS = [
   {width: 1440, height: 900},
   {width: 390, height: 844},
@@ -85,7 +85,7 @@ test.describe('quiet link underlines hug their text', () => {
   });
 
   test('padded links keep their 44px tap target while the rule moves up', async ({page}) => {
-    await page.goto('/ru/product?p=1');
+    await page.goto('/ru/product/lnyanoy-kostyum-s-yubkoy-maksi');
     await page.waitForLoadState('networkidle');
 
     const padded = page.locator('.wv-link.min-h-11').first();
@@ -94,7 +94,7 @@ test.describe('quiet link underlines hug their text', () => {
   });
 
   test('the wipe reveals on hover and is neutralised for reduced motion', async ({page}) => {
-    await page.goto('/ru/product?p=1');
+    await page.goto('/ru/product/lnyanoy-kostyum-s-yubkoy-maksi');
     await page.waitForLoadState('networkidle');
 
     const link = page.locator('.wv-link:has(.wv-link-ink)').first();

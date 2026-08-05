@@ -44,13 +44,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
       });
     }
     for (const product of WHITE_PRODUCTS) {
-      const route = `/product?p=${product.key}`;
+      const route = `/product/${product.slug}`;
+      // Every frame the garment owns, colour albums included — image search
+      // indexes the whole shoot instead of just the opening shot.
+      const images = [
+        product.image,
+        ...(product.gallery ?? []),
+        ...product.colors.flatMap((c) => [c.image, ...(c.gallery ?? [])]),
+      ].filter((src): src is string => Boolean(src));
       entries.push({
         url: `${SITE_URL}/${locale}${route}`,
         lastModified: now,
         changeFrequency: 'weekly',
-        priority: 0.6,
+        // Garments are what people search for — rank them above the static
+        // pages, below the storefront root.
+        priority: 0.9,
         alternates: {languages: altLanguages(route)},
+        images: [...new Set(images)].map((src) => `${SITE_URL}${src}`),
       });
     }
   }

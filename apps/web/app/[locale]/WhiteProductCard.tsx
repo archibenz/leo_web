@@ -6,7 +6,7 @@ import {useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../hooks/useWhiteFavourites';
-import {WHITE_SIZES, type WhiteProduct} from './products';
+import {WHITE_SIZES, whiteProductHref, type WhiteProduct} from './products';
 import {MUTED, SIGNAL, HAIR} from './wv-palette';
 import {WHITE_LQIP} from './products-lqip';
 import {WhiteFavHeart} from './wv-icons';
@@ -50,7 +50,7 @@ export default function WhiteProductCard({
 
   const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
   const name = locale === 'ru' ? product.ru : product.en;
-  const href = `/${locale}/product?p=${product.key}`;
+  const href = whiteProductHref(locale, product);
 
   // ESC closes the panel; a click outside closes it. Focus returns to the
   // trigger so keyboard users are never stranded inside a collapsed panel.

@@ -32,6 +32,7 @@ if (typeof window !== 'undefined') {
 
 const PRODUCT: WhiteProduct = {
   key: 3,
+  slug: 'tailored-trousers',
   nm: 962783109,
   en: 'Tailored Trousers',
   ru: 'Брюки прямого кроя',

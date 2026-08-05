@@ -1,5 +1,6 @@
 import createIntlMiddleware from 'next-intl/middleware';
 import {defaultLocale, locales} from './i18n-routing';
+import {PRODUCT_SLUGS} from './lib/productSlugs';
 import {NextRequest, NextResponse} from 'next/server';
 
 const intlMiddleware = createIntlMiddleware({
@@ -119,16 +120,32 @@ export default function middleware(request: NextRequest) {
     );
   }
 
-  // Retired gradient URLs. The old PDPs were path-style /product/<id>; the
-  // White PDP lives at /product?p=<key> with no extra segment, so only paths
-  // WITH a segment after /product/ (or the old /shop/<collection>) fall back
-  // to the shop.
+  // Garments moved from /product?p=<key> to /product/<slug> for search. Redirect
+  // at the edge, not in the page: a page-level redirect fires after the shell
+  // has begun streaming, so the status is already sent and the visitor lands on
+  // the 404 instead. 301 — the move is permanent and should pass link equity on.
+  const legacyKey = pathname.match(new RegExp(`^/(${locales.join('|')})/product/?$`));
+  if (legacyKey) {
+    const key = Number.parseInt(request.nextUrl.searchParams.get('p') ?? '', 10);
+    const slug = Number.isFinite(key) ? PRODUCT_SLUGS[key] : undefined;
+    if (slug) {
+      return NextResponse.redirect(new URL(`/${legacyKey[1]}/product/${slug}`, request.url), 301);
+    }
+  }
+
+  // Retired gradient URLs. The old PDPs were path-style /product/<numeric id>
+  // and old collections /shop/<slug> — both fall back to the shop.
+  //
+  // The White PDP now also lives under a path segment (/product/<slug>), so the
+  // product arm has to match ONLY the retired numeric ids. Without that digit
+  // anchor this rule swallowed every readable product URL and 308'd the whole
+  // catalogue into /shop.
   const legacy = pathname.match(LEGACY_ALIAS_PATH);
   if (legacy) {
     const rest = legacy[2] ?? '';
     let target: string | null = null;
     if (rest in LEGACY_ALIASES) target = LEGACY_ALIASES[rest]!;
-    else if (/^\/(?:product|shop)\/[^/?]/.test(rest)) target = '/shop';
+    else if (/^\/product\/\d+(?:[/?]|$)/.test(rest) || /^\/shop\/[^/?]/.test(rest)) target = '/shop';
     if (target) {
       return NextResponse.redirect(
         new URL(`/${legacy[1]}${target}${request.nextUrl.search}`, request.url),

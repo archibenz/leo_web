@@ -125,7 +125,10 @@ describe('WhitePdpShowcase zoom lightbox keyboard navigation', () => {
   });
 
   it('shows a single view — no cross-product filler — when the product has no extra images', async () => {
-    const single = WHITE_PRODUCTS.find((p) => !p.gallery)!;
+    // Built rather than found: every catalogue garment now ships a gallery, and
+    // hunting for a bare one made the test depend on the catalogue's contents.
+    const {gallery: _g, ...bare} = WHITE_PRODUCTS[0]!;
+    const single = {...bare, colors: [{...bare.colors[0]!, image: undefined, gallery: undefined}]};
     renderPdp(single);
     // Exactly one album frame — its own zoom trigger and nothing else.
     const zooms = await screen.findAllByRole('button', {name: /zoom image/i});

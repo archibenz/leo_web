@@ -5,7 +5,7 @@ import {messages} from '../fixtures/messages';
 import {acknowledgeCookies, instantScrollTo, openWhite, readBag} from '../fixtures/white';
 
 // The buying walk as it exists after the White migration: shop grid → PDP → bag.
-// The product key is a QUERY param (/ru/product?p=<key>) and the bag lives at
+// A garment lives at /ru/product/<slug> and the bag lives at
 // /ru/bag — the spec this replaces asserted /product/<id> and /cart, neither of
 // which is a route. Nothing here reaches the Spring API: the catalogue is static
 // (app/[locale]/products.ts), the bag is localStorage (hooks/useWhiteBag.ts) and
@@ -33,7 +33,7 @@ test.describe('shop → product → bag', () => {
   test('a card opens its product, a size unlocks the CTA, and the bag keeps the line', async ({page}) => {
     await openWhite(page, '/ru/shop');
 
-    const cards = page.locator('#wv-main a[href*="/product?p="]');
+    const cards = page.locator('#wv-main a[href*="/product/"]');
     await expect(cards.first()).toBeVisible();
 
     // Follow whatever the grid actually shows instead of assuming a key: the
@@ -118,14 +118,14 @@ test.describe('shop → product → bag', () => {
     await expect(line.getByText(SIZE, {exact: true})).toBeVisible();
     await expect(line.getByText(colour.ru, {exact: true})).toBeVisible();
     await expect(line.locator('[aria-live="polite"]')).toHaveText('1');
-    await expect(line.locator(`a[href="/ru/product?p=${product.key}"]`)).toHaveCount(1);
+    await expect(line.locator(`a[href="/ru/product/${product.slug}"]`)).toHaveCount(1);
   });
 
   test('the sticky CTA on a phone sends a sizeless tap to the sizes instead of adding a line', async ({page}) => {
     const product = WHITE_PRODUCTS[0]!;
 
     await page.setViewportSize({width: 390, height: 844});
-    await openWhite(page, `/ru/product?p=${product.key}`);
+    await openWhite(page, `/ru/product/${product.slug}`);
 
     const inlineAdd = page.locator('#wv-main button.wv-btn');
     const stickyAdd = page.locator('#wv-main ~ div button.wv-btn');

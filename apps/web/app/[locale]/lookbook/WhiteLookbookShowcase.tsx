@@ -7,7 +7,7 @@ import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
 import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
-import {WHITE_PRODUCTS} from '../products';
+import {WHITE_PRODUCTS, whiteProductHref} from '../products';
 import {INK, MUTED} from '../wv-palette';
 
 // Variant 2 "White" — Lookbook. An editorial counterpart to the shop grid: a
@@ -41,7 +41,7 @@ export default function WhiteLookbookShowcase({locale}: {locale: string}) {
         {LOOKS.map((p, i) => {
           const name = ru ? p.ru : p.en;
           const desc = ru ? p.descRu : p.descEn;
-          const href = `/${locale}/product?p=${p.key}`;
+          const href = whiteProductHref(locale, p);
           const reversed = i % 2 === 1;
           return (
             <section key={p.key} className="mx-auto max-w-[1400px] px-6 pb-20 sm:px-10 sm:pb-28">

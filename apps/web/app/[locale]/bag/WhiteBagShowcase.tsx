@@ -8,7 +8,7 @@ import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
 import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
-import {findWhiteProduct} from '../products';
+import {findWhiteProduct, whiteProductHref} from '../products';
 import {INK, MUTED, HAIR} from '../wv-palette';
 import {MaskIcon} from '../wv-icons';
 
@@ -53,14 +53,20 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
             <h1 className="font-display text-[32px] font-light leading-tight sm:text-[40px]">{t('bag')}</h1>
 
             <ul className="mt-10 border-t" style={{borderColor: HAIR}}>
-              {items.map((i) => (
+              {items.map((i) => {
+                // A bag line is a purchase snapshot in localStorage and carries no
+                // slug — resolve it from the catalogue, and fall back to the shop
+                // if the garment has since been retired.
+                const catalogue = findWhiteProduct(i.key);
+                const href = catalogue ? whiteProductHref(locale, catalogue) : `/${locale}/shop`;
+                return (
                 <li key={i.id} className="grid grid-cols-[88px_1fr_auto] gap-x-4 border-b py-6 sm:grid-cols-[96px_1fr_auto]" style={{borderColor: HAIR}}>
                   <Link
-                    href={`/${locale}/product?p=${i.key}`}
+                    href={href}
                     aria-label={(ru ? i.ru : i.en)}
                     className="wv-ph relative row-span-2 aspect-[3/4] w-[88px] overflow-hidden sm:w-24"
                   >
-                    <Image src={findWhiteProduct(i.key)?.image ?? '/images/shop/editorial-clean.jpg'} alt="" fill sizes="96px" className="object-cover" />
+                    <Image src={catalogue?.image ?? '/images/shop/editorial-clean.jpg'} alt="" fill sizes="96px" className="object-cover" />
                   </Link>
 
                   <div className="min-w-0">
@@ -125,7 +131,8 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                     </a>
                   )}
                 </li>
-              ))}
+                );
+              })}
             </ul>
 
             <div className="mt-8 flex items-baseline justify-between">

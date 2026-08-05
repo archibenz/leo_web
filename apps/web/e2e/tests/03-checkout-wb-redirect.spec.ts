@@ -165,7 +165,7 @@ test.describe('checkout hands off to Wildberries', () => {
   });
 
   test('the PDP buy button points at the article', async ({page}) => {
-    await visit(page, `/ru/product?p=${product!.key}`);
+    await visit(page, `/ru/product/${product!.slug}`);
 
     const buy = wbLinks(page);
     await expect(buy).toHaveCount(1);
@@ -178,7 +178,7 @@ test.describe('checkout hands off to Wildberries', () => {
 
   test('a mouse click hands off in a new tab and leaves the PDP where it was', async ({page, context}) => {
     const seen = await captureHandoffs(context);
-    await visit(page, `/ru/product?p=${product!.key}`);
+    await visit(page, `/ru/product/${product!.slug}`);
 
     const buy = wbLinks(page);
     await watchFlood(buy);
@@ -196,7 +196,7 @@ test.describe('checkout hands off to Wildberries', () => {
 
     test('the tap floods first and still reaches the same article', async ({page, context}) => {
       const seen = await captureHandoffs(context);
-      await visit(page, `/ru/product?p=${product!.key}`);
+      await visit(page, `/ru/product/${product!.slug}`);
 
       const buy = wbLinks(page);
       await watchFlood(buy);
@@ -215,7 +215,7 @@ test.describe('checkout hands off to Wildberries', () => {
     test('reduced motion taps straight through', async ({page, context}) => {
       const seen = await captureHandoffs(context);
       await page.emulateMedia({reducedMotion: 'reduce'});
-      await visit(page, `/ru/product?p=${product!.key}`);
+      await visit(page, `/ru/product/${product!.slug}`);
 
       const buy = wbLinks(page);
       await watchFlood(buy);
