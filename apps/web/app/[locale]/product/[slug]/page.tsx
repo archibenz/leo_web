@@ -15,6 +15,12 @@ type Props = {
   params: Promise<{locale: string; slug: string}>;
 };
 
+// The catalogue is fully known at build time, so anything outside it is a real
+// 404 rather than a page to render on demand. Left at the default, an unknown
+// slug rendered notFound() into a cached 200 — a soft 404 that invites crawlers
+// to index every mistyped address.
+export const dynamicParams = false;
+
 // Every garment is known at build time, so the whole catalogue prerenders as
 // static HTML — crawlers get the full markup without running any JS.
 export function generateStaticParams() {

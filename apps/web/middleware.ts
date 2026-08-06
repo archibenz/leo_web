@@ -172,6 +172,11 @@ export default function middleware(request: NextRequest) {
   // nginx proxies every /api/* to the Spring backend, so an /api/ Next route is
   // never reached. Kept out of the intl locale-routing like the /api/ handlers.
   const isApiRoute = pathname.startsWith('/api/') || pathname === '/newsletter';
+  // next-intl rewrites every page request, including paths that already carry
+  // their locale. Tempting to skip that as a no-op — but the rewrite is how the
+  // router resolves the [locale] segment at all, and bypassing it 404s the
+  // entire site. Verified: skipping it made every page, valid ones included,
+  // answer 404. The soft-404 side effect is handled at the route level instead.
   const response = isApiRoute
     ? NextResponse.next({request: {headers: request.headers}})
     : intlMiddleware(request);
