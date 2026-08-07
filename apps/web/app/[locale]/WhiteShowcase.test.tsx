@@ -89,6 +89,6 @@ describe('WhiteShowcase image-led home', () => {
 
   it('renders the house line that replaced the marquee', async () => {
     renderHome();
-    await waitFor(() => expect(screen.getByText(/made to be worn, not noticed first/i)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText(/made to underline you, not outshine you/i)).toBeInTheDocument());
   });
 });

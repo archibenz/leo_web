@@ -1,10 +1,18 @@
-import {afterEach, describe, it, expect} from 'vitest';
+import {afterEach, describe, it, expect, vi} from 'vitest';
 import {render, screen, cleanup, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import WhiteProductCard from './WhiteProductCard';
 import {removeWhiteFavourite} from '../../hooks/useWhiteFavourites';
 import {removeFromWhiteBag} from '../../hooks/useWhiteBag';
 import type {WhiteProduct} from './products';
+
+// Quick Add is gated on stock, and the catalogue currently reports everything as
+// unavailable (no stock source yet). These tests cover the add mechanics, so
+// they run against a product the site can sell.
+vi.mock('./products', async () => {
+  const actual = await vi.importActual<typeof import('./products')>('./products');
+  return {...actual, whiteInStock: () => true};
+});
 import {NextIntlClientProvider} from 'next-intl';
 import enMessages from '../../messages/en.json';
 

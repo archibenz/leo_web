@@ -13,7 +13,7 @@ import WhiteProductCard from '../WhiteProductCard';
 import WildberriesButton from '../../../components/WildberriesButton';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 import {WhiteFavHeart} from '../wv-icons';
-import {WHITE_PRODUCTS, WHITE_SETS, WHITE_SIZES, type WhiteProduct} from '../products';
+import {WHITE_PRODUCTS, WHITE_SETS, WHITE_SIZES, whiteInStock, type WhiteProduct} from '../products';
 import {WHITE_LQIP} from '../products-lqip';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
@@ -77,6 +77,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   const t = useTranslations('white.pdp');
   const selectedColor = productColors.find((c) => c.key === color) ?? productColors[0]!;
   const bagProduct = product;
+  const inStock = whiteInStock(product);
   // The product's own photo, plus any extra views it carries. No cross-product
   // editorial filler — a gallery slot on a PDP must be this garment.
   // A colourway with its own photography swaps the whole album; otherwise the
@@ -355,8 +356,9 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                     key={s}
                     type="button"
                     onClick={() => setSize(s)}
+                    disabled={!inStock}
                     aria-pressed={size === s}
-                    className="wv-tap h-11 min-w-11 rounded-full px-4 text-[13px] tracking-wide transition-colors"
+                    className="wv-tap h-11 min-w-11 rounded-full px-4 text-[13px] tracking-wide transition-colors disabled:cursor-not-allowed disabled:opacity-45"
                     style={{
                       border: `1px solid ${size === s ? INK : HAIR}`,
                       background: size === s ? INK : 'transparent',
@@ -396,8 +398,8 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
 
             {/* Add to bag */}
             <div className="mt-9 flex gap-3">
-              <button ref={inlineAddRef} type="button" disabled={!size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
-                {justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
+              <button ref={inlineAddRef} type="button" disabled={!inStock || !size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
+                {!inStock ? t('onlyOnWb') : justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
               </button>
               <button
                 type="button"

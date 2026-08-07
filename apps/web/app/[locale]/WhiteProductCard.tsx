@@ -6,7 +6,7 @@ import {useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../hooks/useWhiteFavourites';
-import {WHITE_SIZES, whiteProductHref, type WhiteProduct} from './products';
+import {WHITE_SIZES, whiteInStock, whiteProductHref, type WhiteProduct} from './products';
 import {MUTED, SIGNAL, HAIR} from './wv-palette';
 import {WHITE_LQIP} from './products-lqip';
 import {WhiteFavHeart} from './wv-icons';
@@ -51,6 +51,7 @@ export default function WhiteProductCard({
   const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
   const name = locale === 'ru' ? product.ru : product.en;
   const href = whiteProductHref(locale, product);
+  const inStock = whiteInStock(product);
 
   // ESC closes the panel; a click outside closes it. Focus returns to the
   // trigger so keyboard users are never stranded inside a collapsed panel.
@@ -164,7 +165,10 @@ export default function WhiteProductCard({
           </button>
         )}
 
-        {quickAdd && !open && (
+        {/* Quick Add only appears for a piece the site can actually sell. While
+            stock is unknown the bag would be taking an order we cannot fill, so
+            the strip says where the garment is bought instead. */}
+        {quickAdd && !open && inStock && (
           <button
             ref={triggerRef}
             type="button"
@@ -176,6 +180,12 @@ export default function WhiteProductCard({
           >
             {added ? t('added') : t('quickAdd')}
           </button>
+        )}
+
+        {quickAdd && !inStock && (
+          <span className="wv-quickadd pointer-events-none absolute inset-x-0 bottom-0 z-[5] flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm" style={{color: MUTED}}>
+            {t('onlyOnWb')}
+          </span>
         )}
 
         {quickAdd && open && (

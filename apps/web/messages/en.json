@@ -1314,7 +1314,8 @@
       "selectSize": "Select size",
       "regularPrice": "Regular price",
       "salePrice": "Sale price",
-      "coloursCount": "{count} colours"
+      "coloursCount": "{count} colours",
+      "onlyOnWb": "Only on Wildberries"
     },
     "favourites": {
       "shop": "Shop",
@@ -1421,7 +1422,8 @@
       "zoomImage": "Zoom image",
       "close": "Close",
       "completeLook": "Complete the look",
-      "buyOnWb": "Buy on Wildberries"
+      "buyOnWb": "Buy on Wildberries",
+      "onlyOnWb": "Only on Wildberries"
     },
     "atelier": {
       "back": "Home",

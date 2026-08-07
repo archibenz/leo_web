@@ -112,6 +112,18 @@ export function whiteProductHref(locale: string, product: Pick<WhiteProduct, 'sl
   return `/${locale}/product/${product.slug}`;
 }
 
+// Nothing here knows what is on the shelf. The catalogue is a static file and
+// the real count lives at Wildberries, so the site cannot honestly offer a
+// garment for its own bag — it would take an order it may not be able to fill.
+// Until stock is wired up (the Ozon integration), every piece reads as
+// unavailable and Wildberries is the one route to buying it.
+//
+// This is the single switch: give it a real source and the whole storefront —
+// product page, quick add, markup — starts telling the truth at once.
+export function whiteInStock(_product: Pick<WhiteProduct, 'key'>): boolean {
+  return false;
+}
+
 export const WHITE_CATS: WhiteCat[] = ['dresses', 'outerwear', 'knitwear', 'tailoring', 'skirts'];
 
 // Single source for the size run, shared by the PDP and the card Quick Add so

@@ -1314,7 +1314,8 @@
       "selectSize": "Размер",
       "regularPrice": "Обычная цена",
       "salePrice": "Цена со скидкой",
-      "coloursCount": "{count} цвета"
+      "coloursCount": "{count} цвета",
+      "onlyOnWb": "Только на Wildberries"
     },
     "favourites": {
       "shop": "Магазин",
@@ -1421,7 +1422,8 @@
       "zoomImage": "Увеличить фото",
       "close": "Закрыть",
       "completeLook": "Собери образ",
-      "buyOnWb": "Купить на Wildberries"
+      "buyOnWb": "Купить на Wildberries",
+      "onlyOnWb": "Только на Wildberries"
     },
     "atelier": {
       "back": "Главная",
