@@ -95,7 +95,12 @@ export default async function WhiteProductSlugPage({params}: Props) {
       '@type': 'Offer',
       price: product.sale ?? product.price,
       priceCurrency: 'RUB',
-      availability: 'https://schema.org/InStock',
+      // No `availability` on purpose. Nothing here knows what is actually in
+      // stock — the catalogue is a static file and the count lives at
+      // Wildberries. Declaring InStock for everything told search all 18
+      // garments were on the shelf, and a sold-out piece would keep showing as
+      // available until someone noticed. Omitting the field claims nothing;
+      // restore it once stock is wired up (Ozon integration is the plan).
       itemCondition: 'https://schema.org/NewCondition',
       url,
       seller: {'@type': 'Organization', name: 'REINASLEO'},
