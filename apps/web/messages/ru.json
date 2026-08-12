@@ -1315,7 +1315,8 @@
       "regularPrice": "Обычная цена",
       "salePrice": "Цена со скидкой",
       "coloursCount": "{count} цвета",
-      "onlyOnWb": "Только на Wildberries"
+      "onlyOnWb": "Только на Wildberries",
+      "onlyOnMarketplaces": "Только на маркетплейсах"
     },
     "favourites": {
       "shop": "Магазин",
@@ -1423,7 +1424,9 @@
       "close": "Закрыть",
       "completeLook": "Собери образ",
       "buyOnWb": "Купить на Wildberries",
-      "onlyOnWb": "Только на Wildberries"
+      "buyOnOzon": "Купить на Ozon",
+      "onlyOnWb": "Только на Wildberries",
+      "onlyOnMarketplaces": "Только на маркетплейсах"
     },
     "atelier": {
       "back": "Главная",

@@ -1315,7 +1315,8 @@
       "regularPrice": "Regular price",
       "salePrice": "Sale price",
       "coloursCount": "{count} colours",
-      "onlyOnWb": "Only on Wildberries"
+      "onlyOnWb": "Only on Wildberries",
+      "onlyOnMarketplaces": "Only on marketplaces"
     },
     "favourites": {
       "shop": "Shop",
@@ -1423,7 +1424,9 @@
       "close": "Close",
       "completeLook": "Complete the look",
       "buyOnWb": "Buy on Wildberries",
-      "onlyOnWb": "Only on Wildberries"
+      "buyOnOzon": "Buy on Ozon",
+      "onlyOnWb": "Only on Wildberries",
+      "onlyOnMarketplaces": "Only on marketplaces"
     },
     "atelier": {
       "back": "Home",

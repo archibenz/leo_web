@@ -11,6 +11,7 @@ import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import WildberriesButton from '../../../components/WildberriesButton';
+import {ozonProductUrl} from '../../../lib/ozon';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 import {WhiteFavHeart} from '../wv-icons';
 import {WHITE_PRODUCTS, WHITE_SETS, WHITE_SIZES, whiteInStock, type WhiteProduct} from '../products';
@@ -127,6 +128,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
     handleAdd();
   };
   const wbUrl = `https://www.wildberries.ru/catalog/${bagProduct.nm}/detail.aspx`;
+  const ozonUrl = ozonProductUrl(bagProduct);
   const stickyPrice = `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
 
 
@@ -399,7 +401,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             {/* Add to bag */}
             <div className="mt-9 flex gap-3">
               <button ref={inlineAddRef} type="button" disabled={!inStock || !size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
-                {!inStock ? t('onlyOnWb') : justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
+                {!inStock ? (ozonUrl ? t('onlyOnMarketplaces') : t('onlyOnWb')) : justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
               </button>
               <button
                 type="button"
@@ -425,6 +427,24 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                 {t('buyOnWb')}
               </WildberriesButton>
             </div>
+
+            {/* Ozon carries only the pieces shipped from our own warehouse, so
+                this appears on those cards alone. Deliberately quieter than the
+                Wildberries button above — same capsule, Ozon blue, a plain fill
+                on hover rather than the ripple. Two floods stacked would compete
+                for the same attention and hide which channel is the main one. */}
+            {ozonUrl && (
+              <div className="mt-3">
+                <a
+                  href={ozonUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-14 w-full items-center justify-center rounded-full border-2 border-[#005BFF] bg-[#005BFF]/[0.04] text-[13px] font-medium uppercase tracking-[0.18em] text-[#005BFF] transition-colors duration-300 hover:bg-[#005BFF] hover:text-white active:scale-[0.98] motion-reduce:active:scale-100"
+                >
+                  {t('buyOnOzon')}
+                </a>
+              </div>
+            )}
 
             {/* The long read. Search needs prose on the page, and a shopper
                 deciding on a cut needs more than the two lines above — this is
@@ -563,13 +583,17 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
       >
         <div className="flex items-center gap-4">
           <span className="shrink-0 text-[15px]" style={{color: INK}}>{stickyPrice}</span>
+          {/* Mirrors the inline CTA. Left ungated it still could not fill a bag
+              (the size run is disabled, so `size` never sets), but it invited
+              the tap and then scrolled the reader to a row of dead buttons. */}
           <button
             type="button"
             onClick={handleStickyAdd}
+            disabled={!inStock}
             tabIndex={showSticky ? 0 : -1}
-            className="wv-btn flex-1 py-3.5 text-[12px] uppercase tracking-[0.2em]"
+            className="wv-btn flex-1 py-3.5 text-[12px] uppercase tracking-[0.2em] disabled:cursor-not-allowed disabled:opacity-45"
           >
-            {justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
+            {!inStock ? (ozonUrl ? t('onlyOnMarketplaces') : t('onlyOnWb')) : justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
           </button>
         </div>
       </div>

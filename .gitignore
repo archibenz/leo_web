@@ -35,6 +35,9 @@ output/
 # oh-my-claudecode local state (not committed)
 .omc/
 
+# Agent scratch dirs — this repo holds site code only
+.codex/
+
 # Playwright E2E
 apps/web/playwright-report/
 apps/web/test-results/
