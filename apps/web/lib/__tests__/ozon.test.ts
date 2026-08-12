@@ -12,13 +12,20 @@ describe('buildOzonLink', () => {
     expect(url.searchParams.get('utm_content')).toBe('zhilet-kostyumnyy-s-baskoy');
   });
 
+  it('opens utm_campaign with the seller prefix — without it Ozon never counts the visit', () => {
+    const url = new URL(buildOzonLink(CARD, {campaign: 'product'})!);
+    expect(url.searchParams.get('utm_campaign')).toMatch(/^vendor_org_\d+_product$/);
+  });
+
   it('replaces tagging the pasted link already carried instead of doubling it', () => {
     // Ozon's own link builder hands out a tagged URL; pasting that into the
     // list must not produce ?utm_source=a&utm_source=b.
     const pasted = `${CARD}?utm_source=vk&utm_medium=post&utm_campaign=vendor_org_1_old&sort=price`;
     const url = new URL(buildOzonLink(pasted, {campaign: 'product'})!);
     expect(url.searchParams.getAll('utm_source')).toEqual(['reinasleo.com']);
-    expect(url.searchParams.get('utm_campaign')).toBe('product');
+    // Our prefix, not the stale one the pasted link carried.
+    expect(url.searchParams.get('utm_campaign')).not.toBe('vendor_org_1_old');
+    expect(url.searchParams.get('utm_campaign')).toMatch(/_product$/);
     // Non-UTM query the card needs is left alone.
     expect(url.searchParams.get('sort')).toBe('price');
   });

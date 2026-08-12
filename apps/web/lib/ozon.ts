@@ -4,13 +4,15 @@
 // Ozon button only once its card actually exists there.
 //
 // Ozon attributes external traffic by `utm_campaign`, and only when the value
-// opens with the seller's own prefix (`vendor_org_<id>`, copied from Аналитика →
-// Внешний трафик in the seller cabinet). Without the prefix the visitor still
-// lands on the card, the sale still happens — it simply never shows up in the
-// report, so nobody can tell the site brought it. That makes the prefix
-// configuration rather than decoration; it is public (it travels in every link),
-// hence NEXT_PUBLIC_.
-const VENDOR_PREFIX = (process.env.NEXT_PUBLIC_OZON_VENDOR_PREFIX ?? '').trim();
+// opens with the seller's own prefix. Without it the visitor still lands on the
+// card and the sale still happens — it simply never shows up in Аналитика →
+// Внешний трафик, so nobody can tell the site brought it.
+//
+// Deliberately a constant and not an env var. It is public (it travels in every
+// link), identical everywhere, and never rotates — while a build that forgot to
+// source the env would keep working and quietly stop being counted, which is the
+// exact failure this prefix exists to prevent.
+const VENDOR_PREFIX = 'vendor_org_806467';
 
 // Product key (see app/[locale]/products.ts) → the card's address on Ozon.
 // Paste the plain link from the seller cabinet; any tagging it arrives with is
@@ -27,7 +29,7 @@ function isOzonUrl(url: URL): boolean {
 
 // Prefix first, campaign name after — the shape Ozon's own builder produces.
 function campaignValue(name: string): string {
-  return VENDOR_PREFIX ? `${VENDOR_PREFIX}_${name}` : name;
+  return `${VENDOR_PREFIX}_${name}`;
 }
 
 export function buildOzonLink(raw: string, {campaign, content}: {campaign: string; content?: string}): string | null {
