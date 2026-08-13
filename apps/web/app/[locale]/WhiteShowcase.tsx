@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import {useEffect, useRef} from 'react';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../hooks/useWhiteBag';
@@ -10,7 +9,7 @@ import WhiteHeaderActions from './WhiteHeaderActions';
 import WhiteFooter from './WhiteFooter';
 import WhiteProductCard from './WhiteProductCard';
 import {INK, MUTED, HAIR} from './wv-palette';
-import {WHITE_PRODUCTS, WHITE_ATELIER_IMAGE} from './products';
+import {WHITE_PRODUCTS} from './products';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
 // fixed full-bleed surface escapes the gradient layout's `main.z-40` stacking
@@ -50,6 +49,13 @@ export default function WhiteShowcase({locale}: {locale: string}) {
   useEffect(() => {
     const v = heroVideoRef.current;
     if (!v) return;
+    // `poster` takes one value, so it is the portrait frame in the markup and
+    // gets swapped here on a wide screen. It matters most under reduced motion,
+    // where the poster is the whole banner and a phone-shaped still stretched
+    // across a desktop band would be the thing people see.
+    if (window.matchMedia('(min-width: 1024px)').matches) {
+      v.poster = '/images/white/hero-desktop.jpg';
+    }
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       v.pause();
       v.removeAttribute('autoplay');
@@ -66,7 +72,15 @@ export default function WhiteShowcase({locale}: {locale: string}) {
           its base. */}
       <section className="relative h-[82vh] min-h-[540px] w-full overflow-hidden">
         {/* The season banner is a quiet fashion-film loop; the still frame is
-            the poster, so slow networks and reduced-motion see the photo. */}
+            the poster, so slow networks and reduced-motion see the photo.
+
+            Two cuts of the film, because the band is a different shape on each.
+            A phone gets the 3:4 portrait; a desktop is a ~2:1 letterbox, and
+            filling it from the portrait file meant scaling 1080px of width up
+            by nearly two, which is what made it look soft. The wide cut is its
+            own shot at 2160px. `media` on <source> is read once at load — which
+            is all we need, nobody resizes a window across that boundary
+            mid-visit — and it keeps the browser from fetching both. */}
         <video
           ref={heroVideoRef}
           autoPlay
@@ -77,6 +91,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
           poster="/images/white/hero.jpg"
           className="absolute inset-0 h-full w-full object-cover object-[50%_22%]"
         >
+          <source src="/videos/white/hero-desktop.mp4" type="video/mp4" media="(min-width: 1024px)" />
           <source src="/videos/white/hero.mp4" type="video/mp4" />
         </video>
         {/* The scrim carries the text contrast on its own so any Higgsfield shot
@@ -137,8 +152,26 @@ export default function WhiteShowcase({locale}: {locale: string}) {
             frame around it; the copy column keeps its own padding so it stays
             readable however wide the display. */}
         <div className="grid items-stretch gap-0 lg:grid-cols-2">
-          <div className="wv-rise wv-scrub relative aspect-[4/5] w-full overflow-hidden lg:aspect-auto lg:min-h-[640px]">
-            <Image src={WHITE_ATELIER_IMAGE} alt={ts('landingTitle1')} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+          {/* A fixed 4:3 on desktop rather than stretching to the copy column.
+              Left to stretch, the cell grew wider with the viewport — on a 2560
+              display it reached nearly 2:1 and the crop cut the models off at
+              the shins. A constant ratio means the same framing on every screen. */}
+          <div className="wv-rise wv-scrub relative aspect-[4/5] w-full overflow-hidden lg:aspect-[4/3] lg:min-h-[640px]">
+            {/* One square film serves both shapes: the phone takes 4:5 out of
+                it, the desktop 4:3, and the shot is composed with enough air
+                around the three women that neither crop touches them. */}
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="none"
+              poster="/images/white/sets.jpg"
+              aria-label={ts('landingTitle1')}
+              className="absolute inset-0 h-full w-full object-cover"
+            >
+              <source src="/videos/white/sets.mp4" type="video/mp4" />
+            </video>
           </div>
           <div className="wv-rise wv-scrub wv-delay-1 flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-20 lg:py-24 xl:px-28">
             <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{ts('eyebrow')}</p>
