@@ -166,10 +166,10 @@ export type WhiteSet = {
 };
 
 export const WHITE_SETS: WhiteSet[] = [
-  {key: 'office', en: 'The Office Edit', ru: 'В офис', descEn: 'Sharp tailoring that works the whole week: the peplum vest over draped trousers, the striped coat on top.', descRu: 'Строгий тайлоринг на всю неделю: жилет с баской поверх брюк алладинов, сверху — пальто в полоску.', image: '/images/white/editorial-2.jpg', productKeys: [3, 7, 13]},
-  {key: 'summer', en: 'Summer in the City', ru: 'Лето в городе', descEn: 'Linen for the heat: the maxi suit, a lace shirt thrown over, the suede skort for lighter days.', descRu: 'Лён для жары: костюм с юбкой макси, поверх — рубашка с кружевом, на лёгкие дни — замшевая юбка-шорты.', image: '/images/white/atelier.jpg', productKeys: [1, 9, 10]},
-  {key: 'evening', en: 'The Evening Out', ru: 'Вечерний выход', descEn: 'The corset with the satin balloon skirt, the fitted coat over the shoulders on the way home.', descRu: 'Корсет с атласной юбкой-баллон, по дороге домой — приталенное пальто на плечи.', image: '/images/white/editorial-1.jpg', productKeys: [6, 8, 2]},
-  {key: 'everyday', en: 'Everyday Ease', ru: 'На каждый день', descEn: 'The bow sweatshirt with the balloon skirt, the short kimono coat when it cools down.', descRu: 'Свитшот с бантиками и юбка-баллон, когда холодает — короткое пальто кимоно.', image: '/images/white/editorial-3.jpg', productKeys: [4, 8, 16]},
+  {key: 'office', en: 'The Office Edit', ru: 'В офис', descEn: 'Tailoring that carries the whole week: the peplum vest over draped trousers, the blazer coat on top.', descRu: 'Тайлоринг на всю неделю: жилет с баской поверх брюк алладинов, сверху — пальто-пиджак.', image: '/images/white/sets/office.jpg', productKeys: [3, 7, 2]},
+  {key: 'summer', en: 'Summer in the City', ru: 'Лето в городе', descEn: 'Linen for the heat: the sleeveless vest, the lace shirt thrown over, the suede skort underneath.', descRu: 'Лён для жары: жилет без рукавов, сверху рубашка с кружевом, снизу замшевая юбка-шорты.', image: '/images/white/sets/summer.jpg', productKeys: [1, 9, 10]},
+  {key: 'evening', en: 'The Evening Out', ru: 'Вечерний выход', descEn: 'The evening dress cut close and clean, the fitted coat over the shoulders on the way home.', descRu: 'Вечернее платье сдержанного кроя, по дороге домой — приталенное пальто на плечи.', image: '/images/white/sets/evening.jpg', productKeys: [17, 2]},
+  {key: 'everyday', en: 'Everyday Ease', ru: 'На каждый день', descEn: 'The bow sweatshirt with the balloon skirt, the spring kimono coat when it cools down.', descRu: 'Свитшот с бантиками и юбка-баллон, когда прохладнее — пальто кимоно весеннее.', image: '/images/white/sets/everyday.jpg', productKeys: [4, 8, 14]},
 ];
 
 export function findWhiteSet(key?: string | null): WhiteSet | undefined {
