@@ -53,8 +53,19 @@ export default function WhiteShowcase({locale}: {locale: string}) {
     // gets swapped here on a wide screen. It matters most under reduced motion,
     // where the poster is the whole banner and a phone-shaped still stretched
     // across a desktop band would be the thing people see.
+    //
+    // The wide cut is also forced here rather than trusted to `media` on the
+    // <source>. Chrome honours it, Safari does not, and a Safari desktop was
+    // quietly falling through to the portrait file — the exact softness this
+    // was meant to fix. currentSrc is checked first so the browsers that got
+    // it right are not made to reload the file they already chose.
     if (window.matchMedia('(min-width: 1024px)').matches) {
       v.poster = '/images/white/hero-desktop.jpg';
+      if (!v.currentSrc.includes('hero-desktop')) {
+        v.src = '/videos/white/hero-desktop.mp4';
+        v.load();
+        void v.play().catch(() => {});
+      }
     }
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       v.pause();
