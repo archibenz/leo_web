@@ -172,7 +172,7 @@
       "faq": "FAQ"
     },
     "newsletter": {
-      "description": "Quiet drops, fitting invitations and atelier notes. No noise.",
+      "description": "New collections and early access to sales. We write rarely.",
       "placeholder": "Email address",
       "submit": "Subscribe",
       "submitting": "Sending…",
@@ -429,9 +429,9 @@
       ]
     },
     "newsletter": {
-      "tag": "Join the list",
-      "title": "Quiet drops, first access.",
-      "body": "Receive atelier release notes, fitting invitations, and new collection drops. No noise—just the essentials.",
+      "tag": "Newsletter",
+      "title": "New pieces, first.",
+      "body": "An email when a collection lands or a sale starts. No more often than that.",
       "emailLabel": "Email",
       "phonePlaceholder": "Optional phone",
       "cta": "Join",
