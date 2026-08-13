@@ -29,8 +29,12 @@ if (typeof window !== 'undefined') {
   Object.defineProperty(window, 'localStorage', {value: mockLocalStorage, configurable: true, writable: true});
 }
 
+// Key 7 on purpose: this file asserts the Wildberries-only wording, which only
+// applies to a garment with no Ozon card. Keys that gain one start reading
+// "only on marketplaces" instead, and the assertion below would break for a
+// reason that has nothing to do with the stock gate.
 const PRODUCT: WhiteProduct = {
-  key: 3,
+  key: 7,
   slug: 'tailored-trousers',
   nm: 962783109,
   en: 'Tailored Trousers',

@@ -172,7 +172,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
         {tf('legalEntity')}
       </p>
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-2 px-6 pb-6 text-[11px] uppercase tracking-[0.14em] sm:gap-4 sm:px-10 sm:pb-10 lg:text-[12px]" style={{color: MUTED}}>
-        <span>© 2026 REINASLEO · {t('previewNote')}</span>
+        <span>© 2026 REINASLEO</span>
         <span className="flex flex-wrap items-center gap-x-5 gap-y-2">
           <Link href={`/${locale}/privacy`} className="wv-link -my-3 inline-flex min-h-11 items-center"><span className="wv-link-ink">{t('privacy')}</span></Link>
           <Link href={`/${locale}/offer`} className="wv-link -my-3 inline-flex min-h-11 items-center"><span className="wv-link-ink">{t('offer')}</span></Link>

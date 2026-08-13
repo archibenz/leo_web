@@ -77,7 +77,9 @@ describe('WhiteShowcase image-led home', () => {
 
     // The showcase gates on a mount effect, then portals to document.body.
     const h1 = await screen.findByRole('heading', {level: 1});
-    expect(h1.textContent ?? '').toMatch(/Quiet/); // heroLine1
+    // Assert against the catalogue rather than a literal — the hero wording is
+    // brand copy and gets rewritten; what must hold is that the h1 carries it.
+    expect(h1.textContent ?? '').toContain(enMessages.white.landing.heroLine1);
 
     // Exactly one <h1> on the page (the hero) — the rest are h2 section heads.
     expect(screen.getAllByRole('heading', {level: 1})).toHaveLength(1);

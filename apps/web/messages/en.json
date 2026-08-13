@@ -1349,16 +1349,16 @@
       "shop": "Shop",
       "primary": "Primary",
       "season": "Spring / Summer 2026",
-      "heroLine1": "Quiet",
-      "heroLine2": "precision",
-      "heroIntro": "Sculpted silhouettes in a restrained palette. Made to be worn, not noticed first.",
+      "heroLine1": "Precise",
+      "heroLine2": "tailoring",
+      "heroIntro": "Restrained colour, a fit that follows the body. Clothes for every day, not for the occasion.",
       "shopCollection": "Shop the collection",
-      "editIntro": "Six pieces that define the season — clean lines, considered fabric, nothing superfluous.",
+      "editIntro": "Six pieces for the season. Clean lines, substantial cloth, nothing superfluous.",
       "houseLine": "Made to underline you, not outshine you.",
       "atelier": "The atelier",
-      "atelierLine1": "Made slowly,",
+      "atelierLine1": "Made properly,",
       "atelierLine2": "worn for years",
-      "atelierBody": "Each piece is cut from considered fabric and finished by hand. We design for the long wardrobe — clothes that hold their shape and their meaning season after season.",
+      "atelierBody": "Small runs, natural cloth, a fit worked out on real bodies. These are not pieces that leave the wardrobe after a season.",
       "exploreAtelier": "Explore the atelier"
     },
     "footer": {
@@ -1378,7 +1378,6 @@
       "emailLabel": "Email address",
       "email": "Email",
       "subscribe": "Subscribe",
-      "previewNote": "White variant — preview",
       "lookbook": "Lookbook",
       "contact": "Contact",
       "delivery": "Delivery & returns",
@@ -1431,23 +1430,23 @@
     "atelier": {
       "back": "Home",
       "eyebrow": "The atelier",
-      "titleLine1": "Made quietly,",
+      "titleLine1": "Made properly,",
       "titleLine2": "worn for years",
-      "intro": "REINASLEO is a small atelier working in a restrained palette and honest materials. Each piece is cut for the body and made to outlast the season.",
+      "intro": "REINASLEO is a Russian womenswear label. A restrained palette, natural cloth, a fit that follows the body. Pieces built for more than one season.",
       "principles": "Principles",
       "p1Label": "Silhouette",
-      "p1Body": "Sculptural restraint — clean lines that hold their shape.",
+      "p1Body": "Clean lines and precise darts. The silhouette holds all day, not just on the hanger.",
       "p2Label": "Palette",
-      "p2Body": "Quiet tones, no noise. Colour enters only as a signal.",
+      "p2Body": "Neutral shades that work together. Strong colour appears only where it earns its place.",
       "p3Label": "Cloth",
-      "p3Body": "Natural, weighty, honest fibres, chosen to age well.",
+      "p3Body": "Linen, wool, heavy cotton. Cloth that does not stretch out or lose its colour in the wash.",
       "cta": "Shop the collection"
     },
     "lookbook": {
       "back": "Home",
       "eyebrow": "Spring / Summer 2026",
       "title": "The lookbook",
-      "intro": "Looks from the season, cut for quiet movement. Tap any piece to shop it.",
+      "intro": "The season's looks in full. Tap any piece to open it.",
       "look": "Look",
       "shopLook": "Shop this look"
     },
@@ -1461,8 +1460,8 @@
     },
     "notFound": {
       "eyebrow": "Error 404",
-      "title": "This page left the runway",
-      "intro": "The address may have changed, or the piece left the window. The collection is right here.",
+      "title": "This page does not exist",
+      "intro": "The address may have changed, or the piece is no longer sold. The collection is right here.",
       "home": "Home",
       "shop": "Shop"
     },
@@ -1507,8 +1506,8 @@
             "b": "We're online-only. Fitting is available at pickup points with fitting rooms."
           },
           {
-            "h": "Are you on Wildberries?",
-            "b": "Yes — the collection is available in our official Wildberries store."
+            "h": "Where else can I buy?",
+            "b": "On Wildberries and Ozon, in our official stores. The range there may differ from the site."
           },
           {
             "h": "How do I care for the pieces?",
@@ -1543,14 +1542,14 @@
     "sets": {
       "eyebrow": "Sets",
       "title": "Ready looks",
-      "intro": "Looks assembled from the collection: for the season, the occasion, the pace. Take the whole look — or only what you need.",
+      "intro": "Combinations built from the collection — for work, for the evening, for every day. Take the whole look or a single piece.",
       "items": "Pieces in this look",
       "wholeLook": "The whole look",
       "addAll": "Add the whole look",
       "addedAll": "The look is in your bag — size M, adjust per piece",
       "piece": "item",
-      "landingTitle1": "Assembled looks,",
-      "landingTitle2": "ready to walk out",
+      "landingTitle1": "Ready combinations,",
+      "landingTitle2": "no deciding required",
       "landingBody": "Sets built from the collection — for the office, the evening, the everyday. Together or piece by piece.",
       "explore": "View the sets"
     },
@@ -1589,8 +1588,8 @@
     },
     "error": {
       "eyebrow": "Error",
-      "title": "A brief pause backstage",
-      "intro": "Something went wrong on our side. Try again — we are already on it.",
+      "title": "Something went wrong",
+      "intro": "An error on our side. Try again — we are already looking into it.",
       "retry": "Try again",
       "home": "Home"
     }
