@@ -13,9 +13,12 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
   const {locale} = await params;
   const ru = locale === 'ru';
   const title = ru ? 'REINASLEO — Премиальная женская одежда' : 'REINASLEO — Premium womenswear';
+  // The snippet a search result shows. It has to carry the categories people
+  // actually type and then say something a shopper can act on — the old line
+  // spent half its length on a mood.
   const description = ru
-    ? 'Премиальная женская одежда: платья, пальто, костюмы. Тихая точность кроя — коллекция REINASLEO.'
-    : 'Premium womenswear: dresses, coats, tailoring. Quiet precision of cut — the REINASLEO collection.';
+    ? 'REINASLEO — премиальная женская одежда: платья, пальто, костюмы, жилеты. Натуральные ткани, посадка по фигуре, доставка по России.'
+    : 'REINASLEO — premium womenswear: dresses, coats, tailoring, vests. Natural cloth, a fit that follows the body, delivery across Russia.';
   return {
     title: {absolute: title},
     description,
