@@ -168,10 +168,13 @@ export default function middleware(request: NextRequest) {
   // (no locale routing) but they DO need the same security headers as pages —
   // otherwise endpoints like /api/newsletter/subscribe ship without CSP, HSTS,
   // X-Frame-Options, etc. Skip intl, still apply headers below.
-  // /newsletter is a Next route handler that lives OUTSIDE /api/ on purpose:
-  // nginx proxies every /api/* to the Spring backend, so an /api/ Next route is
-  // never reached. Kept out of the intl locale-routing like the /api/ handlers.
-  const isApiRoute = pathname.startsWith('/api/') || pathname === '/newsletter';
+  // /newsletter and /preorder are Next route handlers that live OUTSIDE /api/
+  // on purpose: nginx proxies every /api/* to the Spring backend, so an /api/
+  // Next route is never reached. They must be kept out of intl locale-routing
+  // like the /api/ handlers — left in, a POST to /preorder answers 307 to
+  // /en/preorder and the form never reaches the handler.
+  const isApiRoute =
+    pathname.startsWith('/api/') || pathname === '/newsletter' || pathname === '/preorder';
   // next-intl rewrites every page request, including paths that already carry
   // their locale. Tempting to skip that as a no-op — but the rewrite is how the
   // router resolves the [locale] segment at all, and bypassing it 404s the
