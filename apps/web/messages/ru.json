@@ -1316,7 +1316,8 @@
       "salePrice": "Цена со скидкой",
       "coloursCount": "{count} цвета",
       "onlyOnWb": "Только на Wildberries",
-      "onlyOnMarketplaces": "Только на маркетплейсах"
+      "onlyOnMarketplaces": "Только на маркетплейсах",
+      "outOfStock": "Нет в наличии"
     },
     "favourites": {
       "shop": "Магазин",
@@ -1425,7 +1426,19 @@
       "buyOnWb": "Купить на Wildberries",
       "buyOnOzon": "Купить на Ozon",
       "onlyOnWb": "Только на Wildberries",
-      "onlyOnMarketplaces": "Только на маркетплейсах"
+      "onlyOnMarketplaces": "Только на маркетплейсах",
+      "preorder": "Предзаказ",
+      "preorderTitle": "Оставить предзаказ",
+      "preorderBody": "«{name}» сейчас нет в наличии. Оставьте почту — напишем, как только вещь вернётся, и придержим ваш размер.",
+      "preorderEmail": "Почта",
+      "preorderNote": "Комментарий (необязательно)",
+      "preorderNoteWithSize": "Размер {size} · комментарий (необязательно)",
+      "preorderSubmit": "Отправить",
+      "preorderSending": "Отправляем…",
+      "preorderSent": "Готово. Мы записали вас и напишем, как только вещь появится.",
+      "preorderError": "Не удалось отправить. Попробуйте ещё раз чуть позже.",
+      "preorderInvalid": "Проверьте адрес почты.",
+      "outOfStock": "Товара пока нет в наличии"
     },
     "atelier": {
       "back": "Главная",

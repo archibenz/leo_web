@@ -11,10 +11,11 @@ import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import WildberriesButton from '../../../components/WildberriesButton';
+import WhitePreorder from './WhitePreorder';
 import {ozonProductUrl} from '../../../lib/ozon';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 import {WhiteFavHeart, WhiteArrow} from '../wv-icons';
-import {WHITE_PRODUCTS, WHITE_SETS, WHITE_SIZES, whiteInStock, type WhiteProduct} from '../products';
+import {WHITE_PRODUCTS, WHITE_SETS, WHITE_SIZES, whiteInStock, whiteAvailability, type WhiteProduct} from '../products';
 import {WHITE_LQIP} from '../products-lqip';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
@@ -129,6 +130,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   };
   const wbUrl = `https://www.wildberries.ru/catalog/${bagProduct.nm}/detail.aspx`;
   const ozonUrl = ozonProductUrl(bagProduct);
+  const availability = whiteAvailability(bagProduct, {onOzon: Boolean(ozonUrl)});
   const stickyPrice = `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
 
 
@@ -261,10 +263,13 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
         {/* Breadcrumb. The shop step carries a hairline arrow pointing back the
             way the reader came — arriving here from the grid, the way out should
             be the most obvious thing on the page, and a word alone was not it. */}
-        <nav className="py-5 text-[11px] uppercase tracking-[0.18em]" style={{color: MUTED}} aria-label={t('breadcrumb')}>
-          <a href={`/${locale}`} className="transition-opacity hover:opacity-60">REINASLEO</a>
+        {/* The links are 11px type, which on a phone measured 16px tall — well
+            under a fingertip. The negative margin lets each one carry a 44px
+            hit area without opening the row up visually. */}
+        <nav className="py-2 text-[11px] uppercase tracking-[0.18em] sm:py-5" style={{color: MUTED}} aria-label={t('breadcrumb')}>
+          <a href={`/${locale}`} className="-my-3 inline-flex min-h-11 items-center transition-opacity hover:opacity-60">REINASLEO</a>
           <span className="mx-2">/</span>
-          <a href={`/${locale}/shop`} className="wv-arrow-link inline-flex items-center gap-2 transition-opacity hover:opacity-60">
+          <a href={`/${locale}/shop`} className="wv-arrow-link -my-3 inline-flex min-h-11 items-center gap-2 transition-opacity hover:opacity-60">
             <WhiteArrow back />
             {t('shop')}
           </a>
@@ -403,11 +408,20 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
               </div>
             </div>
 
-            {/* Add to bag */}
+            {/* Add to bag — or, where there is no bag to add to, whichever route
+                is honest: the marketplaces if they still hold it, a pre-order if
+                nobody does. */}
             <div className="mt-9 flex gap-3">
-              <button ref={inlineAddRef} type="button" disabled={!inStock || !size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
-                {!inStock ? (ozonUrl ? t('onlyOnMarketplaces') : t('onlyOnWb')) : justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
-              </button>
+              {availability === 'none' ? (
+                <div className="flex-1">
+                  <p className="mb-3 text-[12px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('outOfStock')}</p>
+                  <WhitePreorder product={name} size={size} />
+                </div>
+              ) : (
+                <button ref={inlineAddRef} type="button" disabled={!inStock || !size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
+                  {!inStock ? (ozonUrl ? t('onlyOnMarketplaces') : t('onlyOnWb')) : justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => toggleFavourite(bagProduct.key)}
@@ -598,7 +612,15 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             tabIndex={showSticky ? 0 : -1}
             className="wv-btn flex-1 py-3.5 text-[12px] uppercase tracking-[0.2em] disabled:cursor-not-allowed disabled:opacity-45"
           >
-            {!inStock ? (ozonUrl ? t('onlyOnMarketplaces') : t('onlyOnWb')) : justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
+            {availability === 'none'
+              ? t('outOfStock')
+              : !inStock
+                ? (ozonUrl ? t('onlyOnMarketplaces') : t('onlyOnWb'))
+                : justAdded
+                  ? t('added')
+                  : size
+                    ? t('addToBag')
+                    : t('selectSize')}
           </button>
         </div>
       </div>

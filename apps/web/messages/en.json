@@ -1316,7 +1316,8 @@
       "salePrice": "Sale price",
       "coloursCount": "{count} colours",
       "onlyOnWb": "Only on Wildberries",
-      "onlyOnMarketplaces": "Only on marketplaces"
+      "onlyOnMarketplaces": "Only on marketplaces",
+      "outOfStock": "Out of stock"
     },
     "favourites": {
       "shop": "Shop",
@@ -1425,7 +1426,19 @@
       "buyOnWb": "Buy on Wildberries",
       "buyOnOzon": "Buy on Ozon",
       "onlyOnWb": "Only on Wildberries",
-      "onlyOnMarketplaces": "Only on marketplaces"
+      "onlyOnMarketplaces": "Only on marketplaces",
+      "preorder": "Pre-order",
+      "preorderTitle": "Place a pre-order",
+      "preorderBody": "“{name}” is out of stock. Leave your email and we will write the moment it returns, and hold your size.",
+      "preorderEmail": "Email",
+      "preorderNote": "Note (optional)",
+      "preorderNoteWithSize": "Size {size} · note (optional)",
+      "preorderSubmit": "Send",
+      "preorderSending": "Sending…",
+      "preorderSent": "Done. You are on the list — we will write as soon as it is back.",
+      "preorderError": "Could not send. Please try again shortly.",
+      "preorderInvalid": "Please check the email address.",
+      "outOfStock": "Out of stock for now"
     },
     "atelier": {
       "back": "Home",

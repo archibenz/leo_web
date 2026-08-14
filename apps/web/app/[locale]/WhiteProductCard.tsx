@@ -6,7 +6,7 @@ import {useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../hooks/useWhiteFavourites';
-import {WHITE_SIZES, whiteInStock, whiteProductHref, type WhiteProduct} from './products';
+import {WHITE_SIZES, whiteInStock, whiteAvailability, whiteProductHref, type WhiteProduct} from './products';
 import {hasOzonListing} from '../../lib/ozon';
 import {MUTED, SIGNAL, HAIR} from './wv-palette';
 import {WHITE_LQIP} from './products-lqip';
@@ -54,6 +54,7 @@ export default function WhiteProductCard({
   const href = whiteProductHref(locale, product);
   const inStock = whiteInStock(product);
   const onOzon = hasOzonListing(product.key);
+  const availability = whiteAvailability(product, {onOzon});
 
   // ESC closes the panel; a click outside closes it. Focus returns to the
   // trigger so keyboard users are never stranded inside a collapsed panel.
@@ -186,7 +187,7 @@ export default function WhiteProductCard({
 
         {quickAdd && !inStock && (
           <span className="wv-quickadd pointer-events-none absolute inset-x-0 bottom-0 z-[5] flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm" style={{color: MUTED}}>
-            {onOzon ? t('onlyOnMarketplaces') : t('onlyOnWb')}
+            {availability === 'none' ? t('outOfStock') : onOzon ? t('onlyOnMarketplaces') : t('onlyOnWb')}
           </span>
         )}
 

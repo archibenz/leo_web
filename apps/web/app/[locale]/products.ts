@@ -124,6 +124,31 @@ export function whiteInStock(_product: Pick<WhiteProduct, 'key'>): boolean {
   return false;
 }
 
+// Pieces that have gone from the marketplaces too — sold out at Wildberries and
+// not on Ozon. They keep their page (the photographs and the search listing are
+// worth having) but there is nowhere to send a buyer, so the page offers to take
+// a pre-order instead of pretending a route exists. Add a key here when the last
+// one leaves the warehouse.
+const WHITE_OFF_MARKETPLACES = new Set<number>([]);
+
+// Three honest states, in the order the storefront checks them:
+//   'site'        — we hold it and the bag can take it
+//   'marketplace' — we do not, but Wildberries or Ozon does
+//   'none'        — nowhere; the page offers a pre-order
+// Everything that decides between a bag button, a marketplace button and a
+// pre-order form reads this one function, so the three can never disagree.
+export type WhiteAvailability = 'site' | 'marketplace' | 'none';
+
+export function whiteAvailability(
+  product: Pick<WhiteProduct, 'key' | 'nm'>,
+  opts?: {onOzon?: boolean},
+): WhiteAvailability {
+  if (whiteInStock(product)) return 'site';
+  if (opts?.onOzon) return 'marketplace';
+  if (product.nm && !WHITE_OFF_MARKETPLACES.has(product.key)) return 'marketplace';
+  return 'none';
+}
+
 export const WHITE_CATS: WhiteCat[] = ['dresses', 'outerwear', 'knitwear', 'tailoring', 'skirts'];
 
 // Single source for the size run, shared by the PDP and the card Quick Add so

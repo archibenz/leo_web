@@ -78,3 +78,52 @@ export async function subscribeToNewsletter(
   });
   return {status: 'error', detail: messageStr || `http_${res.status}`};
 }
+
+// A pre-order request: a garment that is nowhere to be had, and someone who
+// wants it anyway. It goes straight to the shop's own inbox rather than into an
+// audience — this is a person waiting for an answer, not a subscriber.
+export async function sendPreorderRequest(input: {
+  email: string;
+  product: string;
+  size?: string;
+  note?: string;
+}): Promise<SubscribeResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const to = process.env.PREORDER_TO ?? process.env.CONTACT_TO;
+  if (!apiKey || !to) {
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('[preorder] Resend not configured', {hasKey: Boolean(apiKey), hasTo: Boolean(to)});
+    }
+    return {status: 'unconfigured'};
+  }
+
+  const lines = [
+    `Товар: ${input.product}`,
+    input.size ? `Размер: ${input.size}` : null,
+    `Почта покупателя: ${input.email}`,
+    input.note ? `Комментарий: ${input.note}` : null,
+  ].filter(Boolean);
+
+  let res: Response;
+  try {
+    res = await fetch(`${RESEND_API_BASE}/emails`, {
+      method: 'POST',
+      headers: {Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        from: process.env.RESEND_FROM ?? 'REINASLEO <noreply@reinasleo.com>',
+        to: [to],
+        // So a reply from the inbox lands with the buyer, not with noreply@.
+        reply_to: input.email,
+        subject: `Предзаказ — ${input.product}`,
+        text: lines.join('\n'),
+      }),
+    });
+  } catch (err) {
+    console.error('[preorder] Resend network error', err);
+    return {status: 'error', detail: 'network'};
+  }
+
+  if (res.ok) return {status: 'ok'};
+  console.error('[preorder] Resend rejected', res.status);
+  return {status: 'error', detail: String(res.status)};
+}
