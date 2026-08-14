@@ -1813,3 +1813,36 @@ body:has(.wv-root)::after {
     transform: none !important;
   }
 }
+
+/* Hairline arrow on "go somewhere" links (collection, shop). The shaft is
+   clipped back to a stub at rest and draws itself out on hover while the head
+   steps forward — the gesture is what reads as an invitation; a complete arrow
+   sitting still is just an icon. Origin is the tail so it grows in the direction
+   of travel. Mirrored variants (back arrows) inherit this through the same
+   class because the flip is applied to the whole svg. */
+.wv-arrow-link .wv-arrow-shaft {
+  transform: scaleX(0.34);
+  transform-origin: left center;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wv-arrow-link .wv-arrow-head {
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wv-arrow-link:hover .wv-arrow-shaft,
+.wv-arrow-link:focus-visible .wv-arrow-shaft {
+  transform: scaleX(1);
+}
+.wv-arrow-link:hover .wv-arrow-head,
+.wv-arrow-link:focus-visible .wv-arrow-head {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No growing, no stepping — but the arrow still has to read as an arrow, so
+     the shaft rests at full length instead of at its stub. */
+  .wv-arrow-link .wv-arrow-shaft,
+  .wv-arrow-link .wv-arrow-head {
+    transition: none;
+    transform: none;
+  }
+}

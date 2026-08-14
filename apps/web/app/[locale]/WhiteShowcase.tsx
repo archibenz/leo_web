@@ -9,6 +9,7 @@ import WhiteHeaderActions from './WhiteHeaderActions';
 import WhiteFooter from './WhiteFooter';
 import WhiteProductCard from './WhiteProductCard';
 import {INK, MUTED, HAIR} from './wv-palette';
+import {WhiteArrow} from './wv-icons';
 import {WHITE_PRODUCTS} from './products';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
@@ -114,18 +115,37 @@ export default function WhiteShowcase({locale}: {locale: string}) {
           aria-hidden="true"
           className="absolute inset-0 bg-[linear-gradient(180deg,rgba(28,23,20,0.06)_0%,rgba(28,23,20,0)_22%,rgba(28,23,20,0.52)_58%,rgba(28,23,20,0.82)_100%)]"
         />
-        <div className="wv-rise absolute inset-x-0 bottom-0 px-6 pb-12 [text-shadow:0_1px_26px_rgba(28,23,20,0.5)] sm:px-10 sm:pb-16">
+        {/* The whole banner opens the collection, not just the button under it —
+            a full-bleed image that looks clickable and isn't is its own small
+            frustration. It sits as a sibling layer rather than a wrapper because
+            the CTA below is itself an anchor, and an anchor inside an anchor is
+            invalid markup that browsers silently unnest. The text block above
+            carries a higher z-index so the button keeps its own click. */}
+        {/* Hidden from assistive tech and from the tab order on purpose: it is
+            the same destination as the button below, and announcing "shop the
+            collection" twice is worse than not announcing this layer at all.
+            Keyboard and screen-reader users get there through the CTA. */}
+        <a
+          href={`/${locale}/shop`}
+          aria-hidden="true"
+          tabIndex={-1}
+          className="absolute inset-0 z-[5]"
+        />
+        <div className="wv-rise pointer-events-none absolute inset-x-0 bottom-0 z-[6] px-6 pb-12 [text-shadow:0_1px_26px_rgba(28,23,20,0.5)] sm:px-10 sm:pb-16">
           <p className="text-[11px] uppercase tracking-[0.34em] text-white">{t('season')}</p>
           <h1 className="mt-4 font-display text-[clamp(54px,15vw,96px)] font-light leading-[0.9] tracking-[-0.015em] text-white">
             {t('heroLine1')}
             <br />
             <span className="italic text-white/85">{t('heroLine2')}</span>
           </h1>
+          {/* pointer-events return here: the wrapper above releases them so the
+              banner-wide link underneath stays reachable across the whole scrim. */}
           <a
             href={`/${locale}/shop`}
-            className="wv-hero-cta mt-8 inline-flex items-center justify-center border border-white/80 px-9 py-4 text-[12px] uppercase tracking-[0.2em] text-white transition-colors [text-shadow:none] hover:bg-white hover:text-[#1c1714]"
+            className="wv-hero-cta wv-arrow-link pointer-events-auto mt-8 inline-flex items-center justify-center gap-3 border border-white/80 px-9 py-4 text-[12px] uppercase tracking-[0.2em] text-white transition-colors [text-shadow:none] hover:bg-white hover:text-[#1c1714]"
           >
             {t('shopCollection')}
+            <WhiteArrow />
           </a>
         </div>
       </section>
@@ -183,6 +203,15 @@ export default function WhiteShowcase({locale}: {locale: string}) {
             >
               <source src="/videos/white/sets.mp4" type="video/mp4" />
             </video>
+            {/* The film opens the sets too. Nothing interactive sits inside this
+                cell, so a plain overlay link is enough — no nesting to work
+                around like the hero. */}
+            <a
+              href={`/${locale}/sets`}
+              aria-hidden="true"
+              tabIndex={-1}
+              className="absolute inset-0"
+            />
           </div>
           <div className="wv-rise wv-scrub wv-delay-1 flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-20 lg:py-24 xl:px-28">
             <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{ts('eyebrow')}</p>
@@ -194,8 +223,9 @@ export default function WhiteShowcase({locale}: {locale: string}) {
             <p className="mt-8 max-w-md text-[15px] leading-relaxed" style={{color: MUTED}}>
               {ts('landingBody')}
             </p>
-            <a href={`/${locale}/sets`} className="wv-btn mt-10 inline-flex items-center justify-center self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
+            <a href={`/${locale}/sets`} className="wv-btn wv-arrow-link mt-10 inline-flex items-center justify-center gap-3 self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
               {ts('explore')}
+              <WhiteArrow />
             </a>
           </div>
         </div>

@@ -13,7 +13,7 @@ import WhiteProductCard from '../WhiteProductCard';
 import WildberriesButton from '../../../components/WildberriesButton';
 import {ozonProductUrl} from '../../../lib/ozon';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
-import {WhiteFavHeart} from '../wv-icons';
+import {WhiteFavHeart, WhiteArrow} from '../wv-icons';
 import {WHITE_PRODUCTS, WHITE_SETS, WHITE_SIZES, whiteInStock, type WhiteProduct} from '../products';
 import {WHITE_LQIP} from '../products-lqip';
 
@@ -258,11 +258,16 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}}>
       <div className="mx-auto max-w-[1400px] px-6 sm:px-10">
-        {/* Breadcrumb */}
+        {/* Breadcrumb. The shop step carries a hairline arrow pointing back the
+            way the reader came — arriving here from the grid, the way out should
+            be the most obvious thing on the page, and a word alone was not it. */}
         <nav className="py-5 text-[11px] uppercase tracking-[0.18em]" style={{color: MUTED}} aria-label={t('breadcrumb')}>
           <a href={`/${locale}`} className="transition-opacity hover:opacity-60">REINASLEO</a>
           <span className="mx-2">/</span>
-          <a href={`/${locale}/shop`} className="transition-opacity hover:opacity-60">{t('shop')}</a>
+          <a href={`/${locale}/shop`} className="wv-arrow-link inline-flex items-center gap-2 transition-opacity hover:opacity-60">
+            <WhiteArrow back />
+            {t('shop')}
+          </a>
           <span className="mx-2">/</span>
           <span style={{color: INK}} aria-current="page">{name}</span>
         </nav>

@@ -52,6 +52,29 @@ export function WhiteFavHeart({filled, size = 18, fillColor = SIGNAL}: {filled: 
 }
 
 
+// A hairline arrow for links that go somewhere — the collection, the shop.
+// Drawn rather than typed so the shaft can grow out of nothing on hover while
+// the head steps forward: the movement is the whole idea, a full arrow sitting
+// still reads as decoration. `back` mirrors it for the return journey.
+// Animation lives in globals.css under .wv-arrow-link so reduced-motion can
+// neutralise it in one place.
+export function WhiteArrow({back = false, size = 13}: {back?: boolean; size?: number}) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="wv-arrow shrink-0 overflow-visible"
+      width={size * 2}
+      height={size}
+      viewBox="0 0 26 13"
+      fill="none"
+      style={back ? {transform: 'scaleX(-1)'} : undefined}
+    >
+      <path className="wv-arrow-shaft" d="M0 6.5h21" stroke="currentColor" strokeWidth="1" />
+      <path className="wv-arrow-head" d="M16.5 1.5 21.5 6.5 16.5 11.5" stroke="currentColor" strokeWidth="1" strokeLinecap="square" />
+    </svg>
+  );
+}
+
 // Bag glyph for the header: the house cart icon as ever; with items in the
 // bag a small ink count sits inside the body.
 export function WhiteBagGlyph({count, size = 18}: {count: number; size?: number}) {
