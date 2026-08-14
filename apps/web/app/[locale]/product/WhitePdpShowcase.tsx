@@ -35,7 +35,13 @@ const SIZE_GUIDE = [
   {size: 'XL', bust: 102, waist: 82, hips: 108},
 ];
 
-export default function WhitePdpShowcase({locale, product}: {locale: string; product: WhiteProduct}) {
+export default function WhitePdpShowcase({
+  locale,
+  product,
+  // Live from the marketplace snapshot. Defaults to true so a render without it
+  // (a test, a story) behaves as it did before stock was wired up.
+  onWildberries = true,
+}: {locale: string; product: WhiteProduct; onWildberries?: boolean}) {
   const productColors = product.colors;
   const [activeImg, setActiveImg] = useState(0);
   const [size, setSize] = useState<string | null>(null);
@@ -130,7 +136,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
   };
   const wbUrl = `https://www.wildberries.ru/catalog/${bagProduct.nm}/detail.aspx`;
   const ozonUrl = ozonProductUrl(bagProduct);
-  const availability = whiteAvailability(bagProduct, {onOzon: Boolean(ozonUrl)});
+  const availability = whiteAvailability(bagProduct, {onOzon: Boolean(ozonUrl), onWb: onWildberries});
   const stickyPrice = `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
 
 
@@ -437,7 +443,12 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
             {/* The same piece on Wildberries — the brand's primary sales channel.
                 The gradient's wave-fill button, recoloured for the white ground:
                 violet outline at rest, the WB-violet ripple floods it on hover
-                and the label flips to white. */}
+                and the label flips to white.
+
+                Hidden once the marketplace snapshot says the article has no
+                stock. A button that opens a sold-out card is worse than no
+                button: it costs a tap to learn what the page could have said. */}
+            {availability !== 'none' && onWildberries && (
             <div className="mt-5">
               <WildberriesButton
                 href={wbUrl}
@@ -446,6 +457,7 @@ export default function WhitePdpShowcase({locale, product}: {locale: string; pro
                 {t('buyOnWb')}
               </WildberriesButton>
             </div>
+            )}
 
             {/* Ozon carries only the pieces shipped from our own warehouse, so
                 this appears on those cards alone. Deliberately quieter than the

@@ -30,6 +30,8 @@ export default function WhiteProductCard({
   priority = false,
   bleed = false,
   hideFav = false,
+  // From the marketplace snapshot on the server: this piece is nowhere to buy.
+  soldOut = false,
 }: {
   locale: string;
   product: WhiteProduct;
@@ -39,6 +41,7 @@ export default function WhiteProductCard({
   priority?: boolean;
   bleed?: boolean;
   hideFav?: boolean;
+  soldOut?: boolean;
 }) {
   const t = useTranslations('white.card');
   const {add} = useWhiteBag();
@@ -54,7 +57,7 @@ export default function WhiteProductCard({
   const href = whiteProductHref(locale, product);
   const inStock = whiteInStock(product);
   const onOzon = hasOzonListing(product.key);
-  const availability = whiteAvailability(product, {onOzon});
+  const availability = whiteAvailability(product, {onOzon, onWb: !soldOut});
 
   // ESC closes the panel; a click outside closes it. Focus returns to the
   // trigger so keyboard users are never stranded inside a collapsed panel.

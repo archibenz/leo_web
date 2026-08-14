@@ -17,12 +17,14 @@ import {WHITE_PRODUCTS as ITEMS, whiteCatLabel, type WhiteProduct as Item, type 
 
 type Sort = 'new' | 'asc' | 'desc';
 
-export default function WhiteShopShowcase({locale, initialCat = 'all', initialQuery = '', initialSort = 'new', focusSearch = false}: {locale: string; initialCat?: Cat | 'all'; initialQuery?: string; initialSort?: Sort; focusSearch?: boolean}) {
+export default function WhiteShopShowcase({locale, soldOutKeys = [], initialCat = 'all', initialQuery = '', initialSort = 'new', focusSearch = false}: {locale: string;
+  soldOutKeys?: number[]; initialCat?: Cat | 'all'; initialQuery?: string; initialSort?: Sort; focusSearch?: boolean}) {
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const ru = locale === 'ru';
   const [cat, setCat] = useState<Cat | 'all'>(initialCat);
   const [sort, setSort] = useState<Sort>(initialSort);
+  const soldOutSet = new Set(soldOutKeys);
   const [query, setQuery] = useState(initialQuery);
   const [searchOpen, setSearchOpen] = useState(Boolean(focusSearch) || Boolean(initialQuery));
 
@@ -258,7 +260,7 @@ export default function WhiteShopShowcase({locale, initialCat = 'all', initialQu
             two columns it would eat the gutter between them. */}
         <div className="grid grid-cols-2 gap-x-3 gap-y-8 px-6 pt-4 pb-12 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 sm:px-0 sm:pt-10 lg:grid-cols-3 lg:gap-x-8">
           {shown.map((p, i) => (
-            <WhiteProductCard key={p.key} locale={locale} product={p} index={i} priority={i < 4} rise />
+            <WhiteProductCard key={p.key} locale={locale} product={p} index={i} priority={i < 4} rise soldOut={soldOutSet.has(p.key)} />
           ))}
         </div>
 

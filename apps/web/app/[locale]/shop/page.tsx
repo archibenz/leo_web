@@ -1,6 +1,8 @@
 import type {Metadata} from 'next';
 import {headers} from 'next/headers';
 import WhiteShopShowcase from './WhiteShopShowcase';
+export const revalidate = 600;
+import {getStockSnapshot, wbHasStock} from '../../../lib/stock';
 import {normalizeWhiteCat, whiteCatLabel, WHITE_PRODUCTS, whiteProductHref} from '../products';
 import {brandMeta} from '../../../lib/openGraph';
 import {safeJsonLd, buildBreadcrumbJsonLd} from '../../../lib/jsonLd';
@@ -73,12 +75,18 @@ export default async function WhiteShopPage({params, searchParams}: Props) {
     {name: ru ? 'Магазин' : 'Shop', url: `${SITE_URL}/${locale}/shop`},
   ]);
 
+  // Which pieces the marketplaces no longer hold. Computed here, on the server,
+  // and handed to the grid so a card can say so without every card asking.
+  const snapshot = await getStockSnapshot();
+  const soldOutKeys = WHITE_PRODUCTS.filter((p) => !wbHasStock(snapshot, p.nm)).map((p) => p.key);
+
   return (
     <>
       <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(listJsonLd)}} />
       <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(breadcrumbJsonLd)}} />
       <WhiteShopShowcase
         locale={locale}
+        soldOutKeys={soldOutKeys}
         initialCat={normalizeWhiteCat(cat)}
         initialQuery={typeof q === 'string' ? q : ''}
         initialSort={initialSort}

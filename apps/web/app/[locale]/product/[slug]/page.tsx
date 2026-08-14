@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import {headers} from 'next/headers';
 import {notFound} from 'next/navigation';
 import WhitePdpShowcase from '../WhitePdpShowcase';
+import {getStockSnapshot, wbHasStock} from '../../../../lib/stock';
 import {WHITE_PRODUCTS, findWhiteProductBySlug, whiteProductHref} from '../../products';
 import {safeJsonLd, buildBreadcrumbJsonLd} from '../../../../lib/jsonLd';
 import {SITE_URL} from '../../../../lib/siteUrl';
@@ -20,6 +21,11 @@ type Props = {
 // slug rendered notFound() into a cached 200 — a soft 404 that invites crawlers
 // to index every mistyped address.
 export const dynamicParams = false;
+
+// Stock is read per request from a snapshot on disk, so the page must not be
+// frozen at build time. Revalidating every ten minutes keeps it a cached static
+// response for almost every visitor while never showing yesterday's shelf.
+export const revalidate = 600;
 
 // Every garment is known at build time, so the whole catalogue prerenders as
 // static HTML — crawlers get the full markup without running any JS.
@@ -66,6 +72,7 @@ export default async function WhiteProductSlugPage({params}: Props) {
   const product = findWhiteProductBySlug(slug);
   if (!product) notFound();
   const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const onWildberries = wbHasStock(await getStockSnapshot(), product.nm);
   const ru = locale === 'ru';
   const url = `${SITE_URL}${whiteProductHref(locale, product)}`;
 
@@ -117,7 +124,7 @@ export default async function WhiteProductSlugPage({params}: Props) {
     <>
       <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(productJsonLd)}} />
       <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(breadcrumbJsonLd)}} />
-      <WhitePdpShowcase locale={locale} product={product} />
+      <WhitePdpShowcase locale={locale} product={product} onWildberries={onWildberries} />
     </>
   );
 }

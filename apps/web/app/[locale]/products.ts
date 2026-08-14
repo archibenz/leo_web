@@ -141,11 +141,14 @@ export type WhiteAvailability = 'site' | 'marketplace' | 'none';
 
 export function whiteAvailability(
   product: Pick<WhiteProduct, 'key' | 'nm'>,
-  opts?: {onOzon?: boolean},
+  // `onWb` comes from the live marketplace snapshot; it defaults to true so a
+  // caller without it keeps the old behaviour of trusting the article number.
+  opts?: {onOzon?: boolean; onWb?: boolean},
 ): WhiteAvailability {
   if (whiteInStock(product)) return 'site';
   if (opts?.onOzon) return 'marketplace';
-  if (product.nm && !WHITE_OFF_MARKETPLACES.has(product.key)) return 'marketplace';
+  const wb = opts?.onWb ?? true;
+  if (wb && product.nm && !WHITE_OFF_MARKETPLACES.has(product.key)) return 'marketplace';
   return 'none';
 }
 
