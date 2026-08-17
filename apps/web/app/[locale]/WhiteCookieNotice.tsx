@@ -50,7 +50,10 @@ export default function WhiteCookieNotice({locale}: {locale: string}) {
         <button
           type="button"
           onClick={accept}
-          className="wv-btn min-h-9 shrink-0 px-6 py-2 text-[11px] uppercase tracking-[0.18em]"
+          // 44px: every visitor taps this once before they can read anything
+          // behind it, and min-h-9 measured 36px on a phone — under the floor
+          // the rest of the storefront holds itself to.
+          className="wv-btn min-h-11 shrink-0 px-6 py-2 text-[11px] uppercase tracking-[0.18em]"
         >
           {t('cookieOk')}
         </button>
