@@ -196,11 +196,11 @@ export default function WhiteShowcase({locale}: {locale: string}) {
               loop
               playsInline
               preload="none"
-              poster="/images/white/sets-arch.jpg"
+              poster="/images/white/sets-walk.jpg"
               aria-label={ts('landingTitle1')}
               className="absolute inset-0 h-full w-full object-cover"
             >
-              <source src="/videos/white/sets-arch.mp4" type="video/mp4" />
+              <source src="/videos/white/sets-walk.mp4" type="video/mp4" />
             </video>
             {/* The film opens the sets too. Nothing interactive sits inside this
                 cell, so a plain overlay link is enough — no nesting to work
