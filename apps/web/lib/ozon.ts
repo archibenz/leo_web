@@ -15,12 +15,23 @@
 const VENDOR_PREFIX = 'vendor_org_806467';
 
 // Product key (see app/[locale]/products.ts) → the card's address on Ozon.
-// Paste the plain link from the seller cabinet; any tagging it arrives with is
-// stripped and replaced, so a copy from Ozon's own link builder is safe too.
+// A card lives at /product/<sku>/ — Ozon expands the bare number into the full
+// slug address itself, so the SKU straight out of the Seller API is enough.
+//
+// Ozon splits a garment into one card per colour, while a product here carries
+// the whole palette. Each link therefore points at the black card: of the
+// colours on the shelf it is the one every one of these three actually has.
+// Per-colour links are the eventual shape — once more than one colour per
+// garment carries stock, which today it does not.
+//
+// Taken from /v3/product/list on 2026-08-13, filtered to colours with stock.
 const OZON_LINKS: Record<number, string> = {
-  // 3: Жилет костюмный с баской
-  // 18: Жилет с баской и кружевом
-  // 5: Юбка-карандаш — off the site until its photography lands
+  // Жилет костюмный с баской — чёрный, 7 размеров
+  3: 'https://www.ozon.ru/product/5293519900/',
+  // Жилет с баской и кружевом — чёрный, 7 размеров
+  18: 'https://www.ozon.ru/product/5280181693/',
+  // Юбка-карандаш с кружевом — чёрная, 4 размера
+  5: 'https://www.ozon.ru/product/5282174758/',
 };
 
 function isOzonUrl(url: URL): boolean {
@@ -62,4 +73,10 @@ export function ozonProductUrl(product: {key: number; slug: string}): string | n
 
 export function hasOzonListing(key: number): boolean {
   return Boolean(OZON_LINKS[key]);
+}
+
+// Which garments are on Ozon at all. The list is maintained by hand, so this
+// exists to let it be checked against the catalogue rather than drift out of it.
+export function ozonListedKeys(): number[] {
+  return Object.keys(OZON_LINKS).map(Number);
 }
