@@ -183,25 +183,24 @@ export default function WhiteShowcase({locale}: {locale: string}) {
             frame around it; the copy column keeps its own padding so it stays
             readable however wide the display. */}
         <div className="grid items-stretch gap-0 lg:grid-cols-2">
-          {/* A fixed 4:3 on desktop rather than stretching to the copy column.
-              Left to stretch, the cell grew wider with the viewport — on a 2560
-              display it reached nearly 2:1 and the crop cut the models off at
-              the shins. A constant ratio means the same framing on every screen. */}
-          <div className="wv-rise wv-scrub relative aspect-[4/5] w-full overflow-hidden lg:aspect-[4/3] lg:min-h-[640px]">
-            {/* One square film serves both shapes: the phone takes 4:5 out of
-                it, the desktop 4:3, and the shot is composed with enough air
-                around the three women that neither crop touches them. */}
+          {/* 3:4 on both breakpoints — the film's own ratio, so it plays whole
+              with nothing cropped away. A fixed ratio rather than stretching to
+              the copy column: left to stretch, the cell grew wider with the
+              viewport and on a 2560 display cut the models off at the shins.
+              Portrait also buys height on a phone, where the three of them need
+              to read as near, not as a group seen across a room. */}
+          <div className="wv-rise wv-scrub relative aspect-[3/4] w-full overflow-hidden lg:min-h-[640px]">
             <video
               autoPlay
               muted
               loop
               playsInline
               preload="none"
-              poster="/images/white/sets-doorway.jpg"
+              poster="/images/white/sets-arch.jpg"
               aria-label={ts('landingTitle1')}
               className="absolute inset-0 h-full w-full object-cover"
             >
-              <source src="/videos/white/sets-doorway.mp4" type="video/mp4" />
+              <source src="/videos/white/sets-arch.mp4" type="video/mp4" />
             </video>
             {/* The film opens the sets too. Nothing interactive sits inside this
                 cell, so a plain overlay link is enough — no nesting to work
