@@ -43,6 +43,37 @@ describe('subscribeToNewsletter', () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
+  // With no audience the form must still take the address: the account's key is
+  // restricted to sending mail, so an audience may never exist, and a 503 on a
+  // form that sits in the footer of every page is the worse failure.
+  it('forwards the address to the shop inbox when there is no audience', async () => {
+    delete process.env[AUD];
+    process.env.NEWSLETTER_TO = 'shop@example.com';
+    mockFetch.mockResolvedValue({status: 200, ok: true, json: async () => ({})} as unknown as Response);
+    const result = await subscribeToNewsletter('user@example.com');
+    expect(result).toEqual({status: 'ok'});
+    const [url, init] = mockFetch.mock.calls[0];
+    expect(url).toBe('https://api.resend.com/emails');
+    const body = JSON.parse(init.body);
+    expect(body.to).toEqual(['shop@example.com']);
+    expect(body.text).toContain('user@example.com');
+    delete process.env.NEWSLETTER_TO;
+  });
+
+  it('is unconfigured only when there is neither an audience nor an inbox', async () => {
+    delete process.env[AUD];
+    const saved = [process.env.NEWSLETTER_TO, process.env.PREORDER_TO, process.env.CONTACT_TO];
+    delete process.env.NEWSLETTER_TO;
+    delete process.env.PREORDER_TO;
+    delete process.env.CONTACT_TO;
+    const result = await subscribeToNewsletter('a@b.com');
+    expect(result).toEqual({status: 'unconfigured'});
+    expect(mockFetch).not.toHaveBeenCalled();
+    [['NEWSLETTER_TO', saved[0]], ['PREORDER_TO', saved[1]], ['CONTACT_TO', saved[2]]].forEach(([k, v]) => {
+      if (typeof v === 'string') process.env[k as string] = v;
+    });
+  });
+
   it('returns ok on 201 and posts to the audience with bearer auth + body', async () => {
     mockFetch.mockResolvedValue(res(201, {id: 'c1'}));
     const result = await subscribeToNewsletter('user@example.com');

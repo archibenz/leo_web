@@ -16,14 +16,21 @@ export async function subscribeToNewsletter(
   const apiKey = process.env.RESEND_API_KEY;
   const audienceId = process.env.RESEND_AUDIENCE_ID;
 
-  if (!apiKey || !audienceId) {
+  if (!apiKey) {
     if (process.env.NODE_ENV !== 'test') {
-      console.error('[newsletter] Resend not configured', {
-        hasKey: Boolean(apiKey),
-        hasAudience: Boolean(audienceId),
-      });
+      console.error('[newsletter] Resend not configured', {hasKey: false});
     }
     return {status: 'unconfigured'};
+  }
+
+  // No audience to add them to. The account's key is restricted to sending mail
+  // — it cannot create or read audiences — so waiting for one would mean
+  // turning the form away, and the form is on every page of the site. Send the
+  // address to the shop's own inbox instead: the subscriber is captured either
+  // way and can be imported into an audience later. The moment
+  // RESEND_AUDIENCE_ID exists this branch stops being taken.
+  if (!audienceId) {
+    return forwardSubscriber(email, apiKey);
   }
 
   let res: Response;
@@ -77,6 +84,39 @@ export async function subscribeToNewsletter(
     message: '<redacted>',
   });
   return {status: 'error', detail: messageStr || `http_${res.status}`};
+}
+
+// The fallback when there is no audience: mail the address to the shop. Reported
+// as 'ok' because from the subscriber's side it is — they asked to hear from us
+// and we now have their address. Reported as 'unconfigured' only when there is
+// nowhere at all to send it, which is a genuine misconfiguration.
+async function forwardSubscriber(email: string, apiKey: string): Promise<SubscribeResult> {
+  const to = process.env.NEWSLETTER_TO ?? process.env.PREORDER_TO ?? process.env.CONTACT_TO;
+  if (!to) {
+    if (process.env.NODE_ENV !== 'test') {
+      console.error('[newsletter] no audience and no inbox to forward to');
+    }
+    return {status: 'unconfigured'};
+  }
+
+  try {
+    const res = await fetch(`${RESEND_API_BASE}/emails`, {
+      method: 'POST',
+      headers: {Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        from: process.env.RESEND_FROM ?? 'REINASLEO <noreply@reinasleo.com>',
+        to: [to],
+        subject: 'Новая подписка на рассылку',
+        text: `Почта: ${email}`,
+      }),
+    });
+    if (res.ok) return {status: 'ok'};
+    console.error('[newsletter] forward rejected', res.status);
+    return {status: 'error', detail: String(res.status)};
+  } catch (err) {
+    console.error('[newsletter] forward network error', err);
+    return {status: 'error', detail: 'network'};
+  }
 }
 
 // A pre-order request: a garment that is nowhere to be had, and someone who
