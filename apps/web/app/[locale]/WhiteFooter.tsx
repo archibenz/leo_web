@@ -8,6 +8,7 @@ import {isValidEmail} from '../../lib/validation';
 import {INK, MUTED, HAIR, SIGNAL} from './wv-palette';
 import WhiteLocaleSwitch from './WhiteLocaleSwitch';
 import WhiteCookieNotice from './WhiteCookieNotice';
+import WhiteBagPopup from './WhiteBagPopup';
 
 // Variant 2 "White" — shared editorial footer. Rendered on the landing, shop
 // and PDP so every page of the prototype closes on the same brand chrome.
@@ -77,7 +78,12 @@ export default function WhiteFooter({locale}: {locale: string}) {
   const nlLocked = status === 'loading' || status === 'success';
 
   return (
-    <footer className="border-t" style={{borderColor: HAIR}}>
+    <>
+      {/* Mounted here because the footer is the one component every White page
+          renders; the popup itself is fixed, so its place in the DOM does not
+          matter. */}
+      <WhiteBagPopup locale={locale} />
+      <footer className="border-t" style={{borderColor: HAIR}}>
       <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-x-6 gap-y-6 px-6 py-7 sm:gap-10 sm:px-10 sm:py-16 lg:grid-cols-4">
         <div className="col-span-2 lg:col-span-1">
           <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-[14px] w-auto" />
@@ -182,5 +188,6 @@ export default function WhiteFooter({locale}: {locale: string}) {
       </div>
       <WhiteCookieNotice locale={locale} />
     </footer>
+    </>
   );
 }

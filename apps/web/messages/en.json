@@ -1317,7 +1317,9 @@
       "coloursCount": "{count} colours",
       "onlyOnWb": "Only on Wildberries",
       "onlyOnMarketplaces": "Only on marketplaces",
-      "outOfStock": "Out of stock"
+      "outOfStock": "Out of stock",
+      "addedTitle": "Added to bag",
+      "goToBag": "Go to the bag"
     },
     "favourites": {
       "shop": "Shop",

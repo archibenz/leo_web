@@ -1317,7 +1317,9 @@
       "coloursCount": "{count} цвета",
       "onlyOnWb": "Только на Wildberries",
       "onlyOnMarketplaces": "Только на маркетплейсах",
-      "outOfStock": "Нет в наличии"
+      "outOfStock": "Нет в наличии",
+      "addedTitle": "Добавлено в корзину",
+      "goToBag": "Перейти в корзину"
     },
     "favourites": {
       "shop": "Магазин",

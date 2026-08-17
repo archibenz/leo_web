@@ -1846,3 +1846,30 @@ body:has(.wv-root)::after {
     transform: none;
   }
 }
+
+/* Bag confirmation popup — slides down from the edge it sits on, and leaves the
+   same way. Short and shallow: it appears without being asked for, so the
+   movement should register and then get out of the way. */
+.wv-bagpop {
+  animation: wv-bagpop-in 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.wv-bagpop-out {
+  animation: wv-bagpop-leave 0.26s ease-in both;
+}
+@keyframes wv-bagpop-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes wv-bagpop-leave {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Still appears and still leaves — it just stops sliding. */
+  .wv-bagpop,
+  .wv-bagpop-out {
+    animation-duration: 0.01ms;
+    transform: none;
+  }
+}

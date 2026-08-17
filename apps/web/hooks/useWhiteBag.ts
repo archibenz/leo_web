@@ -26,6 +26,20 @@ let items: WhiteBagItem[] = [];
 let loaded = false;
 const listeners = new Set<(_next: readonly WhiteBagItem[]) => void>();
 
+// A separate channel for "this just went in", so the confirmation popup fires
+// from the store rather than from each call site. The bag is filled from the
+// product page, the card's quick add and the sets page, and a caller that
+// forgot to raise the popup would be a silent bug — here there is nowhere to
+// forget it.
+const addListeners = new Set<(_item: WhiteBagItem) => void>();
+
+export function subscribeWhiteBagAdds(fn: (_item: WhiteBagItem) => void): () => void {
+  addListeners.add(fn);
+  return () => {
+    addListeners.delete(fn);
+  };
+}
+
 // Normalise persisted data: legacy rows may lack qty or use old composite ids,
 // and duplicates must merge into a single line keyed by product+size.
 // Storage is same-origin writable — cap what we accept so a hand-edited value
@@ -106,10 +120,14 @@ export function addToWhiteBag(item: Omit<WhiteBagItem, 'id' | 'qty'>): void {
   if (existing) {
     items = items.map((i) => (i.id === id ? {...i, qty: Math.min(i.qty + 1, MAX_QTY)} : i));
   } else {
+    // At the cap the add is refused — and must not announce a success that did
+    // not happen.
     if (items.length >= MAX_LINES) return;
     items = [...items, {...item, id, qty: 1}];
   }
   persist();
+  const added = items.find((i) => i.id === id);
+  if (added) for (const fn of addListeners) fn(added);
 }
 
 export function setWhiteBagQty(id: string, qty: number): void {
