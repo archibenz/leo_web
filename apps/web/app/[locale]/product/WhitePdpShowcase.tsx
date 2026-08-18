@@ -270,14 +270,18 @@ export default function WhitePdpShowcase({
             way the reader came — arriving here from the grid, the way out should
             be the most obvious thing on the page, and a word alone was not it. */}
         {/* The links are 11px type, which on a phone measured 16px tall — well
-            under a fingertip. The negative margin lets each one carry a 44px
-            hit area without opening the row up visually. */}
+            under a fingertip. The hit area is grown by an absolutely positioned
+            pseudo-element rather than by making the link itself 44px tall: a
+            tall inline-flex box takes its baseline from its centred contents,
+            so the shop step floated above the words either side of it on the
+            same line. The box stays exactly text-height; only the touch target
+            is larger. */}
         <nav className="py-2 text-[11px] uppercase tracking-[0.18em] sm:py-5" style={{color: MUTED}} aria-label={t('breadcrumb')}>
-          <a href={`/${locale}`} className="-my-3 inline-flex min-h-11 items-center transition-opacity hover:opacity-60">REINASLEO</a>
+          <a href={`/${locale}`} className="wv-tap relative transition-opacity hover:opacity-60">REINASLEO</a>
           <span className="mx-2">/</span>
-          <a href={`/${locale}/shop`} className="wv-arrow-link -my-3 inline-flex min-h-11 items-center gap-2 transition-opacity hover:opacity-60">
+          <a href={`/${locale}/shop`} className="wv-arrow-link wv-tap relative whitespace-nowrap transition-opacity hover:opacity-60">
             <WhiteArrow back />
-            {t('shop')}
+            <span className="ml-2">{t('shop')}</span>
           </a>
           <span className="mx-2">/</span>
           <span style={{color: INK}} aria-current="page">{name}</span>
@@ -511,7 +515,7 @@ export default function WhitePdpShowcase({
         <section className="mx-auto w-full max-w-[1400px] border-t px-6 pb-4 pt-14 sm:px-10" style={{borderColor: HAIR}}>
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="font-display text-[24px] font-light tracking-tight sm:text-[30px]">{t('completeLook')}</h2>
-            <a href={`/${locale}/sets`} className="wv-link -my-3 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
+            <a href={`/${locale}/sets`} className="wv-link wv-tap relative text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
               <span className="wv-link-ink">{ru ? look.ru : look.en}</span> →
             </a>
           </div>

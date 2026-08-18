@@ -1837,6 +1837,20 @@ body:has(.wv-root)::after {
   transform: translateX(3px);
 }
 
+/* A fingertip-sized target on type too small to be one, without touching the
+   line it sits in. Growing the link's own box instead — min-height plus
+   inline-flex — moves its baseline off the baseline of the words either side,
+   which is what left "МАГАЗИН" floating above the rest of the breadcrumb. The
+   overlay takes the taps; the box keeps its type metrics. */
+.wv-tap::after {
+  content: '';
+  position: absolute;
+  inset-inline: -0.35em;
+  top: 50%;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   /* No growing, no stepping — but the arrow still has to read as an arrow, so
      the shaft rests at full length instead of at its stub. */

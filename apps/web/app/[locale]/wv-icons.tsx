@@ -62,7 +62,10 @@ export function WhiteArrow({back = false, size = 13}: {back?: boolean; size?: nu
   return (
     <svg
       aria-hidden="true"
-      className="wv-arrow shrink-0 overflow-visible"
+      // align-middle so the arrow sits on the middle of the type it follows
+      // rather than on the baseline, which is where an svg lands by default —
+      // it matters wherever the arrow is used inline instead of inside a flex.
+      className="wv-arrow inline-block shrink-0 overflow-visible align-middle"
       width={size * 2}
       height={size}
       viewBox="0 0 26 13"

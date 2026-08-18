@@ -43,7 +43,10 @@ export default function WhiteCookieNotice({locale}: {locale: string}) {
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center justify-between gap-x-6 gap-y-2">
         <p className="text-[12px] leading-relaxed" style={{color: MUTED}}>
           {t('cookieText')}{' '}
-          <a href={`/${locale}/privacy`} className="wv-link -my-3 inline-flex min-h-11 items-center" style={{color: INK}}>
+          {/* wv-tap, not a 44px inline-flex: this link sits inside a sentence,
+              and a tall flex box takes its baseline from its centred contents,
+              which lifts the word off the line it belongs to. */}
+          <a href={`/${locale}/privacy`} className="wv-link wv-tap relative" style={{color: INK}}>
             <span className="wv-link-ink">{t('cookieMore')}</span>
           </a>
         </p>
