@@ -54,8 +54,15 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
               <p className="mx-auto max-w-[1400px] px-6 pt-10 text-[11px] uppercase tracking-[0.3em] sm:px-12 lg:px-16" style={{color: MUTED}}>
                 {String(idx + 1).padStart(2, '0')} — {t('eyebrow')}
               </p>
-              <div className={`mx-auto grid max-w-[1400px] gap-0 lg:grid-cols-[1fr_1.2fr] ${idx % 2 ? 'lg:[&>*:first-child]:order-2' : ''}`}>
-                <div className="wv-zoom relative aspect-[4/5] w-full overflow-hidden sm:aspect-[16/10] lg:aspect-auto lg:min-h-[560px]">
+              <div className={`mx-auto grid max-w-[1400px] items-start gap-0 lg:grid-cols-[1fr_1.2fr] ${idx % 2 ? 'lg:[&>*:first-child]:order-2' : ''}`}>
+                {/* 4:5 at every width — the ratio these are photographed at, so
+                    the whole figure stays in the frame. On desktop the cell used
+                    to take its height from the copy column beside it, which made
+                    it near-square while the photograph is portrait: object-cover
+                    then ate the top and bottom, and the first look lost her head
+                    entirely. It also cropped each set differently, since the
+                    columns are different lengths. */}
+                <div className="wv-zoom relative aspect-[4/5] w-full overflow-hidden">
                   <Image src={set.image} alt={ru ? set.ru : set.en} fill sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
                 </div>
                 <div className="flex flex-col justify-center px-6 py-12 sm:px-12 lg:px-16 lg:py-16">
