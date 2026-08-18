@@ -8,9 +8,9 @@ import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
 import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
-import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR} from '../wv-palette';
-import {WHITE_SETS, findWhiteProduct} from '../products';
+import {WhiteArrow} from '../wv-icons';
+import {WHITE_SETS, findWhiteProduct, whiteProductHref} from '../products';
 
 // Curated sets: each look is an editorial image plus the real products it is
 // made of. One button takes the whole look (size M — the bag line names the
@@ -63,15 +63,33 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
                   <p className="mt-5 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>{ru ? set.descRu : set.descEn}</p>
 
                   <p className="mt-10 text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('items')}</p>
-                  {/* Mobile: the three photos break out of the column gutter and
-                      sit flush (gap-0, -mx-6 cancels px-6) — a seamless triptych
-                      that reads as one look, not a list. sm:+ returns to the
-                      inset spaced grid. */}
-                  <div className="-mx-6 mt-5 grid grid-cols-3 gap-0 sm:mx-0 sm:gap-5">
-                    {items.map((p, i) => (
-                      <WhiteProductCard key={p.key} locale={locale} product={p} index={i} hideFav />
+                  {/* A list, one garment to a line. This was three shop cards in
+                      a three-column grid, which on a phone left each of them the
+                      width of a thumb: the names broke over three lines and a
+                      considered look read as a cramped shelf. A row gives the
+                      name the whole width whatever the screen, and the eye can
+                      run down the list and total it up. */}
+                  <ul className="mt-4">
+                    {items.map((p) => (
+                      <li key={p.key} className="border-t" style={{borderColor: HAIR}}>
+                        <a
+                          href={whiteProductHref(locale, p)}
+                          className="group flex min-h-[72px] items-center gap-4 py-3 transition-opacity hover:opacity-70"
+                        >
+                          <span className="relative block h-[64px] w-[48px] shrink-0 overflow-hidden">
+                            <Image src={p.image} alt="" fill sizes="48px" className="object-cover" />
+                          </span>
+                          <span className="min-w-0 flex-1 text-[14px] leading-snug" style={{color: INK}}>
+                            {ru ? p.ru : p.en}
+                          </span>
+                          <span className="shrink-0 text-[13px] tabular-nums" style={{color: MUTED}}>
+                            {(p.sale ?? p.price).toLocaleString('ru-RU')} ₽
+                          </span>
+                          <WhiteArrow size={14} />
+                        </a>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
 
                   <div className="mt-8 flex flex-wrap items-center gap-5">
                     <button
