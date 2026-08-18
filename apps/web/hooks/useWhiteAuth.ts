@@ -131,11 +131,20 @@ export function whiteLogout(): void {
 }
 
 export function useWhiteAuth(): {user: WhiteUser | null; ready: boolean} {
+  // The store is module state, and by the time a page subtree hydrates it may
+  // already have been resolved by a component that hydrated earlier — the
+  // header calls this hook too, and for a guest resolveUser() flips `resolved`
+  // synchronously. Reading it straight out during render therefore made the
+  // first client render disagree with the server's, and React threw the
+  // account page away and re-rendered it. The first render on the client has
+  // to be the server's render; only after mount may it differ.
+  const [mounted, setMounted] = useState(false);
   const [, force] = useState(0);
 
   useEffect(() => {
     const listener = () => force((n) => n + 1);
     listeners.add(listener);
+    setMounted(true);
     // Fire-and-forget: resolveUser owns its own error handling, but catch here
     // too so nothing can escape as an unhandled rejection if it throws before
     // its internal chain is set up.
@@ -145,5 +154,6 @@ export function useWhiteAuth(): {user: WhiteUser | null; ready: boolean} {
     };
   }, []);
 
+  if (!mounted) return {user: null, ready: false};
   return {user: cachedUser, ready: resolved};
 }

@@ -50,7 +50,7 @@ export default async function WhiteFaqPage({params}: Props) {
   return (
     <>
       {sections.length > 0 && (
-        <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(faqJsonLd)}} />
+        <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(faqJsonLd)}} />
       )}
       <WhiteInfoShowcase locale={locale} ns="faq" />
     </>

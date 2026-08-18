@@ -100,9 +100,17 @@ export default async function LocaleLayout({
       <NextIntlClientProvider locale={locale} messages={messages}>
         {/* The storefront is the part of the site search actually sees, yet the
             Organization block only ever rendered on the admin/auth branch below
-            — every shop page shipped without it. */}
-        <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}} />
-        <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(siteJsonLd)}} />
+            — every shop page shipped without it.
+
+            suppressHydrationWarning is about the nonce, not the JSON. A browser
+            blanks the nonce content attribute once the document has loaded (so a
+            page cannot read its own nonce back and hand it to an injected
+            script), which leaves React comparing nonce="…" from the server with
+            nonce="" on the client and calling the tree mismatched — it then
+            threw away and re-rendered the whole subtree on /ru/account. The
+            attribute is doing its job; only the comparison is wrong. */}
+        <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}} />
+        <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(siteJsonLd)}} />
         <Metrika nonce={nonce} />
         <WhiteChrome locale={locale}>{children}</WhiteChrome>
       </NextIntlClientProvider>
@@ -115,6 +123,7 @@ export default async function LocaleLayout({
         <script
           type="application/ld+json"
           nonce={nonce}
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}}
         />
         <Metrika nonce={nonce} />

@@ -122,8 +122,8 @@ export default async function WhiteProductSlugPage({params}: Props) {
 
   return (
     <>
-      <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(productJsonLd)}} />
-      <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{__html: safeJsonLd(breadcrumbJsonLd)}} />
+      <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(productJsonLd)}} />
+      <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(breadcrumbJsonLd)}} />
       <WhitePdpShowcase locale={locale} product={product} onWildberries={onWildberries} />
     </>
   );
