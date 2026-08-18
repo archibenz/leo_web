@@ -70,29 +70,32 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
                   <p className="mt-5 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>{ru ? set.descRu : set.descEn}</p>
 
                   <p className="mt-10 text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('items')}</p>
-                  {/* A list, one garment to a line. This was three shop cards in
-                      a three-column grid, which on a phone left each of them the
-                      width of a thumb: the names broke over three lines and a
-                      considered look read as a cramped shelf. A row gives the
-                      name the whole width whatever the screen, and the eye can
-                      run down the list and total it up. */}
-                  <ul className="mt-4">
+                  {/* One garment to a line on a phone, where the column is narrow
+                      and a row gives the name its full width. On a desktop the
+                      same column is 600px wide and a 48px thumbnail in it showed
+                      nothing of the garment, so the row opens out into a card
+                      with a real photograph. Same markup either way — the
+                      thumbnail grows to the full width of its cell and the name
+                      and price drop underneath it. */}
+                  <ul className="mt-4 lg:mt-6 lg:flex lg:gap-6">
                     {items.map((p) => (
-                      <li key={p.key} className="border-t" style={{borderColor: HAIR}}>
+                      <li key={p.key} className="border-t lg:min-w-0 lg:flex-1 lg:border-t-0" style={{borderColor: HAIR}}>
                         <a
                           href={whiteProductHref(locale, p)}
-                          className="group flex min-h-[72px] items-center gap-4 py-3 transition-opacity hover:opacity-70"
+                          className="group flex min-h-[72px] items-center gap-4 py-3 transition-opacity hover:opacity-70 lg:min-h-0 lg:flex-col lg:items-stretch lg:gap-3 lg:py-0"
                         >
-                          <span className="relative block h-[64px] w-[48px] shrink-0 overflow-hidden">
-                            <Image src={p.image} alt="" fill sizes="48px" className="object-cover" />
+                          <span className="wv-ph relative block h-[64px] w-[48px] shrink-0 overflow-hidden lg:h-auto lg:w-full lg:shrink lg:aspect-[3/4]">
+                            <Image src={p.image} alt="" fill sizes="(max-width: 1024px) 48px, 220px" className="object-cover" />
                           </span>
-                          <span className="min-w-0 flex-1 text-[14px] leading-snug" style={{color: INK}}>
+                          <span className="min-w-0 flex-1 text-[14px] leading-snug lg:flex-none" style={{color: INK}}>
                             {ru ? p.ru : p.en}
                           </span>
-                          <span className="shrink-0 text-[13px] tabular-nums" style={{color: MUTED}}>
+                          <span className="shrink-0 text-[13px] tabular-nums lg:-mt-1" style={{color: MUTED}}>
                             {(p.sale ?? p.price).toLocaleString('ru-RU')} ₽
                           </span>
-                          <WhiteArrow size={14} />
+                          <span className="lg:hidden">
+                            <WhiteArrow size={14} />
+                          </span>
                         </a>
                       </li>
                     ))}
