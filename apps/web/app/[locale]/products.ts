@@ -207,7 +207,7 @@ export const WHITE_SETS: WhiteSet[] = [
   // open over the sweatshirt, which put the bowed sleeves out either side of it
   // — at card size they read as trim on the coat. The bows are the sweatshirt's
   // whole point and they are large; nothing may sit over them.
-  {key: 'everyday', en: 'Everyday Ease', ru: 'На каждый день', descEn: 'The oversize sweatshirt with four wide bows down each sleeve, over the satin balloon skirt.', descRu: 'Свитшот оверсайз с четырьмя широкими бантами по каждому рукаву и атласная юбка-баллон под ним.', image: '/images/white/sets/everyday-v6.jpg', productKeys: [4, 8]},
+  {key: 'everyday', en: 'Everyday Ease', ru: 'На каждый день', descEn: 'The oversize sweatshirt with narrow satin bows tied down each sleeve, over the satin balloon skirt.', descRu: 'Свитшот оверсайз с бантами из узкой атласной ленты по рукавам и атласная юбка-баллон под ним.', image: '/images/white/sets/everyday-v7.jpg', productKeys: [4, 8]},
 ];
 
 export function findWhiteSet(key?: string | null): WhiteSet | undefined {
