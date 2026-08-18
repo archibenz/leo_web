@@ -100,11 +100,11 @@ export default function WhiteShowcase({locale}: {locale: string}) {
           loop
           playsInline
           preload="metadata"
-          poster="/images/white/hero-mark.jpg"
+          poster="/images/white/hero-mark2.jpg"
           className="absolute inset-0 h-full w-full object-cover object-[50%_22%]"
         >
           <source src="/videos/white/hero-desktop.mp4" type="video/mp4" media="(min-width: 1024px)" />
-          <source src="/videos/white/hero-mark.mp4" type="video/mp4" />
+          <source src="/videos/white/hero-mark2.mp4" type="video/mp4" />
         </video>
         {/* The scrim carries the text contrast on its own so any Higgsfield shot
             (however light in its lower third) keeps the white type AA-legible —

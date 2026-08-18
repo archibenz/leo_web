@@ -95,7 +95,7 @@ export const WHITE_PRODUCTS: WhiteProduct[] = [
 // Editorial imagery — model-on-white shots generated for the White variant (the
 // REINASLEO Soul), used for the hero, the atelier/lookbook block and as
 // alternate PDP gallery views. Same-origin, so CSP img-src 'self' covers them.
-export const WHITE_HERO_IMAGE = '/images/white/hero-mark.jpg';
+export const WHITE_HERO_IMAGE = '/images/white/hero-mark2.jpg';
 export const WHITE_ATELIER_IMAGE = '/images/white/editorial-1.jpg';
 export const WHITE_EDITORIAL = ['/images/white/editorial-1.jpg', '/images/white/editorial-2.jpg', '/images/white/editorial-3.jpg'];
 
