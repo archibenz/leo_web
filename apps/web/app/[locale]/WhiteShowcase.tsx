@@ -194,7 +194,10 @@ export default function WhiteShowcase({locale}: {locale: string}) {
                 prints its own cloth: the monogram and the square tile alternating
                 on a checkerboard, small open diamonds filling the ground between
                 them. Two motifs alone read flat; it is the third, smaller one
-                that makes a pattern look woven rather than tiled. Tone on tone,
+                that makes a pattern look woven rather than tiled. The motifs
+                also turn: every second monogram sits upside down and the
+                squares a quarter round, so the ground has a direction instead
+                of being stamped out in rows. Tone on tone,
                 because over an area this size the mark's red goes pink and a
                 canvas is meant to be noticed after the garment, not before it.
                 Every motif sits wholly inside the tile, so the repeat has no
