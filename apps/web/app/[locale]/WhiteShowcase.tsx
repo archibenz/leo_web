@@ -190,22 +190,34 @@ export default function WhiteShowcase({locale}: {locale: string}) {
               tiles at the edges, so the strip reads as printed selvedge rather
               than as wallpaper that ran out. Decorative only. */}
           <div className="lg:flex lg:items-stretch">
-            {/* Monogram canvas — the house mark and the square tile alternating
-                on a checkerboard, the way a maison prints its own cloth. Tone on
-                tone rather than in the mark's red: over an area that large the
-                red reads as pink, and the point of a canvas is that it is
-                noticed second, after the garment. The tile keeps every motif
-                fully inside it, so the repeat has no seam to find. */}
-            <div
-              aria-hidden="true"
-              className="hidden min-w-0 flex-1 min-[1400px]:block"
-              style={{
-                backgroundColor: '#F3EBDA',
-                backgroundImage: 'url(/logos/canvas.svg)',
-                backgroundSize: '124px 124px',
-                backgroundRepeat: 'repeat',
-              }}
-            />
+            {/* Monogram canvas — three motifs at three scales, the way a maison
+                prints its own cloth: the monogram and the square tile alternating
+                on a checkerboard, small open diamonds filling the ground between
+                them. Two motifs alone read flat; it is the third, smaller one
+                that makes a pattern look woven rather than tiled. Tone on tone,
+                because over an area this size the mark's red goes pink and a
+                canvas is meant to be noticed after the garment, not before it.
+                Every motif sits wholly inside the tile, so the repeat has no
+                seam. The gradient over it is the light: cloth catches it from
+                the side, flat colour does not. */}
+            <div aria-hidden="true" className="relative hidden min-w-0 flex-1 min-[1400px]:block">
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundColor: '#F3EBDA',
+                  backgroundImage: 'url(/logos/canvas.svg)',
+                  backgroundSize: '112px 112px',
+                  backgroundRepeat: 'repeat',
+                }}
+              />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background:
+                    'linear-gradient(100deg, rgba(255,252,244,0.55) 0%, rgba(255,252,244,0) 42%, rgba(120,98,70,0.10) 100%)',
+                }}
+              />
+            </div>
           <div className="wv-rise wv-scrub relative aspect-[3/4] w-full shrink-0 overflow-hidden lg:w-[560px]">
             <video
               autoPlay
