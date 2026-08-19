@@ -183,16 +183,25 @@ export default function WhiteShowcase({locale}: {locale: string}) {
             frame around it; the copy column keeps its own padding so it stays
             readable however wide the display. */}
         <div className="grid items-center gap-0 lg:grid-cols-2">
-          {/* 3:4 on both breakpoints — the film's own ratio, so it plays whole
-              with nothing cropped away. A fixed ratio rather than stretching to
-              the copy column: left to stretch, the cell grew wider with the
-              viewport and on a 2560 display cut the models off at the shins.
-              Portrait also buys height on a phone, where the three of them need
-              to read as near, not as a group seen across a room.
-              Capped at 560px on a desktop: at half of a wide viewport the film
-              stood 960px tall, and beside something that size the copy next to
-              it read as fine print. */}
-          <div className="wv-rise wv-scrub relative mx-auto aspect-[3/4] w-full overflow-hidden lg:max-w-[560px]">
+          {/* The film keeps its 560px and the slack in its half of the row goes
+              to a mosaic of the house mark. Capping the film left 80px of empty
+              cream at 1440 and 200 at 1920 — the wider the display, the larger
+              the hole. `space` lays the mark out with even gaps and no partial
+              tiles at the edges, so the strip reads as printed selvedge rather
+              than as wallpaper that ran out. Decorative only. */}
+          <div className="lg:flex lg:items-stretch">
+            <div
+              aria-hidden="true"
+              className="hidden lg:block lg:flex-1"
+              style={{
+                backgroundImage: 'url(/logos/square-ink.svg)',
+                backgroundSize: '26px 26px',
+                backgroundRepeat: 'space',
+                backgroundPosition: 'center',
+                opacity: 0.12,
+              }}
+            />
+          <div className="wv-rise wv-scrub relative aspect-[3/4] w-full shrink-0 overflow-hidden lg:w-[560px]">
             <video
               autoPlay
               muted
@@ -214,6 +223,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
               tabIndex={-1}
               className="absolute inset-0"
             />
+          </div>
           </div>
           <div className="wv-rise wv-scrub wv-delay-1 flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-20 lg:py-24 xl:px-28">
             <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{ts('eyebrow')}</p>
