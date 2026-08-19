@@ -190,17 +190,18 @@ export default function WhiteShowcase({locale}: {locale: string}) {
               tiles at the edges, so the strip reads as printed selvedge rather
               than as wallpaper that ran out. Decorative only. */}
           <div className="lg:flex lg:items-stretch">
-            <div
-              aria-hidden="true"
-              className="hidden lg:block lg:flex-1"
-              style={{
-                backgroundImage: 'url(/logos/square-ink.svg)',
-                backgroundSize: '26px 26px',
-                backgroundRepeat: 'space',
-                backgroundPosition: 'center',
-                opacity: 0.12,
-              }}
-            />
+            {/* The monogram built out of the square mark — the same artwork
+                sampled onto a 20-column grid, one tile per inked cell. Kept as
+                SVG so it stays crisp at any width, and `contain` so it is a
+                logo sitting in the space rather than a texture filling it. */}
+            <div className="hidden min-w-0 flex-1 items-center justify-center overflow-hidden min-[1400px]:flex">
+              <img
+                src="/logos/monogram-mosaic.svg"
+                alt=""
+                aria-hidden="true"
+                className="h-auto w-full max-w-[190px] px-5 opacity-90"
+              />
+            </div>
           <div className="wv-rise wv-scrub relative aspect-[3/4] w-full shrink-0 overflow-hidden lg:w-[560px]">
             <video
               autoPlay
