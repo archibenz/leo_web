@@ -190,18 +190,22 @@ export default function WhiteShowcase({locale}: {locale: string}) {
               tiles at the edges, so the strip reads as printed selvedge rather
               than as wallpaper that ran out. Decorative only. */}
           <div className="lg:flex lg:items-stretch">
-            {/* The monogram built out of the square mark — the same artwork
-                sampled onto a 20-column grid, one tile per inked cell. Kept as
-                SVG so it stays crisp at any width, and `contain` so it is a
-                logo sitting in the space rather than a texture filling it. */}
-            <div className="hidden min-w-0 flex-1 items-center justify-center overflow-hidden min-[1400px]:flex">
-              <img
-                src="/logos/monogram-mosaic.svg"
-                alt=""
-                aria-hidden="true"
-                className="h-auto w-full max-w-[190px] px-5 opacity-90"
-              />
-            </div>
+            {/* Monogram canvas — the house mark and the square tile alternating
+                on a checkerboard, the way a maison prints its own cloth. Tone on
+                tone rather than in the mark's red: over an area that large the
+                red reads as pink, and the point of a canvas is that it is
+                noticed second, after the garment. The tile keeps every motif
+                fully inside it, so the repeat has no seam to find. */}
+            <div
+              aria-hidden="true"
+              className="hidden min-w-0 flex-1 min-[1400px]:block"
+              style={{
+                backgroundColor: '#F3EBDA',
+                backgroundImage: 'url(/logos/canvas.svg)',
+                backgroundSize: '124px 124px',
+                backgroundRepeat: 'repeat',
+              }}
+            />
           <div className="wv-rise wv-scrub relative aspect-[3/4] w-full shrink-0 overflow-hidden lg:w-[560px]">
             <video
               autoPlay
