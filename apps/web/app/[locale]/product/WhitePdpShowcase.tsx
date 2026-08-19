@@ -49,6 +49,16 @@ export default function WhitePdpShowcase({
   const activeColor = productColors.find((c) => c.key === color) ?? productColors[0]!;
   const galleryRef = useRef<HTMLDivElement>(null);
 
+  // A link may name the colour it means — `?c=brown` — so arriving from a set
+  // opens the garment in the colour that look is wearing rather than in the
+  // default. Read after mount rather than with useSearchParams: the hook would
+  // opt this page out of static rendering, and reading it during the first
+  // render would make that render disagree with the server's.
+  useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('c');
+    if (wanted && productColors.some((c) => c.key === wanted)) setColor(wanted);
+  }, [productColors]);
+
   // Picking a colour swaps the whole album, and a colour with fewer frames
   // shrinks the gallery above the scroll position — which yanks the page. When
   // the reader has scrolled past the gallery to reach the swatches, bring them

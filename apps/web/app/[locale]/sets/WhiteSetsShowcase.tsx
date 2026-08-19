@@ -92,7 +92,7 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
                       return (
                       <li key={p.key} className="border-t lg:min-w-0 lg:flex-1 lg:border-t-0" style={{borderColor: HAIR}}>
                         <a
-                          href={whiteProductHref(locale, p)}
+                          href={`${whiteProductHref(locale, p)}?c=${colour.key}`}
                           className="group flex min-h-[72px] items-center gap-4 py-3 transition-opacity hover:opacity-70 lg:min-h-0 lg:flex-col lg:items-stretch lg:gap-3 lg:py-0"
                         >
                           <span className="wv-ph relative block h-[64px] w-[48px] shrink-0 overflow-hidden lg:h-auto lg:w-full lg:shrink lg:aspect-[3/4]">
