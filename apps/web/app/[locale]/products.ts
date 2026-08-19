@@ -209,15 +209,15 @@ export const WHITE_SETS: WhiteSet[] = [
   {key: 'coat-lace', en: 'Coat and Lace', ru: 'Пальто и кружево', descEn: 'The long belted coat over the pencil skirt, with the lace underskirt showing a hand’s width below the hem.', descRu: 'Длинное пальто с поясом поверх юбки карандаш, из-под которой на ширину ладони выходит кружевной подъюбник.', image: '/images/white/sets/coat-lace-v4.jpg', productKeys: [11, 5], colours: {11: 'brown', 5: 'sand'}},
   {key: 'office', en: 'The Office Edit', ru: 'В офис', descEn: 'Tailoring that carries the whole week: the peplum vest over draped trousers, the blazer coat on top.', descRu: 'Тайлоринг на всю неделю: жилет с баской поверх брюк алладинов, сверху — пальто-пиджак.', image: '/images/white/sets/office-v4.jpg', productKeys: [3, 7, 2], colours: {3: 'black', 7: 'black'}},
   {key: 'summer', en: 'Summer in the City', ru: 'Лето в городе', descEn: 'Linen for the heat: the sleeveless vest, the lace shirt thrown over, the suede skort underneath.', descRu: 'Лён для жары: жилет без рукавов, сверху рубашка с кружевом, снизу замшевая юбка-шорты.', image: '/images/white/sets/summer-v5.jpg', productKeys: [1, 9, 10]},
-  // Заменил вечерний сет: платье из него выходит из оборота, а образ,
-  // который нельзя купить целиком, обесценивает кнопку «взять весь образ».
-  // Само платье остаётся в каталоге — снят только сет.
-  {key: 'corset', en: 'Corset over the Dress', ru: 'Корсет поверх платья', descEn: 'The rib-knit dress with its high slit, the peplum corset worn over it as a bodice, the kimono coat left on the shoulders.', descRu: 'Трикотажное платье с высоким разрезом, поверх него корсет с баской вместо лифа, пальто кимоно оставлено на плечах.', image: '/images/white/sets/corset-v1.jpg', productKeys: [12, 6, 14]},
+  // Образ взят из архива владельца целиком — его съёмка, его подбор.
+  // Пальто здесь чёрное, юбка замшевая коричневая: обе вещи в каталоге,
+  // и обе в этих цветах не встречаются больше ни в одном образе.
+  {key: 'black-coat', en: 'The Black Coat', ru: 'Чёрное пальто', descEn: 'The long belted coat worn open over the suede skirt with its lace hem, and nothing else asked of the outfit.', descRu: 'Длинное пальто с поясом нараспашку поверх замшевой юбки с кружевом по подолу — больше образу ничего не нужно.', image: '/images/white/sets/black-coat-v1.jpg', productKeys: [11, 10], colours: {11: 'black', 10: 'brown'}},
   // Two pieces, not three. The kimono coat was in this look and had to be worn
   // open over the sweatshirt, which put the bowed sleeves out either side of it
   // — at card size they read as trim on the coat. The bows are the sweatshirt's
   // whole point and they are large; nothing may sit over them.
-  {key: 'everyday', en: 'Everyday Ease', ru: 'На каждый день', descEn: 'The oversize sweatshirt with a slit down each sleeve laced shut with satin bows, over the satin balloon skirt.', descRu: 'Свитшот оверсайз с прорезью по рукаву, стянутой атласными бантами и атласная юбка-баллон под ним.', image: '/images/white/sets/everyday-v10.jpg', productKeys: [4, 8]},
+  {key: 'everyday', en: 'Everyday Ease', ru: 'На каждый день', descEn: 'The oversize sweatshirt with a slit down each sleeve laced shut with satin bows, over the satin balloon skirt.', descRu: 'Свитшот оверсайз с прорезью по рукаву, стянутой атласными бантами и атласная юбка-баллон под ним.', image: '/images/white/sets/everyday-v11.jpg', productKeys: [4, 8]},
 ];
 
 export function findWhiteSet(key?: string | null): WhiteSet | undefined {
