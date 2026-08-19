@@ -196,18 +196,25 @@ export type WhiteSet = {
   descRu: string;
   image: string;
   productKeys: number[];
+  // Which colour of each garment is the one actually worn in the photograph,
+  // keyed by product. Without it the cards fall back to a product's first
+  // colour, so a look shot in a brown coat and a sand skirt was listed as a
+  // black coat and a black skirt — the same two garments, but not this outfit.
+  // Only needed where the set differs from the default; omit and the default
+  // is right.
+  colours?: Record<number, string>;
 };
 
 export const WHITE_SETS: WhiteSet[] = [
-  {key: 'coat-lace', en: 'Coat and Lace', ru: 'Пальто и кружево', descEn: 'The long belted coat over the pencil skirt, with the lace underskirt showing a hand’s width below the hem.', descRu: 'Длинное пальто с поясом поверх юбки карандаш, из-под которой на ширину ладони выходит кружевной подъюбник.', image: '/images/white/sets/coat-lace-v4.jpg', productKeys: [11, 5]},
-  {key: 'office', en: 'The Office Edit', ru: 'В офис', descEn: 'Tailoring that carries the whole week: the peplum vest over draped trousers, the blazer coat on top.', descRu: 'Тайлоринг на всю неделю: жилет с баской поверх брюк алладинов, сверху — пальто-пиджак.', image: '/images/white/sets/office-v4.jpg', productKeys: [3, 7, 2]},
-  {key: 'summer', en: 'Summer in the City', ru: 'Лето в городе', descEn: 'Linen for the heat: the sleeveless vest, the lace shirt thrown over, the suede skort underneath.', descRu: 'Лён для жары: жилет без рукавов, сверху рубашка с кружевом, снизу замшевая юбка-шорты.', image: '/images/white/sets/summer-v4.jpg', productKeys: [1, 9, 10]},
+  {key: 'coat-lace', en: 'Coat and Lace', ru: 'Пальто и кружево', descEn: 'The long belted coat over the pencil skirt, with the lace underskirt showing a hand’s width below the hem.', descRu: 'Длинное пальто с поясом поверх юбки карандаш, из-под которой на ширину ладони выходит кружевной подъюбник.', image: '/images/white/sets/coat-lace-v4.jpg', productKeys: [11, 5], colours: {11: 'brown', 5: 'sand'}},
+  {key: 'office', en: 'The Office Edit', ru: 'В офис', descEn: 'Tailoring that carries the whole week: the peplum vest over draped trousers, the blazer coat on top.', descRu: 'Тайлоринг на всю неделю: жилет с баской поверх брюк алладинов, сверху — пальто-пиджак.', image: '/images/white/sets/office-v4.jpg', productKeys: [3, 7, 2], colours: {3: 'black', 7: 'black'}},
+  {key: 'summer', en: 'Summer in the City', ru: 'Лето в городе', descEn: 'Linen for the heat: the sleeveless vest, the lace shirt thrown over, the suede skort underneath.', descRu: 'Лён для жары: жилет без рукавов, сверху рубашка с кружевом, снизу замшевая юбка-шорты.', image: '/images/white/sets/summer-v5.jpg', productKeys: [1, 9, 10]},
   {key: 'evening', en: 'The Evening Out', ru: 'Вечерний выход', descEn: 'The evening dress cut close and clean, the fitted coat over the shoulders on the way home.', descRu: 'Вечернее платье сдержанного кроя, по дороге домой — приталенное пальто на плечи.', image: '/images/white/sets/evening-v4.jpg', productKeys: [17, 2]},
   // Two pieces, not three. The kimono coat was in this look and had to be worn
   // open over the sweatshirt, which put the bowed sleeves out either side of it
   // — at card size they read as trim on the coat. The bows are the sweatshirt's
   // whole point and they are large; nothing may sit over them.
-  {key: 'everyday', en: 'Everyday Ease', ru: 'На каждый день', descEn: 'The oversize sweatshirt with narrow satin bows tied down each sleeve, over the satin balloon skirt.', descRu: 'Свитшот оверсайз с бантами из узкой атласной ленты по рукавам и атласная юбка-баллон под ним.', image: '/images/white/sets/everyday-v7.jpg', productKeys: [4, 8]},
+  {key: 'everyday', en: 'Everyday Ease', ru: 'На каждый день', descEn: 'The oversize sweatshirt with big satin bows down the full length of each sleeve, over the satin balloon skirt.', descRu: 'Свитшот оверсайз с крупными атласными бантами по всей длине рукавов и атласная юбка-баллон под ним.', image: '/images/white/sets/everyday-v8.jpg', productKeys: [4, 8]},
 ];
 
 export function findWhiteSet(key?: string | null): WhiteSet | undefined {

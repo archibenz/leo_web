@@ -182,14 +182,17 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         {/* Full-width: the photograph runs to the left edge of the screen with no
             frame around it; the copy column keeps its own padding so it stays
             readable however wide the display. */}
-        <div className="grid items-stretch gap-0 lg:grid-cols-2">
+        <div className="grid items-center gap-0 lg:grid-cols-2">
           {/* 3:4 on both breakpoints — the film's own ratio, so it plays whole
               with nothing cropped away. A fixed ratio rather than stretching to
               the copy column: left to stretch, the cell grew wider with the
               viewport and on a 2560 display cut the models off at the shins.
               Portrait also buys height on a phone, where the three of them need
-              to read as near, not as a group seen across a room. */}
-          <div className="wv-rise wv-scrub relative aspect-[3/4] w-full overflow-hidden lg:min-h-[640px]">
+              to read as near, not as a group seen across a room.
+              Capped at 560px on a desktop: at half of a wide viewport the film
+              stood 960px tall, and beside something that size the copy next to
+              it read as fine print. */}
+          <div className="wv-rise wv-scrub relative mx-auto aspect-[3/4] w-full overflow-hidden lg:max-w-[560px]">
             <video
               autoPlay
               muted

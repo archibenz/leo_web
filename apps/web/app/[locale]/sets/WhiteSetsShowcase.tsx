@@ -10,7 +10,7 @@ import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import {INK, MUTED, HAIR} from '../wv-palette';
 import {WhiteArrow} from '../wv-icons';
-import {WHITE_SETS, findWhiteProduct, whiteProductHref} from '../products';
+import {WHITE_SETS, findWhiteProduct, whiteProductHref, type WhiteSet, type WhiteProduct} from '../products';
 
 // Curated sets: each look is an editorial image plus the real products it is
 // made of. One button takes the whole look (size M — the bag line names the
@@ -24,11 +24,20 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
   const ru = locale === 'ru';
   const [addedSet, setAddedSet] = useState<string | null>(null);
 
+  // The colour worn in this look, falling back to the garment's default. Used
+  // for the photograph on the card and for the line the bag takes, so what is
+  // shown, what is ordered and what is in the picture are the same thing.
+  const setColour = (set: WhiteSet, p: WhiteProduct) => {
+    const wanted = set.colours?.[p.key];
+    return (wanted && p.colors.find((c) => c.key === wanted)) || p.colors[0]!;
+  };
+
   const addWholeLook = (setKey: string, keys: number[]) => {
+    const set = WHITE_SETS.find((s) => s.key === setKey);
     for (const k of keys) {
       const p = findWhiteProduct(k);
       if (!p) continue;
-      const colour = p.colors[0]!;
+      const colour = set ? setColour(set, p) : p.colors[0]!;
       addToWhiteBag({key: p.key, en: p.en, ru: p.ru, price: p.sale ?? p.price, size: 'M', colorEn: colour.en, colorRu: colour.ru});
     }
     setAddedSet(setKey);
@@ -78,14 +87,16 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
                       thumbnail grows to the full width of its cell and the name
                       and price drop underneath it. */}
                   <ul className="mt-4 lg:mt-6 lg:flex lg:gap-6">
-                    {items.map((p) => (
+                    {items.map((p) => {
+                      const colour = setColour(set, p);
+                      return (
                       <li key={p.key} className="border-t lg:min-w-0 lg:flex-1 lg:border-t-0" style={{borderColor: HAIR}}>
                         <a
                           href={whiteProductHref(locale, p)}
                           className="group flex min-h-[72px] items-center gap-4 py-3 transition-opacity hover:opacity-70 lg:min-h-0 lg:flex-col lg:items-stretch lg:gap-3 lg:py-0"
                         >
                           <span className="wv-ph relative block h-[64px] w-[48px] shrink-0 overflow-hidden lg:h-auto lg:w-full lg:shrink lg:aspect-[3/4]">
-                            <Image src={p.image} alt="" fill sizes="(max-width: 1024px) 48px, 220px" className="object-cover" />
+                            <Image src={colour.image ?? p.image} alt="" fill sizes="(max-width: 1024px) 48px, 220px" className="object-cover" />
                           </span>
                           <span className="min-w-0 flex-1 text-[14px] leading-snug lg:flex-none" style={{color: INK}}>
                             {ru ? p.ru : p.en}
@@ -98,7 +109,8 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
                           </span>
                         </a>
                       </li>
-                    ))}
+                      );
+                    })}
                   </ul>
 
                   <div className="mt-8 flex flex-wrap items-center gap-5">
