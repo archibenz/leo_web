@@ -209,7 +209,10 @@ export const WHITE_SETS: WhiteSet[] = [
   {key: 'coat-lace', en: 'Coat and Lace', ru: 'Пальто и кружево', descEn: 'The long belted coat over the pencil skirt, with the lace underskirt showing a hand’s width below the hem.', descRu: 'Длинное пальто с поясом поверх юбки карандаш, из-под которой на ширину ладони выходит кружевной подъюбник.', image: '/images/white/sets/coat-lace-v4.jpg', productKeys: [11, 5], colours: {11: 'brown', 5: 'sand'}},
   {key: 'office', en: 'The Office Edit', ru: 'В офис', descEn: 'Tailoring that carries the whole week: the peplum vest over draped trousers, the blazer coat on top.', descRu: 'Тайлоринг на всю неделю: жилет с баской поверх брюк алладинов, сверху — пальто-пиджак.', image: '/images/white/sets/office-v4.jpg', productKeys: [3, 7, 2], colours: {3: 'black', 7: 'black'}},
   {key: 'summer', en: 'Summer in the City', ru: 'Лето в городе', descEn: 'Linen for the heat: the sleeveless vest, the lace shirt thrown over, the suede skort underneath.', descRu: 'Лён для жары: жилет без рукавов, сверху рубашка с кружевом, снизу замшевая юбка-шорты.', image: '/images/white/sets/summer-v5.jpg', productKeys: [1, 9, 10]},
-  {key: 'evening', en: 'The Evening Out', ru: 'Вечерний выход', descEn: 'The evening dress cut close and clean, the fitted coat over the shoulders on the way home.', descRu: 'Вечернее платье сдержанного кроя, по дороге домой — приталенное пальто на плечи.', image: '/images/white/sets/evening-v4.jpg', productKeys: [17, 2]},
+  // Заменил вечерний сет: платье из него выходит из оборота, а образ,
+  // который нельзя купить целиком, обесценивает кнопку «взять весь образ».
+  // Само платье остаётся в каталоге — снят только сет.
+  {key: 'corset', en: 'Corset over the Dress', ru: 'Корсет поверх платья', descEn: 'The rib-knit dress with its high slit, the peplum corset worn over it as a bodice, the kimono coat left on the shoulders.', descRu: 'Трикотажное платье с высоким разрезом, поверх него корсет с баской вместо лифа, пальто кимоно оставлено на плечах.', image: '/images/white/sets/corset-v1.jpg', productKeys: [12, 6, 14]},
   // Two pieces, not three. The kimono coat was in this look and had to be worn
   // open over the sweatshirt, which put the bowed sleeves out either side of it
   // — at card size they read as trim on the coat. The bows are the sweatshirt's
