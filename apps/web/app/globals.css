@@ -1526,6 +1526,15 @@ h2.font-display:not(.wv-root *),
   .wv-reveal { transition: none; }
 }
 
+/* The caret takes the site's ink instead of the platform's tint — iOS paints
+   it blue by default, which is the one saturated colour anywhere on these
+   pages. Every field here sits on white, so ink is what reads as the ordinary
+   caret. */
+input,
+textarea {
+  caret-color: #1c1714;
+}
+
 /* Whatever wraps a field and draws its rule — the newsletter row, a search
    box — darkens that rule while the field inside has focus. */
 .wv-fieldline {
