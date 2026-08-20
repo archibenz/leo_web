@@ -1496,17 +1496,27 @@ h2.font-display:not(.wv-root *),
    Override inside the white portal with an ink ring (17.8:1), square geometry,
    and drop the gold input glow. Covers select/textarea too so native form
    controls get the ink ring, not the gold one. */
+/* Fields are deliberately absent from this list. A text input matches
+   :focus-visible the moment it is focused, however it was focused, so a ring
+   here boxes every field the moment it is clicked. Typing surfaces show focus
+   by their own rule darkening instead — see .wv-field and the focus-within
+   rules on the field wrappers. */
 .wv-root a:focus-visible,
 .wv-root button:focus-visible,
 .wv-root [role="button"]:focus-visible,
 .wv-root summary:focus-visible,
-.wv-root [tabindex]:focus-visible,
-.wv-root input:focus-visible,
-.wv-root select:focus-visible,
-.wv-root textarea:focus-visible {
+.wv-root [tabindex]:focus-visible {
   outline: 2px solid #1c1714;
   outline-offset: 2px;
   border-radius: 2px;
+}
+/* Whatever wraps a field and draws its rule — the newsletter row, a search
+   box — darkens that rule while the field inside has focus. */
+.wv-fieldline {
+  transition: border-color 0.25s ease;
+}
+.wv-fieldline:focus-within {
+  border-color: #1c1714 !important;
 }
 /* A field you have clicked into shows a caret, and its container already draws
    a rule beneath it — a second, darker line stacked on that one read as a

@@ -128,7 +128,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
         <span aria-hidden="true" className="col-span-2 h-px lg:hidden" style={{background: HAIR}} />
         <div className="col-span-2 sm:col-span-1">
           <p className="mb-2 text-[11px] uppercase tracking-[0.2em] sm:mb-4 lg:text-[12px]" style={{color: INK}}>{t('newsletter')}</p>
-          <form onSubmit={onSubscribe} noValidate className="flex items-center border-b pb-1.5" style={{borderColor: MUTED}}>
+          <form onSubmit={onSubscribe} noValidate className="wv-fieldline flex items-center border-b pb-1.5" style={{borderColor: MUTED}}>
             <label htmlFor="wv-newsletter" className="sr-only">{t('emailLabel')}</label>
             <input
               id="wv-newsletter"
