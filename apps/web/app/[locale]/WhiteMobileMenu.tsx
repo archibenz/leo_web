@@ -174,7 +174,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                 the corner with the X and had to be pushed down the panel to
                 clear it; centred it has the width to itself, and the drawer
                 opens on the house rather than on a corner of it. */}
-            <div className="flex shrink-0 flex-col px-6 pb-2 pt-6">
+            <div className="flex shrink-0 flex-col px-6 pb-1 pt-4">
               <div className="flex flex-col items-center gap-3">
                 <Image src="/logos/icon-black.svg" alt="" aria-hidden="true" width={1000} height={1000} className="h-12 w-12" />
                 <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-[25px] w-auto" />
@@ -182,11 +182,11 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
               {/* A short rule between the house and the hello. Without it the two
                   ran together as one line — "REINASLEO добро пожаловать" — when
                   the second is a greeting that carries the visitor's own name. */}
-              <span aria-hidden="true" className="mx-auto mt-5 block h-px w-8" style={{background: INK, opacity: 0.28}} />
+              <span aria-hidden="true" className="mx-auto mt-4 block h-px w-8" style={{background: INK, opacity: 0.28}} />
               {/* A personal hello right under the brand — the account is one tap
                   away. The greeting reads larger and the sign-in sits below it on
                   its own line, roomier to the touch. */}
-              <div className="wv-menu-item mt-5 flex flex-col items-center gap-3" style={{animationDelay: '60ms'}}>
+              <div className="wv-menu-item mt-4 flex flex-col items-center gap-3" style={{animationDelay: '60ms'}}>
                 <span className="text-[17px] leading-snug md:text-[19px]" style={{color: INK}}>
                   {user ? t('welcomeName', {name: user.name}) : t('welcome')}
                 </span>
@@ -207,7 +207,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                 no longer fits a 900px desktop: the last category was hidden
                 behind the service block. */}
             <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6">
-              <div className="flex w-full flex-col py-2">
+              <div className="flex w-full flex-col pb-6 pt-1">
                 {links.map((l) => {
                   // Sets is a page of its own, so it answers to the path; the
                   // rest are filters on the shop and answer to the category.
@@ -218,7 +218,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                       href={l.href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
-                      className="wv-menu-item wv-menu-link relative flex min-h-11 items-center font-display text-[26px] font-light tracking-[-0.01em] md:min-h-[44px] md:text-[30px]"
+                      className="wv-menu-item wv-menu-link relative flex min-h-10 items-center font-display text-[26px] sm:min-h-11 font-light tracking-[-0.01em] md:min-h-[44px] md:text-[30px]"
                       style={{color: active ? INK : MUTED, fontWeight: active ? 500 : 300, animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
                     >
                       <span className="wv-menu-label">{l.label}</span>
@@ -230,7 +230,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
 
             {/* Service pages — small stacked rows, each arriving on the same
                 cadence as the categories above. */}
-            <div className="mx-6 flex shrink-0 flex-col border-t pb-2 pt-3" style={{borderColor: HAIR}}>
+            <div className="mx-6 flex shrink-0 flex-col border-t pb-1 pt-2" style={{borderColor: HAIR}}>
               {secondary.map((sc, i) => {
                 const active = pathname === sc.href;
                 return (
@@ -239,7 +239,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                     href={sc.href}
                     onClick={() => setOpen(false)}
                     aria-current={active ? 'page' : undefined}
-                    className="wv-menu-item wv-link inline-flex min-h-9 items-center self-start text-[11px] uppercase tracking-[0.12em] md:min-h-10 md:text-[12px]"
+                    className="wv-menu-item wv-link inline-flex min-h-8 items-center self-start text-[11px] uppercase tracking-[0.12em] md:min-h-9 md:text-[12px]"
                     style={{color: active ? INK : MUTED, fontWeight: active ? 600 : 400, textDecoration: active ? 'underline' : 'none', textUnderlineOffset: '3px', textDecorationThickness: '1px', animationDelay: `${360 + i * 40}ms`}}
                   >
                     <span className="wv-link-ink">{sc.label}</span>
@@ -249,7 +249,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
             </div>
 
 
-            <div className="wv-menu-item mx-6 mt-4 flex shrink-0 items-center gap-4 border-t pb-8 pt-3 text-[12px] uppercase tracking-[0.12em] md:gap-6 md:text-[13px]" style={{animationDelay: '620ms', borderColor: HAIR, color: INK}}>
+            <div className="wv-menu-item mx-6 mt-3 flex shrink-0 items-center gap-4 border-t pb-6 pt-3 text-[12px] uppercase tracking-[0.12em] md:gap-6 md:text-[13px]" style={{animationDelay: '620ms', borderColor: HAIR, color: INK}}>
               <Link href={`/${locale}/account`} onClick={() => setOpen(false)} className="wv-link -my-2 inline-flex min-h-11 items-center">
                 <span className="wv-link-ink">{t('account')}</span>
               </Link>
