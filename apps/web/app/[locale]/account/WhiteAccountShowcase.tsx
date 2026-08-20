@@ -1,6 +1,6 @@
 'use client';
 
-import {useState} from 'react';
+import {useState, useRef, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
@@ -24,6 +24,15 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
   const t = useTranslations('white.account');
 
   const [tab, setTab] = useState<'in' | 'up'>('in');
+  const tabsRef = useRef<HTMLDivElement>(null);
+  // The rule under the tabs is positioned from the chosen button's own box, so
+  // it slides the real distance between two labels of different widths.
+  const [rule, setRule] = useState({left: 0, width: 0});
+
+  useEffect(() => {
+    const el = tabsRef.current?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (el) setRule({left: el.offsetLeft, width: el.offsetWidth});
+  }, [tab, ready, user]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [code, setCode] = useState('');
@@ -106,9 +115,11 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
         ) : (
           <div className="wv-rise">
             <h1 className="font-display text-[clamp(38px,calc(3vw_+_26px),56px)] font-light leading-[1] tracking-[-0.01em]">{t('title')}</h1>
-            <p className="mt-5 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>{t('intro')}</p>
 
-            <div className="mt-10 flex gap-6 border-b" style={{borderColor: HAIR}} role="tablist">
+            {/* The line under the chosen tab slides between the two rather than
+                blinking off one and on the other, so the eye follows the move.
+                It rides on the row itself, positioned to the active half. */}
+            <div ref={tabsRef} className="relative mt-9 flex gap-6 border-b" style={{borderColor: HAIR}} role="tablist">
               {(['in', 'up'] as const).map((k) => (
                 <button
                   key={k}
@@ -119,14 +130,23 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
                     setTab(k);
                     setError(null);
                   }}
-                  className="-mb-px min-h-11 border-b pb-2 text-[12px] uppercase tracking-[0.18em]"
-                  style={{borderColor: tab === k ? INK : 'transparent', color: tab === k ? INK : MUTED}}
+                  className="wv-tab min-h-11 pb-2 text-[12px] uppercase tracking-[0.18em] transition-colors duration-300"
+                  style={{color: tab === k ? INK : MUTED}}
                 >
                   {k === 'in' ? t('signIn') : t('signUp')}
                 </button>
               ))}
+              <span
+                aria-hidden="true"
+                className="absolute bottom-[-1px] h-px transition-[left,width] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+                style={{background: INK, left: rule.left, width: rule.width}}
+              />
             </div>
 
+            {/* The panel is keyed on the tab so React remounts it and the
+                entry animation replays — the two forms trade places instead of
+                one set of fields snapping into another. */}
+            <div key={tab} className="wv-tabpanel">
             {tab === 'in' ? (
               <form onSubmit={submitSignIn} className="mt-8 flex flex-col gap-5">
                 <label className="block">
@@ -194,6 +214,7 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
                 )}
               </form>
             )}
+            </div>
 
             <p aria-live="polite" className="mt-5 min-h-5 text-[13px]" style={{color: SIGNAL}}>
               {error ?? ''}

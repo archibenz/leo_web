@@ -177,14 +177,18 @@ select:focus-visible {
   box-shadow: 0 0 0 1px var(--accent), 0 0 8px rgba(212, 165, 116, 0.15);
 }
 
-/* iOS Safari auto-zooms on focus when input font-size < 16px.
-   Force minimum 16px on touch devices to prevent unwanted zoom.
-   Desktop (pointer: fine) keeps its original sizing. */
+/* iOS Safari zooms the page in when a field it focuses is set below 16px, and
+   it does not zoom back out — the visitor is left pinching their way back to
+   full width. This floor stops it. It carries !important because the sizes are
+   set as utility classes on the fields themselves (text-[15px], text-[13px]),
+   and a class beats a bare element selector however the media query is
+   written — without it the rule silently loses on every field on the site.
+   Desktop (pointer: fine) keeps its own sizing. */
 @media (pointer: coarse) {
   input,
   textarea,
   select {
-    font-size: max(16px, 1em);
+    font-size: max(16px, 1em) !important;
   }
 }
 
@@ -1486,17 +1490,16 @@ h2.font-display:not(.wv-root *),
   outline-offset: 2px;
   border-radius: 2px;
 }
-.wv-root input:focus,
-.wv-root input:focus-visible,
-.wv-root select:focus,
-.wv-root select:focus-visible,
-.wv-root textarea:focus,
-.wv-root textarea:focus-visible {
-  border-color: #1c1714;
-  /* Typing surfaces signal focus with a firmer ink underline, not a ring —
-     the ring around a field you are already writing in reads as noise. */
+/* A field you have clicked into shows a caret, and its container already draws
+   a rule beneath it — a second, darker line stacked on that one read as a
+   double underline. Pointer focus therefore adds nothing. Keyboard focus still
+   falls through to the ring above, which is the only way a tabbing visitor can
+   tell where they are. */
+.wv-root input:focus:not(:focus-visible),
+.wv-root select:focus:not(:focus-visible),
+.wv-root textarea:focus:not(:focus-visible) {
   outline: none;
-  box-shadow: 0 1px 0 0 #1c1714;
+  box-shadow: none;
 }
 /* The landing hero CTA sits over a dark image scrim, so the sitewide ink ring
    would be dark-on-dark. This one control gets a white ring (higher specificity
@@ -1714,6 +1717,21 @@ body:has(.wv-root)::after {
 
 /* Drawer rows step aside on hover instead of washing grey — an editorial
    nudge, colour steady, reduced-motion keeps them still. */
+/* Swapping between sign-in and sign-up: the arriving form lifts in rather than
+   replacing the other one in a single frame. Short and small — the fields are
+   in the same place either way, so the movement only has to say "these are
+   different fields now". */
+@keyframes wv-tabpanel-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.wv-tabpanel {
+  animation: wv-tabpanel-in 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wv-tabpanel { animation: none; }
+}
+
 /* The drawer's sign-in: ink fills the button from the bottom and the label
    turns white as it passes. A fill that rises is a deliberate gesture where a
    background swap is a state change — and this is the one button in the drawer
