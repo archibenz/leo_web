@@ -2046,6 +2046,19 @@ body:has(.wv-root)::after {
   transform: translateX(3px);
 }
 
+/* The breadcrumb arrow is the one place the mark sits inline among uppercase
+   words rather than inside a flex row, so it has to meet their baseline itself.
+   An svg defaults to the middle of the x-height, and caps stand taller than
+   that: measured at 11px the arrow's centre landed 1.5px low and its head hung
+   below the line the other words stand on. Cap height here is 0.736em, so the
+   caps' optical centre is 0.368em above the baseline; a 1em-tall arrow box has
+   its own centre 0.5em above its bottom edge. Dropping the bottom edge the
+   difference puts one centre on the other. Stated in em so it survives a change
+   of type size — but it does assume the arrow is sized to the font. */
+.wv-crumb-arrow .wv-arrow {
+  vertical-align: -0.132em;
+}
+
 /* A fingertip-sized target on type too small to be one, without touching the
    line it sits in. Growing the link's own box instead — min-height plus
    inline-flex — moves its baseline off the baseline of the words either side,

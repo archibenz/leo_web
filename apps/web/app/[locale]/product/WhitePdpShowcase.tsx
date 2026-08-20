@@ -289,8 +289,10 @@ export default function WhitePdpShowcase({
         <nav className="py-2 text-[11px] uppercase tracking-[0.18em] sm:py-5" style={{color: MUTED}} aria-label={t('breadcrumb')}>
           <a href={`/${locale}`} className="wv-tap relative transition-opacity hover:opacity-60">REINASLEO</a>
           <span className="mx-2">/</span>
-          <a href={`/${locale}/shop`} className="wv-arrow-link wv-tap relative whitespace-nowrap transition-opacity hover:opacity-60">
-            <WhiteArrow back />
+          {/* size 11 matches the type: the default 13 drew a head taller than the
+              caps beside it. Alignment is in globals.css — see .wv-crumb-arrow. */}
+          <a href={`/${locale}/shop`} className="wv-arrow-link wv-crumb-arrow wv-tap relative whitespace-nowrap transition-opacity hover:opacity-60">
+            <WhiteArrow back size={11} />
             <span className="ml-2">{t('shop')}</span>
           </a>
           <span className="mx-2">/</span>
