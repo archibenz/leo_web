@@ -170,25 +170,29 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
               transitionTimingFunction: entered ? 'cubic-bezier(0.16, 1, 0.3, 1)' : 'cubic-bezier(0.55, 0.05, 0.25, 1)',
             }}
           >
-            {/* The head row starts below the burger rather than beside it: the
-                icon now stays at its place in the top bar, which is over this
-                corner, and the wordmark was being struck through by the X. */}
-            <div className="flex shrink-0 flex-col px-6 pb-2 pt-14">
-              <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-6 w-auto self-start" />
+            {/* The mark over the wordmark, both centred. Left-aligned it shared
+                the corner with the X and had to be pushed down the panel to
+                clear it; centred it has the width to itself, and the drawer
+                opens on the house rather than on a corner of it. */}
+            <div className="flex shrink-0 flex-col px-6 pb-2 pt-6">
+              <div className="flex flex-col items-center gap-2.5">
+                <Image src="/logos/icon-black.svg" alt="" aria-hidden="true" width={1000} height={1000} className="h-9 w-9" />
+                <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-[18px] w-auto" />
+              </div>
               {/* A personal hello right under the brand — the account is one tap
                   away. The greeting reads larger and the sign-in sits below it on
                   its own line, roomier to the touch. */}
-              <div className="wv-menu-item mt-5 flex flex-col gap-3" style={{animationDelay: '60ms'}}>
+              <div className="wv-menu-item mt-6 flex flex-col items-center gap-3" style={{animationDelay: '60ms'}}>
                 <span className="text-[17px] leading-snug md:text-[19px]" style={{color: INK}}>
                   {user ? t('welcomeName', {name: user.name}) : t('welcome')}
                 </span>
                 <Link
                   href={`/${locale}/account`}
                   onClick={() => setOpen(false)}
-                  className="inline-flex w-full items-center justify-center border px-6 py-3.5 text-[12px] uppercase tracking-[0.2em] transition-colors hover:bg-[#f5f2ed]"
+                  className="wv-cta relative inline-flex w-full items-center justify-center overflow-hidden border px-6 py-3.5 text-[12px] uppercase tracking-[0.2em]"
                   style={{borderColor: INK, color: INK}}
                 >
-                  {user ? t('toAccount') : t('signIn')}
+                  <span className="wv-cta-label relative z-[1]">{user ? t('toAccount') : t('signIn')}</span>
                 </Link>
               </div>
             </div>

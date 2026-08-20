@@ -1714,6 +1714,49 @@ body:has(.wv-root)::after {
 
 /* Drawer rows step aside on hover instead of washing grey — an editorial
    nudge, colour steady, reduced-motion keeps them still. */
+/* The drawer's sign-in: ink fills the button from the bottom and the label
+   turns white as it passes. A fill that rises is a deliberate gesture where a
+   background swap is a state change — and this is the one button in the drawer
+   worth making an event of. The label keeps its own layer so the fill goes
+   behind it rather than over it. */
+.wv-cta {
+  transition: color 0.34s ease;
+}
+.wv-cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #1c1714;
+  transform: translateY(101%);
+  transition: transform 0.44s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (hover: hover) {
+  .wv-cta:hover {
+    color: #fff !important;
+  }
+  .wv-cta:hover::after {
+    transform: translateY(0);
+  }
+}
+.wv-cta:focus-visible {
+  color: #fff !important;
+}
+.wv-cta:focus-visible::after {
+  transform: translateY(0);
+}
+.wv-cta:active::after {
+  transform: translateY(0);
+}
+.wv-cta:active {
+  color: #fff !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wv-cta,
+  .wv-cta::after {
+    transition: none;
+  }
+}
+
 /* A rule grows out of the left margin, the label steps aside to make room for
    it and swells a little, and the ink darkens — three small things arriving
    together read as one gesture. transform-origin is the left edge so the
