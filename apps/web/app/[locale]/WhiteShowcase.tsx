@@ -203,8 +203,11 @@ export default function WhiteShowcase({locale}: {locale: string}) {
         </p>
       </section>
 
-      {/* Lookbook — editorial brand statement */}
-      <section id="wv-atelier" className="mt-8 scroll-mt-24 border-t sm:mt-12" style={{borderColor: HAIR}}>
+      {/* Lookbook — editorial brand statement. Below lg it butts straight up
+          against the cloth above it: a strip of paper between two full-bleed
+          bands reads as a seam, not as breathing room. The margin and the rule
+          come back at lg, where the band above is paper too. */}
+      <section id="wv-atelier" className="scroll-mt-24 border-t-0 lg:mt-12 lg:border-t" style={{borderColor: HAIR}}>
         {/* Full-width: the photograph runs to the left edge of the screen with no
             frame around it; the copy column keeps its own padding so it stays
             readable however wide the display. */}
