@@ -5,7 +5,7 @@ import Image from 'next/image';
 import {useEffect, useRef, useState, type FormEvent} from 'react';
 import {useTranslations} from 'next-intl';
 import {isValidEmail} from '../../lib/validation';
-import {INK, MUTED, HAIR, SIGNAL} from './wv-palette';
+import {INK, MUTED, HAIR, SIGNAL, FOOT} from './wv-palette';
 import WhiteLocaleSwitch from './WhiteLocaleSwitch';
 import WhiteCookieNotice from './WhiteCookieNotice';
 import WhiteBagPopup from './WhiteBagPopup';
@@ -83,7 +83,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
           renders; the popup itself is fixed, so its place in the DOM does not
           matter. */}
       <WhiteBagPopup locale={locale} />
-      <footer className="border-t" style={{borderColor: HAIR}}>
+      <footer className="border-t" style={{borderColor: HAIR, background: FOOT}}>
       <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-x-6 gap-y-6 px-6 py-7 sm:gap-10 sm:px-10 sm:py-16 lg:grid-cols-4">
         <div className="col-span-2 lg:col-span-1">
           <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-[14px] w-auto" />

@@ -9,3 +9,8 @@ export const INK = '#1c1714'; // primary text — warm near-black, not pure #000
 export const MUTED = '#776e64';
 export const HAIR = '#e7e2db'; // hairline borders / dividers
 export const SIGNAL = '#b4452f'; // colour used only as a signal (sale, accents)
+// The footer's ground. Warm enough to read as a separate band under a white
+// page, light enough that MUTED still clears AA on it: 5.0:1 on #fff becomes
+// 4.72:1 here (measured), which is above the 4.5 floor for body text. Darken
+// this ground further and secondary copy in the footer starts failing.
+export const FOOT = '#faf8f4';
