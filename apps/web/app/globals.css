@@ -1510,6 +1510,22 @@ h2.font-display:not(.wv-root *),
   outline-offset: 2px;
   border-radius: 2px;
 }
+/* Revealing a block whose height nobody has measured. A grid row can be
+   animated from 0fr to 1fr, which display:none cannot, so the search field
+   grows open and folds shut instead of appearing whole in one frame. The child
+   carries overflow-hidden so its content is clipped on the way. */
+.wv-reveal {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wv-reveal[data-open='true'] {
+  grid-template-rows: 1fr;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wv-reveal { transition: none; }
+}
+
 /* Whatever wraps a field and draws its rule — the newsletter row, a search
    box — darkens that rule while the field inside has focus. */
 .wv-fieldline {

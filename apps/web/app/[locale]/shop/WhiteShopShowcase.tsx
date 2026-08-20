@@ -159,8 +159,18 @@ export default function WhiteShopShowcase({locale, soldOutKeys = [], initialCat 
           </span>
         </div>
 
-        {/* Search — free-text filter by product name (en+ru). Hairline underline, square. */}
-        <div className={`${searchOpen ? 'block' : 'hidden'} px-6 pb-5 sm:block sm:px-0 sm:pb-6`}>
+        {/* Search — free-text filter by product name (en+ru). Hairline underline,
+            square. On a phone it is revealed by the magnifier, and it opens by
+            growing its own height rather than appearing at full size in one
+            frame: grid-template-rows animates from 0fr to 1fr, which is the one
+            way to transition to a height nobody has measured. Above sm it is
+            always there, so the wrapper carries no animation at all. */}
+        <div
+          className="wv-reveal px-6 sm:!grid-rows-[1fr] sm:px-0"
+          data-open={searchOpen ? 'true' : 'false'}
+        >
+        <div className="overflow-hidden">
+          <div className="pb-5 sm:pb-6">
           <label htmlFor="wv-shop-search" className="sr-only">{t('searchProducts')}</label>
           <div className="relative">
             {/* placeholder uses the MUTED token value (#776e64, 5.0:1 on #fff); the
@@ -195,6 +205,8 @@ export default function WhiteShopShowcase({locale, soldOutKeys = [], initialCat 
               </button>
             )}
           </div>
+          </div>
+        </div>
         </div>
 
         {/* Filter bar */}
@@ -218,6 +230,11 @@ export default function WhiteShopShowcase({locale, soldOutKeys = [], initialCat 
               </button>
             ))}
           </div>
+          {/* A hairline between the categories and the sort. On a phone the two
+              sit on one line with nothing between them, and the scrolling row of
+              chips runs straight into the sort control — the rule says where one
+              ends and the other begins. */}
+          <span aria-hidden="true" className="mx-1 h-5 w-px shrink-0 self-center sm:mx-2" style={{background: HAIR}} />
           <label className="flex shrink-0 items-center gap-2 text-[12px] uppercase tracking-[0.14em]" style={{color: MUTED}}>
             <span className="hidden sm:inline">{t('sort')}</span>
             <span className="relative inline-flex items-center">
