@@ -438,7 +438,7 @@ export default function WhitePdpShowcase({
                   <WhitePreorder product={name} size={size} />
                 </div>
               ) : (
-                <button ref={inlineAddRef} type="button" disabled={!inStock || !size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-4 text-[12px] uppercase tracking-[0.2em]">
+                <button ref={inlineAddRef} type="button" disabled={!inStock || !size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-3 text-[11px] uppercase tracking-[0.2em] sm:py-4 sm:text-[12px]">
                   {!inStock ? (ozonUrl ? t('onlyOnMarketplaces') : t('onlyOnWb')) : justAdded ? t('added') : size ? t('addToBag') : t('selectSize')}
                 </button>
               )}
@@ -447,7 +447,7 @@ export default function WhitePdpShowcase({
                 onClick={() => toggleFavourite(bagProduct.key)}
                 aria-pressed={favourited}
                 aria-label={favourited ? t('removeFav') : t('addFav')}
-                className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#f5f2ed]"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#f5f2ed] sm:h-[52px] sm:w-[52px]"
                 style={{border: `1px solid ${favourited ? SIGNAL : HAIR}`}}
               >
                 <WhiteFavHeart filled={favourited} size={18} />
@@ -463,10 +463,10 @@ export default function WhitePdpShowcase({
                 stock. A button that opens a sold-out card is worse than no
                 button: it costs a tap to learn what the page could have said. */}
             {availability !== 'none' && onWildberries && (
-            <div className="mt-5">
+            <div className="mt-4 sm:mt-5">
               <WildberriesButton
                 href={wbUrl}
-                className="relative flex h-14 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border-2 border-[#CB11AB] bg-[#CB11AB]/[0.06] text-[13px] font-medium uppercase tracking-[0.18em] text-[#CB11AB] transition-colors duration-300 hover:text-white active:scale-[0.98] motion-reduce:active:scale-100"
+                className="relative flex h-11 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border border-[#CB11AB] bg-[#CB11AB]/[0.06] text-[11px] font-medium uppercase tracking-[0.18em] text-[#CB11AB] transition-colors duration-300 hover:text-white active:scale-[0.98] motion-reduce:active:scale-100 sm:h-14 sm:border-2 sm:text-[13px]"
               >
                 {t('buyOnWb')}
               </WildberriesButton>
@@ -479,12 +479,12 @@ export default function WhitePdpShowcase({
                 on hover rather than the ripple. Two floods stacked would compete
                 for the same attention and hide which channel is the main one. */}
             {ozonUrl && (
-              <div className="mt-3">
+              <div className="mt-2.5 sm:mt-3">
                 <a
                   href={ozonUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-14 w-full items-center justify-center rounded-full border-2 border-[#005BFF] bg-[#005BFF]/[0.04] text-[13px] font-medium uppercase tracking-[0.18em] text-[#005BFF] transition-colors duration-300 hover:bg-[#005BFF] hover:text-white active:scale-[0.98] motion-reduce:active:scale-100"
+                  className="flex h-11 w-full items-center justify-center rounded-full border border-[#005BFF] bg-[#005BFF]/[0.04] text-[11px] font-medium uppercase tracking-[0.18em] text-[#005BFF] transition-colors duration-300 hover:bg-[#005BFF] hover:text-white active:scale-[0.98] motion-reduce:active:scale-100 sm:h-14 sm:border-2 sm:text-[13px]"
                 >
                   {t('buyOnOzon')}
                 </a>
