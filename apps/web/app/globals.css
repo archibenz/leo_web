@@ -1733,6 +1733,46 @@ body:has(.wv-root)::after {
   }
 }
 
+/* A photograph arrives in six squares rather than all at once: three on one
+   diagonal clear first, the other three start while those are half gone, so
+   the picture assembles instead of switching on. The tiles are six coloured
+   spans over the image — no second copy of the photograph is loaded and
+   nothing is cut up, they simply uncover what is already there.
+   3×2, and children 1,3,5 fall on the opposite diagonal to 2,4,6, which is
+   what makes the order read as a checkerboard rather than a wipe. */
+@keyframes wv-tile-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+.wv-tiles {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  pointer-events: none;
+}
+.wv-tiles span {
+  background: linear-gradient(160deg, #f5f2ed, #e8e2d9);
+  animation: wv-tile-out 0.5s ease-out forwards;
+}
+.wv-tiles span:nth-child(even) {
+  animation-delay: 0.25s;
+}
+/* A hair of stagger across each group as well, so the three do not blink off
+   in perfect unison — the eye reads a sweep rather than a switch. */
+.wv-tiles span:nth-child(3),
+.wv-tiles span:nth-child(4) {
+  animation-delay: calc(0.06s + var(--wv-tile-base, 0s));
+}
+.wv-tiles span:nth-child(5) { animation-delay: 0.12s; }
+.wv-tiles span:nth-child(4) { animation-delay: 0.31s; }
+.wv-tiles span:nth-child(6) { animation-delay: 0.37s; }
+@media (prefers-reduced-motion: reduce) {
+  .wv-tiles { display: none; }
+}
+
 /* The closing accent belongs to the burger: inside the drawer's twin the
    X unfolds back into lines over the whole ride home, not in a blink. */
 .wv-twin .hamburger-close .hamburger-top,

@@ -111,6 +111,12 @@ export default function WhiteProductCard({
         {added ? t('addedToBag', {name}) : ''}
       </span>
       <div className="wv-ph wv-zoom relative aspect-[2/3] w-full overflow-hidden">
+        {/* Six squares uncovering the photograph — see .wv-tiles. Decorative,
+            and it sits under the link layer, so nothing here is in the way of
+            a tap. */}
+        <span aria-hidden="true" className="wv-tiles">
+          <span /><span /><span /><span /><span /><span />
+        </span>
         {/* Real photo (gradient asset base). Slow zoom on hover for editorial
             feel — disabled under reduced-motion. pointer-events-none so the
             link layer above stays the click target. */}
