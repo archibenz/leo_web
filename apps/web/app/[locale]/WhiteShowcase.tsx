@@ -170,100 +170,28 @@ export default function WhiteShowcase({locale}: {locale: string}) {
 
       {/* House line — one oversized editorial statement, the brand philosophy in
           a single breath. Replaces the busy marquee; the calm is the point. */}
-      <section
-        className="relative mx-auto max-w-[1100px] overflow-hidden border-t-0 px-6 py-24 sm:px-10 sm:py-32 lg:border-t"
-        style={{borderColor: HAIR}}
-      >
-        {/* The house cloth, the same print that runs beside the lookbook film on
-            wide screens. That column doesn't exist on a phone, so the mark had
-            nowhere to appear — here the line stands on it instead. The wash over
-            it is what keeps the italic readable: the ground alone is light
-            enough, but the motifs crossing a letter are not. Above lg the band
-            goes back to paper, where the cloth already has its own place. */}
-        <div aria-hidden="true" className="absolute inset-0 lg:hidden">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundColor: '#F3EBDA',
-              backgroundImage: 'url(/logos/canvas.svg)',
-              backgroundSize: '96px 96px',
-              backgroundRepeat: 'repeat',
-            }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(100deg, rgba(255,252,244,0.62) 0%, rgba(255,252,244,0.34) 46%, rgba(120,98,70,0.10) 100%)',
-            }}
-          />
-          {/* Where the cloth ends the photograph begins, and the two are within
-              a few tones of each other — the arches are the same warm stone as
-              the ground, so with nothing between them the join disappeared. A
-              running stitch marks it: thread-coloured dashes sitting on the
-              cloth's own last pixels. A plain rule would have done the job, but
-              a stitch is what actually ends a piece of cloth. */}
-          <span
-            className="absolute inset-x-0 bottom-0 h-px"
-            style={{
-              backgroundImage:
-                'repeating-linear-gradient(90deg, rgba(120,98,70,0.55) 0 7px, rgba(120,98,70,0) 7px 12px)',
-            }}
-          />
-        </div>
-        <p className="relative mx-auto max-w-[760px] text-center font-display text-[clamp(30px,7.5vw,54px)] font-light italic leading-[1.12] tracking-[-0.01em]">
+      <section className="mx-auto max-w-[1100px] border-t px-6 py-24 sm:px-10 sm:py-32" style={{borderColor: HAIR}}>
+        <p className="mx-auto max-w-[760px] text-center font-display text-[clamp(30px,7.5vw,54px)] font-light italic leading-[1.12] tracking-[-0.01em]">
           {t('houseLine')}
         </p>
       </section>
 
-      {/* Lookbook — editorial brand statement. Below lg it butts straight up
-          against the cloth above it: a strip of paper between two full-bleed
-          bands reads as a seam, not as breathing room. The margin and the rule
-          come back at lg, where the band above is paper too. */}
-      <section id="wv-atelier" className="scroll-mt-24 border-t-0 lg:mt-12 lg:border-t" style={{borderColor: HAIR}}>
+      {/* Lookbook — editorial brand statement */}
+      <section id="wv-atelier" className="mt-8 scroll-mt-24 border-t sm:mt-12" style={{borderColor: HAIR}}>
         {/* Full-width: the photograph runs to the left edge of the screen with no
             frame around it; the copy column keeps its own padding so it stays
             readable however wide the display. */}
         <div className="grid items-center gap-0 lg:grid-cols-2">
-          {/* The film keeps its 560px and the slack in its half of the row goes
-              to a mosaic of the house mark. Capping the film left 80px of empty
-              cream at 1440 and 200 at 1920 — the wider the display, the larger
-              the hole. `space` lays the mark out with even gaps and no partial
-              tiles at the edges, so the strip reads as printed selvedge rather
-              than as wallpaper that ran out. Decorative only. */}
-          <div className="lg:flex lg:items-stretch">
-            {/* Monogram canvas — three motifs at three scales, the way a maison
-                prints its own cloth: the monogram and the square tile alternating
-                on a checkerboard, small open diamonds filling the ground between
-                them. Two motifs alone read flat; it is the third, smaller one
-                that makes a pattern look woven rather than tiled. The motifs
-                also turn: every second monogram sits upside down and the
-                squares a quarter round, so the ground has a direction instead
-                of being stamped out in rows. Tone on tone,
-                because over an area this size the mark's red goes pink and a
-                canvas is meant to be noticed after the garment, not before it.
-                Every motif sits wholly inside the tile, so the repeat has no
-                seam. The gradient over it is the light: cloth catches it from
-                the side, flat colour does not. */}
-            <div aria-hidden="true" className="relative hidden min-w-0 flex-1 min-[1400px]:block">
-              <div
-                className="absolute inset-0"
-                style={{
-                  backgroundColor: '#F3EBDA',
-                  backgroundImage: 'url(/logos/canvas.svg)',
-                  backgroundSize: '112px 112px',
-                  backgroundRepeat: 'repeat',
-                }}
-              />
-              <div
-                className="absolute inset-0"
-                style={{
-                  background:
-                    'linear-gradient(100deg, rgba(255,252,244,0.55) 0%, rgba(255,252,244,0) 42%, rgba(120,98,70,0.10) 100%)',
-                }}
-              />
-            </div>
-          <div className="wv-rise wv-scrub relative aspect-[3/4] w-full shrink-0 overflow-hidden lg:w-[560px]">
+          {/* 3:4 on both breakpoints — the film's own ratio, so it plays whole
+              with nothing cropped away. A fixed ratio rather than stretching to
+              the copy column: left to stretch, the cell grew wider with the
+              viewport and on a 2560 display cut the models off at the shins.
+              Portrait also buys height on a phone, where the three of them need
+              to read as near, not as a group seen across a room.
+              Capped at 560px on a desktop: at half of a wide viewport the film
+              stood 960px tall, and beside something that size the copy next to
+              it read as fine print. */}
+          <div className="wv-rise wv-scrub relative mx-auto aspect-[3/4] w-full overflow-hidden lg:max-w-[560px]">
             <video
               autoPlay
               muted
@@ -285,7 +213,6 @@ export default function WhiteShowcase({locale}: {locale: string}) {
               tabIndex={-1}
               className="absolute inset-0"
             />
-          </div>
           </div>
           <div className="wv-rise wv-scrub wv-delay-1 flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-20 lg:py-24 xl:px-28">
             <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{ts('eyebrow')}</p>
