@@ -15,7 +15,7 @@ import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 // sign-up (email → emailed code → name + password), in the White DNA. The JWT
 // is shared with the rest of the site, so a session works everywhere.
 
-const FIELD = 'min-h-11 w-full border-b bg-transparent pb-2 pt-3 text-[15px] outline-none placeholder:text-[#776e64]';
+const FIELD = 'wv-field min-h-11 w-full border-b bg-transparent pb-2 pt-3 text-[15px] outline-none placeholder:text-[#776e64]';
 
 export default function WhiteAccountShowcase({locale}: {locale: string}) {
   const {count} = useWhiteBag();
@@ -151,11 +151,11 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
               <form onSubmit={submitSignIn} className="mt-8 flex flex-col gap-5">
                 <label className="block">
                   <span className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('email')}</span>
-                  <input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={FIELD} style={{borderColor: HAIR}} />
+                  <input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={FIELD} />
                 </label>
                 <label className="block">
                   <span className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('password')}</span>
-                  <input type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={FIELD} style={{borderColor: HAIR}} />
+                  <input type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={FIELD} />
                 </label>
                 <button type="submit" disabled={busy} className="wv-btn mt-4 inline-flex items-center justify-center self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
                   {t('signInCta')}
@@ -165,7 +165,7 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
               <form onSubmit={submitSignUp} className="mt-8 flex flex-col gap-5">
                 <label className="block">
                   <span className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('email')}</span>
-                  <input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={FIELD} style={{borderColor: HAIR}} />
+                  <input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={FIELD} />
                 </label>
                 {!codeSent ? (
                   <button type="button" onClick={sendCode} disabled={busy || !email} className="wv-btn mt-2 inline-flex items-center justify-center self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
@@ -176,15 +176,15 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
                     <p aria-live="polite" className="text-[12px]" style={{color: MUTED}}>{t('codeSent')}</p>
                     <label className="block">
                       <span className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('code')}</span>
-                      <input inputMode="numeric" autoComplete="one-time-code" required value={code} onChange={(e) => setCode(e.target.value)} className={FIELD} style={{borderColor: HAIR}} />
+                      <input inputMode="numeric" autoComplete="one-time-code" required value={code} onChange={(e) => setCode(e.target.value)} className={FIELD} />
                     </label>
                     <label className="block">
                       <span className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('firstName')}</span>
-                      <input autoComplete="given-name" required value={firstName} onChange={(e) => setFirstName(e.target.value)} className={FIELD} style={{borderColor: HAIR}} />
+                      <input autoComplete="given-name" required value={firstName} onChange={(e) => setFirstName(e.target.value)} className={FIELD} />
                     </label>
                     <label className="block">
                       <span className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('password')}</span>
-                      <input type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={FIELD} style={{borderColor: HAIR}} />
+                      <input type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={FIELD} />
                     </label>
                     {/* 152-ФЗ ст.9: согласие фиксируется действием — required-чекбокс,
                         и whiteRegister шлёт privacyAccepted на бэкенд. */}

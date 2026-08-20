@@ -127,7 +127,10 @@ export default async function LocaleLayout({
           dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}}
         />
         <Metrika nonce={nonce} />
-        <div className="relative flex min-h-screen flex-col">
+        {/* Marks the gradient design's own tree. The accent focus glow on form
+            fields belongs to it and to nothing else — unscoped it painted a
+            rounded gold box around every input on the storefront too. */}
+        <div className="gradient-chrome relative flex min-h-screen flex-col">
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded focus:bg-ink focus:px-4 focus:py-2 focus:text-paper focus:outline-none"

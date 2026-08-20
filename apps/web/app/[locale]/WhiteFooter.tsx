@@ -89,6 +89,10 @@ export default function WhiteFooter({locale}: {locale: string}) {
           <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-[14px] w-auto" />
           <p className="mt-2 text-[12px] leading-relaxed sm:mt-3 lg:text-[14px]" style={{color: MUTED}}>{t('tagline')}</p>
         </div>
+        {/* Hairlines between the blocks, the way the drawer separates its own.
+            Only where the footer stacks: above lg the four sit side by side and
+            a rule across them would cut the row in half. */}
+        <span aria-hidden="true" className="col-span-2 h-px lg:hidden" style={{background: HAIR}} />
         {[
           {h: t('shop'), items: [
             {label: t('new'), href: `/${locale}/shop`},
@@ -121,6 +125,7 @@ export default function WhiteFooter({locale}: {locale: string}) {
             </ul>
           </div>
         ))}
+        <span aria-hidden="true" className="col-span-2 h-px lg:hidden" style={{background: HAIR}} />
         <div className="col-span-2 sm:col-span-1">
           <p className="mb-2 text-[11px] uppercase tracking-[0.2em] sm:mb-4 lg:text-[12px]" style={{color: INK}}>{t('newsletter')}</p>
           <form onSubmit={onSubscribe} noValidate className="flex items-center border-b pb-1.5" style={{borderColor: MUTED}}>
@@ -174,6 +179,9 @@ export default function WhiteFooter({locale}: {locale: string}) {
         </div>
       </div>
       {/* Seller identity — distance-selling rules put it on the site itself. */}
+      <div className="mx-auto max-w-[1400px] px-6 sm:px-10">
+        <span aria-hidden="true" className="mb-4 block h-px w-full" style={{background: HAIR}} />
+      </div>
       <p className="mx-auto max-w-[1400px] px-6 pb-3 text-[10.5px] leading-relaxed sm:px-10" style={{color: MUTED}}>
         {tf('legalEntity')}
       </p>

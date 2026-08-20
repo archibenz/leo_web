@@ -158,23 +158,41 @@ summary:focus-visible,
      (a forced 4px squared off rounded-full controls on focus). */
 }
 
-/* Input/textarea/select focus - glow effect (mouse + keyboard) */
-input:focus,
-textarea:focus,
-select:focus {
+/* Input/textarea/select focus - glow effect (mouse + keyboard).
+   Scoped to the gradient design's own tree. Unscoped it reached the storefront
+   too, where fields carry a single bottom rule: the 1px box-shadow ring drew a
+   rounded gold box right around a field that is meant to be a line. */
+.gradient-chrome input:focus,
+.gradient-chrome textarea:focus,
+.gradient-chrome select:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent), 0 0 8px rgba(212, 165, 116, 0.15);
 }
 
 /* Keyboard focus on inputs — stronger ring on top of the glow */
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
+.gradient-chrome input:focus-visible,
+.gradient-chrome textarea:focus-visible,
+.gradient-chrome select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent), 0 0 8px rgba(212, 165, 116, 0.15);
+}
+
+/* The storefront's own. A ring is not an option here: a text input matches
+   :focus-visible even when it was clicked, so any ring rule boxes the field for
+   pointer users too — which is the look being removed. The indicator is the
+   field's own rule going from hairline to ink. One line, darker, which is a
+   visible change of state without a second line appearing under the first. */
+.wv-field {
+  border-bottom-color: #e8e2d9;
+  transition: border-color 0.25s ease;
+}
+.wv-field:focus {
+  border-bottom-color: #1c1714;
+  outline: none;
+  box-shadow: none;
 }
 
 /* iOS Safari zooms the page in when a field it focuses is set below 16px, and
