@@ -170,8 +170,35 @@ export default function WhiteShowcase({locale}: {locale: string}) {
 
       {/* House line — one oversized editorial statement, the brand philosophy in
           a single breath. Replaces the busy marquee; the calm is the point. */}
-      <section className="mx-auto max-w-[1100px] border-t px-6 py-24 sm:px-10 sm:py-32" style={{borderColor: HAIR}}>
-        <p className="mx-auto max-w-[760px] text-center font-display text-[clamp(30px,7.5vw,54px)] font-light italic leading-[1.12] tracking-[-0.01em]">
+      <section
+        className="relative mx-auto max-w-[1100px] overflow-hidden border-t-0 px-6 py-24 sm:px-10 sm:py-32 lg:border-t"
+        style={{borderColor: HAIR}}
+      >
+        {/* The house cloth, the same print that runs beside the lookbook film on
+            wide screens. That column doesn't exist on a phone, so the mark had
+            nowhere to appear — here the line stands on it instead. The wash over
+            it is what keeps the italic readable: the ground alone is light
+            enough, but the motifs crossing a letter are not. Above lg the band
+            goes back to paper, where the cloth already has its own place. */}
+        <div aria-hidden="true" className="absolute inset-0 lg:hidden">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundColor: '#F3EBDA',
+              backgroundImage: 'url(/logos/canvas.svg)',
+              backgroundSize: '96px 96px',
+              backgroundRepeat: 'repeat',
+            }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(100deg, rgba(255,252,244,0.62) 0%, rgba(255,252,244,0.34) 46%, rgba(120,98,70,0.10) 100%)',
+            }}
+          />
+        </div>
+        <p className="relative mx-auto max-w-[760px] text-center font-display text-[clamp(30px,7.5vw,54px)] font-light italic leading-[1.12] tracking-[-0.01em]">
           {t('houseLine')}
         </p>
       </section>
