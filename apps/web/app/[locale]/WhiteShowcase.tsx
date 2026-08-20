@@ -152,11 +152,10 @@ export default function WhiteShowcase({locale}: {locale: string}) {
 
       {/* Editorial divider */}
       <section id="wv-edit" className="mx-auto max-w-[1400px] scroll-mt-24 px-6 sm:px-10">
-        <div className="flex flex-col gap-6 border-t py-14 sm:flex-row sm:items-baseline sm:justify-between" style={{borderColor: HAIR}}>
+        {/* The heading stands alone — the line under it described the selection
+            in words the six photographs below say better. */}
+        <div className="border-t py-14" style={{borderColor: HAIR}}>
           <h2 className="font-display text-[28px] font-light tracking-tight sm:text-[34px]">{t('theEdit')}</h2>
-          <p className="max-w-sm text-[13px] leading-relaxed" style={{color: MUTED}}>
-            {t('editIntro')}
-          </p>
         </div>
       </section>
 
