@@ -197,6 +197,19 @@ export default function WhiteShowcase({locale}: {locale: string}) {
                 'linear-gradient(100deg, rgba(255,252,244,0.62) 0%, rgba(255,252,244,0.34) 46%, rgba(120,98,70,0.10) 100%)',
             }}
           />
+          {/* Where the cloth ends the photograph begins, and the two are within
+              a few tones of each other — the arches are the same warm stone as
+              the ground, so with nothing between them the join disappeared. A
+              running stitch marks it: thread-coloured dashes sitting on the
+              cloth's own last pixels. A plain rule would have done the job, but
+              a stitch is what actually ends a piece of cloth. */}
+          <span
+            className="absolute inset-x-0 bottom-0 h-px"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(90deg, rgba(120,98,70,0.55) 0 7px, rgba(120,98,70,0) 7px 12px)',
+            }}
+          />
         </div>
         <p className="relative mx-auto max-w-[760px] text-center font-display text-[clamp(30px,7.5vw,54px)] font-light italic leading-[1.12] tracking-[-0.01em]">
           {t('houseLine')}
