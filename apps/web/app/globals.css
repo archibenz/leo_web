@@ -204,8 +204,7 @@ summary:focus-visible,
    Desktop (pointer: fine) keeps its own sizing. */
 @media (pointer: coarse) {
   input,
-  textarea,
-  select {
+  textarea {
     font-size: max(16px, 1em) !important;
   }
 }
@@ -1515,15 +1514,28 @@ h2.font-display:not(.wv-root *),
    grows open and folds shut instead of appearing whole in one frame. The child
    carries overflow-hidden so its content is clipped on the way. */
 .wv-reveal {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  height: 0;
+  overflow: hidden;
+  transition: height 0.34s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .wv-reveal[data-open='true'] {
-  grid-template-rows: 1fr;
+  height: var(--wv-reveal-h, 66px);
+}
+/* The row inside carries the movement — transform and opacity are composited,
+   so the text does not re-layout on every frame the way it did while the
+   wrapper animated grid-template-rows. */
+.wv-reveal > * {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.26s ease-out, transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wv-reveal[data-open='true'] > * {
+  opacity: 1;
+  transform: translateY(0);
 }
 @media (prefers-reduced-motion: reduce) {
-  .wv-reveal { transition: none; }
+  .wv-reveal,
+  .wv-reveal > * { transition: none; }
 }
 
 /* The caret takes the site's ink instead of the platform's tint — iOS paints

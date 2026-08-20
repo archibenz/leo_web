@@ -166,7 +166,7 @@ export default function WhiteShopShowcase({locale, soldOutKeys = [], initialCat 
             way to transition to a height nobody has measured. Above sm it is
             always there, so the wrapper carries no animation at all. */}
         <div
-          className="wv-reveal px-6 sm:!grid-rows-[1fr] sm:px-0"
+          className="wv-reveal px-6 sm:!h-auto sm:px-0"
           data-open={searchOpen ? 'true' : 'false'}
         >
         <div className="overflow-hidden">
