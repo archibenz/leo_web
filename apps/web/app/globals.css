@@ -1714,19 +1714,62 @@ body:has(.wv-root)::after {
 
 /* Drawer rows step aside on hover instead of washing grey — an editorial
    nudge, colour steady, reduced-motion keeps them still. */
+/* A rule grows out of the left margin, the label steps aside to make room for
+   it and swells a little, and the ink darkens — three small things arriving
+   together read as one gesture. transform-origin is the left edge so the
+   label grows away from the rule rather than through it. */
 .wv-menu-link {
-  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s ease;
+  transition: color 0.2s ease;
 }
-/* The nudge is a pointer affordance — on touch, :hover latches after a tap
-   and the link sticks shifted (same trap as the tap discs). Keyboard focus
-   keeps it unconditionally. */
+.wv-menu-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 22px;
+  height: 1px;
+  background: currentColor;
+  transform: translateY(-50%) scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wv-menu-label {
+  display: inline-block;
+  transform-origin: left center;
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Pointer only: on touch, :hover latches after a tap and the link sticks
+   shifted — the same trap as the tap discs. Keyboard focus keeps it. */
 @media (hover: hover) {
   .wv-menu-link:hover {
-    transform: translateX(10px);
+    color: var(--wv-ink, #1c1714);
+  }
+  .wv-menu-link:hover::before {
+    transform: translateY(-50%) scaleX(1);
+  }
+  .wv-menu-link:hover .wv-menu-label {
+    transform: translateX(34px) scale(1.06);
   }
 }
-.wv-menu-link:focus-visible {
-  transform: translateX(10px);
+.wv-menu-link:focus-visible::before {
+  transform: translateY(-50%) scaleX(1);
+}
+.wv-menu-link:focus-visible .wv-menu-label {
+  transform: translateX(34px) scale(1.06);
+}
+/* The current page keeps its rule out permanently — it is where you are, not
+   somewhere you might go, so it does not wait to be pointed at. */
+.wv-menu-link[aria-current='page']::before {
+  transform: translateY(-50%) scaleX(1);
+}
+.wv-menu-link[aria-current='page'] .wv-menu-label {
+  transform: translateX(34px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .wv-menu-link::before,
+  .wv-menu-label {
+    transition: none;
+  }
 }
 
 /* A single celebratory pop when something is saved. */

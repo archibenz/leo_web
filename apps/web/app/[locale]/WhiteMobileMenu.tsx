@@ -27,6 +27,9 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
   const panelRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [portalReady, setPortalReady] = useState(false);
+  // Where the header's burger actually is, so the stand-in can sit on top of it
+  // rather than at a hardcoded offset that drifts with the header's padding.
+  const [triggerBox, setTriggerBox] = useState<{left: number; top: number} | null>(null);
   // Focus returns to the burger only for keyboard closes; a pointer close would
   // paint the focus ring for no reason.
   const closedByKeyboard = useRef(false);
@@ -77,14 +80,18 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
     };
   }, [open]);
 
+  // Sets sit second, right after the shop and set in the same display type as
+  // the categories. They were a line of 11px caps in the service list below,
+  // which is where a shipping page belongs — but a made-up look is the thing
+  // this house is actually known for, and the menu should say so.
   const links = [
     {key: 'all', label: t('shop'), href: `/${locale}/shop`},
+    {key: 'sets', label: t('sets'), href: `/${locale}/sets`},
     ...WHITE_CATS.map((c) => ({key: c, label: whiteCatLabel(c, locale), href: `/${locale}/shop?cat=${c}`})),
   ];
 
-  // Secondary tier — brand and service pages, stacked under the categories.
+  // Secondary tier — service pages, stacked under the categories.
   const secondary = [
-    {key: 'sets', label: t('sets'), href: `/${locale}/sets`},
     {key: 'lookbook', label: t('lookbook'), href: `/${locale}/lookbook`},
     {key: 'contact', label: t('contact'), href: `/${locale}/contact`},
     {key: 'delivery', label: t('delivery'), href: `/${locale}/delivery`},
@@ -97,7 +104,11 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          const r = triggerRef.current?.getBoundingClientRect();
+          if (r) setTriggerBox({left: r.left, top: r.top});
+          setOpen(true);
+        }}
         aria-expanded={open}
         aria-label={t('openMenu')}
         style={{WebkitTapHighlightColor: 'transparent'}}
@@ -112,22 +123,23 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
 
       {portalReady && shown && createPortal(
         <>
-          {/* The burger's travelling twin: rides to the drawer's edge while
-              morphing into an X, slides home on close. Lives in the portal so
-              it can paint above the panel (the header's own stacking context
-              can't). */}
+          {/* The burger's stand-in. It does not travel: it sits exactly where the
+              header's own burger sits — the rect is measured from that button on
+              open — and only morphs into an X in place. The drawer is the thing
+              that moves; an icon that rides out with it and clips itself to its
+              edge reads as two controls arguing over one job. It lives in the
+              portal purely so it can paint above the panel, which the header's
+              stacking context cannot do. */}
           <button
             type="button"
             onClick={() => setOpen((v) => !v)}
             aria-label={open ? t('close') : t('openMenu')}
             style={{
               WebkitTapHighlightColor: 'transparent',
-              left: '4px',
-              transform: entered ? 'translateX(calc(min(87vw, 420px) - 56px))' : 'translateX(0)',
-              transitionDuration: '560ms',
-              transitionTimingFunction: entered ? 'cubic-bezier(0.16, 1, 0.3, 1)' : 'cubic-bezier(0.55, 0.05, 0.25, 1)',
+              left: triggerBox ? `${triggerBox.left}px` : '16px',
+              top: triggerBox ? `${triggerBox.top}px` : undefined,
             }}
-            className="wv-twin fixed top-2.5 z-[1202] flex h-11 w-11 items-center justify-center sm:top-5 transition-transform active:scale-90 motion-reduce:transition-none motion-reduce:active:scale-100"
+            className="wv-twin fixed z-[1202] flex h-11 w-11 items-center justify-center active:scale-90 motion-reduce:active:scale-100"
           >
             <svg viewBox="0 0 24 24" className={`h-5 w-5 ${entered ? 'hamburger-open' : everEntered.current ? 'hamburger-close' : ''}`} fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="square">
               <line x1="4" y1="7" x2="20" y2="7" className="hamburger-line hamburger-top" />
@@ -158,9 +170,10 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
               transitionTimingFunction: entered ? 'cubic-bezier(0.16, 1, 0.3, 1)' : 'cubic-bezier(0.55, 0.05, 0.25, 1)',
             }}
           >
-            {/* The travelling burger (now an X at the drawer's edge) is the close
-                control; the head row carries the brand asset alone. */}
-            <div className="flex shrink-0 flex-col px-6 pb-2 pt-5 sm:pt-7">
+            {/* The head row starts below the burger rather than beside it: the
+                icon now stays at its place in the top bar, which is over this
+                corner, and the wordmark was being struck through by the X. */}
+            <div className="flex shrink-0 flex-col px-6 pb-2 pt-14">
               <Image src="/logos/name-black.svg" alt="REINASLEO" width={1026} height={162} className="h-6 w-auto self-start" />
               {/* A personal hello right under the brand — the account is one tap
                   away. The greeting reads larger and the sign-in sits below it on
@@ -180,22 +193,27 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
               </div>
             </div>
 
-            {/* Primary nav — centres when it fits, scrolls from the top when the
-                list overflows (short viewports / long RU labels). */}
-            <nav className="flex flex-1 flex-col overflow-y-auto px-6">
-              <div className="my-auto flex w-full flex-col py-6">
+            {/* Primary nav — starts under the head and scrolls. It used to centre
+                itself with my-auto, but a centred child of a scroll container
+                clips at the top once it overflows, and with sets added the list
+                no longer fits a 900px desktop: the last category was hidden
+                behind the service block. */}
+            <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6">
+              <div className="flex w-full flex-col py-2">
                 {links.map((l) => {
-                  const active = activeCat != null && l.key === activeCat;
+                  // Sets is a page of its own, so it answers to the path; the
+                  // rest are filters on the shop and answer to the category.
+                  const active = l.key === 'sets' ? pathname === l.href : activeCat != null && l.key === activeCat;
                   return (
                     <Link
                       key={l.key}
                       href={l.href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
-                      className="wv-menu-item wv-menu-link flex min-h-11 items-center font-display text-[26px] font-light tracking-[-0.01em] md:min-h-[56px] md:text-[34px]"
-                      style={{color: active ? INK : MUTED, fontWeight: active ? 500 : 300, textDecoration: active ? 'underline' : 'none', textUnderlineOffset: '5px', textDecorationThickness: '1px', animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
+                      className="wv-menu-item wv-menu-link relative flex min-h-11 items-center font-display text-[26px] font-light tracking-[-0.01em] md:min-h-[48px] md:text-[30px]"
+                      style={{color: active ? INK : MUTED, fontWeight: active ? 500 : 300, animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
                     >
-                      {l.label}
+                      <span className="wv-menu-label">{l.label}</span>
                     </Link>
                   );
                 })}
