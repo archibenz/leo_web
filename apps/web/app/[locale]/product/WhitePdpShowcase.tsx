@@ -147,7 +147,11 @@ export default function WhitePdpShowcase({
     }
     handleAdd();
   };
-  const wbUrl = `https://www.wildberries.ru/catalog/${bagProduct.nm}/detail.aspx`;
+  // Wildberries sells each colourway under its own article, so the buy link
+  // follows the swatch the customer picked. Falling back to the product's own
+  // article sends them to whichever colour happens to be the default — which is
+  // how the sand harem trousers were linking to the white ones.
+  const wbUrl = `https://www.wildberries.ru/catalog/${selectedColor.nm ?? bagProduct.nm}/detail.aspx`;
   const ozonUrl = ozonProductUrl(bagProduct);
   const availability = whiteAvailability(bagProduct, {onOzon: Boolean(ozonUrl), onWb: onWildberries});
   const stickyPrice = `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
