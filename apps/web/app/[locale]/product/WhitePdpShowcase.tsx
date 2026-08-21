@@ -23,6 +23,9 @@ import {WHITE_LQIP} from '../products-lqip';
 // /<locale>/product?p=<key>. The route 404s on an unknown key, so the
 // product here is always a real catalogue entry. CSS-only, reduced-motion safe.
 
+// The full run. A piece that is only left in part of it carries its own list,
+// and the chips come from that — offering a size the warehouse cannot ship
+// costs a return and a customer.
 const SIZES = WHITE_SIZES;
 // Gallery is built per-product below: the product's own photo, plus any extra
 // views it carries — never other products' shots.
@@ -385,7 +388,7 @@ export default function WhitePdpShowcase({
                 </button>
               </div>
               <div className="flex flex-wrap gap-2.5">
-                {SIZES.map((s) => (
+                {(product.sizes ?? SIZES).map((s) => (
                   <button
                     key={s}
                     type="button"

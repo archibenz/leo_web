@@ -223,7 +223,7 @@ export default function WhiteProductCard({
               {t('selectSize')}
             </p>
             <div className="flex flex-wrap justify-center gap-1.5">
-              {WHITE_SIZES.map((s) => (
+              {(product.sizes ?? WHITE_SIZES).map((s) => (
                 <button
                   key={s}
                   type="button"
