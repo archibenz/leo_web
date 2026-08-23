@@ -87,6 +87,38 @@ const LEGACY_ALIASES: Record<string, string> = {
   '/about': '/sets',
 };
 
+// Every first segment that has a page under app/[locale]. Kept in step by
+// middleware.notfound.test.ts, which reads the route directory and fails when
+// this list drifts — a new section that is missing here would answer 404 for
+// real content, which is worse than the soft 404 this fixes.
+const ROUTE_SEGMENTS = new Set([
+  'account', 'admin', 'auth', 'bag', 'care', 'contact', 'delivery', 'faq',
+  'favourites', 'info', 'lookbook', 'offer', 'privacy', 'product', 'sets',
+  'shop', 'terms',
+]);
+
+// Sections whose depth the edge does not police: /admin/** carries dynamic ids
+// and is behind the session guard, /auth/** is a callback surface. Both are
+// noindex, so a soft 404 inside them costs nothing.
+const UNPOLICED = new Set(['admin', 'auth']);
+
+const PRODUCT_SLUG_SET = new Set(Object.values(PRODUCT_SLUGS));
+
+// True only when the address certainly has no page behind it. Anything this
+// function is unsure about is treated as real and left to render.
+function isDeadEnd(pathname: string): boolean {
+  const [locale, first, second, ...deeper] = pathname.split('/').filter(Boolean);
+  if (!locale || !locales.includes(locale as (typeof locales)[number])) return false;
+  if (!first) return false;
+  if (!ROUTE_SEGMENTS.has(first)) return true;
+  if (UNPOLICED.has(first)) return false;
+  if (first === 'product') {
+    if (!second) return false;
+    return deeper.length > 0 || !PRODUCT_SLUG_SET.has(second);
+  }
+  return Boolean(second);
+}
+
 export default function middleware(request: NextRequest) {
   const nonce = generateNonce();
   // Mutate request headers so Server Components can read the nonce via
@@ -179,10 +211,31 @@ export default function middleware(request: NextRequest) {
   // their locale. Tempting to skip that as a no-op — but the rewrite is how the
   // router resolves the [locale] segment at all, and bypassing it 404s the
   // entire site. Verified: skipping it made every page, valid ones included,
-  // answer 404. The soft-404 side effect is handled at the route level instead.
-  const response = isApiRoute
+  // answer 404. Dropping just the no-op rewrite header is no better: the page
+  // then renders to an empty 200 body. The rewrite stays; the status is set on
+  // it instead — see below.
+  let response = isApiRoute
     ? NextResponse.next({request: {headers: request.headers}})
     : intlMiddleware(request);
+
+  // A rewritten response takes its status from the rewrite, so notFound() in
+  // the catch-all never reached the client and every mistyped address answered
+  // 200 with the 404 body — an invitation to index them all. The rewrite is
+  // load-bearing (see above), so the status is put on the rewrite itself, and
+  // only for addresses isDeadEnd is certain about. The page still renders: the
+  // body is the same White 404, the status is now honest.
+  const rewrite = response.headers.get('x-middleware-rewrite');
+  if (rewrite && !isApiRoute && isDeadEnd(pathname)) {
+    const notFound = NextResponse.rewrite(new URL(rewrite, request.url), {
+      request: {headers: request.headers},
+      status: 404,
+    });
+    response.headers.forEach((value, key) => {
+      if (key !== 'x-middleware-rewrite') notFound.headers.set(key, value);
+    });
+    response = notFound;
+  }
+
   const csp = buildCsp(nonce);
 
   response.headers.set('X-Frame-Options', 'DENY');
