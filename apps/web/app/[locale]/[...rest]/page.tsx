@@ -5,16 +5,13 @@ import {notFound} from 'next/navigation';
 // The named routes (shop, product, bag, favourites, sets, lookbook, contact,
 // privacy, terms, offer, admin, auth, ...) take priority over this catch-all.
 
-// KNOWN ISSUE — unknown URLs answer 200 with the 404 body (a soft 404).
-// notFound() renders the right page but the status never reaches the client:
-// next-intl v3 rewrites every page request, and that rewrite fixes the response
-// as 200 before this route renders. Confirmed via `x-middleware-rewrite` on the
-// response. Skipping the rewrite for already-localised paths does remove the
-// soft 404 — and 404s the entire site with it, since the rewrite is how the
-// [locale] segment resolves. Prerendering is not the cause either; the status
-// is lost the same way in a production build.
-// The fix lives in next-intl v4 (v3.26 here), which is a major upgrade and not
-// something to land unattended on a live shop.
+// The status this route throws does not survive on its own: next-intl v3
+// rewrites every page request, and a rewritten response takes its status from
+// the rewrite, so this used to answer 200 with the 404 body. The rewrite cannot
+// simply be dropped — it is how the [locale] segment resolves, and removing it
+// renders empty bodies. middleware.ts puts the 404 on the rewrite itself, for
+// addresses it can prove have no page behind them. This route still supplies
+// the body.
 export default function WhiteCatchAllPage() {
   notFound();
 }
