@@ -21,4 +21,7 @@ export const PRODUCT_SLUGS: Record<number, string> = {
   19: 'bluzka-shkolnaya-s-volanami',
   20: 'kurtka-bomber-zamsha',
   21: 'sportivnyy-kostyum-s-kantom',
+  22: 'yubka-mini-plisse-zamshevaya',
+  23: 'yubka-plisse-dlinnaya-s-kruzhevom',
+  24: 'rubashka-s-baskoy',
 };
