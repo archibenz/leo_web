@@ -51,8 +51,9 @@ describe('White catalogue integrity', () => {
   });
 
   it('a garment carries either a real price or nothing to sell', () => {
-    // A zero or negative price would render as "0 ₽" and take an order.
-    expect(WHITE_PRODUCTS.filter((p) => !(p.price > 0)).map((p) => p.ru)).toEqual([]);
+    // A zero or negative price would render as "0 ₽" and take an order. No
+    // price at all is legitimate — a preorder-only piece labels itself instead.
+    expect(WHITE_PRODUCTS.filter((p) => p.price != null && !(p.price > 0)).map((p) => p.ru)).toEqual([]);
   });
 
   it('every Ozon link belongs to a garment that is in the catalogue', () => {

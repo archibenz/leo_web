@@ -112,7 +112,7 @@ export default function WhitePdpShowcase({
   const handleAdd = () => {
     if (!size) return;
     // Charge the effective (sale) price the PDP shows — not the struck regular.
-    add({key: bagProduct.key, en: bagProduct.en, ru: bagProduct.ru, price: bagProduct.sale ?? bagProduct.price, size, colorEn: selectedColor.en, colorRu: selectedColor.ru});
+    add({key: bagProduct.key, en: bagProduct.en, ru: bagProduct.ru, price: bagProduct.sale ?? bagProduct.price ?? 0, size, colorEn: selectedColor.en, colorRu: selectedColor.ru});
     setJustAdded(true);
     window.setTimeout(() => setJustAdded(false), 1600);
   };
@@ -154,7 +154,8 @@ export default function WhitePdpShowcase({
   const wbUrl = `https://www.wildberries.ru/catalog/${selectedColor.nm ?? bagProduct.nm}/detail.aspx`;
   const ozonUrl = ozonProductUrl(bagProduct);
   const availability = whiteAvailability(bagProduct, {onOzon: Boolean(ozonUrl), onWb: onWildberries});
-  const stickyPrice = `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
+  // Priceless preorder pieces label the sticky bar instead of pricing it.
+  const stickyPrice = bagProduct.price == null ? t('preorderNoPrice') : `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
 
 
   // Lightbox: same live-drag track as the main gallery (consistency), attached
@@ -255,7 +256,7 @@ export default function WhitePdpShowcase({
     };
   }, [zoomed, gallery.length]);
   const name = ru ? product.ru : product.en;
-  const priceStr = `${product.price.toLocaleString('ru-RU')} ₽`;
+  const priceStr = product.price == null ? t('preorderNoPrice') : `${product.price.toLocaleString('ru-RU')} ₽`;
   const desc = ru ? product.descRu : product.descEn;
   const story = ru ? product.storyRu : product.storyEn;
   // Every album frame gets a real alt naming the garment and its colourway.
@@ -443,7 +444,7 @@ export default function WhitePdpShowcase({
             <div className="mt-9 flex gap-3">
               {availability === 'none' ? (
                 <div className="flex-1">
-                  <p className="mb-3 text-[12px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('outOfStock')}</p>
+                  <p className="mb-3 text-[12px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{product.price == null ? t('preorderNoPrice') : t('outOfStock')}</p>
                   <WhitePreorder product={name} size={size} />
                 </div>
               ) : (

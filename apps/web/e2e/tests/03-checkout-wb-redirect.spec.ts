@@ -21,7 +21,9 @@ const pdp = messages('pdp');
 const [product, second] = WHITE_PRODUCTS;
 
 const wbUrl = (p: WhiteProduct) => `https://www.wildberries.ru/catalog/${p.nm}/detail.aspx`;
-const catalogPrice = (p: WhiteProduct) => p.sale ?? p.price;
+// The spec only ever drives priced garments — a priceless preorder piece has
+// no bag flow to test.
+const catalogPrice = (p: WhiteProduct) => p.sale ?? p.price ?? 0;
 
 // The bag prints prices through toLocaleString('ru-RU'), whose thousands
 // separator is a non-breaking space — compare on digits only.

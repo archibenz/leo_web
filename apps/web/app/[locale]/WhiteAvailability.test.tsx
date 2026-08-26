@@ -8,19 +8,26 @@ import {whiteAvailability} from './products';
 
 describe('whiteAvailability', () => {
   it('sends a piece with a Wildberries article to the marketplace', () => {
-    expect(whiteAvailability({key: 3, nm: 962827637})).toBe('marketplace');
+    expect(whiteAvailability({key: 3, nm: 962827637, price: 5000})).toBe('marketplace');
   });
 
   it('sends a piece with an Ozon card to the marketplace even without a WB article', () => {
-    expect(whiteAvailability({key: 999, nm: 0}, {onOzon: true})).toBe('marketplace');
+    expect(whiteAvailability({key: 999, nm: 0, price: 5000}, {onOzon: true})).toBe('marketplace');
   });
 
   it('reports nowhere when the piece has neither', () => {
     // This is what puts the pre-order form on the page instead of a dead button.
-    expect(whiteAvailability({key: 999, nm: 0})).toBe('none');
+    expect(whiteAvailability({key: 999, nm: 0, price: 5000})).toBe('none');
   });
 
   it('treats a missing article as nowhere rather than linking to a broken WB page', () => {
-    expect(whiteAvailability({key: 999, nm: undefined as unknown as number})).toBe('none');
+    expect(whiteAvailability({key: 999, nm: undefined as unknown as number, price: 5000})).toBe('none');
+  });
+
+  it('keeps a priceless preorder piece off the marketplaces, article or not', () => {
+    // The WB card behind a priceless piece is a stub that is not on sale —
+    // linking to it would strand the buyer on an empty listing.
+    expect(whiteAvailability({key: 999, nm: 962827637})).toBe('none');
+    expect(whiteAvailability({key: 999, nm: 962827637}, {onOzon: true})).toBe('none');
   });
 });

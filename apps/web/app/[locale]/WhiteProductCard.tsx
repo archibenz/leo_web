@@ -55,7 +55,10 @@ export default function WhiteProductCard({
   const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
   const name = locale === 'ru' ? product.ru : product.en;
   const href = whiteProductHref(locale, product);
-  const inStock = whiteInStock(product);
+  // No price anywhere yet — the piece is preorder-only. The card labels it
+  // instead of pricing it, and the quick-add strip says so too.
+  const preorderOnly = product.price == null;
+  const inStock = !preorderOnly && whiteInStock(product);
   const onOzon = hasOzonListing(product.key);
   const availability = whiteAvailability(product, {onOzon, onWb: !soldOut});
 
@@ -93,7 +96,9 @@ export default function WhiteProductCard({
     // Quick Add has no colour UI — default to the product's primary colourway
     // (colors[0], the one the card photo shows); the PDP carries an explicit pick.
     const primary = product.colors[0];
-    add({key: product.key, en: product.en, ru: product.ru, price: product.sale ?? product.price, size, colorEn: primary?.en ?? '', colorRu: primary?.ru ?? ''});
+    // `?? 0` is unreachable in practice: quick add never renders for a
+    // priceless preorder piece (inStock is forced false above).
+    add({key: product.key, en: product.en, ru: product.ru, price: product.sale ?? product.price ?? 0, size, colorEn: primary?.en ?? '', colorRu: primary?.ru ?? ''});
     setOpen(false);
     setAdded(true);
     // Return focus after the trigger re-renders, then clear the confirmation.
@@ -196,7 +201,7 @@ export default function WhiteProductCard({
 
         {quickAdd && !inStock && (
           <span className="wv-quickadd pointer-events-none absolute inset-x-0 bottom-0 z-[5] flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm" style={{color: MUTED}}>
-            {availability === 'none' ? t('outOfStock') : onOzon ? t('onlyOnMarketplaces') : t('onlyOnWb')}
+            {preorderOnly ? t('preorder') : availability === 'none' ? t('outOfStock') : onOzon ? t('onlyOnMarketplaces') : t('onlyOnWb')}
           </span>
         )}
 
@@ -244,7 +249,11 @@ export default function WhiteProductCard({
       <Link href={href} className={`mt-3 block text-center ${bleed ? 'px-5 sm:px-0' : 'px-1'}`}>
         <p className="text-[14px] tracking-wide transition-opacity group-hover:opacity-60">{name}</p>
         <p className="mt-1 text-[13px]" style={{color: product.sale ? SIGNAL : MUTED}}>
-          {product.sale ? (
+          {product.price == null ? (
+            // Preorder-only: there is no number to show, and inventing one
+            // would be worse than saying what this actually is.
+            <span className="uppercase tracking-[0.14em]">{t('preorder')}</span>
+          ) : product.sale ? (
             <>
               <s className="mr-2 line-through" style={{color: MUTED}}>
                 <span className="sr-only">{t('regularPrice')}: </span>

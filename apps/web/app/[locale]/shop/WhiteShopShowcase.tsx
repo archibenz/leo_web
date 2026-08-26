@@ -89,9 +89,19 @@ export default function WhiteShopShowcase({locale, soldOutKeys = [], initialCat 
     let filtered = cat === 'all' ? ITEMS : ITEMS.filter((i) => i.cat === cat);
     // Free-text match against both locales so "dress" and "платье" both work.
     if (q) filtered = filtered.filter((i) => `${i.en} ${i.ru} ${whiteCatLabel(i.cat, 'en')} ${whiteCatLabel(i.cat, 'ru')}`.toLowerCase().includes(q));
+    // Priceless preorder pieces have no place in a price order — they go last
+    // whichever way the sort runs.
     const price = (i: Item) => i.sale ?? i.price;
-    if (sort === 'asc') return [...filtered].sort((a, b) => price(a) - price(b));
-    if (sort === 'desc') return [...filtered].sort((a, b) => price(b) - price(a));
+    const byPrice = (dir: 1 | -1) => (a: Item, b: Item) => {
+      const pa = price(a);
+      const pb = price(b);
+      if (pa == null && pb == null) return 0;
+      if (pa == null) return 1;
+      if (pb == null) return -1;
+      return (pa - pb) * dir;
+    };
+    if (sort === 'asc') return [...filtered].sort(byPrice(1));
+    if (sort === 'desc') return [...filtered].sort(byPrice(-1));
     return filtered;
   }, [cat, sort, query]);
 

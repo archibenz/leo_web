@@ -20,4 +20,5 @@ export const PRODUCT_SLUGS: Record<number, string> = {
   18: 'zhilet-s-baskoy-i-kruzhevom',
   19: 'bluzka-shkolnaya-s-volanami',
   20: 'kurtka-bomber-zamsha',
+  21: 'sportivnyy-kostyum-s-kantom',
 };

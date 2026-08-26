@@ -26,7 +26,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
   // hand-editable) — the stored value only covers items the catalogue dropped.
   const linePrice = (i: (typeof items)[number]) => {
     const p = findWhiteProduct(i.key);
-    return p ? (p.sale ?? p.price) : i.price;
+    return p ? (p.sale ?? p.price ?? i.price) : i.price;
   };
   const total = items.reduce((sum, i) => sum + linePrice(i) * i.qty, 0);
 

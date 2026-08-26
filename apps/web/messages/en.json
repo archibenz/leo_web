@@ -1319,7 +1319,8 @@
       "onlyOnMarketplaces": "Only on marketplaces",
       "outOfStock": "Out of stock",
       "addedTitle": "Added to bag",
-      "goToBag": "Go to the bag"
+      "goToBag": "Go to the bag",
+      "preorder": "Pre-order"
     },
     "favourites": {
       "shop": "Shop",
@@ -1439,7 +1440,8 @@
       "preorderSent": "Done. You are on the list — we will write as soon as it is back.",
       "preorderError": "Could not send. Please try again shortly.",
       "preorderInvalid": "Please check the email address.",
-      "outOfStock": "Out of stock for now"
+      "outOfStock": "Out of stock for now",
+      "preorderNoPrice": "Pre-order"
     },
     "atelier": {
       "back": "Home",

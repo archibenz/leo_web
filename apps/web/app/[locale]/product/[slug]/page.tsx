@@ -98,7 +98,9 @@ export default async function WhiteProductSlugPage({params}: Props) {
     // Colour variants are a real buying signal — spelling them out lets the
     // listing answer "is it in olive?" straight from the search result.
     color: product.colors.map((c) => (ru ? c.ru : c.en)).join(', '),
-    offers: {
+    // A priceless preorder piece publishes no offer at all: an Offer without a
+    // price is invalid for rich results, and inventing one would be worse.
+    ...(product.price == null ? {} : {offers: {
       '@type': 'Offer',
       price: product.sale ?? product.price,
       priceCurrency: 'RUB',
@@ -111,7 +113,7 @@ export default async function WhiteProductSlugPage({params}: Props) {
       itemCondition: 'https://schema.org/NewCondition',
       url,
       seller: {'@type': 'Organization', name: 'REINASLEO'},
-    },
+    }}),
   };
 
   const breadcrumbJsonLd = buildBreadcrumbJsonLd([
