@@ -444,7 +444,13 @@ export default function WhitePdpShowcase({
             <div className="mt-9 flex gap-3">
               {availability === 'none' ? (
                 <div className="flex-1">
-                  <p className="mb-3 text-[12px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{product.price == null ? t('preorderNoPrice') : t('outOfStock')}</p>
+                  {/* A priceless piece already says "Предзаказ" where the price
+                      would be — repeating it right above the preorder button
+                      read as a stutter. Only a sold-out priced piece needs the
+                      explanation for why there is no bag button. */}
+                  {product.price != null && (
+                    <p className="mb-3 text-[12px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('outOfStock')}</p>
+                  )}
                   <WhitePreorder product={name} size={size} />
                 </div>
               ) : (
