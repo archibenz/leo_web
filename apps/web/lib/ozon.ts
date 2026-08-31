@@ -32,6 +32,14 @@ const OZON_LINKS: Record<number, string> = {
   18: 'https://www.ozon.ru/product/5280181693/',
   // Юбка-карандаш с кружевом — чёрная, 4 размера
   5: 'https://www.ozon.ru/product/5282174758/',
+  // The three below are the AW26 pieces that went on sale on Ozon first —
+  // taken from /v4/product/info/stocks on 2026-08-31, black/white cards.
+  // Юбка мини плиссе замшевая — чёрная
+  22: 'https://www.ozon.ru/product/5720617404/',
+  // Юбка плиссе длинная с кружевом — чёрная
+  23: 'https://www.ozon.ru/product/5722826062/',
+  // Рубашка с баской — белая
+  24: 'https://www.ozon.ru/product/5723070488/',
 };
 
 function isOzonUrl(url: URL): boolean {
