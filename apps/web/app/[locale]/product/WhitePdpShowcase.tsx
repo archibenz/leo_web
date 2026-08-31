@@ -346,7 +346,16 @@ export default function WhitePdpShowcase({
           <div className="wv-rise wv-delay-1 lg:sticky lg:top-24 lg:self-start lg:pt-6">
             <p className="text-[11px] uppercase tracking-[0.3em]" style={{color: MUTED}}>{t('season')}</p>
             <h1 className="mt-4 font-display text-[34px] font-light leading-tight sm:text-[42px]">{name}</h1>
-            <p className="mt-3 text-[18px]" style={{color: INK}}>{priceStr}</p>
+            {/* A sale shows as the marketplace shows it: the old price struck
+                through, the live one beside it. */}
+            {product.price != null && product.sale ? (
+              <p className="mt-3 text-[18px]">
+                <s className="mr-3 line-through" style={{color: MUTED}}>{product.price.toLocaleString('ru-RU')} ₽</s>
+                <span style={{color: INK}}>{product.sale.toLocaleString('ru-RU')} ₽</span>
+              </p>
+            ) : (
+              <p className="mt-3 text-[18px]" style={{color: INK}}>{priceStr}</p>
+            )}
             <p className="mt-6 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>{desc}</p>
 
             {/* Color */}
