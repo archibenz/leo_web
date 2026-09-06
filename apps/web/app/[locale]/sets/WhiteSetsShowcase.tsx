@@ -10,7 +10,7 @@ import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import {INK, MUTED, HAIR} from '../wv-palette';
 import {WhiteArrow} from '../wv-icons';
-import {WHITE_SETS, findWhiteProduct, whiteProductHref, type WhiteSet, type WhiteProduct} from '../products';
+import {WHITE_SETS, findWhiteProduct, whiteProductHref, whiteEffectivePrice, type WhiteSet, type WhiteProduct} from '../products';
 
 // Curated sets: each look is an editorial image plus the real products it is
 // made of. One button takes the whole look (size M — the bag line names the
@@ -38,7 +38,7 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
       const p = findWhiteProduct(k);
       if (!p) continue;
       const colour = set ? setColour(set, p) : p.colors[0]!;
-      addToWhiteBag({key: p.key, en: p.en, ru: p.ru, price: p.sale ?? p.price ?? 0, size: 'M', colorEn: colour.en, colorRu: colour.ru});
+      addToWhiteBag({key: p.key, en: p.en, ru: p.ru, price: whiteEffectivePrice(p, colour) ?? 0, size: 'M', colorEn: colour.en, colorRu: colour.ru});
     }
     setAddedSet(setKey);
     window.setTimeout(() => setAddedSet((cur) => (cur === setKey ? null : cur)), 2400);
@@ -56,7 +56,7 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
 
         {WHITE_SETS.map((set, idx) => {
           const items = set.productKeys.map((k) => findWhiteProduct(k)).filter((p): p is NonNullable<typeof p> => p != null);
-          const total = items.reduce((sum, p) => sum + (p.sale ?? p.price ?? 0), 0);
+          const total = items.reduce((sum, p) => sum + (whiteEffectivePrice(p, setColour(set, p)) ?? 0), 0);
           return (
             <section key={set.key} className="border-t" style={{borderColor: HAIR}}>
               {/* A numbered pause between the looks keeps them from blurring together. */}
@@ -102,7 +102,7 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
                             {ru ? p.ru : p.en}
                           </span>
                           <span className="shrink-0 text-[13px] tabular-nums lg:-mt-1" style={{color: MUTED}}>
-                            {(p.sale ?? p.price ?? 0).toLocaleString('ru-RU')} ₽
+                            {(whiteEffectivePrice(p, colour) ?? 0).toLocaleString('ru-RU')} ₽
                           </span>
                           <span className="lg:hidden">
                             <WhiteArrow size={14} />

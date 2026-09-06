@@ -8,7 +8,7 @@ import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
 import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
-import {findWhiteProduct, whiteProductHref} from '../products';
+import {findWhiteProduct, whiteProductHref, whiteEffectivePrice} from '../products';
 import {INK, MUTED, HAIR} from '../wv-palette';
 import {MaskIcon} from '../wv-icons';
 
@@ -26,7 +26,11 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
   // hand-editable) — the stored value only covers items the catalogue dropped.
   const linePrice = (i: (typeof items)[number]) => {
     const p = findWhiteProduct(i.key);
-    return p ? (p.sale ?? p.price ?? i.price) : i.price;
+    if (!p) return i.price;
+    // The line remembers which colourway was chosen, and colourways are priced
+    // separately — charging the product's price would quote a different colour.
+    const colour = p.colors.find((c) => c.en === i.colorEn);
+    return whiteEffectivePrice(p, colour) ?? i.price;
   };
   const total = items.reduce((sum, i) => sum + linePrice(i) * i.qty, 0);
 

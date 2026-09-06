@@ -3,7 +3,7 @@ import {headers} from 'next/headers';
 import {notFound} from 'next/navigation';
 import WhitePdpShowcase from '../WhitePdpShowcase';
 import {getStockSnapshot, wbHasStock} from '../../../../lib/stock';
-import {WHITE_PRODUCTS, findWhiteProductBySlug, whiteProductHref} from '../../products';
+import {WHITE_PRODUCTS, findWhiteProductBySlug, whiteProductHref, whitePriceRange} from '../../products';
 import {safeJsonLd, buildBreadcrumbJsonLd} from '../../../../lib/jsonLd';
 import {SITE_URL} from '../../../../lib/siteUrl';
 import {buildProductMeta} from '../../../../lib/productMeta';
@@ -84,6 +84,8 @@ export default async function WhiteProductSlugPage({params}: Props) {
     ...product.colors.flatMap((c) => [c.image, ...(c.gallery ?? [])]),
   ].filter((src): src is string => Boolean(src));
 
+  const priceRange = whitePriceRange(product);
+
   const productJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -101,8 +103,12 @@ export default async function WhiteProductSlugPage({params}: Props) {
     // A priceless preorder piece publishes no offer at all: an Offer without a
     // price is invalid for rich results, and inventing one would be worse.
     ...(product.price == null ? {} : {offers: {
-      '@type': 'Offer',
-      price: product.sale ?? product.price,
+      // Colourways are priced separately, and a single `price` would advertise
+      // one colour's number for all of them — AggregateOffer is the shape
+      // schema.org has for exactly that.
+      ...(priceRange.varies
+        ? {'@type': 'AggregateOffer', lowPrice: priceRange.min, highPrice: priceRange.max, offerCount: product.colors.length}
+        : {'@type': 'Offer', price: product.sale ?? product.price}),
       priceCurrency: 'RUB',
       // No `availability` on purpose. Nothing here knows what is actually in
       // stock — the catalogue is a static file and the count lives at

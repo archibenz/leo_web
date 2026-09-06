@@ -1320,7 +1320,8 @@
       "outOfStock": "Out of stock",
       "addedTitle": "Added to bag",
       "goToBag": "Go to the bag",
-      "preorder": "Pre-order"
+      "preorder": "Pre-order",
+      "fromPrice": "from {price}"
     },
     "favourites": {
       "shop": "Shop",

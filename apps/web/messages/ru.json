@@ -1320,7 +1320,8 @@
       "outOfStock": "Нет в наличии",
       "addedTitle": "Добавлено в корзину",
       "goToBag": "Перейти в корзину",
-      "preorder": "Предзаказ"
+      "preorder": "Предзаказ",
+      "fromPrice": "от {price}"
     },
     "favourites": {
       "shop": "Магазин",

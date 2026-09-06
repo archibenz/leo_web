@@ -6,7 +6,7 @@ import {useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../hooks/useWhiteFavourites';
-import {WHITE_SIZES, whiteInStock, whiteAvailability, whiteProductHref, type WhiteProduct} from './products';
+import {WHITE_SIZES, whiteInStock, whiteAvailability, whiteProductHref, whitePrice, whitePriceRange, type WhiteProduct} from './products';
 import {hasOzonListing} from '../../lib/ozon';
 import {MUTED, SIGNAL, HAIR} from './wv-palette';
 import {WHITE_LQIP} from './products-lqip';
@@ -53,6 +53,7 @@ export default function WhiteProductCard({
   const panelRef = useRef<HTMLDivElement>(null);
 
   const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
+  const range = whitePriceRange(product);
   const name = locale === 'ru' ? product.ru : product.en;
   const href = whiteProductHref(locale, product);
   // No price anywhere yet — the piece is preorder-only. The card labels it
@@ -96,9 +97,10 @@ export default function WhiteProductCard({
     // Quick Add has no colour UI — default to the product's primary colourway
     // (colors[0], the one the card photo shows); the PDP carries an explicit pick.
     const primary = product.colors[0];
+    const {price, sale} = whitePrice(product, primary);
     // `?? 0` is unreachable in practice: quick add never renders for a
     // priceless preorder piece (inStock is forced false above).
-    add({key: product.key, en: product.en, ru: product.ru, price: product.sale ?? product.price ?? 0, size, colorEn: primary?.en ?? '', colorRu: primary?.ru ?? ''});
+    add({key: product.key, en: product.en, ru: product.ru, price: sale ?? price ?? 0, size, colorEn: primary?.en ?? '', colorRu: primary?.ru ?? ''});
     setOpen(false);
     setAdded(true);
     // Return focus after the trigger re-renders, then clear the confirmation.
@@ -248,11 +250,16 @@ export default function WhiteProductCard({
           off the physical screen edge when the photo grid runs full-bleed. */}
       <Link href={href} className={`mt-3 block text-center ${bleed ? 'px-5 sm:px-0' : 'px-1'}`}>
         <p className="text-[14px] tracking-wide transition-opacity group-hover:opacity-60">{name}</p>
-        <p className="mt-1 text-[13px]" style={{color: product.sale ? SIGNAL : MUTED}}>
+        <p className="mt-1 text-[13px]" style={{color: product.sale && !range.varies ? SIGNAL : MUTED}}>
           {product.price == null ? (
             // Preorder-only: there is no number to show, and inventing one
             // would be worse than saying what this actually is.
             <span className="uppercase tracking-[0.14em]">{t('preorder')}</span>
+          ) : range.varies ? (
+            // The card cannot know which colour will be picked, and the spread
+            // is real money — the red balloon skirt is half the ivory one. Quote
+            // the cheapest and say so, rather than one colour's price for all.
+            t('fromPrice', {price: fmt(range.min!)})
           ) : product.sale ? (
             <>
               <s className="mr-2 line-through" style={{color: MUTED}}>

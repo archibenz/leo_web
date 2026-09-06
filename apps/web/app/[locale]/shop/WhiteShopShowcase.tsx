@@ -9,7 +9,7 @@ import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR} from '../wv-palette';
-import {WHITE_PRODUCTS as ITEMS, whiteCatLabel, type WhiteProduct as Item, type WhiteCat as Cat, type WhiteColor as Colour} from '../products';
+import {WHITE_PRODUCTS as ITEMS, whiteCatLabel, whitePriceRange, type WhiteProduct as Item, type WhiteCat as Cat, type WhiteColor as Colour} from '../products';
 
 // Variant 2 "White" — shop / catalog grid with filters + sort. Same portal
 // technique as the landing/PDP. Catalog lives in ../products (shared with the
@@ -91,7 +91,8 @@ export default function WhiteShopShowcase({locale, soldOutKeys = [], initialCat 
     if (q) filtered = filtered.filter((i) => `${i.en} ${i.ru} ${whiteCatLabel(i.cat, 'en')} ${whiteCatLabel(i.cat, 'ru')}`.toLowerCase().includes(q));
     // Priceless preorder pieces have no place in a price order — they go last
     // whichever way the sort runs.
-    const price = (i: Item) => i.sale ?? i.price;
+    // Sort on the same number the card prints — the cheapest colourway.
+    const price = (i: Item) => whitePriceRange(i).min;
     const byPrice = (dir: 1 | -1) => (a: Item, b: Item) => {
       const pa = price(a);
       const pb = price(b);

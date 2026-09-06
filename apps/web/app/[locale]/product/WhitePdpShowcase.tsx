@@ -15,7 +15,7 @@ import WhitePreorder from './WhitePreorder';
 import {ozonProductUrl} from '../../../lib/ozon';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 import {WhiteFavHeart, WhiteArrow} from '../wv-icons';
-import {WHITE_PRODUCTS, WHITE_SETS, WHITE_SIZES, whiteInStock, whiteAvailability, type WhiteProduct} from '../products';
+import {WHITE_PRODUCTS, WHITE_SETS, WHITE_SIZES, whiteInStock, whiteAvailability, whitePrice, type WhiteProduct} from '../products';
 import {WHITE_LQIP} from '../products-lqip';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
@@ -109,10 +109,13 @@ export default function WhitePdpShowcase({
       ? [bagProduct.image, ...bagProduct.gallery]
       : [bagProduct.image];
   const favourited = isFavourite(bagProduct.key);
+  // Pricing follows the swatch, the way the buy link already does: the red
+  // balloon skirt is half the ivory one.
+  const shownPrice = whitePrice(bagProduct, selectedColor);
   const handleAdd = () => {
     if (!size) return;
     // Charge the effective (sale) price the PDP shows — not the struck regular.
-    add({key: bagProduct.key, en: bagProduct.en, ru: bagProduct.ru, price: bagProduct.sale ?? bagProduct.price ?? 0, size, colorEn: selectedColor.en, colorRu: selectedColor.ru});
+    add({key: bagProduct.key, en: bagProduct.en, ru: bagProduct.ru, price: shownPrice.sale ?? shownPrice.price ?? 0, size, colorEn: selectedColor.en, colorRu: selectedColor.ru});
     setJustAdded(true);
     window.setTimeout(() => setJustAdded(false), 1600);
   };
@@ -155,7 +158,7 @@ export default function WhitePdpShowcase({
   const ozonUrl = ozonProductUrl(bagProduct);
   const availability = whiteAvailability(bagProduct, {onOzon: Boolean(ozonUrl), onWb: onWildberries});
   // Priceless preorder pieces label the sticky bar instead of pricing it.
-  const stickyPrice = bagProduct.price == null ? t('preorderNoPrice') : `${(bagProduct.sale ?? bagProduct.price).toLocaleString('ru-RU')} ₽`;
+  const stickyPrice = shownPrice.price == null ? t('preorderNoPrice') : `${(shownPrice.sale ?? shownPrice.price).toLocaleString('ru-RU')} ₽`;
 
 
   // Lightbox: same live-drag track as the main gallery (consistency), attached
@@ -256,7 +259,7 @@ export default function WhitePdpShowcase({
     };
   }, [zoomed, gallery.length]);
   const name = ru ? product.ru : product.en;
-  const priceStr = product.price == null ? t('preorderNoPrice') : `${product.price.toLocaleString('ru-RU')} ₽`;
+  const priceStr = shownPrice.price == null ? t('preorderNoPrice') : `${shownPrice.price.toLocaleString('ru-RU')} ₽`;
   const desc = ru ? product.descRu : product.descEn;
   const story = ru ? product.storyRu : product.storyEn;
   // Every album frame gets a real alt naming the garment and its colourway.
@@ -348,10 +351,10 @@ export default function WhitePdpShowcase({
             <h1 className="mt-4 font-display text-[34px] font-light leading-tight sm:text-[42px]">{name}</h1>
             {/* A sale shows as the marketplace shows it: the old price struck
                 through, the live one beside it. */}
-            {product.price != null && product.sale ? (
+            {shownPrice.price != null && shownPrice.sale ? (
               <p className="mt-3 text-[18px]">
-                <s className="mr-3 line-through" style={{color: MUTED}}>{product.price.toLocaleString('ru-RU')} ₽</s>
-                <span style={{color: INK}}>{product.sale.toLocaleString('ru-RU')} ₽</span>
+                <s className="mr-3 line-through" style={{color: MUTED}}>{shownPrice.price.toLocaleString('ru-RU')} ₽</s>
+                <span style={{color: INK}}>{shownPrice.sale.toLocaleString('ru-RU')} ₽</span>
               </p>
             ) : (
               <p className="mt-3 text-[18px]" style={{color: INK}}>{priceStr}</p>
