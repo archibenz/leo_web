@@ -94,9 +94,10 @@ export type WhiteProduct = {
 // One garment in a look. `productId` is the colourway actually worn, so the
 // card, the photograph and the line the bag takes are the same thing;
 // `productKey` finds the model without a second lookup, and `colourKey` is that
-// variant's colour. The key is absent only when the variant left the catalogue
-// between the set being built and this response.
-export type WhiteSetItem = {productId: string; productKey: number; colourKey?: string};
+// variant's colour. All three are always there: the API emits an item only when
+// it has resolved the variant inside the same payload, and it drops the item
+// otherwise — so nothing downstream has to narrow a null here.
+export type WhiteSetItem = {productId: string; productKey: number; colourKey: string};
 
 // Curated sets — looks assembled from the real catalogue, sold together or
 // piece by piece. The image is the set's editorial mood; the items below it

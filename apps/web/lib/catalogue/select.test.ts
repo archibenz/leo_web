@@ -21,7 +21,11 @@ describe('lookups', () => {
   it('finds by slug', () => expect(findProductBySlug(SF.products, 'palto-pidzhak-pritalennoe')?.key).toBe(2));
   it('resolves the colour worn in a set, falling back to the first colour', () => {
     const set = findSet(SF.sets, 'everyday')!;
-    expect(setColour(set, findProductByKey(SF.products, 8)!).key).toBe('ivory');
+    const skirt = findProductByKey(SF.products, 8)!;
+    // The look wears ivory, which is deliberately not the skirt's first colour:
+    // a setColour that always returned colors[0] would sell the red one.
+    expect(setColour(set, skirt).key).toBe('ivory');
+    expect(setColour(set, skirt)).not.toBe(skirt.colors[0]);
     expect(setColour(set, findProductByKey(SF.products, 21)!).key).toBe(SF.products[2]!.colors[0]!.key);
   });
 });

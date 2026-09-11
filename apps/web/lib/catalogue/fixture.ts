@@ -11,6 +11,9 @@ import type {Storefront, WhiteColor, WhiteProduct, WhiteSet, StorefrontSection} 
 // контрактом сразу, а не на рендере.
 
 const COAT_COLOURS: WhiteColor[] = [
+  // Фикстура перевешивает ярлык: wb-795522033 в каталоге — слоновая кость, и
+  // снимок модели тоже её. Здесь вариант назван чёрным, потому что образ носит
+  // чёрное пальто; за подпись цвета фотографию не принимать.
   {id: 'wb-795522033', key: 'black', hex: '#2b2722', en: 'Black', ru: 'Чёрный', nm: 795522033},
   {
     id: 'wb-795528752',
@@ -34,10 +37,10 @@ const COAT_COLOURS: WhiteColor[] = [
   },
 ];
 
+// Порядок цветов выбран нарочно: образ носит слоновую кость, и она здесь
+// вторая — иначе проверка setColour прошла бы и для функции, которая всегда
+// возвращает первый цвет. Красный вдвое дешевле: на нём проверяется «от 2 250».
 const SKIRT_COLOURS: WhiteColor[] = [
-  {id: 'wb-371980450', key: 'ivory', hex: '#ece6da', en: 'Ivory', ru: 'Слоновая кость', nm: 371980450},
-  // Красный стоит вдвое дешевле слоновой кости — на этом цвете проверяется, что
-  // карточка пишет «от 2 250», а не цену первого цвета за все.
   {
     id: 'wb-379321819',
     key: 'red',
@@ -49,6 +52,7 @@ const SKIRT_COLOURS: WhiteColor[] = [
     image: '/images/white/products/p-371980450-red-V.jpg',
     gallery: ['/images/white/products/p-371980450-red-b-Z.jpg', '/images/white/products/p-371980450-red-d-Y.jpg'],
   },
+  {id: 'wb-371980450', key: 'ivory', hex: '#ece6da', en: 'Ivory', ru: 'Слоновая кость', nm: 371980450, price: 5000},
 ];
 
 const TRACKSUIT_COLOURS: WhiteColor[] = [
@@ -87,7 +91,8 @@ const PRODUCTS: WhiteProduct[] = [
     en: 'Satin Balloon Skirt',
     ru: 'Юбка баллон атласная',
     cat: 'skirts',
-    price: 5000,
+    // Цена и артикул модели — с первого варианта, как их складывает API.
+    price: 2250,
     descEn: 'A satin balloon mini with built-in shorts and a rounded volume. Matte sheen, holds its volume.',
     descRu: 'Атласная юбка-баллон мини с шортами и округлым объёмом. Матовый блеск, форма держит объём.',
     storyEn: 'The hem is gathered inward, so the skirt holds its shape without a petticoat, and shorts are built in — sit down, walk into the wind, stop thinking about the length.',
@@ -102,7 +107,7 @@ const PRODUCTS: WhiteProduct[] = [
     sizes: ['XS', 'S', 'M'],
     image: '/images/white/products/p-371980450-V.jpg',
     gallery: ['/images/white/products/p-371980450-b-V.jpg', '/images/white/products/p-371980450-d-Y.jpg'],
-    nm: 371980450,
+    nm: 379321819,
   },
   // Цены нет нигде: карточка WB — заготовка, продажи ещё не открыты. Витрина на
   // такой вещи пишет «Предзаказ» и не отправляет покупателя на маркетплейс.
