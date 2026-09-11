@@ -28,24 +28,16 @@ class StorefrontSchemaTest {
     @Autowired private StorefrontSectionRepository sections;
 
     @Test
-    void modelWithTwoVariantsAndASet_roundTrips() {
-        ProductModel m = new ProductModel();
-        m.setModelKey(1);
-        m.setSlug("lnyanoy-kostyum");
-        m.setNameRu("Льняной костюм");
-        m.setNameEn("Linen Suit");
-        m.setCategory("tailoring");
-        m.setDescRu("к"); m.setDescEn("d");
-        m.setCompositionRu("лён"); m.setCompositionEn("linen");
-        m.setCareRu("стирка"); m.setCareEn("wash");
-        m.setSizes(new String[]{"XS", "S", "M", "L", "XL"});
-        m.setImage("/images/white/products/a.jpg");
-        m = models.save(m);
+    void modelsWithColourVariantsAndASet_roundTrip() {
+        ProductModel suit = models.save(model(1, "lnyanoy-kostyum", "Льняной костюм", "Linen Suit"));
+        ProductModel coat = models.save(model(2, "palto", "Пальто", "Coat"));
 
-        Product ivory = variant("wb-1008989269", m, "ivory", 1008989269L, new BigDecimal("8000"), 0);
-        Product black = variant("wb-1008989270", m, "black", 1008989270L, null, 1);
+        Product ivory = variant("wb-1008989269", suit, "ivory", 1008989269L, new BigDecimal("8000"), 0);
+        Product black = variant("wb-1008989270", suit, "black", 1008989270L, null, 1);
+        Product camel = variant("wb-1008989271", coat, "camel", 1008989271L, new BigDecimal("14000"), 0);
         products.save(ivory);
         products.save(black);
+        products.save(camel);
 
         ProductSet s = new ProductSet();
         s.setKey("summer"); s.setNameRu("Лето"); s.setNameEn("Summer");
@@ -61,13 +53,33 @@ class StorefrontSchemaTest {
         hero.setVideoUrl("/videos/white/hero-mark2.mp4");
         sections.save(hero);
 
-        List<Product> variants = products.findByModelIdIsNotNullAndActiveTrueOrderBySortOrderAsc();
-        assertThat(variants).extracting(Product::getId).containsExactly("wb-1008989269", "wb-1008989270");
-        assertThat(variants.get(1).getPrice()).isNull();                 // предзаказ допустим
-        assertThat(models.findByActiveTrueOrderBySortOrderAsc()).hasSize(1);
+        List<Product> variants = products.findByModelIdIsNotNullAndActiveTrueOrderByModelIdAscSortOrderAsc();
+        List<String> ids = variants.stream().map(Product::getId).toList();
+        assertThat(ids).containsExactlyInAnyOrder("wb-1008989269", "wb-1008989270", "wb-1008989271");
+        // цвета одной модели идут подряд и в своём порядке — какая модель первой,
+        // решает случайный UUID, поэтому проверяем соседство, а не абсолютные позиции
+        assertThat(ids.indexOf("wb-1008989270")).isEqualTo(ids.indexOf("wb-1008989269") + 1);
+
+        assertThat(variants.get(ids.indexOf("wb-1008989270")).getPrice()).isNull();   // предзаказ допустим
+        assertThat(models.findByActiveTrueOrderBySortOrderAsc()).hasSize(2);
         assertThat(setItems.findAllByOrderBySetIdAscPositionAsc()).hasSize(1);
         assertThat(sections.findByStatusOrderBySortOrderAsc("active")).extracting(StorefrontSection::getSlug).containsExactly("aw26-hero");
         assertThat(sections.findByStatusOrderBySortOrderAsc("archived")).isEmpty();
+    }
+
+    private static ProductModel model(int key, String slug, String nameRu, String nameEn) {
+        ProductModel m = new ProductModel();
+        m.setModelKey(key);
+        m.setSlug(slug);
+        m.setNameRu(nameRu);
+        m.setNameEn(nameEn);
+        m.setCategory("tailoring");
+        m.setDescRu("к"); m.setDescEn("d");
+        m.setCompositionRu("лён"); m.setCompositionEn("linen");
+        m.setCareRu("стирка"); m.setCareEn("wash");
+        m.setSizes(new String[]{"XS", "S", "M", "L", "XL"});
+        m.setImage("/images/white/products/a.jpg");
+        return m;
     }
 
     private static Product variant(String id, ProductModel m, String colour, long nm, BigDecimal price, int order) {
