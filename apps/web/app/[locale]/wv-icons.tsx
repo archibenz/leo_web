@@ -110,6 +110,19 @@ export function WhiteTelegramGlyph({size = 17}: {size?: number}) {
   );
 }
 
+// The addon the auth-5 form keeps: Efferd sets an @ inside the e-mail field
+// through its InputGroup primitive. The primitive is not here (a bordered,
+// rounded box is not the White field), the mark is — same hairline as the rest
+// of this file, 1px and no fill.
+export function WhiteAtGlyph({size = 15}: {size?: number}) {
+  return (
+    <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M16 8v5.2a2.8 2.8 0 0 0 5.5.8A9.5 9.5 0 1 0 18 20.4" />
+    </svg>
+  );
+}
+
 // Bag glyph for the header: the house cart icon as ever; with items in the
 // bag a small ink count sits inside the body.
 export function WhiteBagGlyph({count, size = 18}: {count: number; size?: number}) {

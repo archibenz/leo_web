@@ -3,6 +3,7 @@ import {render, screen, within, cleanup} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import WhiteAccountShowcase from './WhiteAccountShowcase';
 import {NextIntlClientProvider} from 'next-intl';
+import {whiteLogout} from '../../../hooks/useWhiteAuth';
 import enMessages from '../../../messages/en.json';
 
 vi.mock('next/navigation', () => ({
@@ -34,6 +35,9 @@ if (typeof window !== 'undefined') {
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  // The auth store is module state, so a test that signs a user in leaves the
+  // next one looking at the signed-in page instead of the form.
+  whiteLogout();
 });
 
 const renderPage = () =>
@@ -94,5 +98,70 @@ describe('WhiteAccountShowcase', () => {
     const register = calls.find((c) => c.url.includes('/api/auth/register'));
     expect(register).toBeDefined();
     expect(register!.body).toMatchObject({privacyAccepted: true});
+  });
+});
+
+// Contract of the auth-5 rebuild. Three of the four guard what the page must
+// never lose (fields, the error line, the absence of third-party sign-in); the
+// fourth pins the new decorative panel down — it may be seen and never touched.
+describe('WhiteAccountShowcase — auth-5 contract', () => {
+  it('renders the e-mail and password fields on the sign-in tab', async () => {
+    renderPage();
+    const main = screen.getByRole('main');
+    const email = within(main).getByLabelText(/email/i);
+    const password = within(main).getByLabelText(/password/i);
+    expect(email).toHaveAttribute('type', 'email');
+    expect(password).toHaveAttribute('type', 'password');
+    expect(await screen.findByRole('button', {name: /^sign in$/i})).toBeInTheDocument();
+  });
+
+  it('shows an error when the credentials are rejected', async () => {
+    global.fetch = vi.fn(async (url: RequestInfo | URL) => {
+      if (String(url).includes('/api/auth/login')) {
+        return {ok: false, status: 401, json: async () => ({message: 'bad'})} as unknown as Response;
+      }
+      return {ok: false, status: 404, json: async () => ({})} as unknown as Response;
+    }) as unknown as typeof fetch;
+
+    const user = userEvent.setup();
+    renderPage();
+    const main = screen.getByRole('main');
+    await user.type(within(main).getByLabelText(/email/i), 'anna@test.dev');
+    await user.type(within(main).getByLabelText(/password/i), 'wrong-one');
+    await user.click(screen.getByRole('button', {name: /^sign in$/i}));
+
+    expect(await screen.findByText(/wrong email or password/i)).toBeInTheDocument();
+  });
+
+  it('keeps the decorative panel out of the tab order and out of the a11y tree', async () => {
+    const user = userEvent.setup();
+    const {container} = renderPage();
+
+    const decor = container.querySelector('[data-wv-decor]');
+    expect(decor).not.toBeNull();
+    expect(decor).toHaveAttribute('aria-hidden', 'true');
+    expect(decor!.querySelectorAll('a, button, input, [tabindex]:not([tabindex="-1"])')).toHaveLength(0);
+
+    // The form keeps its own tab order: e-mail hands focus to password, and a
+    // tab switch leaves focus on the control that was pressed rather than
+    // dropping it back to the body.
+    const main = screen.getByRole('main');
+    const email = within(main).getByLabelText(/email/i);
+    email.focus();
+    await user.tab();
+    expect(document.activeElement).toBe(within(main).getByLabelText(/password/i));
+
+    const signUp = screen.getByRole('tab', {name: /sign up/i});
+    await user.click(signUp);
+    expect(document.activeElement).toBe(signUp);
+  });
+
+  it('offers no Apple, GitHub or Google sign-in', async () => {
+    renderPage();
+    await screen.findByRole('heading', {level: 1, name: /account/i});
+    expect(screen.queryByRole('button', {name: /apple/i})).toBeNull();
+    expect(screen.queryByRole('button', {name: /github/i})).toBeNull();
+    expect(screen.queryByRole('button', {name: /google/i})).toBeNull();
+    expect(screen.queryByRole('link', {name: /apple|github|google/i})).toBeNull();
   });
 });

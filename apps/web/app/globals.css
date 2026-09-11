@@ -2133,3 +2133,32 @@ body:has(.wv-root)::after {
     transform: none;
   }
 }
+
+/* Плавающие линии на странице входа (блок auth-5, WhiteFloatingPaths.tsx).
+   У Efferd ими занимается motion/react: 72 пути, каждый со своей покадровой
+   анимацией pathLength/pathOffset. Здесь ровно тот же эффект без библиотеки —
+   атрибут pathLength="1" на <path> нормирует длину любой кривой к единице,
+   поэтому один и тот же штрих с разрывом гоняется по всем путям сразу;
+   длительность и сдвиг фазы приходят инлайном. Ключевые кадры непрозрачности
+   взяты из блока дословно (0.3 → 0.6 → 0.3). */
+@keyframes wv-paths {
+  0%   { stroke-dashoffset: 0; opacity: 0.3; }
+  50%  { stroke-dashoffset: -0.5; opacity: 0.6; }
+  100% { stroke-dashoffset: -1; opacity: 0.3; }
+}
+.wv-path {
+  /* 0.8 нарисовано, 0.2 разрыв: разрыв едет по кривой и читается как движение,
+     но линия при этом всё время на месте. Поставить разрыв в целую единицу
+     (буквально «1 1») — и половину цикла кривой не видно вовсе; на светлом
+     фоне панель от этого пустеет. */
+  stroke-dasharray: 0.8 0.2;
+  animation: wv-paths 24s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Линии остаются — стоит только движение. */
+  .wv-path {
+    animation: none;
+    stroke-dasharray: none;
+    opacity: 0.5;
+  }
+}
