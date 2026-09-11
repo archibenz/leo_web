@@ -1,38 +1,50 @@
-// Слаги витрины для edge-мидлвари: шаг `prebuild`, то есть перед каждым
-// `next build` (npm запускает его сам; Dockerfile и деплой зовут `npm run
-// build`, CI-job web-build — тоже).
+// Слаги витрины для edge-мидлвари. Пишет модуль lib/generated/product-slugs.ts,
+// который middleware импортирует статически.
 //
-// Зачем вообще файл, а не запрос из мидлвари: edge не ходит в базу и не читает
-// диск, а `output: 'standalone'` увозит в образ только то, что трассировщик
-// увидел в импортах. Модуль, который мидлварь импортирует статически,
-// вкомпилируется в её бандл целиком — json рядом с сервером не пережил бы ни
-// трассировку, ни отсутствие fs на edge.
+// Запускается тремя путями (package.json, vitest.global-setup.ts):
+//   prebuild — перед `next build`, СТРОГО: API недоступен → exit 1;
+//   predev   — перед `next dev`, с `--allow-stub`;
+//   vitest   — из глобального сетапа, с `--allow-stub`.
 //
-// Источник — тот же `GET /api/catalog/storefront`, из которого
-// `generateStaticParams` берёт список страниц (lib/catalogue/fetch.ts). Адрес
-// API считается той же лестницей переменных, что и серверная ветка lib/api.ts:
-// разойдись они — сборка нарисовала бы страницы одного каталога, а слаги взяла
-// из другого.
+// Разница между режимами принципиальная. В прод ведёт только `prebuild`, и там
+// пустой список означал бы 404 на весь каталог, поэтому любая заминка — exit 1.
+// В dev и тестах API часто нет вовсе, падать там незачем: пишется валидный
+// модуль с ПУСТЫМ списком и пометкой `CATALOGUE_SLUGS_IS_STUB = true`. На
+// пустом списке middleware отвечает «не знаю» и пропускает товарный адрес — то
+// есть возвращается сегодняшний мягкий 404, что честнее, чем 404 на живых
+// товарах. Доехать до прода заглушка не может: `npm run build` падает на
+// prebuild, а сборка мимо него (`npx next build`) падает на сверке в
+// generateStaticParams — пустой список отстал от каталога по определению.
 //
-// ВАЖНО ДЛЯ СЛЕДУЮЩЕГО ШАГА ЭТАПА 2. Список замирает на сборке, и это честно
-// ровно пока витрина статическая: `dynamicParams = false` (app/[locale]/
-// product/[slug]/page.tsx) и так не отдаёт новый товар без пересборки. Как
-// только витрина перейдёт на `revalidateTag('storefront')` и каталог станет
-// обновляться без сборки, этот список обязан стать динамическим вместе с ним —
-// иначе заведённый из админки товар отрисуется страницей, но мидлварь ответит
-// на него 404. Мина та же, что была у замороженной карты lib/productSlugs.ts,
-// только с другой стороны.
+// Зачем файл, а не запрос из мидлвари: edge не ходит в базу и не читает диск, а
+// `output: 'standalone'` увозит в образ только то, что трассировщик увидел в
+// импортах. Статически импортированный модуль вкомпилируется в бандл мидлвари
+// целиком — json рядом с сервером не пережил бы ни трассировку, ни отсутствие
+// fs на edge.
 //
-// Молчаливая неудача здесь дороже шумной: пустой список означал бы 404 на весь
-// каталог, поэтому любая заминка — это exit 1, а не запись «ничего не нашли».
+// Источник — тот же `GET /api/catalog/storefront`, из которого каталог берёт
+// сама витрина (lib/catalogue/fetch.ts). Адрес API считается той же лестницей
+// переменных, что и серверная ветка lib/api.ts: разойдись они — сборка
+// нарисовала бы страницы одного каталога, а слаги взяла из другого.
+//
+// КОГДА ЭТОТ ФАЙЛ СТАНЕТ МИНОЙ. Витрина НЕ статическая: layout ждёт headers()
+// ради CSP-нонса, поэтому ни одна страница не пререндерится, а каталог
+// приезжает в рантайме (`fetch` с revalidate 600). Новый товар появляется на
+// сайте без пересборки — в пределах десяти минут. Список же замирает на
+// сборке. Сегодня это сходится только потому, что товары заводятся вместе с
+// выкаткой; как только слаг сможет появиться без сборки (редактор витрины,
+// этап 2), карточка отрисуется, а ответ поедет со статусом 404: человек товар
+// увидит, поисковик не проиндексирует. Значит вместе с редактором список
+// обязан стать динамическим — или проверка обязана уехать с edge.
 
-import {writeFile} from 'node:fs/promises';
+import {mkdir, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-const OUT_FILE = join(dirname(fileURLToPath(import.meta.url)), '..', 'lib', 'catalogue', 'slugs.generated.ts');
-const OUT_LABEL = 'lib/catalogue/slugs.generated.ts';
+const OUT_FILE = join(dirname(fileURLToPath(import.meta.url)), '..', 'lib', 'generated', 'product-slugs.ts');
+const OUT_LABEL = 'lib/generated/product-slugs.ts';
 const TIMEOUT_MS = 15_000;
+const ALLOW_STUB = process.argv.includes('--allow-stub');
 
 // Как lib/api.ts на сервере. CATALOGUE_SOURCE=fixture здесь намеренно не
 // поддержан: `next build` идёт с NODE_ENV=production, а там getStorefront()
@@ -46,25 +58,81 @@ const apiBase = (
 
 const url = `${apiBase}/api/catalog/storefront`;
 
-function die(reason) {
+const HEADER = `// СГЕНЕРИРОВАНО scripts/generate-product-slugs.mjs — не править руками и не
+// коммитить: путь в .gitignore. Пишется перед каждой сборкой (prebuild), перед
+// \`next dev\` (predev) и перед тестами (vitest.global-setup.ts).
+//
+// Читает его middleware.ts: по этому списку edge отличает адрес живого товара
+// от выдуманного и ставит 404 на переписыватель next-intl, который иначе
+// отдаёт тело «не найдено» со статусом 200.`;
+
+function stubFile(reason) {
+  return `${HEADER}
+//
+// ЗАГЛУШКА: ${reason}
+// Список пуст, и middleware на пустом списке пропускает любой товарный адрес —
+// в dev и тестах это возвращает мягкий 404, а не 404 на живых товарах. В прод
+// такой файл попасть не может: \`npm run build\` падает на prebuild, сборка мимо
+// него — на сверке каталога со списком в generateStaticParams.
+export const CATALOGUE_SLUGS_IS_STUB = true;
+export const CATALOGUE_SLUGS: ReadonlySet<string> = new Set<string>([]);
+`;
+}
+
+function realFile(slugs) {
+  return `${HEADER}
+export const CATALOGUE_SLUGS_IS_STUB = false;
+export const CATALOGUE_SLUGS: ReadonlySet<string> = new Set([
+${slugs.map((slug) => `  ${JSON.stringify(slug)},`).join('\n')}
+]);
+`;
+}
+
+async function write(contents) {
+  await mkdir(dirname(OUT_FILE), {recursive: true});
+  await writeFile(OUT_FILE, contents, 'utf8');
+}
+
+// Строгий режим — останавливаем сборку. Мягкий — пишем заглушку и объясняем.
+async function give_up(reason) {
+  if (ALLOW_STUB) {
+    await write(stubFile(reason));
+    console.warn(`[product-slugs] ${reason}`);
+    console.warn(`[product-slugs] записана заглушка с пустым списком → ${OUT_LABEL} (годится только для dev и тестов)`);
+    process.exit(0);
+  }
   console.error(`\n[product-slugs] сборка остановлена: ${reason}`);
   console.error(`[product-slugs] источник: ${url}`);
   console.error('[product-slugs] без списка слагов edge отвечал бы 404 на весь каталог, поэтому пустой файл не пишется.\n');
   process.exit(1);
 }
 
-let payload;
+let raw;
 try {
   const res = await fetch(url, {signal: AbortSignal.timeout(TIMEOUT_MS)});
-  if (!res.ok) die(`API ответил ${res.status} ${res.statusText}`);
-  payload = await res.json();
+  if (!res.ok) await give_up(`API ответил ${res.status} ${res.statusText} (${url})`);
+  raw = await res.text();
 } catch (error) {
-  die(`API недоступен (${error instanceof Error ? error.message : String(error)})`);
+  await give_up(`API недоступен (${url}): ${error instanceof Error ? error.message : String(error)}`);
+}
+
+// Разбор отделён от доставки нарочно: по этому адресу может отвечать не API, а
+// заглушка nginx или прокси, и тогда причина — «пришёл не JSON», а вовсе не
+// «API недоступен». Без этого различия ищут упавший бэкенд вместо конфига.
+let payload;
+try {
+  payload = JSON.parse(raw);
+} catch (error) {
+  const head = raw.slice(0, 120).replace(/\s+/g, ' ');
+  await give_up(
+    `ответ по ${url} не разобрался как JSON (${error instanceof Error ? error.message : String(error)}). `
+    + `Начало ответа: «${head}». Похоже, по этому адресу отвечает не API — заглушка nginx, прокси или страница ошибки.`,
+  );
 }
 
 const products = payload?.products;
-if (!Array.isArray(products)) die('в ответе нет массива products');
-if (products.length === 0) die('каталог пуст — витрине нечего показывать');
+if (!Array.isArray(products)) await give_up(`в ответе ${url} нет массива products`);
+if (products.length === 0) await give_up(`каталог по ${url} пуст — витрине нечего показывать`);
 
 // Только то, что может стоять в адресе как есть. Кириллический или пробельный
 // слаг приехал бы на edge процент-кодированным и не совпал бы со строкой из
@@ -74,33 +142,13 @@ const slugs = [];
 for (const product of products) {
   const slug = product?.slug;
   if (typeof slug !== 'string' || !SAFE_SLUG.test(slug)) {
-    die(`товар ${JSON.stringify(product?.id ?? product?.key ?? '?')} несёт слаг ${JSON.stringify(slug)}, непригодный для адреса`);
+    await give_up(`товар ${JSON.stringify(product?.id ?? product?.key ?? '?')} несёт слаг ${JSON.stringify(slug)}, непригодный для адреса`);
   }
   slugs.push(slug);
 }
 
-// Сортировка — чтобы файл не менялся от перестановки товаров в ответе: тогда
-// разница в git означает разницу в каталоге, а не в порядке строк.
+// Сортировка — чтобы файл не зависел от порядка товаров в ответе.
 const unique = [...new Set(slugs)].sort();
 
-const file = `// СГЕНЕРИРОВАНО scripts/generate-product-slugs.mjs — не править руками.
-// Перезаписывается на каждом \`npm run build\` (шаг prebuild) из живого
-// \`GET /api/catalog/storefront\`. В git лежит потому, что tsc, vitest и
-// \`next dev\` должны собираться без поднятого API; для прода единственный
-// источник — сборка.
-//
-// Читает его middleware.ts: по этому списку edge отличает адрес живого товара
-// от выдуманного и ставит 404 на переписыватель next-intl, который иначе
-// отдаёт тело «не найдено» со статусом 200.
-//
-// Пока витрина статическая (\`dynamicParams = false\`), список верен между
-// сборками. С переходом на \`revalidateTag('storefront')\` он обязан стать
-// динамическим вместе с каталогом — иначе новый товар отрисуется, но получит
-// 404 на edge.
-export const CATALOGUE_SLUGS: ReadonlySet<string> = new Set([
-${unique.map((slug) => `  ${JSON.stringify(slug)},`).join('\n')}
-]);
-`;
-
-await writeFile(OUT_FILE, file, 'utf8');
+await write(realFile(unique));
 console.log(`[product-slugs] ${unique.length} слагов из ${url} → ${OUT_LABEL}`);

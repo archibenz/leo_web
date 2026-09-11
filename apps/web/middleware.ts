@@ -2,9 +2,10 @@ import createIntlMiddleware from 'next-intl/middleware';
 import {defaultLocale, locales} from './i18n-routing';
 // Frozen map of the retired numeric addresses, used by the ?p= redirect below.
 import {PRODUCT_SLUGS} from './lib/productSlugs';
-// The slugs the live catalogue carries, rewritten by every build — a different
-// list with a different job; see lib/catalogue/slugs.generated.ts.
-import {CATALOGUE_SLUGS} from './lib/catalogue/slugs.generated';
+// The slugs the catalogue carried when this build was made — a different list
+// with a different job; generated, never committed. See
+// scripts/generate-product-slugs.mjs.
+import {CATALOGUE_SLUGS} from './lib/generated/product-slugs';
 import {NextRequest, NextResponse} from 'next/server';
 
 const intlMiddleware = createIntlMiddleware({
@@ -121,14 +122,22 @@ function isDeadEnd(pathname: string): boolean {
     if (deeper.length > 0) return true;
     // The edge cannot ask the database, so the build hands it the answer:
     // scripts/generate-product-slugs.mjs writes the list from the same
-    // GET /api/catalog/storefront that generateStaticParams reads. Leaving the
-    // slug to the page instead looked safe — `dynamicParams = false` renders an
-    // honest 404 body — but the status is lost on the next-intl rewrite, so
-    // every mistyped garment answered 200.
+    // GET /api/catalog/storefront the storefront itself reads. Leaving the slug
+    // to the page looked safe — it does render an honest 404 body — but the
+    // status is lost on the next-intl rewrite, so every mistyped garment
+    // answered 200.
+    //
+    // The list is frozen at build time while the catalogue is not: nothing here
+    // prerenders (the locale layout awaits headers() for the CSP nonce) and the
+    // catalogue is fetched per request with revalidate 600. A garment that can
+    // appear without a build — the storefront editor — would therefore render
+    // for the visitor and answer 404 to the crawler. When that day comes the
+    // list has to become dynamic, or this check has to leave the edge.
     //
     // An empty list would 404 the whole catalogue, which is worse than a soft
-    // 404, so it reads as "the edge does not know" and the page answers. The
-    // generator refuses to write one; this is the second lock on that door.
+    // 404, so it reads as "the edge does not know" and the page answers. That is
+    // also what the dev/test stub relies on; production cannot get one, because
+    // prebuild exits 1 without an API.
     if (CATALOGUE_SLUGS.size === 0) return false;
     return !CATALOGUE_SLUGS.has(second);
   }

@@ -1,5 +1,8 @@
 node_modules
 .next
+# Список слагов для edge: внутри образа его пишет prebuild, локальная копия
+# (возможно заглушка без API) в контекст сборки попасть не должна.
+lib/generated
 .next/cache
 out
 build

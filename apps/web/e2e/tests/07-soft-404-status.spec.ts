@@ -19,7 +19,7 @@ const UNKNOWN_SLUG = 'takogo-tovara-net-i-ne-bylo';
 const UNKNOWN_SECTION = 'takogo-razdela-net';
 
 // Слаг спрашиваем у самой витрины: на что она ссылается, то и обязано жить.
-// Список в lib/catalogue/slugs.generated.ts взять было бы проще, но тогда спек
+// Список в lib/generated/product-slugs.ts взять было бы проще, но тогда спек
 // сверял бы список сам с собой — а проверять надо связку «каталог → edge».
 async function firstGarmentPath(request: APIRequestContext): Promise<string> {
   const res = await request.get('/ru/shop');
