@@ -31,6 +31,16 @@ User must exist in local Postgres with `role = 'admin'`.
 | 04 | `04-admin-login.spec.ts` | Admin sign-in flow lands on `/admin` dashboard (skipped without creds) |
 | 05 | `05-language-switch.spec.ts` | `/ru`, `/en` render; `/` redirects to a locale |
 | 06 | `06-underline-offset.spec.ts` | Quiet link underlines hug their text and every `.wv-link` carries an ink span |
+| 07 | `07-soft-404-status.spec.ts` | HTTP-статусы, а не разметка: несуществующий слаг товара и несуществующий раздел → 404, живой товар и главная → 200, безопасностные заголовки на 404 |
+
+Спек 07 имеет смысл только на СОБРАННОМ приложении: статус 404 ставится на
+переписыватель next-intl, и механизм виден только там:
+
+```bash
+npm run build && npm run start -- -p 3100
+E2E_SKIP_WEB_SERVER=1 E2E_BASE_URL=http://127.0.0.1:3100 \
+  npx playwright test e2e/tests/07-soft-404-status.spec.ts
+```
 
 Specs 01-03 run with the Spring API down: they abort `**/api/**` and every
 off-origin request, so a green run proves the storefront needs neither.

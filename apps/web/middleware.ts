@@ -1,6 +1,10 @@
 import createIntlMiddleware from 'next-intl/middleware';
 import {defaultLocale, locales} from './i18n-routing';
+// Frozen map of the retired numeric addresses, used by the ?p= redirect below.
 import {PRODUCT_SLUGS} from './lib/productSlugs';
+// The slugs the live catalogue carries, rewritten by every build — a different
+// list with a different job; see lib/catalogue/slugs.generated.ts.
+import {CATALOGUE_SLUGS} from './lib/catalogue/slugs.generated';
 import {NextRequest, NextResponse} from 'next/server';
 
 const intlMiddleware = createIntlMiddleware({
@@ -111,10 +115,22 @@ function isDeadEnd(pathname: string): boolean {
   if (!ROUTE_SEGMENTS.has(first)) return true;
   if (UNPOLICED.has(first)) return false;
   if (first === 'product') {
-    // Slugs live in the database, not on the edge — whether a card exists is
-    // the page's call (`dynamicParams = false` → an honest 404). Depth is all
-    // the edge can still judge.
-    return deeper.length > 0;
+    // /product with no slug is the legacy ?p=<key> address, and it has a page.
+    if (!second) return false;
+    // Nothing is routed below /product/<slug>.
+    if (deeper.length > 0) return true;
+    // The edge cannot ask the database, so the build hands it the answer:
+    // scripts/generate-product-slugs.mjs writes the list from the same
+    // GET /api/catalog/storefront that generateStaticParams reads. Leaving the
+    // slug to the page instead looked safe — `dynamicParams = false` renders an
+    // honest 404 body — but the status is lost on the next-intl rewrite, so
+    // every mistyped garment answered 200.
+    //
+    // An empty list would 404 the whole catalogue, which is worse than a soft
+    // 404, so it reads as "the edge does not know" and the page answers. The
+    // generator refuses to write one; this is the second lock on that door.
+    if (CATALOGUE_SLUGS.size === 0) return false;
+    return !CATALOGUE_SLUGS.has(second);
   }
   return Boolean(second);
 }

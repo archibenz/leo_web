@@ -4,6 +4,7 @@ import {notFound} from 'next/navigation';
 import WhitePdpShowcase from '../WhitePdpShowcase';
 import {getStockSnapshot, wbHasStock} from '../../../../lib/stock';
 import {getStorefront} from '../../../../lib/catalogue/fetch';
+import {CATALOGUE_SLUGS} from '../../../../lib/catalogue/slugs.generated';
 import {findProductBySlug, whiteProductHref, whitePriceRange} from '../../../../lib/catalogue/select';
 import {safeJsonLd, buildBreadcrumbJsonLd} from '../../../../lib/jsonLd';
 import {SITE_URL} from '../../../../lib/siteUrl';
@@ -33,6 +34,22 @@ export const revalidate = 600;
 // `generateStaticParams` ходит в API на сборке — API должен быть поднят до `next build`.
 export async function generateStaticParams() {
   const {products} = await getStorefront();
+  // Каталог здесь и список слагов у middleware — две выводки из одного
+  // ответа API: список пишет шаг prebuild (scripts/generate-product-slugs.mjs)
+  // перед этой сборкой. Разошлись — значит сборку запустили мимо
+  // `npm run build`, и edge ответит 404 на товар, который здесь только что
+  // отрисовался. Старый слаг в списке безвреден (мягкий 404 на снятом
+  // товаре), поэтому проверяется только опасная сторона. В dev не сторожит:
+  // там живёт и фикстура, и база разработчика.
+  if (process.env.NODE_ENV === 'production') {
+    const missing = products.map((p) => p.slug).filter((slug) => !CATALOGUE_SLUGS.has(slug));
+    if (missing.length > 0) {
+      throw new Error(
+        `список слагов для edge отстал от каталога (нет: ${missing.join(', ')}). `
+        + 'Запустите сборку как `npm run build` — шаг prebuild перепишет lib/catalogue/slugs.generated.ts.',
+      );
+    }
+  }
   return products.flatMap((p) =>
     ['en', 'ru'].map((locale) => ({locale, slug: p.slug})),
   );

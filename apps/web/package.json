@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/generate-product-slugs.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
