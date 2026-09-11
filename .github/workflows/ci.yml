@@ -48,8 +48,11 @@ jobs:
           name: api-test-reports
           path: apps/api/build/reports/tests/test
 
+  # Everything about the web app that does NOT need the catalogue: types and unit
+  # tests. Kept API-free on purpose — it is the fast signal, and it must not wait
+  # for Postgres and a Spring boot.
   web:
-    name: Web · build + lint
+    name: Web · types + vitest
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -71,8 +74,8 @@ jobs:
       - name: npm ci
         run: npm ci --no-audit --no-fund
 
-      - name: npm run build
-        run: npm run build
+      - name: tsc --noEmit
+        run: npx tsc --noEmit -p tsconfig.json
 
       - name: vitest
         run: npm test -- --run
@@ -83,3 +86,112 @@ jobs:
       - name: npm run lint
         continue-on-error: true
         run: npm run lint
+
+  # The build needs a live catalogue: every storefront page, app/sitemap.ts and
+  # generateStaticParams call getStorefront(), which throws on a failed fetch, and
+  # the fixture escape hatch is closed under NODE_ENV=production on purpose. So the
+  # job runs a throwaway Postgres, lets Flyway build the schema from V1 and boots
+  # the API against it — the same walk the deploy does, one build earlier.
+  web-build:
+    name: Web · build against the API
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    env:
+      NEXT_PUBLIC_API_BASE: http://127.0.0.1:8080
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_TELEMETRY_DISABLED: 1
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: reinasleo
+          POSTGRES_USER: reinasleo_ci
+          POSTGRES_PASSWORD: reinasleo_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U reinasleo_ci -d reinasleo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@99b8673ff64fbf99d8d325f52d9a5bdedb8483e9 # v4.2.1
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Cache Gradle
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4 (latest)
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('apps/api/build.gradle.kts', 'apps/api/settings.gradle.kts', 'apps/api/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Set up Node 20
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: npm ci
+        run: npm ci --no-audit --no-fund
+
+      # Every ${VAR} in apps/api/src/main/resources/application.yml that has no
+      # :default must be present or the context refuses to start. None of these is
+      # a secret: the job talks to nothing outside the runner, and JWT_SECRET only
+      # has to clear the 32-byte HS256 floor JwtService enforces at boot.
+      - name: Boot the API against the CI database
+        working-directory: apps/api
+        env:
+          DB_URL: jdbc:postgresql://127.0.0.1:5432/reinasleo
+          DB_USER: reinasleo_ci
+          DB_PASSWORD: reinasleo_ci
+          RESEND_API_KEY: ci-not-a-real-resend-key
+          RESEND_FROM: REINASLEO <noreply@example.com>
+          CORS_ORIGIN: http://localhost:3000
+          JWT_SECRET: ci-jwt-secret-key-minimum-32-characters-long-for-hmac-sha256
+          JWT_EXPIRATION_MS: '86400000'
+          BOT_API_SECRET: ci-not-a-real-bot-secret
+          BOT_USERNAME: ci_bot
+          TELEGRAM_BOT_TOKEN: ci-not-a-real-telegram-token
+          METRICS_SECRET: ci-not-a-real-metrics-secret
+        run: |
+          ./gradlew bootRun --no-daemon > "$RUNNER_TEMP/api.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/api.pid"
+
+      - name: Wait for /api/health
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8080/api/health > /dev/null; then
+              echo "API answered after ~$((i * 5))s"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::the API did not answer /api/health within 300s"
+          cat "$RUNNER_TEMP/api.log"
+          exit 1
+
+      # API_BASE_INTERNAL is what lib/api.ts reads first on the server side, and
+      # 127.0.0.1 (not localhost) keeps Node off the IPv6 address Spring does not
+      # listen on.
+      - name: npm run build
+        env:
+          API_BASE_INTERNAL: http://127.0.0.1:8080
+        run: npm run build
+
+      - name: API log on failure
+        if: failure()
+        run: cat "$RUNNER_TEMP/api.log"
+
+      - name: Stop the API
+        if: always()
+        run: kill "$(cat "$RUNNER_TEMP/api.pid")" || true
