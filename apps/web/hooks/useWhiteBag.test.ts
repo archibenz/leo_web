@@ -185,12 +185,39 @@ describe('useWhiteBag normalise robustness', () => {
         JSON.stringify([
           {key: 8, en: 'Satin Balloon Skirt', ru: 'Юбка баллон', price: 5000, size: 'M', colorEn: 'Ivory', colorRu: 'Слоновая кость', productId: 'wb-371980450', slug: 'yubka-ballon-atlasnaya', image: '/images/white/products/p-371980450-V.jpg'},
           {key: 2, en: 'Fitted Blazer Coat', ru: 'Пальто-пиджак', price: 23000, size: 'L', colorEn: 'Black', colorRu: 'Чёрный'},
+          // Storage is hand-editable: an off-origin image would be handed to
+          // next/image and a slug like this to an href. Both fields go, the line stays.
+          {
+            key: 15,
+            en: 'Draped Kimono Coat',
+            ru: 'Пальто кимоно',
+            price: 23000,
+            size: 'S',
+            colorEn: 'Camel',
+            colorRu: 'Кэмел',
+            productId: 'wb-795640219',
+            slug: '../../admin',
+            image: 'https://evil.example/track.gif',
+          },
+          {
+            key: 16,
+            en: 'Short Kimono Coat',
+            ru: 'Пальто кимоно короткое',
+            price: 23000,
+            size: 'S',
+            colorEn: 'Camel',
+            colorRu: 'Кэмел',
+            productId: 'wb-795670341',
+            slug: 'palto-kimono-korotkoe',
+            // Protocol-relative — the browser reads it as https://evil.example/x.jpg.
+            image: '//evil.example/x.jpg',
+          },
         ]),
       );
       window.dispatchEvent(new StorageEvent('storage', {key: 'wv-bag'}));
     });
 
-    expect(result.current.items).toHaveLength(2);
+    expect(result.current.items).toHaveLength(4);
     expect(result.current.items[0]).toMatchObject({
       key: 8,
       productId: 'wb-371980450',
@@ -202,5 +229,15 @@ describe('useWhiteBag normalise robustness', () => {
     expect(result.current.items[1]!.productId).toBeUndefined();
     expect(result.current.items[1]!.slug).toBeUndefined();
     expect(result.current.items[1]!.image).toBeUndefined();
+
+    // The tampered line keeps its garment and its variant; the two fields that
+    // would leave the module are dropped.
+    expect(result.current.items[2]).toMatchObject({key: 15, productId: 'wb-795640219', colorEn: 'Camel'});
+    expect(result.current.items[2]!.slug).toBeUndefined();
+    expect(result.current.items[2]!.image).toBeUndefined();
+
+    // A protocol-relative image is off-origin too — the good slug survives it.
+    expect(result.current.items[3]).toMatchObject({key: 16, slug: 'palto-kimono-korotkoe'});
+    expect(result.current.items[3]!.image).toBeUndefined();
   });
 });

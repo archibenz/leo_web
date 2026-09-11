@@ -55,6 +55,8 @@ export function subscribeWhiteBagAdds(fn: (_item: WhiteBagItem) => void): () => 
 // can't render an unbounded list or an Infinity total.
 const MAX_LINES = 100;
 const MAX_QTY = 99;
+// Слаги витрины — транслитерация: строчные латинские буквы, цифры и дефис.
+const SLUG = /^[a-z0-9-]+$/;
 
 function normalise(raw: unknown): WhiteBagItem[] {
   if (!Array.isArray(raw)) return [];
@@ -71,9 +73,16 @@ function normalise(raw: unknown): WhiteBagItem[] {
     const ru = typeof r.ru === 'string' ? r.ru : '';
     // Rows written before the bag carried the variant have none of these; a
     // non-string is treated the same as missing rather than rendered raw.
+    // Storage is hand-editable, and these two leave the module: `image` is fed to
+    // next/image and `slug` becomes an href. So they are accepted only in the
+    // shape the app itself writes — a same-origin path (a leading `//` is a
+    // protocol-relative URL, i.e. off-origin) and a transliterated slug. A value
+    // that fails drops the field, not the line: the bag still shows the garment,
+    // just without a thumbnail or a link back.
     const productId = typeof r.productId === 'string' ? r.productId : undefined;
-    const slug = typeof r.slug === 'string' ? r.slug : undefined;
-    const image = typeof r.image === 'string' ? r.image : undefined;
+    const slug = typeof r.slug === 'string' && SLUG.test(r.slug) ? r.slug : undefined;
+    const image =
+      typeof r.image === 'string' && r.image.startsWith('/') && !r.image.startsWith('//') ? r.image : undefined;
     const id = lineId(r.key, r.size, colorEn);
     const qty = Number.isFinite(r.qty) && r.qty > 0 ? Math.min(Math.floor(r.qty), MAX_QTY) : 1;
     const existing = byLine.get(id);
