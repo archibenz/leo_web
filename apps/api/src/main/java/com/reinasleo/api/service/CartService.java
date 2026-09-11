@@ -4,6 +4,7 @@ import com.reinasleo.api.dto.CartItemRequest;
 import com.reinasleo.api.dto.CartItemResponse;
 import com.reinasleo.api.dto.CartResponse;
 import com.reinasleo.api.dto.UpdateCartItemRequest;
+import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.NotFoundException;
 import com.reinasleo.api.exception.OutOfStockException;
@@ -87,6 +88,14 @@ public class CartService {
     }
 
     private void mergeAddItem(Cart cart, Product product, CartItemRequest request) {
+        // Тот же отказ, что в CheckoutService и OrderService: предзаказ без цены
+        // не продаётся. Отказ стоит здесь, на входе в корзину, потому что
+        // AdminProductService.updateStock может поднять остаток варианту без
+        // цены — и строка корзины с price == null дошла бы до умножения.
+        if (product.getPrice() == null) {
+            throw new BadRequestException("product_not_for_sale");
+        }
+
         var existing = cartItemRepository.findByCartIdAndProductIdAndSize(
                 cart.getId(), product.getId(), request.size());
 
@@ -161,8 +170,13 @@ public class CartService {
                 .toList();
 
         int totalItems = items.stream().mapToInt(CartItemResponse::quantity).sum();
+        // Строка, уложенная до запрета выше (или потерявшая цену в админке), не
+        // имеет права уронить GET /api/cart: считаем её нулём, а цену показываем
+        // как есть — покупатель видит «Предзаказ» вместо числа.
         BigDecimal totalPrice = items.stream()
-                .map(i -> i.productPrice().multiply(BigDecimal.valueOf(i.quantity())))
+                .map(i -> i.productPrice() == null
+                        ? BigDecimal.ZERO
+                        : i.productPrice().multiply(BigDecimal.valueOf(i.quantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return new CartResponse(items, totalItems, totalPrice);
