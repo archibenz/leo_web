@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import WhiteSetsShowcase from './WhiteSetsShowcase';
 import {brandMeta} from '../../../lib/openGraph';
+import {getStorefront} from '../../../lib/catalogue/fetch';
 
 // Curated sets — ready looks assembled from the catalogue.
 
@@ -24,5 +25,6 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 
 export default async function WhiteSetsPage({params}: Props) {
   const {locale} = await params;
-  return <WhiteSetsShowcase locale={locale} />;
+  const {sets, products} = await getStorefront();
+  return <WhiteSetsShowcase locale={locale} sets={sets} products={products} />;
 }

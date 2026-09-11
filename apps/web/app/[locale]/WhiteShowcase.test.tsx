@@ -1,8 +1,10 @@
+import type {ComponentProps} from 'react';
 import {afterEach, describe, it, expect, vi} from 'vitest';
 import {render, screen, cleanup, waitFor} from '@testing-library/react';
 import WhiteShowcase from './WhiteShowcase';
 import {NextIntlClientProvider} from 'next-intl';
 import enMessages from '../../messages/en.json';
+import {STOREFRONT_FIXTURE} from '../../lib/catalogue/fixture';
 
 // The footer's locale switch reads the router — give jsdom a stub.
 vi.mock('next/navigation', () => ({
@@ -58,10 +60,16 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
   });
 }
 
-function renderHome() {
+const SF = STOREFRONT_FIXTURE;
+const HERO = SF.sections.find((s) => s.layout === 'hero')!;
+const SETS_TEASER = SF.sections.find((s) => s.layout === 'sets-teaser')!;
+
+// The storefront arrives as props from the server page, so the test hands the
+// component a catalogue instead of mocking a data module.
+function renderHome(over: Partial<ComponentProps<typeof WhiteShowcase>> = {}) {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages as never}>
-      <WhiteShowcase locale="en" />
+      <WhiteShowcase locale="en" featured={SF.products} hero={HERO} setsTeaser={SETS_TEASER} {...over} />
     </NextIntlClientProvider>,
   );
 }
@@ -77,9 +85,9 @@ describe('WhiteShowcase image-led home', () => {
 
     // The showcase gates on a mount effect, then portals to document.body.
     const h1 = await screen.findByRole('heading', {level: 1});
-    // Assert against the catalogue rather than a literal — the hero wording is
-    // brand copy and gets rewritten; what must hold is that the h1 carries it.
-    expect(h1.textContent ?? '').toContain(enMessages.white.landing.heroLine1);
+    // Assert against the section rather than a literal — the hero wording is
+    // brand copy the editor rewrites; what must hold is that the h1 carries it.
+    for (const line of HERO.headlineEn!.split('\n')) expect(h1.textContent ?? '').toContain(line);
 
     // Exactly one <h1> on the page (the hero) — the rest are h2 section heads.
     expect(screen.getAllByRole('heading', {level: 1})).toHaveLength(1);
@@ -92,5 +100,38 @@ describe('WhiteShowcase image-led home', () => {
   it('renders the house line that replaced the marquee', async () => {
     renderHome();
     await waitFor(() => expect(screen.getByText(/made to underline you, not outshine you/i)).toBeInTheDocument());
+  });
+
+  it('takes the hero video and eyebrow from the section', async () => {
+    const {container} = renderHome();
+    await screen.findByRole('heading', {level: 1});
+
+    const video = container.querySelector('video')!;
+    expect(video.getAttribute('poster')).toBe(HERO.posterUrl);
+    expect(container.querySelector(`video source[src="${HERO.videoUrl}"]`)).toBeTruthy();
+    expect(container.querySelector(`video source[src="${HERO.videoDesktopUrl}"]`)).toBeTruthy();
+    expect(screen.getByText(HERO.eyebrowEn!)).toBeInTheDocument();
+  });
+
+  it('falls back to the bundled copy and media when there is no hero section', async () => {
+    const {container} = renderHome({hero: undefined, setsTeaser: undefined});
+    const h1 = await screen.findByRole('heading', {level: 1});
+
+    expect(h1.textContent ?? '').toContain(enMessages.white.landing.heroLine1);
+    expect(h1.textContent ?? '').toContain(enMessages.white.landing.heroLine2);
+    expect(screen.getByText(enMessages.white.landing.season)).toBeInTheDocument();
+    expect(container.querySelector('video source[src="/videos/white/hero-mark2.mp4"]')).toBeTruthy();
+    expect(screen.getByText(enMessages.white.sets.landingBody)).toBeInTheDocument();
+  });
+
+  it('renders the featured pieces in the order given', async () => {
+    const reversed = [...SF.products].reverse();
+    const {container} = renderHome({featured: reversed});
+    await screen.findByRole('heading', {level: 1});
+
+    // Every card lays a full-cover link over its photograph, labelled with the
+    // garment's name — reading them in DOM order reads the grid in order.
+    const names = Array.from(container.querySelectorAll('.wv-card-link')).map((a) => a.getAttribute('aria-label'));
+    expect(names).toEqual(reversed.map((p) => p.en));
   });
 });

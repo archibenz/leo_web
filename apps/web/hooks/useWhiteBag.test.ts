@@ -175,4 +175,32 @@ describe('useWhiteBag normalise robustness', () => {
     expect(result.current.items).toHaveLength(1);
     expect(result.current.items[0]).toMatchObject({en: '', ru: '', price: 5000});
   });
+
+  it('carries the variant through a reload and still loads a line written without one', () => {
+    const {result} = renderHook(() => useWhiteBag());
+
+    act(() => {
+      localStorage.setItem(
+        'wv-bag',
+        JSON.stringify([
+          {key: 8, en: 'Satin Balloon Skirt', ru: 'Юбка баллон', price: 5000, size: 'M', colorEn: 'Ivory', colorRu: 'Слоновая кость', productId: 'wb-371980450', slug: 'yubka-ballon-atlasnaya', image: '/images/white/products/p-371980450-V.jpg'},
+          {key: 2, en: 'Fitted Blazer Coat', ru: 'Пальто-пиджак', price: 23000, size: 'L', colorEn: 'Black', colorRu: 'Чёрный'},
+        ]),
+      );
+      window.dispatchEvent(new StorageEvent('storage', {key: 'wv-bag'}));
+    });
+
+    expect(result.current.items).toHaveLength(2);
+    expect(result.current.items[0]).toMatchObject({
+      key: 8,
+      productId: 'wb-371980450',
+      slug: 'yubka-ballon-atlasnaya',
+      image: '/images/white/products/p-371980450-V.jpg',
+    });
+    // The legacy line survives the migration; it simply has no variant to show.
+    expect(result.current.items[1]).toMatchObject({key: 2, colorEn: 'Black'});
+    expect(result.current.items[1]!.productId).toBeUndefined();
+    expect(result.current.items[1]!.slug).toBeUndefined();
+    expect(result.current.items[1]!.image).toBeUndefined();
+  });
 });

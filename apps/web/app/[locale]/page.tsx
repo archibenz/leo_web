@@ -3,6 +3,7 @@ import {headers} from 'next/headers';
 import {safeJsonLd} from '../../lib/jsonLd';
 import {SITE_URL} from '../../lib/siteUrl';
 import {brandMeta} from '../../lib/openGraph';
+import {getStorefront} from '../../lib/catalogue/fetch';
 import WhiteShowcase from './WhiteShowcase';
 
 // The White storefront home — the site's landing page.
@@ -32,6 +33,12 @@ export default async function WhiteVariantPage({params}: Props) {
   const {locale} = await params;
   const ru = locale === 'ru';
   const nonce = (await headers()).get('x-nonce') ?? undefined;
+  const {products, sections} = await getStorefront();
+  // The edit and the two media blocks are the database's to order now — a piece
+  // joins the home page by getting a featuredOrder, not by editing this file.
+  const featured = products.filter((p) => p.featuredOrder != null).sort((a, b) => a.featuredOrder! - b.featuredOrder!);
+  const hero = sections.find((s) => s.layout === 'hero');
+  const setsTeaser = sections.find((s) => s.layout === 'sets-teaser');
   const orgJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -55,7 +62,7 @@ export default async function WhiteVariantPage({params}: Props) {
     <>
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}} />
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(siteJsonLd)}} />
-      <WhiteShowcase locale={locale} />
+      <WhiteShowcase locale={locale} featured={featured} hero={hero} setsTeaser={setsTeaser} />
     </>
   );
 }

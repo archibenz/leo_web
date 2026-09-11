@@ -18,6 +18,12 @@ export type WhiteBagItem = {
   colorEn: string; // chosen colourway (localised pair stored for display-independence)
   colorRu: string;
   qty: number;
+  // The colourway's own row, the PDP slug and the photograph of the colour that
+  // was picked. Optional because lines persisted before this existed have none
+  // — the bag still renders them, just without a thumbnail or a link back.
+  productId?: string;
+  slug?: string;
+  image?: string;
 };
 
 const lineId = (key: number, size: string, colorEn: string) => `${key}-${size}-${colorEn}`;
@@ -60,12 +66,17 @@ function normalise(raw: unknown): WhiteBagItem[] {
     const colorRu = typeof r.colorRu === 'string' ? r.colorRu : '';
     const en = typeof r.en === 'string' ? r.en : '';
     const ru = typeof r.ru === 'string' ? r.ru : '';
+    // Rows written before the bag carried the variant have none of these; a
+    // non-string is treated the same as missing rather than rendered raw.
+    const productId = typeof r.productId === 'string' ? r.productId : undefined;
+    const slug = typeof r.slug === 'string' ? r.slug : undefined;
+    const image = typeof r.image === 'string' ? r.image : undefined;
     const id = lineId(r.key, r.size, colorEn);
     const qty = Number.isFinite(r.qty) && r.qty > 0 ? Math.min(Math.floor(r.qty), MAX_QTY) : 1;
     const existing = byLine.get(id);
     if (byLine.size >= MAX_LINES && !existing) continue;
     if (existing) existing.qty = Math.min(existing.qty + qty, MAX_QTY);
-    else byLine.set(id, {id, key: r.key, en, ru, price: r.price, size: r.size, colorEn, colorRu, qty});
+    else byLine.set(id, {id, key: r.key, en, ru, price: r.price, size: r.size, colorEn, colorRu, qty, productId, slug, image});
   }
   return [...byLine.values()];
 }

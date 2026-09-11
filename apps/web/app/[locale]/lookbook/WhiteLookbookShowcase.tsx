@@ -7,7 +7,8 @@ import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
 import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
-import {WHITE_PRODUCTS, whiteProductHref} from '../products';
+import {whiteProductHref} from '../../../lib/catalogue/select';
+import type {WhiteProduct} from '../../../lib/catalogue/types';
 import {INK, MUTED} from '../wv-palette';
 
 // Variant 2 "White" — Lookbook. An editorial counterpart to the shop grid: a
@@ -15,10 +16,9 @@ import {INK, MUTED} from '../wv-palette';
 // and a "shop this look" link to its PDP. Different presentation (full-bleed
 // magazine vs compact grid) + a shoppable funnel, so it earns its place rather
 // than repeating the grid. CSS-only reveal (wv-rise, reduced-motion-safe).
+// The looks arrive in order as a prop from the server page.
 
-const LOOKS = [2, 1, 6, 4, 8].map((k) => WHITE_PRODUCTS.find((p) => p.key === k)!);
-
-export default function WhiteLookbookShowcase({locale}: {locale: string}) {
+export default function WhiteLookbookShowcase({locale, looks}: {locale: string; looks: WhiteProduct[]}) {
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const ru = locale === 'ru';
@@ -38,7 +38,7 @@ export default function WhiteLookbookShowcase({locale}: {locale: string}) {
         </section>
 
         {/* Looks — large, alternating on desktop */}
-        {LOOKS.map((p, i) => {
+        {looks.map((p, i) => {
           const name = ru ? p.ru : p.en;
           const desc = ru ? p.descRu : p.descEn;
           const href = whiteProductHref(locale, p);

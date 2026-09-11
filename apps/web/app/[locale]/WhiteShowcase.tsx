@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useRef} from 'react';
+import {Fragment, useEffect, useRef} from 'react';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../hooks/useWhiteFavourites';
@@ -10,24 +10,55 @@ import WhiteFooter from './WhiteFooter';
 import WhiteProductCard from './WhiteProductCard';
 import {INK, MUTED, HAIR} from './wv-palette';
 import {WhiteArrow} from './wv-icons';
-import {WHITE_PRODUCTS} from './products';
+import type {StorefrontSection, WhiteProduct} from '../../lib/catalogue/types';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
 // fixed full-bleed surface escapes the gradient layout's `main.z-40` stacking
 // context and fully covers the dark chrome — letting both design directions be
 // compared on one deploy at /<locale>. Imagery is placeholder (editorial
 // shots arrive via the loop / Higgsfield). CSS-only motion (reduced-motion safe).
+//
+// The edit and the two media blocks arrive as props from the server page. The
+// bundled copy and files stay as the fallback: an empty sections table must
+// leave a working landing page, not a blank band.
 
-// "The edit" — a curated six from the shared catalog (in the landing's order),
-// so each card opens the matching product PDP via ?p.
-const FEATURED = [2, 1, 3, 4, 8, 6].map((k) => WHITE_PRODUCTS.find((p) => p.key === k)!);
+// Today's files, kept as the fallback for a storefront with no sections yet.
+const HERO_POSTER = '/images/white/hero-mark2.jpg';
+const HERO_VIDEO = '/videos/white/hero-mark2.mp4';
+const HERO_POSTER_DESKTOP = '/images/white/hero-desktop.jpg';
+const HERO_VIDEO_DESKTOP = '/videos/white/hero-desktop.mp4';
+const SETS_POSTER = '/images/white/sets-static.jpg';
+const SETS_VIDEO = '/videos/white/sets-static.mp4';
 
-export default function WhiteShowcase({locale}: {locale: string}) {
+export default function WhiteShowcase({locale, featured, hero, setsTeaser}: {
+  locale: string;
+  featured: WhiteProduct[];
+  hero?: StorefrontSection;
+  setsTeaser?: StorefrontSection;
+}) {
   const heroVideoRef = useRef<HTMLVideoElement>(null);
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const t = useTranslations('white.landing');
   const ts = useTranslations('white.sets');
+  const ru = locale === 'ru';
+
+  const heroPoster = hero?.posterUrl ?? HERO_POSTER;
+  const heroVideo = hero?.videoUrl ?? HERO_VIDEO;
+  const heroPosterDesktop = hero?.posterDesktopUrl ?? HERO_POSTER_DESKTOP;
+  const heroVideoDesktop = hero?.videoDesktopUrl ?? HERO_VIDEO_DESKTOP;
+  const heroEyebrow = (ru ? hero?.eyebrowRu : hero?.eyebrowEn) ?? t('season');
+  // Headlines are stored as one string, the line breaks included, so rewording
+  // the hero is a row in the database and not a component change.
+  const heroHeadline = ru ? hero?.headlineRu : hero?.headlineEn;
+  const heroLines = heroHeadline ? heroHeadline.split('\n') : [t('heroLine1'), t('heroLine2')];
+
+  const setsPoster = setsTeaser?.posterUrl ?? SETS_POSTER;
+  const setsVideo = setsTeaser?.videoUrl ?? SETS_VIDEO;
+  const setsEyebrow = (ru ? setsTeaser?.eyebrowRu : setsTeaser?.eyebrowEn) ?? ts('eyebrow');
+  const setsHeadline = ru ? setsTeaser?.headlineRu : setsTeaser?.headlineEn;
+  const setsLines = setsHeadline ? setsHeadline.split('\n') : [ts('landingTitle1'), ts('landingTitle2')];
+  const setsBody = (ru ? setsTeaser?.bodyRu : setsTeaser?.bodyEn) ?? ts('landingBody');
 
   // The landing renders in a fixed overflow-y-auto portal, so native hash
   // scrolling (#wv-atelier / #wv-edit from the footer) doesn't move the inner
@@ -61,9 +92,9 @@ export default function WhiteShowcase({locale}: {locale: string}) {
     // was meant to fix. currentSrc is checked first so the browsers that got
     // it right are not made to reload the file they already chose.
     if (window.matchMedia('(min-width: 1024px)').matches) {
-      v.poster = '/images/white/hero-desktop.jpg';
-      if (!v.currentSrc.includes('hero-desktop')) {
-        v.src = '/videos/white/hero-desktop.mp4';
+      v.poster = heroPosterDesktop;
+      if (!v.currentSrc.includes(heroVideoDesktop)) {
+        v.src = heroVideoDesktop;
         v.load();
         void v.play().catch(() => {});
       }
@@ -72,7 +103,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       v.pause();
       v.removeAttribute('autoplay');
     }
-  }, []);
+  }, [heroPosterDesktop, heroVideoDesktop]);
 
 
 
@@ -100,11 +131,11 @@ export default function WhiteShowcase({locale}: {locale: string}) {
           loop
           playsInline
           preload="metadata"
-          poster="/images/white/hero-mark2.jpg"
+          poster={heroPoster}
           className="absolute inset-0 h-full w-full object-cover object-[50%_22%]"
         >
-          <source src="/videos/white/hero-desktop.mp4" type="video/mp4" media="(min-width: 1024px)" />
-          <source src="/videos/white/hero-mark2.mp4" type="video/mp4" />
+          <source src={heroVideoDesktop} type="video/mp4" media="(min-width: 1024px)" />
+          <source src={heroVideo} type="video/mp4" />
         </video>
         {/* The scrim carries the text contrast on its own so any Higgsfield shot
             (however light in its lower third) keeps the white type AA-legible —
@@ -132,11 +163,14 @@ export default function WhiteShowcase({locale}: {locale: string}) {
           className="absolute inset-0 z-[5]"
         />
         <div className="wv-rise pointer-events-none absolute inset-x-0 bottom-0 z-[6] px-6 pb-12 [text-shadow:0_1px_26px_rgba(28,23,20,0.5)] sm:px-10 sm:pb-16">
-          <p className="text-[11px] uppercase tracking-[0.34em] text-white">{t('season')}</p>
+          <p className="text-[11px] uppercase tracking-[0.34em] text-white">{heroEyebrow}</p>
           <h1 className="mt-4 font-display text-[clamp(54px,15vw,96px)] font-light leading-[0.9] tracking-[-0.015em] text-white">
-            {t('heroLine1')}
-            <br />
-            <span className="italic text-white/85">{t('heroLine2')}</span>
+            {heroLines.map((line, i) => (
+              <Fragment key={i}>
+                {i > 0 && <br />}
+                {i === 0 ? line : <span className="italic text-white/85">{line}</span>}
+              </Fragment>
+            ))}
           </h1>
           {/* pointer-events return here: the wrapper above releases them so the
               banner-wide link underneath stays reachable across the whole scrim. */}
@@ -162,7 +196,7 @@ export default function WhiteShowcase({locale}: {locale: string}) {
       {/* Product grid — 2/3 portrait cards */}
       <section className="mx-auto max-w-[1400px] pb-24 sm:px-10">
         <div className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-14 lg:grid-cols-3 lg:gap-x-10 lg:gap-y-16">
-          {FEATURED.map((p, i) => (
+          {featured.map((p, i) => (
             <WhiteProductCard key={p.key} locale={locale} product={p} index={i} rise bleed />
           ))}
         </div>
@@ -198,11 +232,11 @@ export default function WhiteShowcase({locale}: {locale: string}) {
               loop
               playsInline
               preload="none"
-              poster="/images/white/sets-static.jpg"
-              aria-label={ts('landingTitle1')}
+              poster={setsPoster}
+              aria-label={setsLines[0]}
               className="absolute inset-0 h-full w-full object-cover"
             >
-              <source src="/videos/white/sets-static.mp4" type="video/mp4" />
+              <source src={setsVideo} type="video/mp4" />
             </video>
             {/* The film opens the sets too. Nothing interactive sits inside this
                 cell, so a plain overlay link is enough — no nesting to work
@@ -215,14 +249,17 @@ export default function WhiteShowcase({locale}: {locale: string}) {
             />
           </div>
           <div className="wv-rise wv-scrub wv-delay-1 flex flex-col justify-center px-6 py-16 sm:px-12 lg:px-20 lg:py-24 xl:px-28">
-            <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{ts('eyebrow')}</p>
+            <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{setsEyebrow}</p>
             <h2 className="font-display text-[30px] font-light leading-[1.1] tracking-tight sm:text-[40px]">
-              {ts('landingTitle1')}
-              <br />
-              <span className="italic" style={{color: MUTED}}>{ts('landingTitle2')}</span>
+              {setsLines.map((line, i) => (
+                <Fragment key={i}>
+                  {i > 0 && <br />}
+                  {i === 0 ? line : <span className="italic" style={{color: MUTED}}>{line}</span>}
+                </Fragment>
+              ))}
             </h2>
             <p className="mt-8 max-w-md text-[15px] leading-relaxed" style={{color: MUTED}}>
-              {ts('landingBody')}
+              {setsBody}
             </p>
             <a href={`/${locale}/sets`} className="wv-btn wv-arrow-link mt-10 inline-flex items-center justify-center gap-3 self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
               {ts('explore')}
