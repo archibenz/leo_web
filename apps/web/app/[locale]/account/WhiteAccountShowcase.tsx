@@ -148,6 +148,35 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
           />
         </div>
 
+        {/* Те же линии на узком экране. Боковой панели здесь нет — её прячет
+            сам блок, — а движение как раз то, ради чего блок и выбран, и
+            смотрят сайт с телефона. Полоса кончается там, где начинается
+            форма, а белая вуаль поверх неё расписана по строкам: над
+            надзаголовком она почти глухая, за крупным заголовком отпускает,
+            к подзаголовку снова глухая. Смысл в контрасте, а не в красоте
+            градиента — мелкий MUTED держит AA на белом с запасом 5.0:1, и
+            чернильная линия под ним допустима примерно до 5 % плотности,
+            дальше подпись проседает ниже 4.5:1. Заголовок — 38 px чернил,
+            ему та же линия на четверти плотности не мешает вовсе. Гашение по
+            prefers-reduced-motion общее, оно живёт на .wv-path. */}
+        <div
+          data-wv-decor
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[155px] overflow-hidden lg:hidden"
+        >
+          <div className="absolute inset-0">
+            <WhiteFloatingPaths position={1} fill />
+            <WhiteFloatingPaths position={-1} fill />
+          </div>
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(to bottom, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.85) 48%, rgba(255,255,255,0.22) 62%, rgba(255,255,255,0.22) 90%, #fff 100%)',
+            }}
+          />
+        </div>
+
         <div className="relative mx-auto w-full max-w-[420px]">
           <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('eyebrow')}</p>
 

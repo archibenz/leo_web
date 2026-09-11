@@ -137,10 +137,14 @@ describe('WhiteAccountShowcase — auth-5 contract', () => {
     const user = userEvent.setup();
     const {container} = renderPage();
 
-    const decor = container.querySelector('[data-wv-decor]');
-    expect(decor).not.toBeNull();
-    expect(decor).toHaveAttribute('aria-hidden', 'true');
-    expect(decor!.querySelectorAll('a, button, input, [tabindex]:not([tabindex="-1"])')).toHaveLength(0);
+    // Two of them: the side panel on a wide screen, the wash behind the top of
+    // the form on a narrow one. Neither may be reachable.
+    const decor = Array.from(container.querySelectorAll('[data-wv-decor]'));
+    expect(decor.length).toBeGreaterThanOrEqual(2);
+    for (const layer of decor) {
+      expect(layer).toHaveAttribute('aria-hidden', 'true');
+      expect(layer.querySelectorAll('a, button, input, [tabindex]:not([tabindex="-1"])')).toHaveLength(0);
+    }
 
     // The form keeps its own tab order: e-mail hands focus to password, and a
     // tab switch leaves focus on the control that was pressed rather than
