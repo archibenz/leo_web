@@ -35,8 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// AuthService mocked so JPA persistence (Product.sizes TEXT[] unsupported on H2)
-// is bypassed; tests cover the HTTP layer only.
+// AuthService mocked so the export payload is fixed and no data has to be
+// persisted; tests cover the HTTP layer only.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")

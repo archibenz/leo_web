@@ -72,13 +72,15 @@ describe('useWhiteFavourites store', () => {
     expect(localStorage.getItem('wv-favourites')).toBe('[4]');
   });
 
-  it('count only counts keys the catalog still resolves (badge matches the favourites page)', () => {
+  it('count equals the number of saved keys, catalogue or not', () => {
     const {result} = renderHook(() => useWhiteFavourites());
     act(() => {
-      toggleWhiteFavourite(1); // a real product
-      toggleWhiteFavourite(999); // a stale key the catalog no longer carries
+      toggleWhiteFavourite(2); // a garment the catalogue carries
+      toggleWhiteFavourite(999); // a key no catalogue resolves
     });
-    expect(result.current.keys).toEqual([1, 999]); // storage keeps it (another catalog may resolve it)
-    expect(result.current.count).toBe(1); // the badge doesn't
+    expect(result.current.keys).toEqual([2, 999]);
+    // The store has no catalogue to check against — it lives in the database
+    // now, and the favourites page drops what it cannot resolve.
+    expect(result.current.count).toBe(2);
   });
 });

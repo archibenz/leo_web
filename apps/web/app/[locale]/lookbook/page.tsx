@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import WhiteLookbookShowcase from './WhiteLookbookShowcase';
 import {brandMeta} from '../../../lib/openGraph';
+import {getStorefront} from '../../../lib/catalogue/fetch';
 
 // Variant 2 "White" — Lookbook page (pitch preview at /<locale>/lookbook).
 // Indexable — the White variant is the site. title.absolute opts out of the root template.
@@ -25,5 +26,7 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 
 export default async function WhiteLookbookPage({params}: Props) {
   const {locale} = await params;
-  return <WhiteLookbookShowcase locale={locale} />;
+  const {products} = await getStorefront();
+  const looks = products.filter((p) => p.lookbookOrder != null).sort((a, b) => a.lookbookOrder! - b.lookbookOrder!);
+  return <WhiteLookbookShowcase locale={locale} looks={looks} />;
 }

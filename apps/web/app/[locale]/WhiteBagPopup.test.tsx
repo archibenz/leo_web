@@ -30,7 +30,23 @@ Object.defineProperty(globalThis, 'localStorage', {
   },
 });
 
-const ITEM = {key: 3, en: 'Peplum Suit Vest', ru: 'Жилет костюмный с баской', price: 4466, size: 'M', colorEn: 'Black', colorRu: 'Чёрный'};
+// A line the bag takes today: it carries the variant, its slug and the photo of
+// the colourway that was picked, so the popup needs no catalogue to show them.
+const ITEM = {
+  key: 3,
+  en: 'Peplum Suit Vest',
+  ru: 'Жилет костюмный с баской',
+  price: 4466,
+  size: 'M',
+  colorEn: 'Black',
+  colorRu: 'Чёрный',
+  productId: 'wb-123456',
+  slug: 'zhilet-kostyumnyy-s-baskoy',
+  image: '/images/white/products/vest-black.jpg',
+};
+
+// A line persisted before the bag carried any of that. It must still announce.
+const LEGACY_ITEM = {key: 8, en: 'Balloon Skirt', ru: 'Юбка-баллон', price: 3200, size: 'S', colorEn: 'Ivory', colorRu: 'Молочный'};
 
 function renderPopup() {
   return render(
@@ -80,6 +96,34 @@ describe('WhiteBagPopup', () => {
     });
     const region = await screen.findByRole('status');
     expect(region).toHaveAttribute('aria-live', 'polite');
+  });
+
+  it('shows the colourway that was picked and links back to its garment', async () => {
+    const {container} = renderPopup();
+    act(() => {
+      addToWhiteBag(ITEM);
+    });
+    await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument());
+    // The photo travels on the line — the catalogue lives behind the API now
+    // and a popup mounted in the chrome has no way to fetch it.
+    const img = container.querySelector('img');
+    expect(img).not.toBeNull();
+    expect(img!.getAttribute('src')).toContain(encodeURIComponent(ITEM.image));
+    expect(screen.getByRole('link', {name: ITEM.en})).toHaveAttribute('href', `/en/product/${ITEM.slug}`);
+  });
+
+  it('still announces a line saved before the bag carried the variant', async () => {
+    const {container} = renderPopup();
+    act(() => {
+      addToWhiteBag(LEGACY_ITEM);
+    });
+    await waitFor(() => expect(screen.getByRole('status')).toBeInTheDocument());
+    expect(screen.getByText('Balloon Skirt')).toBeInTheDocument();
+    // Nothing to show and nowhere to point: no thumbnail, and the bag is the
+    // only place the shopper can be sent.
+    expect(container.querySelector('img')).toBeNull();
+    expect(screen.queryByRole('link', {name: LEGACY_ITEM.en})).not.toBeInTheDocument();
+    expect(screen.getByRole('link', {name: /go to the bag/i})).toHaveAttribute('href', '/en/bag');
   });
 
   it('takes itself away', async () => {

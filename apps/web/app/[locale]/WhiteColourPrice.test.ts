@@ -1,12 +1,14 @@
 import {describe, it, expect} from 'vitest';
-import {WHITE_PRODUCTS, findWhiteProduct, whitePrice, whiteEffectivePrice, whitePriceRange, type WhiteColor, type WhiteProduct} from './products';
+import {findProductByKey, whitePrice, whiteEffectivePrice, whitePriceRange} from '../../lib/catalogue/select';
+import {STOREFRONT_FIXTURE as SF} from '../../lib/catalogue/fixture';
+import type {WhiteColor} from '../../lib/catalogue/types';
 
 // Wildberries prices per colourway, so the site does too. What these pin down is
 // that a colour's own price never mixes with the product's sale — quoting one
 // colour's number for another is how a card promises half of what the bag then
 // charges.
 
-const colour = (over: Partial<WhiteColor> = {}): WhiteColor => ({key: 'x', hex: '#000', en: 'X', ru: 'Икс', ...over});
+const colour = (over: Partial<WhiteColor> = {}): WhiteColor => ({id: 'wb-1', key: 'x', hex: '#000', en: 'X', ru: 'Икс', ...over});
 
 describe('whitePrice', () => {
   it('sells a colour without its own price at the product price', () => {
@@ -47,8 +49,7 @@ describe('whiteEffectivePrice', () => {
 });
 
 describe('whitePriceRange', () => {
-  const product = (colors: WhiteColor[], price?: number): WhiteProduct =>
-    ({colors, price} as unknown as WhiteProduct);
+  const product = (colors: WhiteColor[], price?: number) => ({colors, price});
 
   it('reports no spread when every colour costs the same', () => {
     expect(whitePriceRange(product([colour(), colour()], 5000))).toEqual({min: 5000, max: 5000, varies: false});
@@ -64,22 +65,17 @@ describe('whitePriceRange', () => {
   });
 });
 
-// Data guards. These fail when the catalogue drifts from the marketplace, which
-// is the whole failure this feature exists to catch.
+// Data guards. They ran against the static catalogue and now run against the
+// storefront the pages are tested on — a price that is nonsense here is a price
+// the cards and the bag would repeat.
 describe('catalogue pricing', () => {
-  it('prices the balloon skirt from its cheapest colour, not its dearest', () => {
-    // Ivory is 5 000 and red is 2 250 — the card must not quote ivory for both.
-    const range = whitePriceRange(findWhiteProduct(8)!);
-    expect(range.varies).toBe(true);
-    expect(range.min).toBe(2250);
-  });
-
   it('leaves a single-priced piece alone', () => {
-    expect(whitePriceRange(findWhiteProduct(6)!)).toMatchObject({varies: false, min: 5000});
+    // The coat is one number across all three colourways: no "от" on its card.
+    expect(whitePriceRange(findProductByKey(SF.products, 2)!)).toMatchObject({varies: false, min: 23000});
   });
 
   it('never prices a colour at zero or below', () => {
-    for (const p of WHITE_PRODUCTS) {
+    for (const p of SF.products) {
       for (const c of p.colors) {
         if (c.price != null) expect(c.price, `${p.slug} / ${c.key}`).toBeGreaterThan(0);
         if (c.sale != null) expect(c.sale, `${p.slug} / ${c.key}`).toBeGreaterThan(0);
@@ -88,7 +84,7 @@ describe('catalogue pricing', () => {
   });
 
   it('never marks a colour up above its own struck price', () => {
-    for (const p of WHITE_PRODUCTS) {
+    for (const p of SF.products) {
       for (const c of p.colors) {
         if (c.price != null && c.sale != null) expect(c.sale, `${p.slug} / ${c.key}`).toBeLessThan(c.price);
       }

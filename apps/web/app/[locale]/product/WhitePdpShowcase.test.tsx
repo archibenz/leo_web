@@ -2,7 +2,8 @@ import {afterEach, describe, it, expect, vi} from 'vitest';
 import {render, screen, cleanup, waitFor, fireEvent, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import WhitePdpShowcase from './WhitePdpShowcase';
-import {WHITE_PRODUCTS} from '../products';
+import {STOREFRONT_FIXTURE} from '../../../lib/catalogue/fixture';
+import type {WhiteProduct} from '../../../lib/catalogue/types';
 import {NextIntlClientProvider} from 'next-intl';
 import enMessages from '../../../messages/en.json';
 
@@ -61,16 +62,19 @@ if (typeof window !== 'undefined' && !window.matchMedia) {
   });
 }
 
-function renderPdp(product: (typeof WHITE_PRODUCTS)[number]) {
+// Каталог и образы приходят пропсами — витрина больше не тянет их из модуля.
+const {products: PRODUCTS, sets: SETS} = STOREFRONT_FIXTURE;
+
+function renderPdp(product: WhiteProduct) {
   return render(
     <NextIntlClientProvider locale="en" messages={enMessages as never}>
-      <WhitePdpShowcase locale="en" product={product} />
+      <WhitePdpShowcase locale="en" product={product} products={PRODUCTS} sets={SETS} />
     </NextIntlClientProvider>,
   );
 }
 
 // A product carrying extra views — the PDP gallery is its own photo + those views.
-const MULTI_PRODUCT = {...WHITE_PRODUCTS[0]!, gallery: ['/images/white/products/g2.jpg', '/images/white/products/g3.jpg', '/images/white/products/g4.jpg']};
+const MULTI_PRODUCT = {...PRODUCTS[0]!, gallery: ['/images/white/products/g2.jpg', '/images/white/products/g3.jpg', '/images/white/products/g4.jpg']};
 const GALLERY_LEN = 4;
 
 // Read the lightbox position indicator ("1 / 4") inside the open dialog.
@@ -127,7 +131,7 @@ describe('WhitePdpShowcase zoom lightbox keyboard navigation', () => {
   it('shows a single view — no cross-product filler — when the product has no extra images', async () => {
     // Built rather than found: every catalogue garment now ships a gallery, and
     // hunting for a bare one made the test depend on the catalogue's contents.
-    const {gallery: _g, ...bare} = WHITE_PRODUCTS[0]!;
+    const {gallery: _g, ...bare} = PRODUCTS[0]!;
     const single = {...bare, colors: [{...bare.colors[0]!, image: undefined, gallery: undefined}]};
     renderPdp(single);
     // Exactly one album frame — its own zoom trigger and nothing else.

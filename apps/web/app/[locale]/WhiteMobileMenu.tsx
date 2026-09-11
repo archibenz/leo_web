@@ -9,7 +9,7 @@ import {useTranslations} from 'next-intl';
 import {useFocusTrap} from '../../lib/useFocusTrap';
 import {useWhiteAuth} from '../../hooks/useWhiteAuth';
 import {useMountTransition} from '../../lib/useMountTransition';
-import {WHITE_CATS, whiteCatLabel} from './products';
+import {WHITE_CATS, whiteCatLabel} from '../../lib/catalogue/select';
 import {INK, MUTED, HAIR} from './wv-palette';
 
 // Variant 2 "White" — a left side drawer (owner redesign). Slides in over a

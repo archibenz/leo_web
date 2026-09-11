@@ -1,14 +1,19 @@
 import {test, expect} from '@playwright/test';
-import {WHITE_PRODUCTS} from '../../app/[locale]/products';
+import {STOREFRONT_FIXTURE} from '../../lib/catalogue/fixture';
 import {whiteItemNoun} from '../../app/[locale]/wv-i18n';
 import {messages} from '../fixtures/messages';
 import {acknowledgeCookies, instantScrollTo, openWhite, readBag} from '../fixtures/white';
+import {skipUnlessFixtureCatalogue} from '../fixtures/catalogue';
+
+// The catalogue the dev server serves under CATALOGUE_SOURCE=fixture
+// (playwright.config.ts), so the spec and the page read the same garments.
+const WHITE_PRODUCTS = STOREFRONT_FIXTURE.products;
 
 // The buying walk as it exists after the White migration: shop grid → PDP → bag.
 // A garment lives at /ru/product/<slug> and the bag lives at
 // /ru/bag — the spec this replaces asserted /product/<id> and /cart, neither of
-// which is a route. Nothing here reaches the Spring API: the catalogue is static
-// (app/[locale]/products.ts), the bag is localStorage (hooks/useWhiteBag.ts) and
+// which is a route. Nothing here reaches the Spring API: the catalogue comes from
+// the fixture (lib/catalogue/fixture.ts), the bag is localStorage (hooks/useWhiteBag.ts) and
 // the storefront chrome mounts no auth provider, so the walk is green with :8080
 // down.
 //
@@ -25,7 +30,8 @@ const SIZE = 'M'; // any member of WHITE_SIZES
 const REVEAL_MARGIN = 80;
 const END_MARGIN = 120;
 
-test.beforeEach(async ({page}) => {
+test.beforeEach(async ({page, request}) => {
+  await skipUnlessFixtureCatalogue(request);
   await acknowledgeCookies(page);
 });
 
@@ -36,12 +42,12 @@ test.describe('shop → product → bag', () => {
     const cards = page.locator('#wv-main a[href*="/product/"]');
     await expect(cards.first()).toBeVisible();
 
-    // Follow whatever the grid actually shows instead of assuming a key: the
+    // Follow whatever the grid actually shows instead of assuming a garment: the
     // card's own href names the product the PDP will render.
     const href = (await cards.first().getAttribute('href')) ?? '';
-    const key = Number(new URL(href, 'http://localhost').searchParams.get('p'));
-    const product = WHITE_PRODUCTS.find((p) => p.key === key);
-    if (!product) throw new Error(`the first shop card links to ?p=${key}, which products.ts does not define`);
+    const slug = new URL(href, 'http://localhost').pathname.split('/').pop() ?? '';
+    const product = WHITE_PRODUCTS.find((p) => p.slug === slug);
+    if (!product) throw new Error(`the first shop card links to /product/${slug}, which the catalogue does not define`);
     // Quick Add is off in the shop grid, so the PDP opens on the primary colourway.
     const colour = product.colors[0]!;
 
@@ -49,7 +55,7 @@ test.describe('shop → product → bag', () => {
     await expect(bagLink).toHaveAccessibleName(new RegExp(`0\\s+${whiteItemNoun(0, 'ru')}$`));
 
     await cards.first().click();
-    await page.waitForURL(new RegExp(`/ru/product\\?p=${key}$`));
+    await page.waitForURL(new RegExp(`/ru/product/${product.slug}$`));
     await expect(page.getByRole('heading', {level: 1})).toHaveText(product.ru);
 
     // The inline CTA. Its sticky twin for narrow screens renders as a sibling

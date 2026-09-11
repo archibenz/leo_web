@@ -10,38 +10,42 @@ import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import {INK, MUTED, HAIR} from '../wv-palette';
 import {WhiteArrow} from '../wv-icons';
-import {WHITE_SETS, findWhiteProduct, whiteProductHref, whiteEffectivePrice, type WhiteSet, type WhiteProduct} from '../products';
+import {findProductByKey, setColour, whiteProductHref, whiteEffectivePrice} from '../../../lib/catalogue/select';
+import type {WhiteProduct, WhiteSet} from '../../../lib/catalogue/types';
 
 // Curated sets: each look is an editorial image plus the real products it is
 // made of. One button takes the whole look (size M — the bag line names the
 // size); the mini cards below are display-only (photo + name + price, linking
 // to the PDP) — no heart or Quick Add, the tiles are too small for controls.
+// The looks and the catalogue arrive as props from the server page.
 
-export default function WhiteSetsShowcase({locale}: {locale: string}) {
+export default function WhiteSetsShowcase({locale, sets, products}: {locale: string; sets: WhiteSet[]; products: WhiteProduct[]}) {
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const t = useTranslations('white.sets');
   const ru = locale === 'ru';
   const [addedSet, setAddedSet] = useState<string | null>(null);
 
-  // The colour worn in this look, falling back to the garment's default. Used
-  // for the photograph on the card and for the line the bag takes, so what is
-  // shown, what is ordered and what is in the picture are the same thing.
-  const setColour = (set: WhiteSet, p: WhiteProduct) => {
-    const wanted = set.colours?.[p.key];
-    return (wanted && p.colors.find((c) => c.key === wanted)) || p.colors[0]!;
-  };
-
-  const addWholeLook = (setKey: string, keys: number[]) => {
-    const set = WHITE_SETS.find((s) => s.key === setKey);
-    for (const k of keys) {
-      const p = findWhiteProduct(k);
+  const addWholeLook = (set: WhiteSet) => {
+    for (const it of set.items) {
+      const p = findProductByKey(products, it.productKey);
       if (!p) continue;
-      const colour = set ? setColour(set, p) : p.colors[0]!;
-      addToWhiteBag({key: p.key, en: p.en, ru: p.ru, price: whiteEffectivePrice(p, colour) ?? 0, size: 'M', colorEn: colour.en, colorRu: colour.ru});
+      const colour = setColour(set, p);
+      addToWhiteBag({
+        key: p.key,
+        en: p.en,
+        ru: p.ru,
+        price: whiteEffectivePrice(p, colour) ?? 0,
+        size: 'M',
+        colorEn: colour.en,
+        colorRu: colour.ru,
+        productId: colour.id,
+        slug: p.slug,
+        image: colour.image ?? p.image,
+      });
     }
-    setAddedSet(setKey);
-    window.setTimeout(() => setAddedSet((cur) => (cur === setKey ? null : cur)), 2400);
+    setAddedSet(set.key);
+    window.setTimeout(() => setAddedSet((cur) => (cur === set.key ? null : cur)), 2400);
   };
 
   return (
@@ -54,8 +58,8 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
           <p className="mt-8 max-w-xl text-[15px] leading-relaxed" style={{color: MUTED}}>{t('intro')}</p>
         </div>
 
-        {WHITE_SETS.map((set, idx) => {
-          const items = set.productKeys.map((k) => findWhiteProduct(k)).filter((p): p is NonNullable<typeof p> => p != null);
+        {sets.map((set, idx) => {
+          const items = set.items.map((it) => findProductByKey(products, it.productKey)).filter((p): p is NonNullable<typeof p> => p != null);
           const total = items.reduce((sum, p) => sum + (whiteEffectivePrice(p, setColour(set, p)) ?? 0), 0);
           return (
             <section key={set.key} className="border-t" style={{borderColor: HAIR}}>
@@ -116,7 +120,7 @@ export default function WhiteSetsShowcase({locale}: {locale: string}) {
                   <div className="mt-8 flex flex-wrap items-center gap-5">
                     <button
                       type="button"
-                      onClick={() => addWholeLook(set.key, set.productKeys)}
+                      onClick={() => addWholeLook(set)}
                       className="inline-flex min-h-12 items-center justify-center bg-[#1c1714] px-9 py-4 text-[12px] uppercase tracking-[0.2em] text-white transition-opacity hover:opacity-85"
                     >
                       {addedSet === set.key ? '✓' : t('addAll')}

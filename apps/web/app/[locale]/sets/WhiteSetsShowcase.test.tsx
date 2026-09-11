@@ -2,7 +2,8 @@ import {afterEach, describe, it, expect, vi} from 'vitest';
 import {render, screen, cleanup} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import WhiteSetsShowcase from './WhiteSetsShowcase';
-import {WHITE_SETS} from '../products';
+import {STOREFRONT_FIXTURE} from '../../../lib/catalogue/fixture';
+import {findProductByKey, setColour} from '../../../lib/catalogue/select';
 import {NextIntlClientProvider} from 'next-intl';
 import enMessages from '../../../messages/en.json';
 
@@ -63,32 +64,52 @@ afterEach(() => {
   localStorage.clear();
 });
 
-const readBag = () => JSON.parse(localStorage.getItem('wv-bag') ?? '[]') as {key: number; size: string}[];
+const readBag = () => JSON.parse(localStorage.getItem('wv-bag') ?? '[]') as {key: number; size: string; colorEn: string; productId?: string; slug?: string}[];
+
+const SF = STOREFRONT_FIXTURE;
+
+// The catalogue arrives as props from the server page.
+function renderSets(locale = 'en') {
+  return render(
+    <NextIntlClientProvider locale={locale} messages={enMessages as never}>
+      <WhiteSetsShowcase locale={locale} sets={SF.sets} products={SF.products} />
+    </NextIntlClientProvider>,
+  );
+}
 
 describe('WhiteSetsShowcase', () => {
   it('renders every set with its pieces', async () => {
-    render(
-      <NextIntlClientProvider locale="en" messages={enMessages as never}>
-        <WhiteSetsShowcase locale="en" />
-      </NextIntlClientProvider>,
-    );
+    renderSets();
     expect(await screen.findByRole('heading', {level: 1, name: /ready looks/i})).toBeInTheDocument();
-    for (const set of WHITE_SETS) {
+    for (const set of SF.sets) {
       expect(screen.getByRole('heading', {level: 2, name: set.en})).toBeInTheDocument();
     }
   });
 
   it('adds the whole look to the bag in size M', async () => {
     const user = userEvent.setup();
-    render(
-      <NextIntlClientProvider locale="en" messages={enMessages as never}>
-        <WhiteSetsShowcase locale="en" />
-      </NextIntlClientProvider>,
-    );
+    renderSets();
     const buttons = await screen.findAllByRole('button', {name: /add the whole look/i});
     await user.click(buttons[0]!);
     const bag = readBag();
-    expect(bag.map((i) => i.key).sort((a, b) => a - b)).toEqual([...WHITE_SETS[0]!.productKeys].sort((a, b) => a - b));
+    expect(bag.map((i) => i.key).sort((a, b) => a - b)).toEqual(SF.sets[0]!.items.map((it) => it.productKey).sort((a, b) => a - b));
     expect(bag.every((i) => i.size === 'M')).toBe(true);
+  });
+
+  it('takes the colour worn in the picture, not the garment default', async () => {
+    const user = userEvent.setup();
+    renderSets('ru');
+    const buttons = await screen.findAllByRole('button', {name: /add the whole look/i});
+    await user.click(buttons[0]!);
+
+    const skirt = findProductByKey(SF.products, 8)!;
+    // Ivory is the skirt's SECOND colourway — a line naming the first would mean
+    // the bag took the garment's default and not the one in the photograph.
+    const worn = setColour(SF.sets[0]!, skirt);
+    expect(worn.key).toBe('ivory');
+    const line = readBag().find((i) => i.key === 8)!;
+    expect(line.colorEn).toBe(worn.en);
+    expect(line.productId).toBe(worn.id);
+    expect(line.slug).toBe(skirt.slug);
   });
 });

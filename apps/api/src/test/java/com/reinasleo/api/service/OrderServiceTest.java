@@ -1,5 +1,6 @@
 package com.reinasleo.api.service;
 
+import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.model.Cart;
 import com.reinasleo.api.model.CartItem;
 import com.reinasleo.api.model.Order;
@@ -23,8 +24,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -107,5 +110,26 @@ class OrderServiceTest {
         List<String> locked = idCaptor.getAllValues();
         assertThat(locked).containsExactly("a-prod", "m-prod", "z-prod");
         assertThat(locked).isSorted();
+    }
+
+    @Test
+    void checkout_productWithoutPrice_isRejectedAsNotForSale() {
+        // Тот же предзаказ, что отклоняет CheckoutService: корзинный путь тоже
+        // умножает цену и обязан отказать, а не упасть на null.
+        User user = buildUser();
+        Product preorder = buildProduct("wb-1287075011", 5);
+        preorder.setPrice(null);
+
+        Cart cart = buildCart(user);
+        cart.getItems().add(new CartItem(cart, preorder, "M", 1));
+
+        when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.of(cart));
+        when(productRepository.findByIdForUpdate("wb-1287075011")).thenReturn(Optional.of(preorder));
+
+        assertThatThrownBy(() -> orderService.checkout(user))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("product_not_for_sale");
+
+        verify(orderRepository, never()).save(any(Order.class));
     }
 }

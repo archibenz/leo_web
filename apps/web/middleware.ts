@@ -88,8 +88,8 @@ const LEGACY_ALIASES: Record<string, string> = {
 };
 
 // Every first segment that has a page under app/[locale]. Kept in step by
-// middleware.notfound.test.ts, which reads the route directory and fails when
-// this list drifts — a new section that is missing here would answer 404 for
+// lib/__tests__/middleware.test.ts, which reads the route directory and fails
+// when this list drifts — a new section that is missing here would answer 404 for
 // real content, which is worse than the soft 404 this fixes.
 const ROUTE_SEGMENTS = new Set([
   'account', 'admin', 'auth', 'bag', 'care', 'contact', 'delivery', 'faq',
@@ -102,8 +102,6 @@ const ROUTE_SEGMENTS = new Set([
 // noindex, so a soft 404 inside them costs nothing.
 const UNPOLICED = new Set(['admin', 'auth']);
 
-const PRODUCT_SLUG_SET = new Set(Object.values(PRODUCT_SLUGS));
-
 // True only when the address certainly has no page behind it. Anything this
 // function is unsure about is treated as real and left to render.
 function isDeadEnd(pathname: string): boolean {
@@ -113,8 +111,10 @@ function isDeadEnd(pathname: string): boolean {
   if (!ROUTE_SEGMENTS.has(first)) return true;
   if (UNPOLICED.has(first)) return false;
   if (first === 'product') {
-    if (!second) return false;
-    return deeper.length > 0 || !PRODUCT_SLUG_SET.has(second);
+    // Slugs live in the database, not on the edge — whether a card exists is
+    // the page's call (`dynamicParams = false` → an honest 404). Depth is all
+    // the edge can still judge.
+    return deeper.length > 0;
   }
   return Boolean(second);
 }

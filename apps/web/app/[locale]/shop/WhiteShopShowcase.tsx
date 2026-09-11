@@ -9,16 +9,19 @@ import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
 import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR} from '../wv-palette';
-import {WHITE_PRODUCTS as ITEMS, whiteCatLabel, whitePriceRange, type WhiteProduct as Item, type WhiteCat as Cat, type WhiteColor as Colour} from '../products';
+import {whiteCatLabel, whitePriceRange} from '../../../lib/catalogue/select';
+import type {WhiteProduct as Item, WhiteCat as Cat, WhiteColor as Colour} from '../../../lib/catalogue/types';
 
 // Variant 2 "White" — shop / catalog grid with filters + sort. Same portal
-// technique as the landing/PDP. Catalog lives in ../products (shared with the
-// PDP so a card opens that product). Placeholder imagery (Higgsfield later).
+// technique as the landing/PDP. The catalogue arrives as a prop from the server
+// page (one storefront request per render), so this client component never
+// reaches for a data module of its own. Placeholder imagery (Higgsfield later).
 
 type Sort = 'new' | 'asc' | 'desc';
 
-export default function WhiteShopShowcase({locale, soldOutKeys = [], initialCat = 'all', initialQuery = '', initialSort = 'new', focusSearch = false}: {locale: string;
-  soldOutKeys?: number[]; initialCat?: Cat | 'all'; initialQuery?: string; initialSort?: Sort; focusSearch?: boolean}) {
+export default function WhiteShopShowcase({locale, products, soldOutKeys = [], initialCat = 'all', initialQuery = '', initialSort = 'new', focusSearch = false}: {locale: string;
+  products: Item[]; soldOutKeys?: number[]; initialCat?: Cat | 'all'; initialQuery?: string; initialSort?: Sort; focusSearch?: boolean}) {
+  const ITEMS = products;
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const ru = locale === 'ru';
@@ -104,7 +107,9 @@ export default function WhiteShopShowcase({locale, soldOutKeys = [], initialCat 
     if (sort === 'asc') return [...filtered].sort(byPrice(1));
     if (sort === 'desc') return [...filtered].sort(byPrice(-1));
     return filtered;
-  }, [cat, sort, query]);
+    // ITEMS is a prop now, not a module constant — leaving it out of the deps
+    // would keep the grid on the catalogue of the first render.
+  }, [ITEMS, cat, sort, query]);
 
   // Edge-fade affordance for the mobile category carousel (sm: it wraps, no
   // scroll → edge stays 'none', no mask). Keyed off scroll position so it never

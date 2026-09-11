@@ -58,7 +58,7 @@ public class CollectionService {
         return toResponse(c);
     }
 
-    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames"}, allEntries = true)
+    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames", "storefront"}, allEntries = true)
     @Transactional
     public CollectionResponse create(CollectionRequest req) {
         Collection c = new Collection();
@@ -73,7 +73,7 @@ public class CollectionService {
         return toResponse(saved);
     }
 
-    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames"}, allEntries = true)
+    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames", "storefront"}, allEntries = true)
     @Transactional
     public CollectionResponse update(UUID id, CollectionRequest req) {
         Collection c = collectionRepository.findById(id)
@@ -89,7 +89,7 @@ public class CollectionService {
         return toResponse(saved);
     }
 
-    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames"}, allEntries = true)
+    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames", "storefront"}, allEntries = true)
     @Transactional
     public void deactivate(UUID id) {
         Collection c = collectionRepository.findById(id)
@@ -98,7 +98,7 @@ public class CollectionService {
         collectionRepository.save(c);
     }
 
-    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames"}, allEntries = true)
+    @CacheEvict(value = {"products", "collections", "homepage", "collectionNames", "storefront"}, allEntries = true)
     @Transactional
     public void hardDelete(UUID id) {
         Collection c = collectionRepository.findById(id)

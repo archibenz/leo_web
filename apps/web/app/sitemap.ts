@@ -1,6 +1,6 @@
 import type {MetadataRoute} from 'next';
 import {SITE_URL} from '../lib/siteUrl';
-import {WHITE_PRODUCTS} from './[locale]/products';
+import {getStorefront} from '../lib/catalogue/fetch';
 
 // The White storefront lives at the locale root: the sitemap lists its routes
 // (the retired /white and gradient paths 308-redirect there and stay out),
@@ -29,9 +29,10 @@ const altLanguages = (route: string) => ({
   ru: `${SITE_URL}/ru${route}`,
 });
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
   const now = new Date();
+  const {products} = await getStorefront();
 
   for (const locale of locales) {
     for (const route of staticRoutes) {
@@ -43,7 +44,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         alternates: {languages: altLanguages(route)},
       });
     }
-    for (const product of WHITE_PRODUCTS) {
+    for (const product of products) {
       const route = `/product/${product.slug}`;
       // Every frame the garment owns, colour albums included — image search
       // indexes the whole shoot instead of just the opening shot.

@@ -4,13 +4,13 @@ import userEvent from '@testing-library/user-event';
 import WhiteProductCard from './WhiteProductCard';
 import {removeWhiteFavourite} from '../../hooks/useWhiteFavourites';
 import {removeFromWhiteBag} from '../../hooks/useWhiteBag';
-import type {WhiteProduct} from './products';
+import {STOREFRONT_FIXTURE} from '../../lib/catalogue/fixture';
 
 // Quick Add is gated on stock, and the catalogue currently reports everything as
 // unavailable (no stock source yet). These tests cover the add mechanics, so
 // they run against a product the site can sell.
-vi.mock('./products', async () => {
-  const actual = await vi.importActual<typeof import('./products')>('./products');
+vi.mock('../../lib/catalogue/select', async () => {
+  const actual = await vi.importActual<typeof import('../../lib/catalogue/select')>('../../lib/catalogue/select');
   return {...actual, whiteInStock: () => true};
 });
 import {NextIntlClientProvider} from 'next-intl';
@@ -38,23 +38,9 @@ if (typeof window !== 'undefined') {
   Object.defineProperty(window, 'localStorage', {value: mockLocalStorage, configurable: true, writable: true});
 }
 
-const PRODUCT: WhiteProduct = {
-  key: 3,
-  slug: 'tailored-trousers',
-  nm: 962783109,
-  en: 'Tailored Trousers',
-  ru: 'Брюки прямого кроя',
-  cat: 'tailoring',
-  price: 14900,
-  descEn: '',
-  descRu: '',
-  compositionEn: '',
-  compositionRu: '',
-  careEn: '',
-  careRu: '',
-  colors: [{key: 'black', hex: '#000', en: 'Black', ru: 'Чёрный'}],
-  image: '/images/shop/editorial-clean.jpg',
-};
+// Пальто из фикстуры (ключ 2): цена есть, размерный ряд полный, первый цвет —
+// чёрный. Карточка получает товар пропсом, поэтому каталог тут не нужен вовсе.
+const PRODUCT = STOREFRONT_FIXTURE.products[0]!;
 
 // Only the card's namespace is needed; passing the whole catalogue trips the
 // next-intl message type (en.json has an array-valued key it rejects).
@@ -114,7 +100,7 @@ describe('WhiteProductCard Quick Add', () => {
       const bag = readBag();
       expect(bag).toHaveLength(1);
       // Quick Add carries the product's primary colourway (colors[0] = Black).
-      expect(bag[0]).toMatchObject({key: 3, size: 'M', qty: 1, colorEn: 'Black', id: '3-M-Black'});
+      expect(bag[0]).toMatchObject({key: 2, size: 'M', qty: 1, colorEn: 'Black', id: '2-M-Black'});
     });
   });
 
@@ -128,7 +114,7 @@ describe('WhiteProductCard Quick Add', () => {
     await waitFor(() => {
       const bag = readBag();
       expect(bag).toHaveLength(1);
-      expect(bag[0]!.price).toBe(11900); // sale, not regular 14900
+      expect(bag[0]!.price).toBe(11900); // sale, not regular 23000
     });
     // Visible confirmation on the trigger…
     expect(await screen.findByText('Added ✓')).toBeInTheDocument();
@@ -174,7 +160,7 @@ describe('WhiteProductCard favourite heart', () => {
 
     await user.click(heart);
 
-    await waitFor(() => expect(readFavs()).toEqual([3]));
+    await waitFor(() => expect(readFavs()).toEqual([2]));
     // The button now offers the inverse action and reports the pressed state.
     expect(screen.getByRole('button', {name: /remove .* from favourites/i})).toHaveAttribute('aria-pressed', 'true');
   });
@@ -184,7 +170,7 @@ describe('WhiteProductCard favourite heart', () => {
     renderCard(<WhiteProductCard locale="en" product={PRODUCT} />);
     const heart = screen.getByRole('button', {name: /favourites/i});
     await user.click(heart);
-    await waitFor(() => expect(readFavs()).toEqual([3]));
+    await waitFor(() => expect(readFavs()).toEqual([2]));
     await user.click(screen.getByRole('button', {name: /favourites/i}));
     await waitFor(() => expect(readFavs()).toEqual([]));
   });

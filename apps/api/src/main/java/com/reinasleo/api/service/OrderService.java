@@ -60,6 +60,13 @@ public class OrderService {
             Product locked = productRepository.findByIdForUpdate(productId)
                     .orElseThrow(() -> new NotFoundException("product_not_found"));
 
+            // Тот же отказ, что в CheckoutService: предзаказ без цены нельзя купить.
+            // Проверка идёт до остатка — иначе нулевой остаток вариантов маскирует
+            // причину отказа, пока продажу не включили.
+            if (locked.getPrice() == null) {
+                throw new BadRequestException("product_not_for_sale");
+            }
+
             if (ci.getQuantity() > locked.getStockQuantity()) {
                 throw new OutOfStockException(locked.getId(), ci.getQuantity(), locked.getStockQuantity());
             }

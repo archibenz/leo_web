@@ -5,6 +5,9 @@ import {useEffect, useState} from 'react';
 // state and no hydration mismatch. A module-level store + pub/sub keeps every
 // useWhiteBag() instance on a page in sync (header count, PDP add, bag list).
 // Honest demo bag: it holds the user's picks locally — there is no checkout.
+// A line remembers the variant it came from (`productId = wb-<nm>`) — that is
+// what checkout will be paid against in stage 4; older lines without a
+// `productId` are resolved by `key + colorEn`.
 
 const KEY = 'wv-bag';
 
@@ -18,6 +21,12 @@ export type WhiteBagItem = {
   colorEn: string; // chosen colourway (localised pair stored for display-independence)
   colorRu: string;
   qty: number;
+  // The colourway's own row, the PDP slug and the photograph of the colour that
+  // was picked. Optional because lines persisted before this existed have none
+  // — the bag still renders them, just without a thumbnail or a link back.
+  productId?: string;
+  slug?: string;
+  image?: string;
 };
 
 const lineId = (key: number, size: string, colorEn: string) => `${key}-${size}-${colorEn}`;
@@ -46,6 +55,8 @@ export function subscribeWhiteBagAdds(fn: (_item: WhiteBagItem) => void): () => 
 // can't render an unbounded list or an Infinity total.
 const MAX_LINES = 100;
 const MAX_QTY = 99;
+// Слаги витрины — транслитерация: строчные латинские буквы, цифры и дефис.
+const SLUG = /^[a-z0-9-]+$/;
 
 function normalise(raw: unknown): WhiteBagItem[] {
   if (!Array.isArray(raw)) return [];
@@ -60,12 +71,24 @@ function normalise(raw: unknown): WhiteBagItem[] {
     const colorRu = typeof r.colorRu === 'string' ? r.colorRu : '';
     const en = typeof r.en === 'string' ? r.en : '';
     const ru = typeof r.ru === 'string' ? r.ru : '';
+    // Rows written before the bag carried the variant have none of these; a
+    // non-string is treated the same as missing rather than rendered raw.
+    // Storage is hand-editable, and these two leave the module: `image` is fed to
+    // next/image and `slug` becomes an href. So they are accepted only in the
+    // shape the app itself writes — a same-origin path (a leading `//` is a
+    // protocol-relative URL, i.e. off-origin) and a transliterated slug. A value
+    // that fails drops the field, not the line: the bag still shows the garment,
+    // just without a thumbnail or a link back.
+    const productId = typeof r.productId === 'string' ? r.productId : undefined;
+    const slug = typeof r.slug === 'string' && SLUG.test(r.slug) ? r.slug : undefined;
+    const image =
+      typeof r.image === 'string' && r.image.startsWith('/') && !r.image.startsWith('//') ? r.image : undefined;
     const id = lineId(r.key, r.size, colorEn);
     const qty = Number.isFinite(r.qty) && r.qty > 0 ? Math.min(Math.floor(r.qty), MAX_QTY) : 1;
     const existing = byLine.get(id);
     if (byLine.size >= MAX_LINES && !existing) continue;
     if (existing) existing.qty = Math.min(existing.qty + qty, MAX_QTY);
-    else byLine.set(id, {id, key: r.key, en, ru, price: r.price, size: r.size, colorEn, colorRu, qty});
+    else byLine.set(id, {id, key: r.key, en, ru, price: r.price, size: r.size, colorEn, colorRu, qty, productId, slug, image});
   }
   return [...byLine.values()];
 }

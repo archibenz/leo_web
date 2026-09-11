@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import WhiteFavouritesShowcase from './WhiteFavouritesShowcase';
+import {getStorefront} from '../../../lib/catalogue/fetch';
 
 // Variant 2 "White" — favourites / wishlist showcase (pitch preview at
 // /<locale>/favourites). noindex. Saved products are held locally
@@ -14,5 +15,7 @@ type Props = {params: Promise<{locale: string}>};
 
 export default async function WhiteFavouritesPage({params}: Props) {
   const {locale} = await params;
-  return <WhiteFavouritesShowcase locale={locale} />;
+  // Favourites are saved keys; the garments behind them come from the API.
+  const {products} = await getStorefront();
+  return <WhiteFavouritesShowcase locale={locale} products={products} />;
 }

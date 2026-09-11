@@ -112,6 +112,12 @@ public class CheckoutService {
 
             validateSize(product, item.size());
 
+            // Товар без цены — предзаказ: витрина его не продаёт, и чекаут обязан
+            // отказать сам, а не упасть на умножении null.
+            if (product.getPrice() == null) {
+                throw new BadRequestException("product_not_for_sale");
+            }
+
             if (item.qty() > product.getStockQuantity()) {
                 throw new OutOfStockException(product.getId(), item.qty(), product.getStockQuantity());
             }

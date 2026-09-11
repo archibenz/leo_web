@@ -1,7 +1,9 @@
 import {test, expect, type BrowserContext, type Locator, type Page} from '@playwright/test';
-import {WHITE_PRODUCTS, type WhiteProduct} from '../../app/[locale]/products';
+import {STOREFRONT_FIXTURE} from '../../lib/catalogue/fixture';
+import type {WhiteProduct} from '../../lib/catalogue/types';
 import {messages} from '../fixtures/messages';
 import {hydrateViaCookieNotice, openWhite, seedBag, type BagLine} from '../fixtures/white';
+import {skipUnlessFixtureCatalogue} from '../fixtures/catalogue';
 
 // REINASLEO has no checkout of its own: the brand sells on Wildberries, the bag
 // only holds the pick locally (hooks/useWhiteBag.ts, localStorage) and every
@@ -10,13 +12,18 @@ import {hydrateViaCookieNotice, openWhite, seedBag, type BagLine} from '../fixtu
 // something is in it, and the PDP buy button. The spec this replaces drove
 // /ru/cart, which is not a route; the bag lives at /ru/bag.
 //
-// Nothing here touches the Spring API (the catalogue is static) and nothing
+// Nothing here touches the Spring API (the catalogue comes from the fixture the
+// dev server is started on, CATALOGUE_SOURCE=fixture) and nothing
 // off-origin loads: those requests are aborted at the route layer, and the WB
 // ones are recorded, so the assertions are on the handoff we made, not on a
 // third party being up.
 
 const bag = messages('bag');
 const pdp = messages('pdp');
+
+// The catalogue the dev server serves under CATALOGUE_SOURCE=fixture
+// (playwright.config.ts), so the spec and the page read the same garments.
+const WHITE_PRODUCTS = STOREFRONT_FIXTURE.products;
 
 const [product, second] = WHITE_PRODUCTS;
 
@@ -89,7 +96,9 @@ const flooded = (page: Page) =>
   page.evaluate((flag) => (window as unknown as Record<string, boolean>)[flag] === true, FLOOD_FLAG);
 
 test.describe('checkout hands off to Wildberries', () => {
-  test.beforeEach(async ({context, baseURL}) => {
+  test.beforeEach(async ({context, baseURL, request}) => {
+    await skipUnlessFixtureCatalogue(request);
+
     // Nothing off-origin may load. Under next dev that is already true; under
     // E2E_BASE_URL it would be Metrika (components/Metrika.tsx). The host comes
     // from baseURL, so this holds against a deployment too. Routes match
@@ -190,7 +199,7 @@ test.describe('checkout hands off to Wildberries', () => {
     // storefront stays put behind the new tab.
     await expect.poll(() => seen).toEqual([wbUrl(product!)]);
     expect(await flooded(page)).toBe(false);
-    await expect(page).toHaveURL(new RegExp(`/ru/product\\?p=${product!.key}$`));
+    await expect(page).toHaveURL(new RegExp(`/ru/product/${product!.slug}$`));
   });
 
   test.describe('on touch', () => {
@@ -211,7 +220,7 @@ test.describe('checkout hands off to Wildberries', () => {
       // route catches, so the article assertion holds on either path.
       await expect.poll(() => flooded(page)).toBe(true);
       await expect.poll(() => seen, {timeout: 5_000}).toEqual([wbUrl(product!)]);
-      await expect(page).toHaveURL(new RegExp(`/ru/product\\?p=${product!.key}$`));
+      await expect(page).toHaveURL(new RegExp(`/ru/product/${product!.slug}$`));
     });
 
     test('reduced motion taps straight through', async ({page, context}) => {

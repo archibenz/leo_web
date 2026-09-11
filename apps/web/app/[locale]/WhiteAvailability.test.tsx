@@ -1,5 +1,5 @@
 import {describe, it, expect} from 'vitest';
-import {whiteAvailability} from './products';
+import {whiteAvailability} from '../../lib/catalogue/select';
 
 // Three states, and the storefront reads them in this order. The tests pin the
 // order rather than the current answers: today nothing is in stock on the site,

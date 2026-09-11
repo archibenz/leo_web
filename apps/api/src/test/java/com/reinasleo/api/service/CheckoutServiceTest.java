@@ -274,6 +274,31 @@ class CheckoutServiceTest {
     }
 
     @Test
+    void createOrder_productWithoutPrice_isRejectedAsNotForSale() {
+        // Вариант без цены = предзаказ (в базе такие есть: спортивный костюм).
+        // Чекаут обязан отказать сам, а не упасть на умножении null.
+        Product preorder = new Product();
+        preorder.setId("wb-1287075011");
+        preorder.setTitle("Спортивный костюм с кантом — Чёрный");
+        preorder.setPrice(null);
+        preorder.setStockQuantity(5);
+        preorder.setActive(true);
+        preorder.setSizes(new String[]{"S", "M"});
+        when(productRepository.findByIdForUpdate("wb-1287075011")).thenReturn(Optional.of(preorder));
+
+        CheckoutRequest request = new CheckoutRequest(
+                List.of(new CheckoutItemRequest("wb-1287075011", "M", 1)),
+                "buyer@example.com", "+79991234567", "Anna",
+                new CheckoutAddressRequest("Москва", "Тверская", "1", null, null));
+
+        assertThatThrownBy(() -> service.createOrder(request, null))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("product_not_for_sale");
+        verifyNoInteractions(yooKassaClient);
+        verify(paymentRepository, never()).save(any());
+    }
+
+    @Test
     void createOrder_inactiveProduct_throwsNotFound() {
         product.setActive(false);
 

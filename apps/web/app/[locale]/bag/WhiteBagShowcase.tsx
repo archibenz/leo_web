@@ -8,7 +8,8 @@ import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../WhiteHeader';
 import WhiteHeaderActions from '../WhiteHeaderActions';
 import WhiteFooter from '../WhiteFooter';
-import {findWhiteProduct, whiteProductHref, whiteEffectivePrice} from '../products';
+import {findProductByKey, whiteProductHref, whiteEffectivePrice} from '../../../lib/catalogue/select';
+import type {WhiteProduct} from '../../../lib/catalogue/types';
 import {INK, MUTED, HAIR} from '../wv-palette';
 import {MaskIcon} from '../wv-icons';
 
@@ -16,7 +17,7 @@ import {MaskIcon} from '../wv-icons';
 // useWhiteBag) with remove + total, or an honest empty state. No checkout — the
 // prototype holds the user's selection locally; it does not claim a purchase.
 
-export default function WhiteBagShowcase({locale}: {locale: string}) {
+export default function WhiteBagShowcase({locale, products}: {locale: string; products: readonly WhiteProduct[]}) {
   const {items, count, remove, setQty} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const ru = locale === 'ru';
@@ -25,7 +26,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
   // Prices come from the catalogue, not from the persisted line (storage is
   // hand-editable) — the stored value only covers items the catalogue dropped.
   const linePrice = (i: (typeof items)[number]) => {
-    const p = findWhiteProduct(i.key);
+    const p = findProductByKey(products, i.key);
     if (!p) return i.price;
     // The line remembers which colourway was chosen, and colourways are priced
     // separately — charging the product's price would quote a different colour.
@@ -58,11 +59,15 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
 
             <ul className="mt-10 border-t" style={{borderColor: HAIR}}>
               {items.map((i) => {
-                // A bag line is a purchase snapshot in localStorage and carries no
-                // slug — resolve it from the catalogue, and fall back to the shop
-                // if the garment has since been retired.
-                const catalogue = findWhiteProduct(i.key);
+                // A line saved before the bag carried a slug has to be resolved
+                // against the catalogue, and falls back to the shop if the
+                // garment has since been retired.
+                const catalogue = findProductByKey(products, i.key);
                 const href = catalogue ? whiteProductHref(locale, catalogue) : `/${locale}/shop`;
+                // The photograph of the colourway that was picked, as the line
+                // remembers it; the catalogue only stands in for older lines.
+                const colour = catalogue?.colors.find((c) => c.en === i.colorEn);
+                const image = i.image ?? colour?.image ?? catalogue?.image;
                 return (
                 <li key={i.id} className="grid grid-cols-[88px_1fr_auto] gap-x-4 border-b py-6 sm:grid-cols-[96px_1fr_auto]" style={{borderColor: HAIR}}>
                   <Link
@@ -70,7 +75,7 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                     aria-label={(ru ? i.ru : i.en)}
                     className="wv-ph relative row-span-2 aspect-[3/4] w-[88px] overflow-hidden sm:w-24"
                   >
-                    <Image src={catalogue?.image ?? '/images/shop/editorial-clean.jpg'} alt="" fill sizes="96px" className="object-cover" />
+                    <Image src={image ?? '/images/shop/editorial-clean.jpg'} alt="" fill sizes="96px" className="object-cover" />
                   </Link>
 
                   <div className="min-w-0">
@@ -123,9 +128,9 @@ export default function WhiteBagShowcase({locale}: {locale: string}) {
                     <p className="text-[14px] tabular-nums">{fmt(linePrice(i) * i.qty)}</p>
                   </div>
 
-                  {findWhiteProduct(i.key)?.nm && (
+                  {catalogue?.nm && (
                     <a
-                      href={`https://www.wildberries.ru/catalog/${findWhiteProduct(i.key)!.nm}/detail.aspx`}
+                      href={`https://www.wildberries.ru/catalog/${catalogue.nm}/detail.aspx`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="wv-link col-start-2 mt-2 justify-self-start text-[10px] uppercase tracking-[0.16em]"

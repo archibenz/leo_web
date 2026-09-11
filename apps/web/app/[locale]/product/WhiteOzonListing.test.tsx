@@ -2,11 +2,12 @@ import {afterEach, describe, it, expect, vi} from 'vitest';
 import {render, screen, cleanup} from '@testing-library/react';
 import WhitePdpShowcase from './WhitePdpShowcase';
 import WhiteProductCard from '../WhiteProductCard';
-import {WHITE_PRODUCTS} from '../products';
+import {STOREFRONT_FIXTURE} from '../../../lib/catalogue/fixture';
 import {NextIntlClientProvider} from 'next-intl';
 import enMessages from '../../../messages/en.json';
 
-const PRODUCT = WHITE_PRODUCTS[0]!;
+const {products: PRODUCTS, sets: SETS} = STOREFRONT_FIXTURE;
+const PRODUCT = PRODUCTS[0]!;
 const OZON_HREF = `https://www.ozon.ru/product/${PRODUCT.slug}-1234567890/?utm_source=reinasleo.com&utm_medium=website&utm_campaign=product&utm_content=${PRODUCT.slug}`;
 
 // Only a few pieces ship from our own warehouse, so the real list is short and
@@ -81,7 +82,7 @@ describe('a garment listed on Ozon', () => {
   it('offers the Ozon card in a new tab, alongside the Wildberries route', () => {
     render(
       <NextIntlClientProvider locale="en" messages={enMessages as never}>
-        <WhitePdpShowcase locale="en" product={PRODUCT} />
+        <WhitePdpShowcase locale="en" product={PRODUCT} products={PRODUCTS} sets={SETS} />
       </NextIntlClientProvider>,
     );
 
@@ -97,7 +98,7 @@ describe('a garment listed on Ozon', () => {
   it('names both channels rather than only Wildberries', () => {
     render(
       <NextIntlClientProvider locale="en" messages={enMessages as never}>
-        <WhitePdpShowcase locale="en" product={PRODUCT} />
+        <WhitePdpShowcase locale="en" product={PRODUCT} products={PRODUCTS} sets={SETS} />
       </NextIntlClientProvider>,
     );
     expect(screen.getAllByText(/only on marketplaces/i).length).toBeGreaterThan(0);

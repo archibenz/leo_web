@@ -1,7 +1,9 @@
 package com.reinasleo.api.service;
 
 import com.reinasleo.api.dto.CartItemRequest;
+import com.reinasleo.api.dto.CartResponse;
 import com.reinasleo.api.dto.UpdateCartItemRequest;
+import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.NotFoundException;
 import com.reinasleo.api.exception.OutOfStockException;
@@ -242,6 +244,55 @@ class CartServiceTest {
                 .satisfies(ex -> assertThat(((ConflictException) ex).getCode()).isEqualTo("cart_concurrent_modification"));
         verify(cartItemRepository, times(2)).saveAndFlush(any(CartItem.class));
         verify(analyticsService, never()).trackEvent(any(), any(), any());
+    }
+
+    @Test
+    void addItem_whenProductHasNoPrice_throwsBadRequest() {
+        // Предзаказ: вариант заведён, остаток админка подняла, цены нет. Корзина
+        // обязана отказать тем же кодом, что чекаут и заказ, а не сложить строку,
+        // на которой потом упадёт умножение.
+        User user = buildUser();
+        Product product = buildProduct("prod-preorder", 10);
+        product.setPrice(null);
+        Cart cart = buildCart(user);
+
+        when(productRepository.findById("prod-preorder")).thenReturn(Optional.of(product));
+        when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.of(cart));
+
+        CartItemRequest request = new CartItemRequest("prod-preorder", "M", 1);
+
+        assertThatThrownBy(() -> cartService.addItem(user, request))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessage("product_not_for_sale");
+        verify(cartItemRepository, never()).saveAndFlush(any(CartItem.class));
+        verify(analyticsService, never()).trackEvent(any(), any(), any());
+    }
+
+    @Test
+    void getCart_whenALineLostItsPrice_rendersItAsZeroInsteadOfFailing() {
+        // Строка легла в корзину до запрета (или цену сняли в админке уже после).
+        // GET /api/cart обязан отдать её, а не 500: её вклад в сумму — ноль.
+        User user = buildUser();
+        Product priced = buildProduct("prod-priced", 10);
+        Product priceless = buildProduct("prod-priceless", 10);
+        priceless.setPrice(null);
+        Cart cart = buildCart(user);
+        CartItem pricedLine = new CartItem(cart, priced, "M", 2);
+        CartItem pricelessLine = new CartItem(cart, priceless, "S", 3);
+        setField(pricedLine, "id", UUID.randomUUID());
+        setField(pricelessLine, "id", UUID.randomUUID());
+        cart.getItems().add(pricedLine);
+        cart.getItems().add(pricelessLine);
+
+        when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.of(cart));
+
+        CartResponse response = cartService.getCart(user);
+
+        assertThat(response.items()).hasSize(2);
+        assertThat(response.items().get(1).productPrice()).isNull();
+        assertThat(response.totalItems()).isEqualTo(5);
+        // 2 × 10.00 у товара с ценой, 0 у товара без неё.
+        assertThat(response.totalPrice()).isEqualByComparingTo("20.00");
     }
 
     @Test

@@ -31,5 +31,9 @@ export default defineConfig({
         url: 'http://localhost:3000',
         reuseExistingServer: !process.env.CI,
         timeout: 120_000,
+        // The storefront comes from the API now, and these specs do not run one.
+        // The fixture is the catalogue they assert against, so the dev server has
+        // to be told before it serves its first page.
+        env: {...process.env, CATALOGUE_SOURCE: 'fixture'} as Record<string, string>,
       },
 });
