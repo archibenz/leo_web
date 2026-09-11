@@ -3,6 +3,7 @@ import {STOREFRONT_FIXTURE} from '../../lib/catalogue/fixture';
 import {whiteItemNoun} from '../../app/[locale]/wv-i18n';
 import {messages} from '../fixtures/messages';
 import {acknowledgeCookies, instantScrollTo, openWhite, readBag} from '../fixtures/white';
+import {skipUnlessFixtureCatalogue} from '../fixtures/catalogue';
 
 // The catalogue the dev server serves under CATALOGUE_SOURCE=fixture
 // (playwright.config.ts), so the spec and the page read the same garments.
@@ -29,7 +30,8 @@ const SIZE = 'M'; // any member of WHITE_SIZES
 const REVEAL_MARGIN = 80;
 const END_MARGIN = 120;
 
-test.beforeEach(async ({page}) => {
+test.beforeEach(async ({page, request}) => {
+  await skipUnlessFixtureCatalogue(request);
   await acknowledgeCookies(page);
 });
 

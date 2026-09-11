@@ -3,6 +3,7 @@ import {STOREFRONT_FIXTURE} from '../../lib/catalogue/fixture';
 import type {WhiteProduct} from '../../lib/catalogue/types';
 import {messages} from '../fixtures/messages';
 import {hydrateViaCookieNotice, openWhite, seedBag, type BagLine} from '../fixtures/white';
+import {skipUnlessFixtureCatalogue} from '../fixtures/catalogue';
 
 // REINASLEO has no checkout of its own: the brand sells on Wildberries, the bag
 // only holds the pick locally (hooks/useWhiteBag.ts, localStorage) and every
@@ -95,7 +96,9 @@ const flooded = (page: Page) =>
   page.evaluate((flag) => (window as unknown as Record<string, boolean>)[flag] === true, FLOOD_FLAG);
 
 test.describe('checkout hands off to Wildberries', () => {
-  test.beforeEach(async ({context, baseURL}) => {
+  test.beforeEach(async ({context, baseURL, request}) => {
+    await skipUnlessFixtureCatalogue(request);
+
     // Nothing off-origin may load. Under next dev that is already true; under
     // E2E_BASE_URL it would be Metrika (components/Metrika.tsx). The host comes
     // from baseURL, so this holds against a deployment too. Routes match

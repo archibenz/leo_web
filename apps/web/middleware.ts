@@ -88,8 +88,8 @@ const LEGACY_ALIASES: Record<string, string> = {
 };
 
 // Every first segment that has a page under app/[locale]. Kept in step by
-// middleware.notfound.test.ts, which reads the route directory and fails when
-// this list drifts — a new section that is missing here would answer 404 for
+// lib/__tests__/middleware.test.ts, which reads the route directory and fails
+// when this list drifts — a new section that is missing here would answer 404 for
 // real content, which is worse than the soft 404 this fixes.
 const ROUTE_SEGMENTS = new Set([
   'account', 'admin', 'auth', 'bag', 'care', 'contact', 'delivery', 'faq',
