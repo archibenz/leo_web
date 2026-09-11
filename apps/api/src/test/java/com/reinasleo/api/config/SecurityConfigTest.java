@@ -57,12 +57,10 @@ class SecurityConfigTest {
 
     @Test
     void catalogEndpoint_isAccessibleWithoutAuth() throws Exception {
-        // permitAll. May return 500 in test profile because H2 doesn't fully
-        // model the Postgres array types used by the catalog query — that is
-        // expected and proves the request reached the controller layer rather
-        // than being rejected at the security layer.
-        mockMvc.perform(get("/api/catalog/products"))
-                .andExpect(status().is5xxServerError());
+        int status = mockMvc.perform(get("/api/catalog/products"))
+                .andReturn().getResponse().getStatus();
+        assertNotEquals(401, status, "catalog must not be 401");
+        assertNotEquals(403, status, "catalog must not be 403");
     }
 
     @Test

@@ -24,6 +24,7 @@ public interface ProductRepository extends JpaRepository<Product, String> {
     List<Product> findByIdInAndActiveTrue(Collection<String> ids);
     List<Product> findByActiveTrueOrderByCreatedAtDesc();
     List<Product> findByCollectionIdAndActiveTrueOrderByCreatedAtDesc(UUID collectionId);
+    List<Product> findByModelIdIsNotNullAndActiveTrueOrderBySortOrderAsc();
     List<Product> findByStockQuantityLessThanEqualAndActiveTrueAndIsTestFalse(int threshold);
     long countByActiveTrue();
     long countByCollectionIdAndActiveTrue(UUID collectionId);

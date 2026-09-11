@@ -22,7 +22,7 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false, precision = 12, scale = 2)
+    @Column(precision = 12, scale = 2)
     private BigDecimal price;
 
     @Column(length = 512)
@@ -31,7 +31,7 @@ public class Product {
     @Column(length = 128)
     private String category;
 
-    @Column(columnDefinition = "TEXT[]")
+    @Column(columnDefinition = "TEXT ARRAY")
     private String[] sizes;
 
     @Column(name = "collection_id")
@@ -67,6 +67,30 @@ public class Product {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String images = "[]";
+
+    @Column(name = "model_id")
+    private UUID modelId;
+
+    @Column(name = "color_key", length = 32)
+    private String colorKey;
+
+    @Column(name = "color_hex", length = 7)
+    private String colorHex;
+
+    @Column(name = "color_name_ru", length = 64)
+    private String colorNameRu;
+
+    @Column(name = "color_name_en", length = 64)
+    private String colorNameEn;
+
+    @Column
+    private Long nm;
+
+    @Column(name = "sale_price", precision = 12, scale = 2)
+    private BigDecimal salePrice;
+
+    @Column(name = "sort_order", nullable = false)
+    private int sortOrder = 0;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "care_instructions", columnDefinition = "jsonb")
@@ -112,6 +136,14 @@ public class Product {
     public String getSku() { return sku; }
     public String getImages() { return images; }
     public String getCareInstructions() { return careInstructions; }
+    public UUID getModelId() { return modelId; }
+    public String getColorKey() { return colorKey; }
+    public String getColorHex() { return colorHex; }
+    public String getColorNameRu() { return colorNameRu; }
+    public String getColorNameEn() { return colorNameEn; }
+    public Long getNm() { return nm; }
+    public BigDecimal getSalePrice() { return salePrice; }
+    public int getSortOrder() { return sortOrder; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
@@ -135,4 +167,12 @@ public class Product {
     public void setSku(String sku) { this.sku = sku; }
     public void setImages(String images) { this.images = images; }
     public void setCareInstructions(String careInstructions) { this.careInstructions = careInstructions; }
+    public void setModelId(UUID modelId) { this.modelId = modelId; }
+    public void setColorKey(String colorKey) { this.colorKey = colorKey; }
+    public void setColorHex(String colorHex) { this.colorHex = colorHex; }
+    public void setColorNameRu(String colorNameRu) { this.colorNameRu = colorNameRu; }
+    public void setColorNameEn(String colorNameEn) { this.colorNameEn = colorNameEn; }
+    public void setNm(Long nm) { this.nm = nm; }
+    public void setSalePrice(BigDecimal salePrice) { this.salePrice = salePrice; }
+    public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
 }
