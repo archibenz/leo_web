@@ -37,6 +37,7 @@ CREATE TABLE product_models (
     image           VARCHAR(512) NOT NULL,
     gallery         JSONB NOT NULL DEFAULT '[]',
     season          VARCHAR(16),
+    nm              BIGINT,
     featured_order  INT,
     lookbook_order  INT,
     sort_order      INT NOT NULL DEFAULT 0,
@@ -46,6 +47,7 @@ CREATE TABLE product_models (
 );
 COMMENT ON TABLE product_models IS 'Модель товара на витрине: тексты, категория, размеры. Цвета — строки products с model_id';
 COMMENT ON COLUMN product_models.model_key IS 'Прежний числовой key из products.ts; живёт в корзине и избранном покупателей';
+COMMENT ON COLUMN product_models.nm IS 'Артикул модели для сток-снимка и JSON-LD; NULL = артикул первого варианта';
 
 ALTER TABLE products
     ALTER COLUMN price DROP NOT NULL,

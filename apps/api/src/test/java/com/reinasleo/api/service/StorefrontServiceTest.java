@@ -107,6 +107,42 @@ class StorefrontServiceTest {
     }
 
     @Test
+    void getStorefront_modelWithItsOwnArticle_keepsItInsteadOfTheFirstVariants() {
+        // Ключ 7 («Брюки алладины»): карточка WB модели заведена на белый цвет,
+        // а первым на витрине стоит песочный. Артикул модели решает, какой снимок
+        // стока ей соответствует и какой sku уедет в JSON-LD.
+        UUID mid = UUID.randomUUID();
+        ProductModel m = model(mid, 7, "bryuki-alladiny");
+        m.setNm(962783109L);
+        when(models.findByActiveTrueOrderBySortOrderAsc()).thenReturn(List.of(m));
+        when(products.findByModelIdIsNotNullAndActiveTrueOrderByModelIdAscSortOrderAsc()).thenReturn(List.of(
+                variant(mid, "wb-962783114", "sand", 962783114L, "6000", null, 0),
+                variant(mid, "wb-962783109", "white", 962783109L, "6000", null, 1)));
+        when(sets.findByActiveTrueOrderBySortOrderAsc()).thenReturn(List.of());
+        when(setItems.findAllByOrderBySetIdAscPositionAsc()).thenReturn(List.of());
+        when(sections.findByStatusOrderBySortOrderAsc("active")).thenReturn(List.of());
+
+        StorefrontProduct p = service.getStorefront().products().get(0);
+
+        assertThat(p.nm()).isEqualTo(962783109L);
+        // Цена и первый цвет по-прежнему с первого варианта — артикул отдельно.
+        assertThat(p.colors().get(0).nm()).isEqualTo(962783114L);
+    }
+
+    @Test
+    void getStorefront_modelWithoutItsOwnArticle_fallsBackToTheFirstVariant() {
+        UUID mid = UUID.randomUUID();
+        when(models.findByActiveTrueOrderBySortOrderAsc()).thenReturn(List.of(model(mid, 2, "palto")));
+        when(products.findByModelIdIsNotNullAndActiveTrueOrderByModelIdAscSortOrderAsc()).thenReturn(List.of(
+                variant(mid, "wb-1", "camel", 1L, "25000", null, 0)));
+        when(sets.findByActiveTrueOrderBySortOrderAsc()).thenReturn(List.of());
+        when(setItems.findAllByOrderBySetIdAscPositionAsc()).thenReturn(List.of());
+        when(sections.findByStatusOrderBySortOrderAsc("active")).thenReturn(List.of());
+
+        assertThat(service.getStorefront().products().get(0).nm()).isEqualTo(1L);
+    }
+
+    @Test
     void getStorefront_setItemsResolveToProductKeyAndColour() {
         UUID mid = UUID.randomUUID();
         UUID sid = UUID.randomUUID();

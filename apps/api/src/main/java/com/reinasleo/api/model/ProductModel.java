@@ -67,6 +67,12 @@ public class ProductModel {
     @Column(length = 16)
     private String season;
 
+    // Артикул модели: у «Брюк алладинов» карточка WB заведена на белый цвет, а
+    // первым на витрине стоит песочный — сток-снимок и JSON-LD обязаны ссылаться
+    // на ту карточку, что была до переезда. NULL = артикул первого варианта.
+    @Column
+    private Long nm;
+
     @Column(name = "featured_order")
     private Integer featuredOrder;
 
@@ -117,6 +123,7 @@ public class ProductModel {
     public String getImage() { return image; }
     public String getGallery() { return gallery; }
     public String getSeason() { return season; }
+    public Long getNm() { return nm; }
     public Integer getFeaturedOrder() { return featuredOrder; }
     public Integer getLookbookOrder() { return lookbookOrder; }
     public int getSortOrder() { return sortOrder; }
@@ -141,6 +148,7 @@ public class ProductModel {
     public void setImage(String image) { this.image = image; }
     public void setGallery(String gallery) { this.gallery = gallery; }
     public void setSeason(String season) { this.season = season; }
+    public void setNm(Long nm) { this.nm = nm; }
     public void setFeaturedOrder(Integer featuredOrder) { this.featuredOrder = featuredOrder; }
     public void setLookbookOrder(Integer lookbookOrder) { this.lookbookOrder = lookbookOrder; }
     public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }

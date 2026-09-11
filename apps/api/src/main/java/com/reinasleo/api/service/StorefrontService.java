@@ -104,7 +104,17 @@ public class StorefrontService {
                 m.getDescEn(), m.getDescRu(), m.getStoryEn(), m.getStoryRu(),
                 m.getCompositionEn(), m.getCompositionRu(), m.getCareEn(), m.getCareRu(),
                 colours, Arrays.asList(m.getSizes()), m.getImage(), readStrings(m.getGallery()),
-                first == null ? null : first.getNm(), m.getSeason(), m.getFeaturedOrder(), m.getLookbookOrder());
+                modelNm(m, first), m.getSeason(), m.getFeaturedOrder(), m.getLookbookOrder());
+    }
+
+    // Артикул модели — свой, если он задан: у модели и у её первого цвета карточки
+    // WB могут быть разные, и от этого зависят соответствие сток-снимку, кнопка
+    // «купить на WB» и sku/mpn в JSON-LD. Без своего берём первый вариант.
+    private Long modelNm(ProductModel m, Product first) {
+        if (m.getNm() != null) {
+            return m.getNm();
+        }
+        return first == null ? null : first.getNm();
     }
 
     private StorefrontColour toColour(Product v) {

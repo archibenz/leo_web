@@ -143,3 +143,26 @@ tailoring$q$, '/videos/white/hero-mark2.mp4', '/videos/white/hero-desktop.mp4', 
 INSERT INTO storefront_sections (id, slug, layout, status, name_ru, name_en, eyebrow_ru, eyebrow_en, headline_ru, headline_en, body_ru, body_en, video_url, poster_url, sort_order) VALUES ('254b4e10-1cc1-5efb-84d0-213429810a3a', 'sets-teaser', 'sets-teaser', 'active', $q$Готовые сочетания,$q$, $q$Ready combinations,$q$, $q$Сеты$q$, $q$Sets$q$, $q$Готовые сочетания,
 без долгих сборов$q$, $q$Ready combinations,
 no deciding required$q$, $q$Сеты из вещей коллекции — в офис, на вечер, на каждый день. Целиком или по отдельности.$q$, $q$Sets built from the collection — for the office, the evening, the everyday. Together or piece by piece.$q$, '/videos/white/sets-static.mp4', '/images/white/sets-static.jpg', 1) ON CONFLICT (id) DO NOTHING;
+-- Артикул модели: до переезда он жил в products.ts рядом с моделью и у ключа 7
+-- («Брюки алладины») отличается от артикула первого цвета. Он и остаётся тем,
+-- на что смотрят сток-снимок, кнопка «купить на WB» и JSON-LD.
+UPDATE product_models SET nm = 1008989269 WHERE model_key = 1;
+UPDATE product_models SET nm = 795522033 WHERE model_key = 2;
+UPDATE product_models SET nm = 962827637 WHERE model_key = 3;
+UPDATE product_models SET nm = 442574310 WHERE model_key = 4;
+UPDATE product_models SET nm = 1217814224 WHERE model_key = 5;
+UPDATE product_models SET nm = 675104410 WHERE model_key = 6;
+UPDATE product_models SET nm = 962783109 WHERE model_key = 7;
+UPDATE product_models SET nm = 371980450 WHERE model_key = 8;
+UPDATE product_models SET nm = 1113526970 WHERE model_key = 9;
+UPDATE product_models SET nm = 1143078000 WHERE model_key = 10;
+UPDATE product_models SET nm = 813600452 WHERE model_key = 11;
+UPDATE product_models SET nm = 795640219 WHERE model_key = 15;
+UPDATE product_models SET nm = 795670341 WHERE model_key = 16;
+UPDATE product_models SET nm = 1224761706 WHERE model_key = 18;
+UPDATE product_models SET nm = 1126294272 WHERE model_key = 19;
+UPDATE product_models SET nm = 1260050013 WHERE model_key = 20;
+UPDATE product_models SET nm = 1287075011 WHERE model_key = 21;
+UPDATE product_models SET nm = 1260042009 WHERE model_key = 22;
+UPDATE product_models SET nm = 1263973409 WHERE model_key = 23;
+UPDATE product_models SET nm = 1287079527 WHERE model_key = 24;
