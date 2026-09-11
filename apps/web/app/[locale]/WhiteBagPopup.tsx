@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {subscribeWhiteBagAdds, type WhiteBagItem} from '../../hooks/useWhiteBag';
-import {WHITE_PRODUCTS} from './products';
 import {INK, MUTED, HAIR} from './wv-palette';
 
 // Confirmation that something went into the bag. The button already flips to
@@ -16,6 +15,8 @@ import {INK, MUTED, HAIR} from './wv-palette';
 // It subscribes to the store rather than taking a prop, so it works the same
 // whether the add came from the product page, a card's quick add or the sets
 // page, and it is mounted once in the footer (present on every White page).
+// Everything it shows travels on the bag line itself — mounted in the chrome,
+// it has no catalogue to look a garment up in.
 
 const DISMISS_MS = 5000;
 
@@ -54,8 +55,10 @@ export default function WhiteBagPopup({locale}: {locale: string}) {
 
   if (!item) return null;
 
-  const product = WHITE_PRODUCTS.find((p) => p.key === item.key);
   const name = locale === 'ru' ? item.ru : item.en;
+  // Lines saved before the bag carried a slug have nowhere to point back to;
+  // the bag itself is the honest destination for them.
+  const href = item.slug ? `/${locale}/product/${item.slug}` : `/${locale}/bag`;
   const colour = locale === 'ru' ? item.colorRu : item.colorEn;
   const close = () => {
     setLeaving(true);
@@ -78,10 +81,10 @@ export default function WhiteBagPopup({locale}: {locale: string}) {
       style={{borderColor: HAIR, boxShadow: '0 10px 40px rgba(28,23,20,0.10)'}}
     >
       <div className="flex items-stretch gap-3 p-3">
-        {product && (
-          <div className="relative h-[86px] w-[64px] shrink-0 overflow-hidden">
-            <Image src={product.image} alt="" fill sizes="64px" className="object-cover" />
-          </div>
+        {item.image && (
+          <Link href={href} onClick={close} aria-label={name} className="relative h-[86px] w-[64px] shrink-0 overflow-hidden">
+            <Image src={item.image} alt="" fill sizes="64px" className="object-cover" />
+          </Link>
         )}
         <div className="flex min-w-0 flex-1 flex-col justify-between py-0.5">
           <div>

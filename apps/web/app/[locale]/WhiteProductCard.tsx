@@ -101,7 +101,18 @@ export default function WhiteProductCard({
     const {price, sale} = whitePrice(product, primary);
     // `?? 0` is unreachable in practice: quick add never renders for a
     // priceless preorder piece (inStock is forced false above).
-    add({key: product.key, en: product.en, ru: product.ru, price: sale ?? price ?? 0, size, colorEn: primary?.en ?? '', colorRu: primary?.ru ?? ''});
+    add({
+      key: product.key,
+      en: product.en,
+      ru: product.ru,
+      price: sale ?? price ?? 0,
+      size,
+      colorEn: primary?.en ?? '',
+      colorRu: primary?.ru ?? '',
+      productId: primary?.id,
+      slug: product.slug,
+      image: primary?.image ?? product.image,
+    });
     setOpen(false);
     setAdded(true);
     // Return focus after the trigger re-renders, then clear the confirmation.

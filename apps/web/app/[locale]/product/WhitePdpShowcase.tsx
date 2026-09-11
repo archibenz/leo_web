@@ -121,7 +121,18 @@ export default function WhitePdpShowcase({
   const handleAdd = () => {
     if (!size) return;
     // Charge the effective (sale) price the PDP shows — not the struck regular.
-    add({key: bagProduct.key, en: bagProduct.en, ru: bagProduct.ru, price: shownPrice.sale ?? shownPrice.price ?? 0, size, colorEn: selectedColor.en, colorRu: selectedColor.ru});
+    add({
+      key: bagProduct.key,
+      en: bagProduct.en,
+      ru: bagProduct.ru,
+      price: shownPrice.sale ?? shownPrice.price ?? 0,
+      size,
+      colorEn: selectedColor.en,
+      colorRu: selectedColor.ru,
+      productId: selectedColor.id,
+      slug: bagProduct.slug,
+      image: selectedColor.image ?? bagProduct.image,
+    });
     setJustAdded(true);
     window.setTimeout(() => setJustAdded(false), 1600);
   };

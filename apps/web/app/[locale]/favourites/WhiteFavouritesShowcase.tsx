@@ -10,19 +10,20 @@ import WhiteProductCard from '../WhiteProductCard';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 import {MaskIcon} from '../wv-icons';
 import {whiteItemNoun} from '../wv-i18n';
-import {findWhiteProduct} from '../products';
+import {findProductByKey} from '../../../lib/catalogue/select';
+import type {WhiteProduct} from '../../../lib/catalogue/types';
 
 // Variant 2 "White" — favourites / wishlist. Lists the localStorage-backed
 // saved products (via useWhiteFavourites), or an honest empty state. Quick Add
 // lets a saved piece move straight to the bag.
 
-export default function WhiteFavouritesShowcase({locale}: {locale: string}) {
+export default function WhiteFavouritesShowcase({locale, products}: {locale: string; products: readonly WhiteProduct[]}) {
   const {count} = useWhiteBag();
   const {keys} = useWhiteFavourites();
   const t = useTranslations('white.favourites');
 
   // Preserve the order items were saved in; drop any stale keys.
-  const saved = keys.map((k) => findWhiteProduct(k)).filter((p): p is NonNullable<typeof p> => p != null);
+  const saved = keys.map((k) => findProductByKey(products, k)).filter((p): p is WhiteProduct => p != null);
 
   return (
     <>

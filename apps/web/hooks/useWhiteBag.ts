@@ -5,6 +5,9 @@ import {useEffect, useState} from 'react';
 // state and no hydration mismatch. A module-level store + pub/sub keeps every
 // useWhiteBag() instance on a page in sync (header count, PDP add, bag list).
 // Honest demo bag: it holds the user's picks locally — there is no checkout.
+// A line remembers the variant it came from (`productId = wb-<nm>`) — that is
+// what checkout will be paid against in stage 4; older lines without a
+// `productId` are resolved by `key + colorEn`.
 
 const KEY = 'wv-bag';
 

@@ -102,8 +102,6 @@ const ROUTE_SEGMENTS = new Set([
 // noindex, so a soft 404 inside them costs nothing.
 const UNPOLICED = new Set(['admin', 'auth']);
 
-const PRODUCT_SLUG_SET = new Set(Object.values(PRODUCT_SLUGS));
-
 // True only when the address certainly has no page behind it. Anything this
 // function is unsure about is treated as real and left to render.
 function isDeadEnd(pathname: string): boolean {
@@ -113,8 +111,10 @@ function isDeadEnd(pathname: string): boolean {
   if (!ROUTE_SEGMENTS.has(first)) return true;
   if (UNPOLICED.has(first)) return false;
   if (first === 'product') {
-    if (!second) return false;
-    return deeper.length > 0 || !PRODUCT_SLUG_SET.has(second);
+    // Slugs live in the database, not on the edge — whether a card exists is
+    // the page's call (`dynamicParams = false` → an honest 404). Depth is all
+    // the edge can still judge.
+    return deeper.length > 0;
   }
   return Boolean(second);
 }

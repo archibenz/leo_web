@@ -1,8 +1,8 @@
-// Key → slug map for the retired /product?p=<key> address.
+// Frozen table of the retired numeric addresses /product?p=<key>.
 //
-// Lives apart from products.ts on purpose: middleware runs on the edge and
-// importing the catalogue would drag ~280 image paths into every request.
-// Generated from the catalogue — keep in step when a garment is added.
+// The catalogue lives in the database; nothing new is added here — a garment
+// that arrives now never had a numeric address. Do not sync it with the
+// catalogue.
 export const PRODUCT_SLUGS: Record<number, string> = {
   1: 'lnyanoy-kostyum-s-yubkoy-maksi',
   2: 'palto-pidzhak-pritalennoe',
