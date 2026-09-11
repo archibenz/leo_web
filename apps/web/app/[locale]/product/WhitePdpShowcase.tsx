@@ -15,7 +15,8 @@ import WhitePreorder from './WhitePreorder';
 import {ozonProductUrl} from '../../../lib/ozon';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 import {WhiteFavHeart, WhiteArrow} from '../wv-icons';
-import {WHITE_PRODUCTS, WHITE_SETS, WHITE_SIZES, whiteInStock, whiteAvailability, whitePrice, type WhiteProduct} from '../products';
+import {WHITE_SIZES, findProductByKey, whiteInStock, whiteAvailability, whitePrice} from '../../../lib/catalogue/select';
+import type {WhiteProduct, WhiteSet} from '../../../lib/catalogue/types';
 import {WHITE_LQIP} from '../products-lqip';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
@@ -41,10 +42,15 @@ const SIZE_GUIDE = [
 export default function WhitePdpShowcase({
   locale,
   product,
+  // The rest of the catalogue and the looks, both from the server page — the
+  // "you may also like" rail and "complete the look" read them, and nothing
+  // here fetches anything of its own.
+  products,
+  sets,
   // Live from the marketplace snapshot. Defaults to true so a render without it
   // (a test, a story) behaves as it did before stock was wired up.
   onWildberries = true,
-}: {locale: string; product: WhiteProduct; onWildberries?: boolean}) {
+}: {locale: string; product: WhiteProduct; products: WhiteProduct[]; sets: WhiteSet[]; onWildberries?: boolean}) {
   const productColors = product.colors;
   const [activeImg, setActiveImg] = useState(0);
   const [size, setSize] = useState<string | null>(null);
@@ -273,13 +279,13 @@ export default function WhitePdpShowcase({
     return ru ? `${subject}, вид ${i + 1}` : `${subject}, view ${i + 1}`;
   };
   // "You may also like" — same category first, then fill from the rest, current excluded.
-  const pool = WHITE_PRODUCTS.filter((p) => p.key !== product.key);
+  const pool = products.filter((p) => p.key !== product.key);
   const sameCat = pool.filter((p) => p.cat === product.cat);
   const related = [...sameCat, ...pool.filter((p) => !sameCat.includes(p))].slice(0, 4);
   // The set this piece belongs to — its other items become "complete the look".
-  const look = WHITE_SETS.find((st) => st.productKeys.includes(product.key));
+  const look = sets.find((st) => st.items.some((it) => it.productKey === product.key));
   const lookItems = look
-    ? look.productKeys.filter((k) => k !== product.key).map((k) => WHITE_PRODUCTS.find((pr) => pr.key === k)).filter((pr): pr is NonNullable<typeof pr> => pr != null)
+    ? look.items.filter((it) => it.productKey !== product.key).map((it) => findProductByKey(products, it.productKey)).filter((pr): pr is NonNullable<typeof pr> => pr != null)
     : [];
 
   return (

@@ -3,7 +3,8 @@ import {headers} from 'next/headers';
 import WhiteShopShowcase from './WhiteShopShowcase';
 export const revalidate = 600;
 import {getStockSnapshot, wbHasStock} from '../../../lib/stock';
-import {normalizeWhiteCat, whiteCatLabel, WHITE_PRODUCTS, whiteProductHref} from '../products';
+import {getStorefront} from '../../../lib/catalogue/fetch';
+import {normalizeWhiteCat, whiteCatLabel, whiteProductHref} from '../../../lib/catalogue/select';
 import {brandMeta} from '../../../lib/openGraph';
 import {safeJsonLd, buildBreadcrumbJsonLd} from '../../../lib/jsonLd';
 import {SITE_URL} from '../../../lib/siteUrl';
@@ -53,6 +54,7 @@ export default async function WhiteShopPage({params, searchParams}: Props) {
   const initialSort = sort === 'asc' || sort === 'desc' ? sort : 'new';
   const nonce = (await headers()).get('x-nonce') ?? undefined;
   const ru = locale === 'ru';
+  const {products} = await getStorefront();
 
   // Tells search this page is the catalogue and names what is in it, so the
   // garments can be understood as a set rather than 18 unrelated links. Listed
@@ -62,8 +64,8 @@ export default async function WhiteShopPage({params, searchParams}: Props) {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: ru ? 'Каталог REINASLEO' : 'REINASLEO catalogue',
-    numberOfItems: WHITE_PRODUCTS.length,
-    itemListElement: WHITE_PRODUCTS.map((p, i) => ({
+    numberOfItems: products.length,
+    itemListElement: products.map((p, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       name: ru ? p.ru : p.en,
@@ -78,7 +80,7 @@ export default async function WhiteShopPage({params, searchParams}: Props) {
   // Which pieces the marketplaces no longer hold. Computed here, on the server,
   // and handed to the grid so a card can say so without every card asking.
   const snapshot = await getStockSnapshot();
-  const soldOutKeys = WHITE_PRODUCTS.filter((p) => !wbHasStock(snapshot, p.nm)).map((p) => p.key);
+  const soldOutKeys = products.filter((p) => !wbHasStock(snapshot, p.nm)).map((p) => p.key);
 
   return (
     <>
@@ -86,6 +88,7 @@ export default async function WhiteShopPage({params, searchParams}: Props) {
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(breadcrumbJsonLd)}} />
       <WhiteShopShowcase
         locale={locale}
+        products={products}
         soldOutKeys={soldOutKeys}
         initialCat={normalizeWhiteCat(cat)}
         initialQuery={typeof q === 'string' ? q : ''}

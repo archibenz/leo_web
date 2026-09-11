@@ -3,7 +3,8 @@ import {headers} from 'next/headers';
 import {notFound} from 'next/navigation';
 import WhitePdpShowcase from '../WhitePdpShowcase';
 import {getStockSnapshot, wbHasStock} from '../../../../lib/stock';
-import {WHITE_PRODUCTS, findWhiteProductBySlug, whiteProductHref, whitePriceRange} from '../../products';
+import {getStorefront} from '../../../../lib/catalogue/fetch';
+import {findProductBySlug, whiteProductHref, whitePriceRange} from '../../../../lib/catalogue/select';
 import {safeJsonLd, buildBreadcrumbJsonLd} from '../../../../lib/jsonLd';
 import {SITE_URL} from '../../../../lib/siteUrl';
 import {buildProductMeta} from '../../../../lib/productMeta';
@@ -29,15 +30,18 @@ export const revalidate = 600;
 
 // Every garment is known at build time, so the whole catalogue prerenders as
 // static HTML — crawlers get the full markup without running any JS.
-export function generateStaticParams() {
-  return WHITE_PRODUCTS.flatMap((p) =>
+// `generateStaticParams` ходит в API на сборке — API должен быть поднят до `next build`.
+export async function generateStaticParams() {
+  const {products} = await getStorefront();
+  return products.flatMap((p) =>
     ['en', 'ru'].map((locale) => ({locale, slug: p.slug})),
   );
 }
 
 export async function generateMetadata({params}: Props): Promise<Metadata> {
   const {locale, slug} = await params;
-  const product = findWhiteProductBySlug(slug);
+  const {products} = await getStorefront();
+  const product = findProductBySlug(products, slug);
   if (!product) notFound();
   const ru = locale === 'ru';
   const name = ru ? product.ru : product.en;
@@ -69,7 +73,8 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 
 export default async function WhiteProductSlugPage({params}: Props) {
   const {locale, slug} = await params;
-  const product = findWhiteProductBySlug(slug);
+  const {products, sets} = await getStorefront();
+  const product = findProductBySlug(products, slug);
   if (!product) notFound();
   const nonce = (await headers()).get('x-nonce') ?? undefined;
   const onWildberries = wbHasStock(await getStockSnapshot(), product.nm);
@@ -132,7 +137,7 @@ export default async function WhiteProductSlugPage({params}: Props) {
     <>
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(productJsonLd)}} />
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(breadcrumbJsonLd)}} />
-      <WhitePdpShowcase locale={locale} product={product} onWildberries={onWildberries} />
+      <WhitePdpShowcase locale={locale} product={product} products={products} sets={sets} onWildberries={onWildberries} />
     </>
   );
 }
