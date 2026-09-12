@@ -137,4 +137,16 @@ export type StorefrontSection = {
   sortOrder: number;
 };
 
-export type Storefront = {products: WhiteProduct[]; sets: WhiteSet[]; sections: StorefrontSection[]};
+// Строка, чей черновик не прочитался: витрина отдаёт её ОПУБЛИКОВАННОЙ, а
+// редактор ставит рядом маркер. «Правки нет» и «правка есть, но её не
+// прочитать» — разные вещи; молча показав первое вместо второго, мы заставим
+// владельца сделать правку заново поверх той, что уже лежит в базе.
+// Приходит только из ручки предпросмотра; в публичном ответе поля нет.
+export type StorefrontBrokenDraft = {kind: 'section' | 'model' | 'set'; id: string; key: string; reason: string};
+
+export type Storefront = {
+  products: WhiteProduct[];
+  sets: WhiteSet[];
+  sections: StorefrontSection[];
+  brokenDrafts?: StorefrontBrokenDraft[];
+};
