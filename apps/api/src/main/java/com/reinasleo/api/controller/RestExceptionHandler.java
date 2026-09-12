@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.sql.SQLException;
 import java.util.Map;
 
 @RestControllerAdvice
@@ -224,20 +225,50 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrity(org.springframework.dao.DataIntegrityViolationException ex) {
-        String cause = ex.getMostSpecificCause().getMessage();
-        log.warn("Data integrity violation: {}", cause);
-        // Нарушен CHECK — значение не из закрытого списка (например категория
-        // модели, ck_product_models_category из V32). Это ошибка отправителя, а
-        // не гонка: 400 и текст драйвера, чтобы было видно, какое правило и
-        // какая колонка. Отвечать на это «email_exists» — врать.
-        if (cause != null && cause.toLowerCase().contains("check constraint")) {
-            Map<String, Object> body = Map.of("error", "constraint_violation", "message", cause);
+        Throwable cause = ex.getMostSpecificCause();
+        // В лог — целиком, наружу — никогда: у PSQLException сообщение это
+        // ServerErrorMessage.toString() вместе с «Detail: Failing row contains
+        // (…)», то есть ЗНАЧЕНИЯМИ ВСЕХ КОЛОНОК отказавшей строки. Обработчик
+        // глобальный, CHECK'и есть на order_items, payments, payment_events и
+        // delivery_shipments, а чекаут и вебхук YooKassa открыты — отдать этот
+        // текст значит отдать чужие данные заказа.
+        log.warn("Data integrity violation: {}", cause.getMessage());
+
+        // Ветка выбирается по SQLSTATE, а не по подстроке в сообщении: коды
+        // стандартны и не зависят ни от драйвера, ни от локали сервера.
+        // 23514 — check_violation у PostgreSQL, 23513 — он же у H2.
+        String sqlState = cause instanceof SQLException sql ? sql.getSQLState() : null;
+        if ("23514".equals(sqlState) || "23513".equals(sqlState)) {
+            // Наружу — только ИМЯ правила. Оно наше, оно не содержит данных и по
+            // нему видно, что именно нарушено.
+            String constraint = constraintName(cause.getMessage());
+            Map<String, Object> body = Map.of(
+                    "error", "constraint_violation",
+                    "constraint", constraint,
+                    "message", "Значение не проходит проверку базы: " + constraint
+            );
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
         }
         // Two registrations racing on one email both pass the service check;
         // the unique index rejects the loser — answer 409 like the check does.
         Map<String, Object> body = Map.of("message", "email_exists");
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+
+    // Имя правила и только оно: буквы, цифры и подчёркивания в кавычках. Всё
+    // остальное из сообщения драйвера наружу не идёт.
+    private static final java.util.regex.Pattern CONSTRAINT_NAME =
+            java.util.regex.Pattern.compile("constraint\\s+\"?([A-Za-z0-9_]+)\"?");
+
+    private static String constraintName(String driverMessage) {
+        if (driverMessage != null) {
+            var matcher = CONSTRAINT_NAME.matcher(driverMessage);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+        }
+        return "unknown";
     }
 
     // Резолвер multipart отказывает ДО входа в контроллер, поэтому наш текст
