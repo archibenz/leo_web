@@ -56,11 +56,15 @@ export default async function LocaleLayout({
   const requestHeaders = await headers();
   const nonce = requestHeaders.get('x-nonce') ?? undefined;
   // The White storefront lives at the locale root and is the default chrome.
-  // Only the infra pages (admin, auth) still use the gradient
-  // header/footer/providers; everything else — legal pages included — renders
-  // inside WhiteChrome, one header and footer that persist across navigations.
+  // Only admin still uses the gradient header/footer/providers; everything
+  // else — legal pages and the Telegram exchange landing included — renders
+  // inside WhiteChrome, one header and footer that persist across
+  // navigations. auth/tg used to sit here too, but it needs none of
+  // Providers' contexts (it adopts its token via hooks/useWhiteAuth, same as
+  // WhiteTelegramLogin) and app/[locale]/auth/ has no other route to keep
+  // gradient company — see page.test.tsx and e2e/tests/11-tg-landing.spec.ts.
   const pathname = requestHeaders.get('x-pathname') ?? '';
-  const isGradientChrome = /^\/(?:[a-z-]+)\/(?:admin|auth)(?:\/|$)/i.test(pathname);
+  const isGradientChrome = /^\/(?:[a-z-]+)\/admin(?:\/|$)/i.test(pathname);
 
   const orgJsonLd = {
     '@context': 'https://schema.org',
@@ -99,8 +103,8 @@ export default async function LocaleLayout({
     return (
       <NextIntlClientProvider locale={locale} messages={messages}>
         {/* The storefront is the part of the site search actually sees, yet the
-            Organization block only ever rendered on the admin/auth branch below
-            — every shop page shipped without it.
+            Organization block only ever rendered on the admin branch below —
+            every shop page shipped without it.
 
             suppressHydrationWarning is about the nonce, not the JSON. A browser
             blanks the nonce content attribute once the document has loaded (so a
