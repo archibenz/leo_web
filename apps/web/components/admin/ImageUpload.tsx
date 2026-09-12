@@ -143,7 +143,7 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
       >
         <input
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/jpeg,image/png"
           multiple
           className="sr-only"
           onChange={e => handleUpload(e.target.files)}

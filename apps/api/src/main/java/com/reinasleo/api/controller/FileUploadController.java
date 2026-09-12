@@ -27,20 +27,12 @@ import java.util.UUID;
 @RequestMapping("/api/admin/upload")
 public class FileUploadController {
 
-    private static final Set<String> ALLOWED_TYPES = Set.of(
-            "image/jpeg", "image/png", "image/webp", "image/jpg"
-    );
     // Снимок с айфона весит 5–12 МБ, и прежние 10 МБ отбивали его на первой же
     // попытке. Предел поднят — но строго В ПАРЕ с уменьшением: принимаем тяжёлое,
     // на витрину кладём лёгкое. Поднять предел без уменьшения значило бы
     // перенести боль с владельца на покупателя, которому этот кадр поехал бы
     // в галерею товара.
     private static final long MAX_IMAGE_SIZE = 32L * 1024 * 1024;
-
-    // WebP в этой JVM раскодировать нечем (ImageIO не знает его формата), значит
-    // нечем и уменьшить. Такой файл проходит как есть — и поэтому остаётся на
-    // прежнем пороге в 10 МБ: поднимать предел там, где мы не жмём, запрещено.
-    private static final long MAX_PASSTHROUGH_SIZE = 10L * 1024 * 1024;
 
     // ffmpeg на сервере нет, и ставить его — решение владельца, а не конфиг.
     // Значит сервер не сжимает, а отказывает: нынешние ролики витрины весят
@@ -56,10 +48,17 @@ public class FileUploadController {
     private String uploadDir;
 
     /**
-     * Картинка витрины. Принимается тяжёлый снимок с телефона, кладётся лёгкий
-     * кадр: поворот по EXIF, длинная сторона до 2000 px, JPEG q82, метаданные
-     * съёмки (включая координаты) выброшены. Подробности порядка шагов — в
+     * Картинка витрины. Принимается тяжёлый снимок с телефона (JPEG или PNG),
+     * кладётся лёгкий кадр: поворот по EXIF, длинная сторона до 2000 px, JPEG
+     * q82, метаданные съёмки (включая координаты) выброшены — это верно для
+     * всего, что ручка принимает. Подробности порядка шагов — в
      * {@link ImageNormalizer}.
+     *
+     * WebP не принимается вовсе: метаданные этого контейнера мы не вычищаем,
+     * а положить кадр как есть значило бы оставить координаты съёмки на
+     * витрине. Тип определяется по байтам, а не по заявленному Content-Type —
+     * иначе JPEG, назвавшийся WebP, миновал бы и уменьшение, и сброс
+     * метаданных.
      */
     @PostMapping
     public ResponseEntity<Map<String, String>> upload(@RequestParam("file") MultipartFile file) {
@@ -68,24 +67,24 @@ public class FileUploadController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Файл пустой");
         }
 
-        String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UploadMessages.NOT_AN_IMAGE);
+        if (file.getSize() > MAX_IMAGE_SIZE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UploadMessages.IMAGE_TOO_LARGE);
         }
 
-        boolean shrinkable = !"image/webp".equals(contentType);
-        long ceiling = shrinkable ? MAX_IMAGE_SIZE : MAX_PASSTHROUGH_SIZE;
-        if (file.getSize() > ceiling) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    shrinkable ? UploadMessages.IMAGE_TOO_LARGE : UploadMessages.WEBP_NOT_RESIZED);
-        }
-
+        String detectedType;
         try {
-            if (!ImageContentValidator.isSupportedImage(file)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UploadMessages.UNREADABLE_IMAGE);
-            }
+            detectedType = ImageContentValidator.detect(file);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Не удалось прочитать загруженный файл");
+        }
+        if (detectedType == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UploadMessages.NOT_AN_IMAGE);
+        }
+        if ("image/webp".equals(detectedType)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UploadMessages.WEBP_NOT_ACCEPTED);
+        }
+        if (!sameFamily(detectedType, file.getContentType())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UploadMessages.CONTENT_TYPE_MISMATCH);
         }
 
         // Имя проверяется ДО разбора картинки: отказать на обходе каталога
@@ -103,19 +102,14 @@ public class FileUploadController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Не удалось прочитать загруженный файл");
         }
 
-        byte[] bytes;
-        String extension;
-        if (shrinkable) {
-            ImageNormalizer.Normalized normalized = ImageNormalizer.normalize(source, contentType);
-            bytes = normalized.bytes();
-            // Расширение берётся из того, что мы РЕАЛЬНО записали, а не из имени
-            // загрузки: png на входе мог уехать в jpg, и .png на диске отдавался
-            // бы с чужим Content-Type.
-            extension = normalized.extension();
-        } else {
-            bytes = source;
-            extension = ".webp";
-        }
+        // detectedType — настоящий формат, а не заявленный: ImageNormalizer
+        // решает по нему, снимать ли ориентацию PNG (у PNG её не бывает).
+        ImageNormalizer.Normalized normalized = ImageNormalizer.normalize(source, detectedType);
+        byte[] bytes = normalized.bytes();
+        // Расширение берётся из того, что мы РЕАЛЬНО записали, а не из имени
+        // загрузки: png на входе мог уехать в jpg, и .png на диске отдавался
+        // бы с чужим Content-Type.
+        String extension = normalized.extension();
 
         try {
             Path uploadPath = Paths.get(uploadDir, "products").toAbsolutePath().normalize();
@@ -189,6 +183,12 @@ public class FileUploadController {
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save file");
         }
+    }
+
+    // "image/jpg" — не официальный MIME-тип, но некоторые клиенты присылают его
+    // для JPEG; настоящий формат при этом всё равно "image/jpeg" по байтам.
+    private static boolean sameFamily(String detected, String declared) {
+        return detected.equals(declared) || ("image/jpeg".equals(detected) && "image/jpg".equals(declared));
     }
 
     private static String sha256(byte[] bytes) {

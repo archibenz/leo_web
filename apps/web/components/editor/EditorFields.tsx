@@ -128,7 +128,7 @@ export function MediaField({label, value, kind, onChange}: {
       <input
         ref={input}
         type="file"
-        accept={kind === 'video' ? 'video/mp4,video/webm' : 'image/jpeg,image/png,image/webp'}
+        accept={kind === 'video' ? 'video/mp4,video/webm' : 'image/jpeg,image/png'}
         className="hidden"
         aria-label={label}
         onChange={(e) => void pick(e.target.files?.[0])}

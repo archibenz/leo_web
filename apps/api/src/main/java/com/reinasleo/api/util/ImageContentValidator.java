@@ -18,6 +18,29 @@ public final class ImageContentValidator {
         return isJpeg(head, read) || isPng(head, read) || isWebp(head, read);
     }
 
+    /**
+     * Настоящий тип файла по магическим байтам, а не по заявленному
+     * Content-Type: {@code image/jpeg}, {@code image/png}, {@code image/webp}
+     * или {@code null}, если ни один магический заголовок не совпал.
+     */
+    public static String detect(MultipartFile file) throws IOException {
+        byte[] head = new byte[12];
+        int read = file.getInputStream().read(head);
+        if (read < 4) {
+            return null;
+        }
+        if (isJpeg(head, read)) {
+            return "image/jpeg";
+        }
+        if (isPng(head, read)) {
+            return "image/png";
+        }
+        if (isWebp(head, read)) {
+            return "image/webp";
+        }
+        return null;
+    }
+
     private static boolean isJpeg(byte[] h, int len) {
         return len >= 3
                 && (h[0] & 0xFF) == 0xFF

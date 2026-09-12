@@ -149,7 +149,7 @@ export default function VariantForm({modelId, variantId, onSaved}: {
           Добавить кадр
           <input
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png"
             className="hidden"
             onChange={(e) => void addToGallery(e.target.files?.[0])}
           />

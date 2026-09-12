@@ -270,6 +270,61 @@ class FileUploadControllerTest {
                 .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("32 МБ")));
     }
 
+    // ============================================================ тип по байтам, не по заявленному
+
+    @Test
+    void aRealWebpIsRefusedWithItsOwnWords() throws Exception {
+        // Настоящий RIFF/WEBP — минимальный, ровно на границе сигнатуры.
+        // Решение владельца: WebP не принимаем вовсе (см. UploadMessages), а не
+        // вычищаем метаданные — переписывание чужого файла обратно на диск это
+        // не чтение чужого бинаря, а его производство, и ошибиться в записи
+        // дороже, чем в разборе.
+        byte[] webp = {
+                'R', 'I', 'F', 'F', 0, 0, 0, 0, 'W', 'E', 'B', 'P',
+        };
+
+        mockMvc.perform(multipart("/api/admin/upload")
+                        .file(new MockMultipartFile("file", "photo.webp", "image/webp", webp))
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("JPEG")))
+                .andExpect(jsonPath("$.message", org.hamcrest.Matchers.containsString("PNG")));
+    }
+
+    @Test
+    void aJpegNamedWebpIsRefusedAsAMismatchNotAsAPassthrough() throws Exception {
+        // Ручка когда-то решала «жать или пропустить» по ЗАЯВЛЕННОМУ типу:
+        // JPEG, названный image/webp, миновал бы и уменьшение, и сброс
+        // метаданных. Тип теперь определяется по байтам — настоящий JPEG,
+        // назвавшийся webp, получает отказ за расхождение, а не проезжает как
+        // «пропустить, нечем жать».
+        mockMvc.perform(multipart("/api/admin/upload")
+                        .file(new MockMultipartFile("file", "photo.webp", "image/webp", TINY_JPEG))
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").exists());
+    }
+
+    @Test
+    void aPngNamedJpegIsRefusedAsAMismatch() throws Exception {
+        byte[] png = encode(newPngImage(20, 20), "png");
+
+        mockMvc.perform(multipart("/api/admin/upload")
+                        .file(new MockMultipartFile("file", "photo.jpg", "image/jpeg", png))
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").exists());
+    }
+
+    private static java.awt.image.BufferedImage newPngImage(int w, int h) {
+        java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(w, h, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        java.awt.Graphics2D g = img.createGraphics();
+        g.setColor(java.awt.Color.BLUE);
+        g.fillRect(0, 0, w, h);
+        g.dispose();
+        return img;
+    }
+
     private static byte[] withOrientationSix(byte[] jpeg) {
         byte[] tiff = new byte[]{
                 'I', 'I', 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00,
