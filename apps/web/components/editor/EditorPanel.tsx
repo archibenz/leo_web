@@ -33,7 +33,9 @@ export default function EditorPanel() {
   return (
     <aside
       aria-label="Правка витрины"
-      className={`fixed z-[70] flex flex-col bg-white transition-transform duration-200 ease-out motion-reduce:transition-none
+      // z выше плашки о cookie (z-[1100]): на телефоне обе прижаты к низу, и
+      // плашка накрывала кнопку «Сохранить» в первый же визит.
+      className={`fixed z-[1200] flex flex-col bg-white transition-transform duration-200 ease-out motion-reduce:transition-none
         inset-x-0 bottom-0 max-h-[62vh]
         lg:inset-y-0 lg:left-auto lg:right-0 lg:bottom-auto lg:h-full lg:max-h-none lg:w-[360px]
         ${entered ? 'translate-y-0 lg:translate-x-0' : 'translate-y-full lg:translate-y-0 lg:translate-x-full'}`}
