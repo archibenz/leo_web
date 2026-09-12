@@ -10,7 +10,10 @@ interface ImageUploadProps {
   onChange: (images: {src: string; alt: string}[]) => void;
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+// Держится вровень с сервером (FileUploadController.MAX_IMAGE_SIZE). Оставшись
+// на 10 МБ, эта проверка отбивала бы снимок с телефона ещё до запроса — тот
+// самый, который сервер теперь принимает и сам уменьшает до витринного веса.
+const MAX_FILE_SIZE = 32 * 1024 * 1024;
 
 export default function ImageUpload({images, onChange}: ImageUploadProps) {
   const t = useTranslations('admin.upload');
@@ -26,11 +29,11 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (!file.type.startsWith('image/')) {
-        rejections.push(`${file.name}: not an image`);
+        rejections.push(`${file.name}: это не картинка`);
         continue;
       }
       if (file.size > MAX_FILE_SIZE) {
-        rejections.push(`${file.name}: exceeds 10MB`);
+        rejections.push(`${file.name}: тяжелее 32 МБ`);
         continue;
       }
       validFiles.push(file);
