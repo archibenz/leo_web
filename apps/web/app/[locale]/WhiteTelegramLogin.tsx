@@ -4,7 +4,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {apiFetch} from '../../lib/api';
 import {whiteAdoptToken} from '../../hooks/useWhiteAuth';
-import {MUTED, SIGNAL} from './wv-palette';
+import {INK, MUTED, SIGNAL, HAIR} from './wv-palette';
 
 // Sign in through the Telegram bot: /api/auth/telegram/init hands back a
 // one-time token plus a t.me deep link; the bot verifies (or registers) the
@@ -17,8 +17,6 @@ import {MUTED, SIGNAL} from './wv-palette';
 const TG_TOKEN_KEY = 'tg_init_token';
 const POLL_MS = 2500;
 const MAX_ATTEMPTS = 120; // ~5 minutes
-
-const TELEGRAM_BLUE = '#229ED9';
 
 type TgStatus = 'idle' | 'waiting' | 'expired' | 'error';
 
@@ -135,21 +133,29 @@ export default function WhiteTelegramLogin() {
   return (
     <div className="mt-6">
       <div className="flex items-center gap-4" aria-hidden="true">
-        <span className="h-px flex-1" style={{background: '#e7e2db'}} />
+        <span className="h-px flex-1" style={{background: HAIR}} />
         <span className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('orDivider')}</span>
-        <span className="h-px flex-1" style={{background: '#e7e2db'}} />
+        <span className="h-px flex-1" style={{background: HAIR}} />
       </div>
+      {/* Вторая кнопка входа — в языке витрины, тем же приёмом, что кнопка
+          «Вход» в мобильном меню (.wv-cta): прямой угол, волосяной контур,
+          чернила наливаются снизу вверх. Фирменного синего здесь не было бы
+          ни у одного другого элемента страницы; Telegram узнают по значку и
+          подписи. Значок берёт currentColor, поэтому вместе с текстом
+          белеет на ховере. */}
       <button
         type="button"
         onClick={begin}
         disabled={busy || status === 'waiting'}
-        className="mt-5 inline-flex min-h-[52px] w-full items-center justify-center gap-2.5 border px-6 text-[12px] uppercase tracking-[0.2em] transition-colors hover:bg-[#f2f9fd] disabled:opacity-60"
-        style={{borderColor: TELEGRAM_BLUE, color: TELEGRAM_BLUE}}
+        className="wv-cta relative mt-5 inline-flex min-h-[52px] w-full items-center justify-center overflow-hidden border px-6 text-[12px] uppercase tracking-[0.2em] disabled:opacity-60"
+        style={{borderColor: INK, color: INK}}
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-          <path d="M21.9 4.6 18.9 19c-.2 1-.8 1.2-1.6.8l-4.6-3.4-2.2 2.1c-.3.3-.5.5-.9.5l.3-4.6 8.4-7.6c.4-.3-.1-.5-.6-.2L7.4 13.1 2.9 11.7c-1-.3-1-1 .2-1.4l17.5-6.8c.8-.3 1.5.2 1.3 1.1z" />
-        </svg>
-        {status === 'waiting' ? t('tgWaiting') : t('tgSignIn')}
+        <span className="wv-cta-label relative z-[1] inline-flex items-center gap-2.5">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M21.9 4.6 18.9 19c-.2 1-.8 1.2-1.6.8l-4.6-3.4-2.2 2.1c-.3.3-.5.5-.9.5l.3-4.6 8.4-7.6c.4-.3-.1-.5-.6-.2L7.4 13.1 2.9 11.7c-1-.3-1-1 .2-1.4l17.5-6.8c.8-.3 1.5.2 1.3 1.1z" />
+          </svg>
+          {status === 'waiting' ? t('tgWaiting') : t('tgSignIn')}
+        </span>
       </button>
       {status === 'waiting' && (
         <p className="mt-2.5 text-[12px] leading-relaxed" style={{color: MUTED}} aria-live="polite">

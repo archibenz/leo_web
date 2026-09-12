@@ -19,12 +19,24 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        // Кнопка витрины. Заведена потому, что `accent` в теме — золото
+        // градиентной админки: любой блок Efferd с `ghost`/`outline` из
+        // коробки подсвечивается золотом на ховере, и каждый раз это
+        // перебивали руками. Внешний вид не дублируется — вариант просто
+        // надевает .wv-btn (globals.css), единственный источник правды для
+        // CTA White: чернильный прямоугольник, который на ховере
+        // выворачивается. .wv-btn-flat снимает радиус: пилюля хороша на
+        // коротком CTA, но растянутая во всю ширину формы читается капсулой,
+        // которой на витрине нет нигде. rounded-none — для twMerge, чтобы он
+        // выбросил базовый rounded-md из класса.
+        white: "wv-btn wv-btn-flat rounded-none",
       },
       size: {
         default: "h-9 px-4 py-2",
         sm: "h-8 rounded-md px-3 text-xs",
         lg: "h-10 rounded-md px-8",
         icon: "h-9 w-9",
+        white: "min-h-[52px] px-9 py-4",
       },
     },
     defaultVariants: {
