@@ -1,4 +1,4 @@
-import {test, expect, type Page} from '@playwright/test';
+import {test, expect, request, type APIRequestContext, type Page} from '@playwright/test';
 
 // Режим правки на живых страницах витрины.
 //
@@ -34,6 +34,42 @@ async function asOwner(page: Page): Promise<void> {
   await page.context().addCookies([{name: 'rl_session', value: TOKEN, domain: 'localhost', path: '/'}]);
   await page.addInitScript((token) => window.localStorage.setItem('reinasleo_token', token), TOKEN);
 }
+
+const DRAFT_PATH = {section: 'sections', model: 'models', set: 'sets'} as const;
+
+function adminApi(): Promise<APIRequestContext> {
+  return request.newContext({baseURL: API, extraHTTPHeaders: {Authorization: `Bearer ${TOKEN}`}});
+}
+
+async function dropAllDrafts(api: APIRequestContext): Promise<void> {
+  const drafts = await (await api.get('/api/admin/storefront/drafts')).json();
+  for (const row of drafts as {kind: keyof typeof DRAFT_PATH; id: string}[]) {
+    await api.delete(`/api/admin/storefront/${DRAFT_PATH[row.kind]}/${row.id}/draft`);
+  }
+}
+
+async function heroId(api: APIRequestContext): Promise<string> {
+  const preview = await (await api.get('/api/admin/storefront/preview')).json();
+  return String(preview.sections.find((s: {layout: string}) => s.layout === 'hero').id);
+}
+
+// Против фикстуры черновик уже лежит в STOREFRONT_DRAFT_FIXTURE. Против живого
+// API его надо завести самим — иначе спека проверяла бы «черновик виден» на
+// витрине, где черновика нет, и зелёное ничего не значило бы.
+test.beforeEach(async () => {
+  if (!API) return;
+  const api = await adminApi();
+  await dropAllDrafts(api);
+  await api.put(`/api/admin/storefront/sections/${await heroId(api)}`, {data: {headlineRu: 'Черновик\nзаголовка'}});
+  await api.dispose();
+});
+
+test.afterEach(async () => {
+  if (!API) return;
+  const api = await adminApi();
+  await dropAllDrafts(api);
+  await api.dispose();
+});
 
 test.describe('вход в режим правки', () => {
   test('покупателю не достаётся ни кнопки, ни черновика', async ({page}) => {
@@ -92,4 +128,63 @@ test.describe('правка на месте', () => {
     await expect(page).not.toHaveURL(/edit=1/);
     await expect(page.locator('body')).not.toContainText(DRAFT_MARK);
   });
+});
+
+// Правка, которая доезжает до покупателя. Требует живого API: она меняет базу.
+// Шаг 6 плана просил именно это — vitest с замоканным apiFetch доказывает, что
+// редактор шлёт правильный запрос, но не то, что после публикации изменился
+// публичный ответ.
+test.describe('правка доезжает до витрины', () => {
+  test.skip(!API, 'нужен живой API (E2E_API_PROXY): правка и публикация меняют базу');
+
+  test('правка → черновик → предпросмотр → публикация → покупатель', async ({page, browser}) => {
+    const api = await adminApi();
+    await dropAllDrafts(api); // чтобы в списке публикации была ровно одна строка
+
+    await asOwner(page);
+    await page.goto('/ru?edit=1');
+    await page.getByRole('button', {name: 'Герой'}).click();
+    const panel = page.getByRole('complementary', {name: 'Правка витрины'});
+    const headline = panel.getByRole('textbox', {name: 'Заголовок · ru', exact: true});
+
+    const published = await headline.inputValue();
+    const edited = `Правка e2e ${Date.now()}`;
+    try {
+      await headline.fill(edited);
+      await panel.getByRole('button', {name: /Сохранить в черновик/i}).click();
+
+      // 1. Предпросмотр владельца показывает правку.
+      // Через перезагрузку, а не через router.refresh: перерисовка на месте
+      // работает (её держит юнит-тест «refresh после сохранения»), но в
+      // dev-режиме сервер собирает страницу заново и время этого непредсказуемо
+      // — сторож на таком ожидании врал бы через раз. Проверяем то, что
+      // действительно важно: что правка ЛЕЖИТ НА СЕРВЕРЕ и предпросмотр её отдаёт.
+      await page.reload();
+      await expect(page.locator('h1')).toContainText(edited, {timeout: 20_000});
+
+      // 2. Покупатель — нет. Своя сессия, без cookie владельца.
+      const guest = await browser.newContext();
+      const guestPage = await guest.newPage();
+      await guestPage.goto('/ru');
+      await expect(guestPage.locator('body')).not.toContainText(edited);
+
+      // 3. Публикация. Панель после перезагрузки закрыта — открываем заново.
+      await page.getByRole('button', {name: 'Герой'}).click();
+      await expect(panel.getByText('headlineRu')).toBeVisible();
+      await panel.getByRole('button', {name: 'Опубликовать'}).click();
+      await expect(panel.getByText(/Неопубликованных правок нет/)).toBeVisible({timeout: 25_000});
+
+      // 4. Теперь это видит и покупатель.
+      await guestPage.reload();
+      await expect(guestPage.locator('h1')).toContainText(edited, {timeout: 25_000});
+      await guest.close();
+    } finally {
+      // Возвращаем витрину в исходное состояние тем же путём, которым правили.
+      const hero = await heroId(api);
+      await api.put(`/api/admin/storefront/sections/${hero}`, {data: {headlineRu: published}});
+      await api.post(`/api/admin/storefront/sections/${hero}/publish`);
+      await api.dispose();
+    }
+  });
+
 });
