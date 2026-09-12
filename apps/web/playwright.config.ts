@@ -23,11 +23,13 @@ export default defineConfig({
       use: {...devices['Desktop Chrome']},
     },
     {
-      // Scoped to the hero-media spec on purpose: that spec exists to guard the
-      // Safari-only `media`-on-`<source>` quirk (lw-smu6), and a browser that
-      // never runs it isn't guarding anything. The other specs never asserted
-      // anything Safari-specific, so running the whole suite twice would only
-      // add time without adding coverage.
+      // Scoped to the hero-media spec on purpose (lw-smu6): that spec is the
+      // one asserting the hero video and poster behave IDENTICALLY on
+      // Chromium and Safari's own engine — the whole point of picking the
+      // video source in JS instead of trusting either engine's native
+      // resource selection. The other specs never asserted anything
+      // Safari-specific, so running the whole suite twice would only add
+      // time without adding coverage.
       name: 'webkit',
       use: {...devices['Desktop Safari']},
       testMatch: /08-hero-media-per-viewport\.spec\.ts/,
