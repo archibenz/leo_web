@@ -21,6 +21,7 @@ vi.mock('../../../lib/api', () => ({
 }));
 
 import SectionForm from '../SectionForm';
+import TickerForm from '../TickerForm';
 import PublishList from '../PublishList';
 import {EditorProvider} from '../EditorProvider';
 
@@ -38,6 +39,17 @@ const SECTION = {
   videoUrl: '/videos/white/hero.mp4',
   posterUrl: '/images/white/hero.jpg',
   sortOrder: 0,
+};
+
+const TICKER_SECTION = {
+  id: 'tick-1',
+  slug: 'home-ticker',
+  layout: 'ticker' as const,
+  status: 'active' as const,
+  nameRu: 'Бегущая строка',
+  nameEn: 'Home ticker',
+  sortOrder: -1,
+  items: [{ru: 'Скидка 20% до воскресенья', en: '20% off until Sunday', href: '/ru/sets', until: '2026-09-14'}],
 };
 
 beforeEach(() => {
@@ -130,5 +142,51 @@ describe('публикация и отмена', () => {
     // Отказ держит сервер, но кнопка не должна спорить с подписью рядом с собой.
     expect(screen.getByRole('button', {name: /Опубликовать/i})).toBeDisabled();
     expect(screen.getByRole('button', {name: /Отменить черновик/i})).toBeEnabled();
+  });
+});
+
+describe('бегущая строка (TickerForm)', () => {
+  it('читает существующие строки и держит «Сохранить» выключенной, пока ничего не тронуто', () => {
+    render(<TickerForm section={TICKER_SECTION} onSaved={() => {}} />);
+
+    expect(screen.getByLabelText('Текст (ru) · строка 1')).toHaveValue('Скидка 20% до воскресенья');
+    expect(screen.getByLabelText('Текст (en) · строка 1')).toHaveValue('20% off until Sunday');
+    expect(screen.getByRole('button', {name: /Сохранить в черновик/i})).toBeDisabled();
+  });
+
+  it('шлёт items целиком, с пустыми необязательными полями как null', async () => {
+    const user = userEvent.setup();
+    render(<TickerForm section={TICKER_SECTION} onSaved={() => {}} />);
+
+    // Строка одна в фикстуре — очищаем её ссылку, ru и en оставляем как есть.
+    await user.clear(screen.getByLabelText('Куда ведёт · строка 1'));
+    await user.click(screen.getByRole('button', {name: /Сохранить в черновик/i}));
+
+    await waitFor(() => expect(calls).toHaveLength(1));
+    expect(calls[0]!.path).toBe('/api/admin/storefront/sections/tick-1');
+    expect(calls[0]!.init?.method).toBe('PUT');
+    expect(JSON.parse(String(calls[0]!.init?.body))).toEqual({
+      items: [{ru: 'Скидка 20% до воскресенья', en: '20% off until Sunday', href: null, until: '2026-09-14'}],
+    });
+  });
+
+  it('«Добавить строку» заводит пустую строку и делает форму «грязной»', async () => {
+    const user = userEvent.setup();
+    render(<TickerForm section={TICKER_SECTION} onSaved={() => {}} />);
+
+    await user.click(screen.getByRole('button', {name: 'Добавить строку'}));
+
+    expect(screen.getByLabelText('Текст (ru) · строка 2')).toHaveValue('');
+    expect(screen.getByRole('button', {name: /Сохранить в черновик/i})).toBeEnabled();
+  });
+
+  it('«убрать» снимает строку из списка', async () => {
+    const user = userEvent.setup();
+    render(<TickerForm section={TICKER_SECTION} onSaved={() => {}} />);
+
+    await user.click(screen.getAllByRole('button', {name: 'убрать'})[0]!);
+
+    expect(screen.queryByLabelText('Текст (ru) · строка 1')).not.toBeInTheDocument();
+    expect(screen.getByText(/Строк нет/)).toBeInTheDocument();
   });
 });

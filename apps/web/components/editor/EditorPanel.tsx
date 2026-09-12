@@ -6,6 +6,7 @@ import {HAIR, INK, MUTED} from '../../app/[locale]/wv-palette';
 import {useEditor} from './EditorProvider';
 import {EditorButton} from './EditorFields';
 import SectionForm from './SectionForm';
+import TickerForm from './TickerForm';
 import VariantForm from './VariantForm';
 import PublishList from './PublishList';
 
@@ -57,7 +58,11 @@ export default function EditorPanel() {
 
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {target.kind === 'section' ? (
-          <SectionForm section={target.section} onSaved={onSaved} />
+          target.section.layout === 'ticker' ? (
+            <TickerForm section={target.section} onSaved={onSaved} />
+          ) : (
+            <SectionForm section={target.section} onSaved={onSaved} />
+          )
         ) : (
           <VariantForm modelId={target.modelId} variantId={target.id} onSaved={onSaved} />
         )}
