@@ -1,9 +1,11 @@
 'use client';
 
 import Link from 'next/link';
+import {usePathname} from 'next/navigation';
 import {HAIR, INK, SIGNAL} from '../../app/[locale]/wv-palette';
 import {useEditorSession} from './useEditorSession';
 import {useEditHrefs} from './editHrefs';
+import {supportsEditing} from './supportedRoutes';
 
 // Вход в режим — в шапке витрины и только у владельца.
 //
@@ -18,7 +20,12 @@ import {useEditHrefs} from './editHrefs';
 export default function EditorToggle() {
   const {isAdmin} = useEditorSession();
   const {wantsEdit, editHref, plainHref} = useEditHrefs();
-  if (!isAdmin) return null;
+  const pathname = usePathname();
+  // Переключатель живёт в чроме, то есть на всех страницах витрины, а правка —
+  // только на тех, где расставлены её точки. Обещать режим там, где он молча не
+  // включится, хуже, чем не показывать кнопку: владелец правил бы опубликованное,
+  // считая, что правит черновик.
+  if (!isAdmin || !supportsEditing(pathname)) return null;
 
   // Вход виден на любой ширине: владелец смотрит сайт с телефона.
   //

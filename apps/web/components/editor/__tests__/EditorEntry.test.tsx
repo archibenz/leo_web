@@ -2,8 +2,9 @@ import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
 import {render, screen, cleanup, waitFor} from '@testing-library/react';
 
 const search = {value: ''};
+const path = {value: '/ru'};
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/ru',
+  usePathname: () => path.value,
   useSearchParams: () => new URLSearchParams(search.value),
   useRouter: () => ({refresh: vi.fn()}),
 }));
@@ -23,6 +24,7 @@ import {EditorProvider} from '../EditorProvider';
 
 beforeEach(() => {
   search.value = '';
+  path.value = '/ru';
   token.value = null;
   me.mockReset().mockResolvedValue({role: 'admin'});
   sessionStorage.clear();
@@ -46,6 +48,38 @@ describe('вход в режим', () => {
 
     await waitFor(() => expect(me).toHaveBeenCalledWith('/api/auth/me'));
     expect(screen.queryByRole('link')).toBeNull();
+  });
+
+  // Переключатель смонтирован в чроме — он есть на КАЖДОЙ странице витрины, а
+  // правка живёт только там, где расставлены её точки. Кнопка на /ru/shop
+  // обещала бы режим, который молча не включится: полосы нет, рамок нет, а
+  // владелец правил бы опубликованное, считая, что правит черновик.
+  it.each([
+    ['/ru/shop', 'раздел магазина'],
+    ['/ru/sets', 'образы'],
+    ['/ru/bag', 'корзина'],
+    ['/ru/account', 'аккаунт'],
+    ['/ru/lookbook', 'лукбук'],
+  ])('на %s (%s) переключателя нет — режим туда не доезжает', async (pathname) => {
+    token.value = 'admin-token';
+    path.value = pathname;
+
+    render(<EditorToggle />);
+
+    await waitFor(() => expect(me).toHaveBeenCalled());
+    expect(screen.queryByRole('link')).toBeNull();
+  });
+
+  it.each([
+    ['/ru', 'главная'],
+    ['/ru/product/palto-pidzhak-pritalennoe', 'карточка товара'],
+  ])('на %s (%s) переключатель есть', async (pathname) => {
+    token.value = 'admin-token';
+    path.value = pathname;
+
+    render(<EditorToggle />);
+
+    expect(await screen.findByRole('link')).toBeInTheDocument();
   });
 
   it('владелец получает переключатель, и тот ставит флаг в адрес', async () => {
