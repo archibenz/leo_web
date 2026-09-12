@@ -9,7 +9,6 @@ import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -157,13 +156,18 @@ class ImageNormalizerTest {
 
     private static byte[] noisyJpeg(int w, int h) {
         // Шум, а не заливка: ровный цвет сжался бы в килобайты, и «тяжёлый
-        // снимок» перестал бы быть тяжёлым.
+        // снимок» перестал бы быть тяжёлым. Пишется прямо в заднюю решётку
+        // DataBufferInt через SplittableRandom, а не попиксельным
+        // setRGB(x, y, random.nextInt(...)): java.util.Random синхронизирован
+        // через CAS на каждый вызов, и рядом с голой записью в массив это на
+        // порядок медленнее, чем рядом с setRGB, — SplittableRandom
+        // синхронизации не делает вовсе. Тот же настоящий шум, другой источник
+        // случайности.
         BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-        Random random = new Random(42);
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                img.setRGB(x, y, random.nextInt(0xFFFFFF));
-            }
+        int[] pixels = ((java.awt.image.DataBufferInt) img.getRaster().getDataBuffer()).getData();
+        java.util.SplittableRandom random = new java.util.SplittableRandom(42);
+        for (int i = 0; i < pixels.length; i++) {
+            pixels[i] = random.nextInt() & 0xFFFFFF;
         }
         return write(img, "jpeg");
     }

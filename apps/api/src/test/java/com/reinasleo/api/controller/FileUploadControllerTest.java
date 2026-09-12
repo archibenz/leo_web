@@ -173,14 +173,23 @@ class FileUploadControllerTest {
      * Кадр с телефона: 24 Мп шума. Шум, а не заливка, — иначе JPEG сожмёт его в
      * килобайты и «тяжёлый снимок» перестанет быть тяжёлым. Размер подобран так,
      * чтобы файл заведомо не прошёл ПРЕЖНИЙ предел в 10 МБ.
+     *
+     * Пишется прямо в заднюю решётку DataBufferInt через SplittableRandom, а
+     * не 24 млн вызовов setRGB(x, y, random.nextInt(...)). Измерено: разница
+     * не в setRGB — тот у TYPE_INT_RGB и сам по себе быстрый, — а в
+     * java.util.Random.next(): он синхронизирован через CAS на AtomicLong, и
+     * этот CAS почти незаметен рядом с вызовом setRGB, зато становится узким
+     * местом (~10× медленнее), когда рядом с ним только запись в массив.
+     * SplittableRandom синхронизации не делает вовсе — с ним быстрее и голый
+     * массив (миллисекунды вместо секунд на 24 млн пикселей). Тот же настоящий
+     * шум, тот же настоящий вес, другой — только источник случайности.
      */
     private static byte[] heavyPhoto() {
         java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(6000, 4000, java.awt.image.BufferedImage.TYPE_INT_RGB);
-        java.util.Random random = new java.util.Random(7);
-        for (int y = 0; y < 4000; y++) {
-            for (int x = 0; x < 6000; x++) {
-                img.setRGB(x, y, random.nextInt(0xFFFFFF));
-            }
+        int[] pixels = ((java.awt.image.DataBufferInt) img.getRaster().getDataBuffer()).getData();
+        java.util.SplittableRandom random = new java.util.SplittableRandom(7);
+        for (int i = 0; i < pixels.length; i++) {
+            pixels[i] = random.nextInt() & 0xFFFFFF;
         }
         return encode(img, "jpeg");
     }
