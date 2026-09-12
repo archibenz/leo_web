@@ -1,8 +1,14 @@
 import {describe, it, expect, beforeEach, vi} from 'vitest';
 
-const cookieStore = {value: null as string | null};
+const cookieStore = {session: null as string | null, edit: null as string | null};
 vi.mock('next/headers', () => ({
-  cookies: async () => ({get: (name: string) => (name === 'rl_session' && cookieStore.value ? {name, value: cookieStore.value} : undefined)}),
+  cookies: async () => ({
+    get: (name: string) => {
+      if (name === 'rl_session' && cookieStore.session) return {name, value: cookieStore.session};
+      if (name === 'rl_edit' && cookieStore.edit) return {name, value: cookieStore.edit};
+      return undefined;
+    },
+  }),
 }));
 
 const getStorefront = vi.fn();
@@ -16,7 +22,8 @@ const PUBLISHED = {products: [], sets: [], sections: [{slug: 'aw26-hero', headli
 const DRAFT = {products: [], sets: [], sections: [{slug: 'aw26-hero', headlineRu: 'черновик'}]};
 
 beforeEach(() => {
-  cookieStore.value = null;
+  cookieStore.session = null;
+  cookieStore.edit = null;
   getStorefront.mockReset().mockResolvedValue(PUBLISHED);
   getStorefrontPreview.mockReset();
 });
@@ -35,7 +42,7 @@ describe('wantsEditing', () => {
 describe('storefrontForViewer', () => {
   it('serves the published storefront and never touches the preview without the flag', async () => {
     const {storefrontForViewer} = await import('./viewer');
-    cookieStore.value = 'admin-session';
+    cookieStore.session = 'admin-session';
 
     const view = await storefrontForViewer(false);
 
@@ -55,7 +62,7 @@ describe('storefrontForViewer', () => {
 
   it('gives a signed-in stranger the published storefront, draft values included nowhere', async () => {
     const {storefrontForViewer} = await import('./viewer');
-    cookieStore.value = 'shopper-session';
+    cookieStore.session = 'shopper-session';
     getStorefrontPreview.mockResolvedValue({state: 'forbidden'});
 
     const view = await storefrontForViewer(true);
@@ -66,7 +73,7 @@ describe('storefrontForViewer', () => {
 
   it('hands the editor the draft, with the session forwarded to the API', async () => {
     const {storefrontForViewer} = await import('./viewer');
-    cookieStore.value = 'admin-session';
+    cookieStore.session = 'admin-session';
     getStorefrontPreview.mockResolvedValue({state: 'draft', storefront: DRAFT});
 
     const view = await storefrontForViewer(true);
@@ -78,12 +85,43 @@ describe('storefrontForViewer', () => {
 
   it('fails honestly instead of showing the published page as if it were the draft', async () => {
     const {storefrontForViewer} = await import('./viewer');
-    cookieStore.value = 'admin-session';
+    cookieStore.session = 'admin-session';
     getStorefrontPreview.mockResolvedValue({state: 'unavailable', reason: 'fetch failed'});
 
     const view = await storefrontForViewer(true);
 
     expect(view).toEqual({editing: true, storefront: null, previewError: 'fetch failed'});
     expect(getStorefront).not.toHaveBeenCalled();
+  });
+});
+
+// Вторая, персистентная дорога к тому же намерению: кука rl_edit, которую
+// ставит выключатель в аккаунте. Она ни разу не выдаёт черновик сама —
+// каждый сценарий здесь либо кончается тем же вызовом getStorefrontPreview,
+// что и у параметра, либо явно не доходит до API вовсе.
+describe('storefrontForViewer — кука rl_edit как второе намерение', () => {
+  it('кука без параметра тоже открывает предпросмотр — если сессия при ней есть', async () => {
+    const {storefrontForViewer} = await import('./viewer');
+    cookieStore.edit = '1';
+    cookieStore.session = 'admin-session';
+    getStorefrontPreview.mockResolvedValue({state: 'draft', storefront: DRAFT});
+
+    const view = await storefrontForViewer(false);
+
+    expect(view).toEqual({editing: true, storefront: DRAFT});
+    expect(getStorefrontPreview).toHaveBeenCalledWith('rl_session=admin-session');
+  });
+
+  // Главный кейс безопасности этапа: кука — это «хочу видеть черновик», не
+  // «мне можно». Без rl_session бэкенд физически не спрошен.
+  it('кука есть, а сессии нет — публичная витрина, к ручке предпросмотра не ходим', async () => {
+    const {storefrontForViewer} = await import('./viewer');
+    cookieStore.edit = '1';
+
+    const view = await storefrontForViewer(false);
+
+    expect(view).toEqual({editing: false, storefront: PUBLISHED});
+    expect(getStorefrontPreview).not.toHaveBeenCalled();
+    expect(JSON.stringify(view)).not.toContain('черновик');
   });
 });
