@@ -48,6 +48,7 @@ export default async function WhiteVariantPage({params, searchParams}: Props) {
   const featured = products.filter((p) => p.featuredOrder != null).sort((a, b) => a.featuredOrder! - b.featuredOrder!);
   const hero = sections.find((s) => s.layout === 'hero');
   const setsTeaser = sections.find((s) => s.layout === 'sets-teaser');
+  const ticker = sections.find((s) => s.layout === 'ticker');
   const orgJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
@@ -72,7 +73,7 @@ export default async function WhiteVariantPage({params, searchParams}: Props) {
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}} />
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(siteJsonLd)}} />
       <EditorProvider editing={view.editing} brokenDrafts={view.storefront.brokenDrafts}>
-        <WhiteShowcase locale={locale} featured={featured} hero={hero} setsTeaser={setsTeaser} />
+        <WhiteShowcase locale={locale} featured={featured} hero={hero} setsTeaser={setsTeaser} ticker={ticker} />
       </EditorProvider>
     </>
   );

@@ -8,6 +8,7 @@ import WhiteHeader from './WhiteHeader';
 import WhiteHeaderActions from './WhiteHeaderActions';
 import WhiteFooter from './WhiteFooter';
 import WhiteProductCard from './WhiteProductCard';
+import WhiteTicker from './WhiteTicker';
 import {INK, MUTED, HAIR} from './wv-palette';
 import {WhiteArrow} from './wv-icons';
 import EditableSection from '../../components/editor/EditableSection';
@@ -31,11 +32,12 @@ const HERO_VIDEO_DESKTOP = '/videos/white/hero-desktop.mp4';
 const SETS_POSTER = '/images/white/sets-static.jpg';
 const SETS_VIDEO = '/videos/white/sets-static.mp4';
 
-export default function WhiteShowcase({locale, featured, hero, setsTeaser}: {
+export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticker}: {
   locale: string;
   featured: WhiteProduct[];
   hero?: StorefrontSection;
   setsTeaser?: StorefrontSection;
+  ticker?: StorefrontSection;
 }) {
   const heroVideoRef = useRef<HTMLVideoElement>(null);
   const {count} = useWhiteBag();
@@ -116,6 +118,14 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser}: {
 
   return (
     <>
+
+      {/* Under the header, above the hero — a calm strip, not a promo insert.
+          A ticker used to live on this page and was removed on purpose (see
+          the house-line comment lower down); this one earns its place back
+          by staying out of the way when the owner has nothing to announce. */}
+      <EditableSection section={ticker} label="Бегущая строка">
+        <WhiteTicker locale={locale} items={ticker?.items} />
+      </EditableSection>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}}>
       {/* Hero — a full-bleed fashion-film loop with the season + line set over

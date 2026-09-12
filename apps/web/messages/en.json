@@ -1365,6 +1365,9 @@
       "atelierBody": "Small runs, natural cloth, a fit worked out on real bodies. These are not pieces that leave the wardrobe after a season.",
       "exploreAtelier": "Explore the atelier"
     },
+    "ticker": {
+      "regionLabel": "News and updates"
+    },
     "footer": {
       "subscribed": "Thanks — you are subscribed.",
       "alreadySubscribed": "You are already subscribed.",
