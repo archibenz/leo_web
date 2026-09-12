@@ -87,7 +87,7 @@ test.describe('правка на месте', () => {
     await page.goto('/ru?edit=1');
     await expect(page.locator('h1')).toContainText(DRAFT_MARK);
 
-    await page.getByRole('link', {name: 'Выйти'}).first().click();
+    await page.getByRole('link', {name: 'Закончить правку'}).first().click();
 
     await expect(page).not.toHaveURL(/edit=1/);
     await expect(page.locator('body')).not.toContainText(DRAFT_MARK);

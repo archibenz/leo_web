@@ -58,7 +58,7 @@ describe('вход в режим', () => {
     expect(link).toHaveAttribute('aria-pressed', 'false');
   });
 
-  it('в режиме переключатель предлагает выйти', async () => {
+  it('в режиме переключатель снимает флаг', async () => {
     token.value = 'admin-token';
     search.value = 'edit=1';
 
@@ -68,9 +68,34 @@ describe('вход в режим', () => {
     expect(link).toHaveAttribute('href', '/ru');
     expect(link).toHaveAttribute('aria-pressed', 'true');
   });
+
+  // «Выйти» на витрине занято выходом из аккаунта (white.account.signOut,
+  // header.dropdown.logOut). Назвав тем же словом выход из режима правки, мы
+  // ставим рядом два разных действия под одной подписью: владелец нажмёт не то
+  // и решит, что редактор его разлогинил.
+  it.each([
+    ['вне режима', ''],
+    ['в режиме', 'edit=1'],
+  ])('%s подпись переключателя не совпадает с выходом из аккаунта', async (_case, query) => {
+    token.value = 'admin-token';
+    search.value = query;
+
+    render(<EditorToggle />);
+
+    const link = await screen.findByRole('link');
+    expect(link.textContent?.trim()).not.toBe('Выйти');
+  });
 });
 
 describe('честность режима', () => {
+  it('выход из режима подписан не как выход из аккаунта', async () => {
+    render(<EditorNotice editing />);
+
+    const exit = await screen.findByRole('link');
+    expect(exit).toHaveTextContent('Закончить правку');
+    expect(exit.textContent?.trim()).not.toBe('Выйти');
+  });
+
   it('говорит вслух, когда флаг стоит, а черновика сервер не дал', async () => {
     token.value = 'admin-token';
     search.value = 'edit=1';
