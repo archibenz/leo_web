@@ -158,3 +158,24 @@ test('кука есть, прав нет — витрина публичная, 
   await assertNoEditSurface(page);
 });
 
+// Тот же случай, что выше, но с другой стороны: сервер тоже обязан не
+// молчать. Раньше баннер «Сервер не признал сессию» видел только вход через
+// ?edit=1 (EditorNotice читал wantsEdit из URL-параметра). После переезда
+// входа в аккаунт это стал бы САМЫЙ ЧАСТЫЙ путь получить тишину — владелец
+// щёлкает выключатель, сессия протухла, сервер честно отдаёт публичную
+// страницу и ничего не объясняет; он решит, что сломан выключатель, а не
+// сессия. Раз кука тоже намерение (см. lib/catalogue/viewer.ts), баннер
+// обязан её видеть — через wantsEdit, который сервер уже посчитал и передал
+// вниз (EditorProvider → EditorNotice), а не через document.cookie в браузере.
+test('кука стоит, сервер сессию не признал — баннер честности виден, а не тишина', async ({page}) => {
+  await mockOwnerRole(page);
+  await page.context().addCookies([{name: 'rl_edit', value: '1', domain: 'localhost', path: '/'}]);
+
+  await open(page, HOME);
+
+  // #wv-page, не весь документ: Next добавляет свой собственный
+  // role="alert" (__next-route-announcer__) вне этой границы — тот же приём
+  // area-scoping, что и в assertNoEditSurface выше.
+  await expect(page.locator('#wv-page').getByRole('alert')).toContainText('Сервер не признал сессию');
+});
+

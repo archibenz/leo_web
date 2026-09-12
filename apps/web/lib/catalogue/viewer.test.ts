@@ -46,7 +46,7 @@ describe('storefrontForViewer', () => {
 
     const view = await storefrontForViewer(false);
 
-    expect(view).toEqual({editing: false, storefront: PUBLISHED});
+    expect(view).toEqual({editing: false, wantsEdit: false, storefront: PUBLISHED});
     expect(getStorefrontPreview).not.toHaveBeenCalled();
     expect(JSON.stringify(view)).not.toContain('черновик');
   });
@@ -56,7 +56,7 @@ describe('storefrontForViewer', () => {
 
     const view = await storefrontForViewer(true);
 
-    expect(view).toEqual({editing: false, storefront: PUBLISHED});
+    expect(view).toEqual({editing: false, wantsEdit: true, storefront: PUBLISHED});
     expect(getStorefrontPreview).not.toHaveBeenCalled();
   });
 
@@ -67,7 +67,7 @@ describe('storefrontForViewer', () => {
 
     const view = await storefrontForViewer(true);
 
-    expect(view).toEqual({editing: false, storefront: PUBLISHED});
+    expect(view).toEqual({editing: false, wantsEdit: true, storefront: PUBLISHED});
     expect(JSON.stringify(view)).not.toContain('черновик');
   });
 
@@ -78,7 +78,7 @@ describe('storefrontForViewer', () => {
 
     const view = await storefrontForViewer(true);
 
-    expect(view).toEqual({editing: true, storefront: DRAFT});
+    expect(view).toEqual({editing: true, wantsEdit: true, storefront: DRAFT});
     expect(getStorefrontPreview).toHaveBeenCalledWith('rl_session=admin-session');
     expect(getStorefront).not.toHaveBeenCalled();
   });
@@ -90,7 +90,7 @@ describe('storefrontForViewer', () => {
 
     const view = await storefrontForViewer(true);
 
-    expect(view).toEqual({editing: true, storefront: null, previewError: 'fetch failed'});
+    expect(view).toEqual({editing: true, wantsEdit: true, storefront: null, previewError: 'fetch failed'});
     expect(getStorefront).not.toHaveBeenCalled();
   });
 });
@@ -108,19 +108,24 @@ describe('storefrontForViewer — кука rl_edit как второе наме�
 
     const view = await storefrontForViewer(false);
 
-    expect(view).toEqual({editing: true, storefront: DRAFT});
+    expect(view).toEqual({editing: true, wantsEdit: true, storefront: DRAFT});
     expect(getStorefrontPreview).toHaveBeenCalledWith('rl_session=admin-session');
   });
 
   // Главный кейс безопасности этапа: кука — это «хочу видеть черновик», не
   // «мне можно». Без rl_session бэкенд физически не спрошен.
-  it('кука есть, а сессии нет — публичная витрина, к ручке предпросмотра не ходим', async () => {
+  //
+  // wantsEdit=true в ответе — не для этой ветки, а для следующей: EditorNotice
+  // честно скажет «сервер не признал сессию» только если знает, что черновик
+  // вообще ХОТЕЛИ увидеть. Сервер это уже знает здесь — значит должен отдать,
+  // а не заставлять клиента заново гадать по document.cookie (гидратация).
+  it('кука есть, а сессии нет — публичная витрина, но wantsEdit всё равно true для честного баннера', async () => {
     const {storefrontForViewer} = await import('./viewer');
     cookieStore.edit = '1';
 
     const view = await storefrontForViewer(false);
 
-    expect(view).toEqual({editing: false, storefront: PUBLISHED});
+    expect(view).toEqual({editing: false, wantsEdit: true, storefront: PUBLISHED});
     expect(getStorefrontPreview).not.toHaveBeenCalled();
     expect(JSON.stringify(view)).not.toContain('черновик');
   });

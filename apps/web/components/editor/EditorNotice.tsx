@@ -14,12 +14,19 @@ import {writeEditCookie} from './editCookie';
 // (`white.account.signOut`). На телефоне эти два слова оказывались в полутора
 // сантиметрах друг от друга.
 //
-// Второй случай важнее первого: флаг в адресе стоит, владелец — админ, а
-// сервер черновик не отдал (cookie сессии протухла). Молчать здесь нельзя: он
-// будет править опубликованное, считая, что правит черновик.
-export default function EditorNotice({editing}: {editing: boolean}) {
+// Второй случай важнее первого: хотели черновик (параметром или кукой —
+// wantsEdit уже решил storefrontForViewer), владелец — админ, а сервер
+// черновик не отдал (сессия протухла или её не было). Молчать здесь нельзя:
+// он будет считать, что смотрит черновик, или решит, что выключатель сломан.
+//
+// wantsEdit — ПРОП, не свой хук: сервер уже знает оба намерения (параметр и
+// куку) и обязан передать решение вниз через EditorProvider, как передаёт
+// editing и brokenDrafts. Читать document.cookie здесь же значило бы
+// разойтись с серверной разметкой на первом рендере — гидратационная
+// рассинхронизация, которую на этой витрине уже ловили.
+export default function EditorNotice({editing, wantsEdit}: {editing: boolean; wantsEdit: boolean}) {
   const {isAdmin} = useEditorSession();
-  const {wantsEdit, plainHref} = useEditHrefs();
+  const {plainHref} = useEditHrefs();
   const router = useRouter();
 
   // Раньше ссылка только снимала ?edit=1 из адреса — этого хватало, пока

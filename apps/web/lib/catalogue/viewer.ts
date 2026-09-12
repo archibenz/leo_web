@@ -19,9 +19,9 @@ export {EDIT_PARAM, wantsEditing} from './editMode';
 const SESSION_COOKIE = 'rl_session';
 
 export type StorefrontView =
-  | {editing: false; storefront: Storefront}
-  | {editing: true; storefront: Storefront}
-  | {editing: true; storefront: null; previewError: string};
+  | {editing: false; wantsEdit: boolean; storefront: Storefront}
+  | {editing: true; wantsEdit: boolean; storefront: Storefront}
+  | {editing: true; wantsEdit: boolean; storefront: null; previewError: string};
 
 /**
  * Что показать этому посетителю.
@@ -57,16 +57,16 @@ export async function storefrontForViewer(wantsEditParam: boolean): Promise<Stor
   // Решение включить кэш принимают не в этом файле — но цену должен увидеть
   // тот, кто здесь читает куку.
   const wantsEdit = wantsEditParam || jar.get(EDIT_COOKIE)?.value === '1';
-  if (!wantsEdit) return {editing: false, storefront: await getStorefront()};
+  if (!wantsEdit) return {editing: false, wantsEdit, storefront: await getStorefront()};
 
   const session = jar.get(SESSION_COOKIE);
-  if (!session?.value) return {editing: false, storefront: await getStorefront()};
+  if (!session?.value) return {editing: false, wantsEdit, storefront: await getStorefront()};
 
   const preview = await getStorefrontPreview(`${SESSION_COOKIE}=${session.value}`);
-  if (preview.state === 'draft') return {editing: true, storefront: preview.storefront};
-  if (preview.state === 'forbidden') return {editing: false, storefront: await getStorefront()};
+  if (preview.state === 'draft') return {editing: true, wantsEdit, storefront: preview.storefront};
+  if (preview.state === 'forbidden') return {editing: false, wantsEdit, storefront: await getStorefront()};
   // Снимок здесь запрещён: показать опубликованное под видом черновика — это
   // либо «правка потерялась» и вторая правка поверх первой, либо «правка
   // применилась» и «Опубликовать» вслепую. Лучше сказать прямо.
-  return {editing: true, storefront: null, previewError: preview.reason};
+  return {editing: true, wantsEdit, storefront: null, previewError: preview.reason};
 }

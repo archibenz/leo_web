@@ -43,10 +43,17 @@ export function useEditor(): EditorContextValue {
  *
  * Живёт в СТРАНИЦЕ, а не в чроме: только страница знает, отдал ли сервер
  * черновик. Шапка про это не знает и знать не должна — её переключатель лишь
- * ставит флаг в адрес.
+ * ставит флаг в адрес (или куку).
+ *
+ * wantsEdit по умолчанию равен editing: если сервер отдал черновик, значит
+ * черновик и хотели, а страницы/тесты, которым нечестный баннер безразличен
+ * (editing решает всё сам), могут не передавать его вовсе. Кто заботится о
+ * баннере — например, страница — передаёт СВОЙ wantsEdit из
+ * storefrontForViewer явно, потому что default тут в лучшем случае угадывает.
  */
-export function EditorProvider({editing, brokenDrafts = [], children}: {
+export function EditorProvider({editing, wantsEdit = editing, brokenDrafts = [], children}: {
   editing: boolean;
+  wantsEdit?: boolean;
   brokenDrafts?: StorefrontBrokenDraft[];
   children: ReactNode;
 }) {
@@ -84,7 +91,7 @@ export function EditorProvider({editing, brokenDrafts = [], children}: {
   return (
     <EditorContext.Provider value={value}>
       <div className={shifted ? 'transition-[padding] duration-200 motion-reduce:transition-none max-lg:pb-[62vh] lg:pr-[360px]' : ''}>
-        <EditorNotice editing={editing} />
+        <EditorNotice editing={editing} wantsEdit={wantsEdit} />
         {children}
       </div>
       <EditorPanel />

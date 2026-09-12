@@ -37,7 +37,7 @@ afterEach(cleanup);
 
 describe('честность режима', () => {
   it('выход из режима подписан не как выход из аккаунта', async () => {
-    render(<EditorNotice editing />);
+    render(<EditorNotice editing wantsEdit />);
 
     const exit = await screen.findByRole('link');
     expect(exit).toHaveTextContent('Закончить правку');
@@ -50,7 +50,7 @@ describe('честность режима', () => {
   it('снимает куку rl_edit, а не только параметр из адреса', async () => {
     document.cookie = 'rl_edit=1; Path=/; SameSite=Lax; Secure';
     const user = userEvent.setup();
-    render(<EditorNotice editing />);
+    render(<EditorNotice editing wantsEdit />);
 
     const exit = await screen.findByRole('link');
     await user.click(exit);
@@ -59,19 +59,21 @@ describe('честность режима', () => {
     expect(refresh).toHaveBeenCalled();
   });
 
-  it('говорит вслух, когда флаг стоит, а черновика сервер не дал', async () => {
+  // wantsEdit приходит СНАРУЖИ (сервер, storefrontForViewer — параметр ИЛИ
+  // кука, уже решено) — не пересчитывается здесь по document.cookie. Читать
+  // куку в клиенте на рендере значило бы разойтись с серверной разметкой при
+  // первой отрисовке: гидратационная рассинхронизация, которую на этой
+  // витрине уже ловили. Компонент только показывает то, что ему сказали.
+  it('говорит вслух, когда хотели черновик (неважно, как), а черновика сервер не дал', async () => {
     token.value = 'admin-token';
-    search.value = 'edit=1';
 
-    render(<EditorNotice editing={false} />);
+    render(<EditorNotice editing={false} wantsEdit />);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/Сервер не признал сессию/);
   });
 
-  it('постороннему по прямой ссылке не рассказывает ни про какой режим', async () => {
-    search.value = 'edit=1';
-
-    render(<EditorNotice editing={false} />);
+  it('постороннему не рассказывает ни про какой режим, даже если сервер знает про намерение', async () => {
+    render(<EditorNotice editing={false} wantsEdit />);
 
     await waitFor(() => expect(me).not.toHaveBeenCalled());
     expect(screen.queryByRole('alert')).toBeNull();
