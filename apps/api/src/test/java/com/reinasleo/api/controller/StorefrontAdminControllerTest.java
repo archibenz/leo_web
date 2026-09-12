@@ -474,6 +474,28 @@ class StorefrontAdminControllerTest {
     }
 
     @Test
+    void aBrokenDraftDoesNotLeakThePartOfItselfThatWasAlreadyApplied() throws Exception {
+        // Тот случай, ради которого вообще нужен откат. `apply` пишет скалярные
+        // поля модели ПЕРВЫМИ и только потом идёт по вариантам — значит на
+        // «wb-404» он падает уже после того, как имя карточки стало черновым.
+        // Без возврата к опубликованному владелец увидел бы ЧЕРНОВОЕ ИМЯ у
+        // карточки, помеченной «черновик не читается»: худшая из подсказок —
+        // половина правки, выданная за целое.
+        ProductModel model = models.findById(modelId).orElseThrow();
+        model.setDraft("{\"nameRu\":\"ЧЕРНОВОЕ ИМЯ\",\"variants\":{\"wb-404\":{\"price\":19000}}}");
+        models.saveAndFlush(model);
+
+        mockMvc.perform(get("/api/admin/storefront/preview")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.products[0].ru").value("Пальто"))
+                .andExpect(jsonPath("$.brokenDrafts[0].kind").value("model"));
+
+        // И в базе имя тоже не поехало: предпросмотр работает на отсоединённых строках.
+        assertThat(models.findById(modelId).orElseThrow().getNameRu()).isEqualTo("Пальто");
+    }
+
+    @Test
     void aBrokenSectionDraftLeavesTheOtherRowsEditsVisible() throws Exception {
         StorefrontSection section = sections.findById(sectionId).orElseThrow();
         section.setDraft("{\"headlinRu\":\"опечатка в ключе\"}");
