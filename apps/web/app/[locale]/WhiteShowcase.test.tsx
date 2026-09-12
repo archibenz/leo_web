@@ -106,8 +106,11 @@ describe('WhiteShowcase image-led home', () => {
     const {container} = renderHome();
     await screen.findByRole('heading', {level: 1});
 
-    const video = container.querySelector('video')!;
-    expect(video.getAttribute('poster')).toBe(HERO.posterUrl);
+    // `poster` can't take a media query, so the still frame is a <picture>
+    // layer instead of a video attribute — see WhiteShowcase.tsx.
+    const picture = container.querySelector('picture')!;
+    expect(picture.querySelector('source')?.getAttribute('srcset')).toBe(HERO.posterDesktopUrl);
+    expect(picture.querySelector('img')?.getAttribute('src')).toBe(HERO.posterUrl);
     expect(container.querySelector(`video source[src="${HERO.videoUrl}"]`)).toBeTruthy();
     expect(container.querySelector(`video source[src="${HERO.videoDesktopUrl}"]`)).toBeTruthy();
     expect(screen.getByText(HERO.eyebrowEn!)).toBeInTheDocument();
@@ -121,6 +124,11 @@ describe('WhiteShowcase image-led home', () => {
     expect(h1.textContent ?? '').toContain(enMessages.white.landing.heroLine2);
     expect(screen.getByText(enMessages.white.landing.season)).toBeInTheDocument();
     expect(container.querySelector('video source[src="/videos/white/hero-mark2.mp4"]')).toBeTruthy();
+    // The bundled fallback still goes through the same <picture> layer as the
+    // API-driven section, not through the retired `poster` attribute.
+    const picture = container.querySelector('picture')!;
+    expect(picture.querySelector('source')?.getAttribute('srcset')).toBe('/images/white/hero-desktop.jpg');
+    expect(picture.querySelector('img')?.getAttribute('src')).toBe('/images/white/hero-mark2.jpg');
     expect(screen.getByText(enMessages.white.sets.landingBody)).toBeInTheDocument();
   });
 

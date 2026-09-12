@@ -77,22 +77,22 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser}: {
     return () => window.removeEventListener('hashchange', toHash);
   }, []);
 
-  // Reduced-motion keeps the banner still — the poster frame stays.
+  // Two single-source <video> elements (one per breakpoint, toggled by CSS)
+  // were tried and measured instead of this: a `display:none` container does
+  // not stop either engine from fetching its <video>/<img>, so the hidden cut
+  // still downloaded a file nobody sees — the bug traded for double traffic.
+  // This stays one <video>; only the correction `media` on <source> cannot
+  // make itself is left in JS.
   useEffect(() => {
     const v = heroVideoRef.current;
     if (!v) return;
-    // `poster` takes one value, so it is the portrait frame in the markup and
-    // gets swapped here on a wide screen. It matters most under reduced motion,
-    // where the poster is the whole banner and a phone-shaped still stretched
-    // across a desktop band would be the thing people see.
-    //
-    // The wide cut is also forced here rather than trusted to `media` on the
-    // <source>. Chrome honours it, Safari does not, and a Safari desktop was
-    // quietly falling through to the portrait file — the exact softness this
-    // was meant to fix. currentSrc is checked first so the browsers that got
-    // it right are not made to reload the file they already chose.
+    // Chrome reads `media` on <source> at resource selection and gets this
+    // right natively. Safari does not: it skips the conditioned source and
+    // settles on the unconditioned one regardless of viewport, so a wide
+    // Safari session silently plays the portrait file unless corrected here.
+    // currentSrc is checked first so the browser that got it right natively
+    // is not made to reload the file it already chose.
     if (window.matchMedia('(min-width: 1024px)').matches) {
-      v.poster = heroPosterDesktop;
       if (!v.currentSrc.includes(heroVideoDesktop)) {
         v.src = heroVideoDesktop;
         v.load();
@@ -103,7 +103,7 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser}: {
       v.pause();
       v.removeAttribute('autoplay');
     }
-  }, [heroPosterDesktop, heroVideoDesktop]);
+  }, [heroVideoDesktop]);
 
 
 
@@ -124,6 +124,24 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser}: {
             own shot at 2160px. `media` on <source> is read once at load — which
             is all we need, nobody resizes a window across that boundary
             mid-visit — and it keeps the browser from fetching both. */}
+        {/* `poster` takes one value and the server can't know the viewport, so
+            the still frame is its own layer instead of a video attribute —
+            `<picture><source media>` is evaluated before any script runs and
+            works the same in Safari, unlike `media` on a <video><source>
+            below. Sits under the video, same box, pixel for pixel; the video
+            paints over it the moment it has a frame to show, exactly like
+            `poster` used to. Plain `<img>` on purpose, not next/image: art
+            direction that swaps the whole file per media query has no
+            next/image equivalent — this is the one deliberate exception to
+            the project's "raster goes through next/image" rule. */}
+        <picture aria-hidden="true">
+          <source media="(min-width: 1024px)" srcSet={heroPosterDesktop} />
+          <img
+            src={heroPoster}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-[50%_22%]"
+          />
+        </picture>
         <video
           ref={heroVideoRef}
           autoPlay
@@ -131,7 +149,6 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser}: {
           loop
           playsInline
           preload="metadata"
-          poster={heroPoster}
           className="absolute inset-0 h-full w-full object-cover object-[50%_22%]"
         >
           <source src={heroVideoDesktop} type="video/mp4" media="(min-width: 1024px)" />
