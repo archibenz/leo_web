@@ -10,6 +10,7 @@ import WhiteFooter from './WhiteFooter';
 import WhiteProductCard from './WhiteProductCard';
 import {INK, MUTED, HAIR} from './wv-palette';
 import {WhiteArrow} from './wv-icons';
+import EditableSection from '../../components/editor/EditableSection';
 import type {StorefrontSection, WhiteProduct} from '../../lib/catalogue/types';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
@@ -113,6 +114,7 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser}: {
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}}>
       {/* Hero — a full-bleed fashion-film loop with the season + line set over
           its base. */}
+      <EditableSection section={hero} label="Герой">
       <section className="relative h-[82vh] min-h-[540px] w-full overflow-hidden">
         {/* The season banner is a quiet fashion-film loop; the still frame is
             the poster, so slow networks and reduced-motion see the photo.
@@ -183,6 +185,7 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser}: {
           </a>
         </div>
       </section>
+      </EditableSection>
 
       {/* Editorial divider */}
       <section id="wv-edit" className="mx-auto max-w-[1400px] scroll-mt-24 px-6 sm:px-10">
@@ -211,6 +214,7 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser}: {
       </section>
 
       {/* Lookbook — editorial brand statement */}
+      <EditableSection section={setsTeaser} label="Блок образов">
       <section id="wv-atelier" className="mt-8 scroll-mt-24 border-t sm:mt-12" style={{borderColor: HAIR}}>
         {/* Full-width: the photograph runs to the left edge of the screen with no
             frame around it; the copy column keeps its own padding so it stays
@@ -268,6 +272,7 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser}: {
           </div>
         </div>
       </section>
+      </EditableSection>
       </main>
     </>
   );

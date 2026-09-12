@@ -35,6 +35,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -533,5 +534,52 @@ class StorefrontAdminControllerTest {
         mockMvc.perform(post("/api/admin/storefront/models/" + modelId + "/publish")
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isBadRequest());
+    }
+
+    // ============================================================ чтение карточки для панели
+
+    // Наличие (stock_quantity) в публичном ответе витрины нет и не должно быть:
+    // покупателю остаток не показываем. Панели редактора он нужен, чтобы поле
+    // открывалось с текущим значением, а не пустым.
+
+    @Test
+    void theEditorReadsAModelWithItsDraftAlreadyMerged() throws Exception {
+        mockMvc.perform(put("/api/admin/storefront/products/wb-1")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"price\":19000,\"stockQuantity\":4}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/admin/storefront/models/" + modelId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", org.hamcrest.Matchers.containsString("no-store")))
+                .andExpect(jsonPath("$.nameRu").value("Пальто"))
+                .andExpect(jsonPath("$.variants['wb-1'].price").value(19000))
+                .andExpect(jsonPath("$.variants['wb-1'].stockQuantity").value(4))
+                .andExpect(jsonPath("$.variants['wb-2'].price").value(23000));
+    }
+
+    @Test
+    void readingAModelWithABrokenDraftGivesThePublishedCard_notAnError() throws Exception {
+        // Иначе карточку со сломанным черновиком нельзя было бы даже открыть,
+        // чтобы починить: панель получила бы 400 вместо полей.
+        ProductModel model = models.findById(modelId).orElseThrow();
+        model.setDraft("{\"variants\":{\"wb-404\":{\"price\":19000}}}");
+        models.saveAndFlush(model);
+
+        mockMvc.perform(get("/api/admin/storefront/models/" + modelId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.variants['wb-1'].price").value(25000));
+    }
+
+    @Test
+    void readingAModelIsAdminOnly() throws Exception {
+        mockMvc.perform(get("/api/admin/storefront/models/" + modelId))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/admin/storefront/models/" + modelId)
+                        .header("Authorization", "Bearer " + shopperToken))
+                .andExpect(status().isForbidden());
     }
 }

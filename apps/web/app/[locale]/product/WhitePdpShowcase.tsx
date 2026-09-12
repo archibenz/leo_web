@@ -18,6 +18,7 @@ import {WhiteFavHeart, WhiteArrow} from '../wv-icons';
 import {WHITE_SIZES, findProductByKey, whiteInStock, whiteAvailability, whitePrice} from '../../../lib/catalogue/select';
 import type {WhiteProduct, WhiteSet} from '../../../lib/catalogue/types';
 import {WHITE_LQIP} from '../products-lqip';
+import EditableBlock from '../../../components/editor/EditableBlock';
 
 // Variant 2 "White" — product detail (PDP) showcase. Same portal technique as
 // the landing: a full-bleed white surface over the gradient chrome, reviewed at
@@ -368,14 +369,31 @@ export default function WhitePdpShowcase({
             <h1 className="mt-4 font-display text-[34px] font-light leading-tight sm:text-[42px]">{name}</h1>
             {/* A sale shows as the marketplace shows it: the old price struck
                 through, the live one beside it. */}
-            {shownPrice.price != null && shownPrice.sale ? (
-              <p className="mt-3 text-[18px]">
-                <s className="mr-3 line-through" style={{color: MUTED}}>{shownPrice.price.toLocaleString('ru-RU')} ₽</s>
-                <span style={{color: INK}}>{shownPrice.sale.toLocaleString('ru-RU')} ₽</span>
-              </p>
-            ) : (
-              <p className="mt-3 text-[18px]" style={{color: INK}}>{priceStr}</p>
-            )}
+            {/* Точка правки цветового варианта: цена, скидка, наличие и
+                галерея правятся там, где покупатель на них смотрит. Черновик
+                варианта ложится внутрь черновика МОДЕЛИ и публикуется вместе с
+                карточкой одной кнопкой — поэтому маркер сломанного черновика
+                здесь модельный. */}
+            <EditableBlock
+              target={{
+                kind: 'variant',
+                id: selectedColor.id,
+                label: `Цвет · ${ru ? selectedColor.ru : selectedColor.en}`,
+                modelId: bagProduct.id,
+                product: bagProduct,
+                colour: selectedColor,
+              }}
+              owner={{kind: 'model', id: bagProduct.id}}
+            >
+              {shownPrice.price != null && shownPrice.sale ? (
+                <p className="mt-3 text-[18px]">
+                  <s className="mr-3 line-through" style={{color: MUTED}}>{shownPrice.price.toLocaleString('ru-RU')} ₽</s>
+                  <span style={{color: INK}}>{shownPrice.sale.toLocaleString('ru-RU')} ₽</span>
+                </p>
+              ) : (
+                <p className="mt-3 text-[18px]" style={{color: INK}}>{priceStr}</p>
+              )}
+            </EditableBlock>
             <p className="mt-6 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>{desc}</p>
 
             {/* Color */}
