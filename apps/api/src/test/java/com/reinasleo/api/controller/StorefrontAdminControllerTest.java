@@ -445,4 +445,93 @@ class StorefrontAdminControllerTest {
 
         assertThat(List.of()).isEmpty();
     }
+
+    // ============================================================ сломанный черновик (lw-sjek)
+
+    // Один нечитаемый черновик не имеет права уносить с собой весь предпросмотр.
+    // Раньше уносил: merge бросал BadRequestException, и владелец получал 400
+    // вместо страницы — включая исправные правки соседних карточек.
+
+    @Test
+    void aBrokenDraftShowsItsRowPublishedAndIsMarked() throws Exception {
+        // Достижимо не только правкой базы руками: черновик на вариант плюс
+        // удаление этого варианта старой админкой даёт ровно такую строку.
+        ProductModel model = models.findById(modelId).orElseThrow();
+        model.setDraft("{\"variants\":{\"wb-404\":{\"price\":19000}}}");
+        models.saveAndFlush(model);
+
+        mockMvc.perform(get("/api/admin/storefront/preview")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.products[0].ru").value("Пальто"))
+                .andExpect(jsonPath("$.products[0].colors", org.hamcrest.Matchers.hasSize(2)))
+                .andExpect(jsonPath("$.brokenDrafts", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$.brokenDrafts[0].kind").value("model"))
+                .andExpect(jsonPath("$.brokenDrafts[0].id").value(modelId.toString()))
+                .andExpect(jsonPath("$.brokenDrafts[0].key").value("palto"))
+                .andExpect(jsonPath("$.brokenDrafts[0].reason", org.hamcrest.Matchers.containsString("wb-404")));
+    }
+
+    @Test
+    void aBrokenSectionDraftLeavesTheOtherRowsEditsVisible() throws Exception {
+        StorefrontSection section = sections.findById(sectionId).orElseThrow();
+        section.setDraft("{\"headlinRu\":\"опечатка в ключе\"}");
+        sections.saveAndFlush(section);
+
+        mockMvc.perform(put("/api/admin/storefront/models/" + modelId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nameRu\":\"Исправная правка\"}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/admin/storefront/preview")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.products[0].ru").value("Исправная правка"))
+                .andExpect(jsonPath("$.sections[0].headlineRu").value("Точный крой"))
+                .andExpect(jsonPath("$.brokenDrafts", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$.brokenDrafts[0].kind").value("section"))
+                .andExpect(jsonPath("$.brokenDrafts[0].key").value("aw26-hero"));
+    }
+
+    @Test
+    void aBrokenSetDraftKeepsItsPublishedComposition() throws Exception {
+        ProductSet set = sets.findById(setId).orElseThrow();
+        set.setDraft("{\"items\":[{\"productId\":\"wb-1\",\"position\":0},{\"productId\":\"wb-1\",\"position\":1}]}");
+        sets.saveAndFlush(set);
+
+        mockMvc.perform(get("/api/admin/storefront/preview")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.sets[0].items", org.hamcrest.Matchers.hasSize(1)))
+                .andExpect(jsonPath("$.sets[0].items[0].productId").value("wb-1"))
+                .andExpect(jsonPath("$.brokenDrafts[0].kind").value("set"))
+                .andExpect(jsonPath("$.brokenDrafts[0].key").value("coat-lace"));
+    }
+
+    @Test
+    void thePublicStorefrontNeverCarriesTheBrokenDraftMarker() throws Exception {
+        ProductModel model = models.findById(modelId).orElseThrow();
+        model.setDraft("{\"variants\":{\"wb-404\":{\"price\":19000}}}");
+        models.saveAndFlush(model);
+
+        clearStorefrontCache();
+        mockMvc.perform(get("/api/catalog/storefront"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.products[0].ru").value("Пальто"))
+                .andExpect(jsonPath("$.brokenDrafts").doesNotExist());
+    }
+
+    @Test
+    void publishingABrokenDraftIsStillRefused() throws Exception {
+        // Показать сломанное можно, опубликовать — нет: в предпросмотре строка
+        // осталась опубликованной именно потому, что черновик не прочитан.
+        ProductModel model = models.findById(modelId).orElseThrow();
+        model.setDraft("{\"variants\":{\"wb-404\":{\"price\":19000}}}");
+        models.saveAndFlush(model);
+
+        mockMvc.perform(post("/api/admin/storefront/models/" + modelId + "/publish")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isBadRequest());
+    }
 }

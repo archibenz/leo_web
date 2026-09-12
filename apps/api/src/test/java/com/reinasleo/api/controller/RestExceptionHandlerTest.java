@@ -100,4 +100,33 @@ class RestExceptionHandlerTest {
         assertThat(nullMessage.getBody()).containsEntry("error", "bad_request");
         assertThat(nullMessage.getBody()).containsEntry("message", "Bad request");
     }
+
+    @Test
+    void aBrokenCheckConstraintIsA400_notTheEmailExistsConflict() {
+        // ck_product_models_category (V32) ловит категорию не из списка витрины.
+        // Ответить на это «email_exists» значило бы врать: отправитель ищет
+        // занятую почту там, где на самом деле опечатка в разделе.
+        var checkViolation = new org.springframework.dao.DataIntegrityViolationException(
+                "could not execute statement",
+                new java.sql.SQLException("new row for relation \"product_models\" violates check constraint "
+                        + "\"ck_product_models_category\""));
+
+        ResponseEntity<Map<String, Object>> response = handler.handleDataIntegrity(checkViolation);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).containsEntry("error", "constraint_violation");
+        assertThat((String) response.getBody().get("message")).contains("ck_product_models_category");
+    }
+
+    @Test
+    void aUniqueViolationStillReadsAsTheEmailConflict() {
+        var uniqueViolation = new org.springframework.dao.DataIntegrityViolationException(
+                "could not execute statement",
+                new java.sql.SQLException("duplicate key value violates unique constraint \"users_email_key\""));
+
+        ResponseEntity<Map<String, Object>> response = handler.handleDataIntegrity(uniqueViolation);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody()).containsEntry("message", "email_exists");
+    }
 }

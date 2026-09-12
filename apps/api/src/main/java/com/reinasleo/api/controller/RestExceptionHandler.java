@@ -224,9 +224,18 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, Object>> handleDataIntegrity(org.springframework.dao.DataIntegrityViolationException ex) {
+        String cause = ex.getMostSpecificCause().getMessage();
+        log.warn("Data integrity violation: {}", cause);
+        // Нарушен CHECK — значение не из закрытого списка (например категория
+        // модели, ck_product_models_category из V32). Это ошибка отправителя, а
+        // не гонка: 400 и текст драйвера, чтобы было видно, какое правило и
+        // какая колонка. Отвечать на это «email_exists» — врать.
+        if (cause != null && cause.toLowerCase().contains("check constraint")) {
+            Map<String, Object> body = Map.of("error", "constraint_violation", "message", cause);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        }
         // Two registrations racing on one email both pass the service check;
         // the unique index rejects the loser — answer 409 like the check does.
-        log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
         Map<String, Object> body = Map.of("message", "email_exists");
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
