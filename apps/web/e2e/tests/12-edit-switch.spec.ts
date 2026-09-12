@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 import type {Page, BrowserContext} from '@playwright/test';
 import {copy} from '../fixtures/messages';
-import {openWhite, acknowledgeCookies} from '../fixtures/white';
+import {openWhite, acknowledgeCookies, hydrateViaCookieNotice} from '../fixtures/white';
 
 // Вход в режим правки переехал из шапки в аккаунт/админку: «ПРАВИТЬ» не
 // существует в шапке ни в каком виде, и шапка обязана выглядеть ОДИНАКОВО
@@ -48,6 +48,40 @@ async function open(page: Page, path: string) {
   await openWhite(page, path);
 }
 
+// isAdmin (useEditorSession) решается АСИНХРОННО — эффектом, который для
+// владельца бьёт в /api/auth/me. До того, как эффект отработал, компонент,
+// завязанный на isAdmin (EditModeSwitch), физически не мог ни появиться, ни
+// остаться. toHaveCount(0) сразу после навигации — ловушка: count() честно
+// возвращает 0 и тогда, когда элемента правда нет, и тогда, когда он просто
+// ещё не успел появиться, — а «ещё не успел» это состояние КАЖДОЙ страницы в
+// первые миллисекунды после domcontentloaded. На практике так и оказалось:
+// временная мутация «вставить <EditModeSwitch /> в шапку» оставляла кейс
+// шапки зелёным, хотя выключатель там был, — проверка просто заканчивалась
+// раньше, чем эффект успевал сработать.
+//
+// Ждём не сеть напрямую (у гостя её и не будет: без токена useEditorSession
+// вообще не ходит в API — см. useEditorSession.ts), а то, что этот КЛАСС
+// эффектов точно отработал. WhiteCookieNotice — тот же характер, рисуется
+// только маунт-эффектом (см. hydrateViaCookieNotice в fixtures/white.ts), и
+// её появление — уже доказанный в этом кодбейзе способ дождаться, что первый
+// круг клиентских эффектов прошёл. Кук заранее не подтверждаем — иначе
+// баннер, на который мы опираемся, просто не появится.
+async function openSettled(page: Page, path: string): Promise<void> {
+  await openWhite(page, path);
+  await hydrateViaCookieNotice(page);
+}
+
+// У владельца вдобавок есть и точный признак — сетевой ответ на
+// /api/auth/me. Слушателя ставим ДО навигации (Promise.all): иначе возможна
+// гонка, если ответ придёт раньше, чем мы начнём его ждать.
+async function openSettledForOwner(page: Page, path: string): Promise<void> {
+  await Promise.all([
+    page.waitForResponse((r) => r.url().includes('/api/auth/me')),
+    openWhite(page, path),
+  ]);
+  await hydrateViaCookieNotice(page);
+}
+
 // Отпечаток шапки: видимый текст (без пробельного мусора) плюс фон — тот же
 // приём сравнения backgroundColor, что и в 11-tg-landing.spec.ts, усиленный
 // textContent, чтобы ловить любую лишнюю кнопку, а не только именно эту.
@@ -84,14 +118,14 @@ for (const viewport of [
 ] as const) {
   test(`шапка не содержит входа в режим правки — ни у гостя, ни у владельца (${viewport.width}px)`, async ({page, browser}) => {
     await page.setViewportSize(viewport);
-    await open(page, HOME);
+    await openSettled(page, HOME);
     await assertHeaderHasNoEditEntry(page);
     const guestFingerprint = await headerFingerprint(page);
 
     const ownerContext = await browser.newContext({viewport});
     const ownerPage = await ownerContext.newPage();
     await asOwner(ownerPage);
-    await open(ownerPage, HOME);
+    await openSettledForOwner(ownerPage, HOME);
     await assertHeaderHasNoEditEntry(ownerPage);
     const ownerFingerprint = await headerFingerprint(ownerPage);
 
@@ -116,7 +150,11 @@ test('включил выключатель в аккаунте → перешё
   await asOwner(page);
   await open(page, ACCOUNT);
 
-  const toggle = page.getByRole('switch', {name: EDIT_LABEL});
+  // #wv-page, не вся вкладка: этот кейс — про куку с аккаунта, не про шапку,
+  // и ему нельзя ломаться, если в шапке однажды появится свой switch (как в
+  // мутации координатора) — тогда getByRole('switch') без области честно
+  // упал бы в строгом режиме Playwright на двух совпадениях сразу.
+  const toggle = page.locator('#wv-page').getByRole('switch', {name: EDIT_LABEL});
   await expect(toggle).toHaveAttribute('aria-checked', 'false');
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-checked', 'true');
@@ -132,7 +170,8 @@ test('включил выключатель в аккаунте → перешё
 test('«Закончить правку» снимает куку — следующая страница уже обычная', async ({page}) => {
   await asOwner(page);
   await open(page, ACCOUNT);
-  await page.getByRole('switch', {name: EDIT_LABEL}).click();
+  // #wv-page — см. комментарий у предыдущего теста.
+  await page.locator('#wv-page').getByRole('switch', {name: EDIT_LABEL}).click();
 
   await open(page, HOME);
   await expect(page.getByText(DRAFT_BAR)).toBeVisible(); // подтверждаем, что было включено — иначе клик ниже ничего не доказывает
