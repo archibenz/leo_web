@@ -87,6 +87,14 @@ class ExifOrientationTest {
     }
 
     @Test
+    void orientationEightAtTheTopOfTheValidRangeReturnsExactlyEight() {
+        // Пара к anOrientationValueOfNineFallsBackToNormal: граница 1..8
+        // включительная с обеих сторон, и обе стороны должны быть проверены
+        // не диапазоном (иначе снова только «не упало»).
+        assertThat(ExifOrientation.of(validExifWithOrientation(true, 8))).isEqualTo(8);
+    }
+
+    @Test
     void anOrientationValueOfZeroFallsBackToNormal() {
         assertThat(ExifOrientation.of(validExifWithOrientation(true, 0))).isEqualTo(ExifOrientation.NORMAL);
     }
