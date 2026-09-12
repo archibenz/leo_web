@@ -4,10 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "predev": "node scripts/generate-product-slugs.mjs --allow-stub",
     "dev": "next dev",
+    "prebuild": "node scripts/generate-product-slugs.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "node scripts/generate-product-slugs.mjs --allow-stub && tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
