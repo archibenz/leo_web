@@ -2,7 +2,7 @@
 
 import {useMemo} from 'react';
 import {usePathname, useSearchParams} from 'next/navigation';
-import {EDIT_PARAM} from '../../lib/catalogue/viewer';
+import {EDIT_PARAM} from '../../lib/catalogue/editMode';
 
 // Режим живёт в адресе, а не в сессии: ссылку на черновик можно открыть,
 // отправить себе на телефон и показать — и она покажет то же самое.

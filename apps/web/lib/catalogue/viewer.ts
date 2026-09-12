@@ -11,17 +11,11 @@ import type {Storefront} from './types';
 //     кэша, по своей ручке).
 // Ни одна ветка ниже не смешивает эти два источника.
 
-// Флаг в адресе, а не в сессии: ссылку на черновик можно открыть и показать.
-export const EDIT_PARAM = 'edit';
+// Флаг живёт в editMode.ts — модуле без серверных импортов, чтобы шапка
+// витрины могла взять его, не утащив в браузер `next/headers`.
+export {EDIT_PARAM, wantsEditing} from './editMode';
 
 const SESSION_COOKIE = 'rl_session';
-
-type SearchParams = Record<string, string | string[] | undefined>;
-
-export function wantsEditing(searchParams?: SearchParams): boolean {
-  const raw = searchParams?.[EDIT_PARAM];
-  return (Array.isArray(raw) ? raw[0] : raw) === '1';
-}
 
 export type StorefrontView =
   | {editing: false; storefront: Storefront}
