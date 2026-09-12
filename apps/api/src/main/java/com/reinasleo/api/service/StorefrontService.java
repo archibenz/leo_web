@@ -10,6 +10,7 @@ import com.reinasleo.api.dto.storefront.StorefrontSet;
 import com.reinasleo.api.dto.storefront.StorefrontSetItem;
 import com.reinasleo.api.model.Product;
 import com.reinasleo.api.model.ProductModel;
+import com.reinasleo.api.model.ProductSet;
 import com.reinasleo.api.model.ProductSetItem;
 import com.reinasleo.api.model.StorefrontSection;
 import com.reinasleo.api.repository.ProductModelRepository;
@@ -17,6 +18,12 @@ import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.ProductSetItemRepository;
 import com.reinasleo.api.repository.ProductSetRepository;
 import com.reinasleo.api.repository.StorefrontSectionRepository;
+import com.reinasleo.api.service.storefront.StorefrontDraftMerge;
+import com.reinasleo.api.service.storefront.StorefrontMapping;
+import com.reinasleo.api.dto.admin.storefront.StorefrontModelRequest;
+import com.reinasleo.api.dto.admin.storefront.StorefrontSectionRequest;
+import com.reinasleo.api.dto.admin.storefront.StorefrontSetRequest;
+import jakarta.persistence.EntityManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
@@ -48,27 +55,76 @@ public class StorefrontService {
     private final ProductSetRepository sets;
     private final ProductSetItemRepository setItems;
     private final StorefrontSectionRepository sections;
+    private final StorefrontMapping mapping;
+    private final EntityManager entityManager;
 
     public StorefrontService(ProductModelRepository models, ProductRepository products, ProductSetRepository sets,
-                             ProductSetItemRepository setItems, StorefrontSectionRepository sections) {
+                             ProductSetItemRepository setItems, StorefrontSectionRepository sections,
+                             StorefrontMapping mapping, EntityManager entityManager) {
         this.models = models;
         this.products = products;
         this.sets = sets;
         this.setItems = setItems;
         this.sections = sections;
+        this.mapping = mapping;
+        this.entityManager = entityManager;
     }
 
     @Cacheable("storefront")
     @Transactional(readOnly = true)
     public StorefrontResponse getStorefront() {
+        return build(false);
+    }
+
+    /**
+     * Витрина глазами владельца: опубликованное, поверх которого лёг черновик.
+     *
+     * НЕ кэшируется — ни Caffeine, ни снимком. Черновик это намерение, и
+     * показывать его протухшим нельзя: увидев старое, владелец либо решит, что
+     * правка потерялась, и сделает её заново, либо, хуже, решит, что она
+     * применилась, и нажмёт «Опубликовать» вслепую.
+     *
+     * Черновик накладывается ТОЙ ЖЕ функцией слияния и ТЕМ ЖЕ применением DTO к
+     * полям, которыми пользуется публикация, — иначе предпросмотр показал бы
+     * одно, а публикация сделала другое.
+     */
+    @Transactional(readOnly = true)
+    public StorefrontResponse getStorefrontDraft() {
+        return build(true);
+    }
+
+    private StorefrontResponse build(boolean withDrafts) {
+        List<Product> variantRows = withDrafts
+                ? products.findByModelIdIsNotNullOrderByModelIdAscSortOrderAsc()
+                : products.findByModelIdIsNotNullAndActiveTrueOrderByModelIdAscSortOrderAsc();
+        List<ProductModel> modelRows = withDrafts
+                ? models.findAllByOrderBySortOrderAsc()
+                : models.findByActiveTrueOrderBySortOrderAsc();
+        List<ProductSet> setRows = withDrafts
+                ? sets.findAllByOrderBySortOrderAsc()
+                : sets.findByActiveTrueOrderBySortOrderAsc();
+        List<StorefrontSection> sectionRows = withDrafts
+                ? sections.findByStatusInOrderBySortOrderAsc(List.of("active", "draft"))
+                : sections.findByStatusOrderBySortOrderAsc("active");
+
         // Цвета внутри модели идут по sort_order — витрина показывает первым тот, чью цену видит покупатель.
-        Map<UUID, List<Product>> variantsByModel = products.findByModelIdIsNotNullAndActiveTrueOrderByModelIdAscSortOrderAsc()
-                .stream()
+        Map<UUID, List<Product>> variantsByModel = variantRows.stream()
                 .sorted(Comparator.comparingInt(Product::getSortOrder))
                 .collect(Collectors.groupingBy(Product::getModelId, LinkedHashMap::new, Collectors.toList()));
 
-        List<StorefrontProduct> productDtos = models.findByActiveTrueOrderBySortOrderAsc().stream()
-                .map(m -> toProduct(m, variantsByModel.getOrDefault(m.getId(), List.of())))
+        Map<UUID, List<ProductSetItem>> itemsBySet = setItems.findAllByOrderBySetIdAscPositionAsc().stream()
+                .collect(Collectors.groupingBy(ProductSetItem::getSetId, LinkedHashMap::new, Collectors.toList()));
+
+        if (withDrafts) {
+            applyDrafts(modelRows, variantsByModel, setRows, itemsBySet, sectionRows);
+        }
+
+        List<StorefrontProduct> productDtos = modelRows.stream()
+                .filter(ProductModel::isActive)
+                .map(m -> toProduct(m, variantsByModel.getOrDefault(m.getId(), List.of()).stream()
+                        .filter(Product::isActive)
+                        .sorted(Comparator.comparingInt(Product::getSortOrder))
+                        .toList()))
                 .filter(p -> !p.colors().isEmpty())
                 .toList();
 
@@ -79,9 +135,8 @@ public class StorefrontService {
             }
         }
 
-        Map<UUID, List<ProductSetItem>> itemsBySet = setItems.findAllByOrderBySetIdAscPositionAsc().stream()
-                .collect(Collectors.groupingBy(ProductSetItem::getSetId, LinkedHashMap::new, Collectors.toList()));
-        List<StorefrontSet> setDtos = sets.findByActiveTrueOrderBySortOrderAsc().stream()
+        List<StorefrontSet> setDtos = setRows.stream()
+                .filter(ProductSet::isActive)
                 .map(s -> new StorefrontSet(s.getKey(), s.getNameEn(), s.getNameRu(), s.getDescEn(), s.getDescRu(), s.getImage(),
                         itemsBySet.getOrDefault(s.getId(), List.of()).stream()
                                 .map(it -> toSetItem(it, productByVariantId))
@@ -89,10 +144,50 @@ public class StorefrontService {
                                 .toList()))
                 .toList();
 
-        List<StorefrontSectionDto> sectionDtos = sections.findByStatusOrderBySortOrderAsc("active").stream()
-                .map(this::toSection).toList();
+        List<StorefrontSectionDto> sectionDtos = sectionRows.stream().map(this::toSection).toList();
 
         return new StorefrontResponse(productDtos, setDtos, sectionDtos);
+    }
+
+    /**
+     * Черновик поверх опубликованного — на отсоединённых от сессии строках,
+     * чтобы предпросмотр физически не мог ничего записать в базу.
+     */
+    private void applyDrafts(List<ProductModel> modelRows, Map<UUID, List<Product>> variantsByModel,
+                             List<ProductSet> setRows, Map<UUID, List<ProductSetItem>> itemsBySet,
+                             List<StorefrontSection> sectionRows) {
+        for (StorefrontSection s : sectionRows) {
+            entityManager.detach(s);
+            if (s.getDraft() == null) {
+                continue;
+            }
+            StorefrontSectionRequest merged = StorefrontDraftMerge.merge(
+                    mapping.published(s), s.getDraft(), StorefrontSectionRequest.class);
+            mapping.apply(merged, s);
+        }
+        for (ProductModel m : modelRows) {
+            entityManager.detach(m);
+            List<Product> variants = variantsByModel.getOrDefault(m.getId(), List.of());
+            variants.forEach(entityManager::detach);
+            if (m.getDraft() == null) {
+                continue;
+            }
+            StorefrontModelRequest merged = StorefrontDraftMerge.merge(
+                    mapping.published(m, variants), m.getDraft(), StorefrontModelRequest.class);
+            mapping.apply(merged, m, variants.stream().collect(
+                    Collectors.toMap(Product::getId, java.util.function.Function.identity())));
+        }
+        for (ProductSet set : setRows) {
+            entityManager.detach(set);
+            if (set.getDraft() == null) {
+                continue;
+            }
+            StorefrontSetRequest merged = StorefrontDraftMerge.merge(
+                    mapping.published(set, itemsBySet.getOrDefault(set.getId(), List.of())),
+                    set.getDraft(), StorefrontSetRequest.class);
+            mapping.apply(merged, set);
+            itemsBySet.put(set.getId(), mapping.itemsOf(set.getId(), merged));
+        }
     }
 
     private StorefrontProduct toProduct(ProductModel m, List<Product> variants) {

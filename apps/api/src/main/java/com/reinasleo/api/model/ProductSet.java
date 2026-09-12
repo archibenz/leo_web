@@ -1,6 +1,8 @@
 package com.reinasleo.api.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -37,6 +39,13 @@ public class ProductSet {
     @Column(nullable = false)
     private boolean active = true;
 
+    // Неопубликованная правка — перекрытие полей выше. NULL = черновика нет.
+    // Публикация переносит поля в колонки и очищает черновик: в draft лежит
+    // намерение, в колонках — факт.
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private String draft;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -68,6 +77,7 @@ public class ProductSet {
     public boolean isActive() { return active; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public String getDraft() { return draft; }
 
     public void setKey(String key) { this.key = key; }
     public void setNameRu(String nameRu) { this.nameRu = nameRu; }
@@ -77,4 +87,5 @@ public class ProductSet {
     public void setImage(String image) { this.image = image; }
     public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
     public void setActive(boolean active) { this.active = active; }
+    public void setDraft(String draft) { this.draft = draft; }
 }
