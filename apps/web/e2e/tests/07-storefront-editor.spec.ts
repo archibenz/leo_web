@@ -15,6 +15,86 @@ const TOKEN = process.env.E2E_EDITOR_TOKEN ?? 'fixture-editor-token';
 const API = process.env.E2E_API_PROXY;
 const DRAFT_MARK = /Черновик/;
 
+// Живой путь удаляет черновики и правит витрину — гонять его можно только по
+// сговору с самой базой (assertTestDatabase ниже) и только последовательно:
+// параллельные воркеры делят один и тот же черновик hero-секции между собой,
+// и afterEach одного теста сносил бы черновик, на который ещё смотрит другой.
+// Это касается ВСЕХ трёх describe-блоков файла разом, а не только последнего:
+// общий beforeEach/afterEach заводит и убирает этот черновик для каждого
+// теста файла, как только задан E2E_API_PROXY.
+if (API) {
+  test.describe.configure({mode: 'serial'});
+}
+
+// ---------------------------------------------------------------- сторож живого API
+//
+// Три независимых слоя, по убыванию значимости. Ни один не заменяет другой.
+
+// Слой 1 (главный, структурный). База обязана НАЗВАТЬ СЕБЯ тестовой сама —
+// строкой, которую эта спека физически не может завести.
+//
+// storefront_sections.status допускает 'draft' — по V31 это «новый блок, не
+// правка». StorefrontAdminService ни разу не зовёт setStatus(...): PUT/publish/
+// discard трогают только JSONB-колонку draft, а создать НОВУЮ секцию через API
+// вообще нельзя — такой ручки нет. Значит status='draft' у конкретного slug —
+// факт, который эта спека (и вообще API) не умеет производить, только читать.
+// Есть он — база тестовая. Нет — падаем с инструкцией, а не гадаем и не skip'аем:
+// тихий skip на живом пути так же опасен, как и удаление начужую.
+//
+// layout вынужденно 'sets-teaser' (CHECK-констрейнт V29 разрешает только
+// 'hero'/'sets-teaser'), sort_order — заведомо больше настоящего: страница
+// берёт секцию по layout через `.find()` (см. app/[locale]/page.tsx), первое
+// совпадение побеждает, и настоящая секция обязана оказаться первой.
+const CANARY_SLUG = 'e2e-canary';
+
+async function assertTestDatabase(api: APIRequestContext): Promise<void> {
+  const preview = await (await api.get('/api/admin/storefront/preview')).json();
+  const sections = preview.sections as {slug: string; status: string}[];
+  const canary = sections.find((s) => s.slug === CANARY_SLUG);
+  if (canary?.status === 'draft') return;
+
+  throw new Error(
+    `Живой прогон (E2E_API_PROXY=${API}) против базы, которая не назвала себя тестовой: ` +
+      `в /api/admin/storefront/preview нет секции slug="${CANARY_SLUG}" со status='draft'. ` +
+      'Эта метка не создаётся кодом — заведите её один раз в дев-базе (НЕ в проде) и повторите прогон:\n' +
+      `  INSERT INTO storefront_sections (slug, layout, status, name_ru, name_en, sort_order)\n` +
+      `  VALUES ('${CANARY_SLUG}', 'sets-teaser', 'draft', 'E2E CANARY', 'E2E CANARY', 999);`,
+  );
+}
+
+// Слой 2. Независим от слоя 1: даже с канарейкой на месте спека убирает
+// только то, что завела сама. Чужой черновик, найденный до старта, — повод
+// упасть с объяснением, а не подчистить его как «мусор».
+async function assertNoForeignDrafts(api: APIRequestContext): Promise<void> {
+  const drafts = (await (await api.get('/api/admin/storefront/drafts')).json()) as
+    {kind: string; key: string}[];
+  if (drafts.length === 0) return;
+  throw new Error(
+    'На базе уже есть чужие черновики — эта спека не подчищает чужое, а падает: ' +
+      drafts.map((d) => `${d.kind}:${d.key}`).join(', '),
+  );
+}
+
+// Слой 3 (дешёвый, ВСПОМОГАТЕЛЬНЫЙ). НЕ главная защита: "localhost" может
+// обмануть — например, ssh-туннель слушает на 127.0.0.1, а ведёт на прод.
+// Отсекает опечатки и явно чужие адреса бесплатно, до единого сетевого
+// запроса. Настоящая защита — assertTestDatabase выше, которая спрашивает
+// саму базу, а не адрес.
+function assertLoopbackHost(rawUrl: string): void {
+  let hostname: string;
+  try {
+    hostname = new URL(rawUrl).hostname;
+  } catch {
+    throw new Error(`E2E_API_PROXY="${rawUrl}" — не похоже на URL. Ожидается http://localhost:<порт>.`);
+  }
+  if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    throw new Error(
+      `E2E_API_PROXY указывает на "${hostname}", а не на localhost/127.0.0.1 (адрес: ${rawUrl}). ` +
+        'Живой прогон удаляет черновики и правит витрину — гонять его можно только против локального API.',
+    );
+  }
+}
+
 async function asOwner(page: Page): Promise<void> {
   // Роль подменяется ВСЕГДА, в том числе против живого API, и это не лень:
   // /api/auth/** лимитирован десятью запросами в минуту на IP, а спеки идут
@@ -35,17 +115,8 @@ async function asOwner(page: Page): Promise<void> {
   await page.addInitScript((token) => window.localStorage.setItem('reinasleo_token', token), TOKEN);
 }
 
-const DRAFT_PATH = {section: 'sections', model: 'models', set: 'sets'} as const;
-
 function adminApi(): Promise<APIRequestContext> {
   return request.newContext({baseURL: API, extraHTTPHeaders: {Authorization: `Bearer ${TOKEN}`}});
-}
-
-async function dropAllDrafts(api: APIRequestContext): Promise<void> {
-  const drafts = await (await api.get('/api/admin/storefront/drafts')).json();
-  for (const row of drafts as {kind: keyof typeof DRAFT_PATH; id: string}[]) {
-    await api.delete(`/api/admin/storefront/${DRAFT_PATH[row.kind]}/${row.id}/draft`);
-  }
 }
 
 async function heroId(api: APIRequestContext): Promise<string> {
@@ -53,21 +124,32 @@ async function heroId(api: APIRequestContext): Promise<string> {
   return String(preview.sections.find((s: {layout: string}) => s.layout === 'hero').id);
 }
 
+// Черновик, который заводит и за которым убирает эта спека — и только он.
+let ourDraftSectionId: string | null = null;
+
 // Против фикстуры черновик уже лежит в STOREFRONT_DRAFT_FIXTURE. Против живого
 // API его надо завести самим — иначе спека проверяла бы «черновик виден» на
 // витрине, где черновика нет, и зелёное ничего не значило бы.
 test.beforeEach(async () => {
   if (!API) return;
+  assertLoopbackHost(API);
   const api = await adminApi();
-  await dropAllDrafts(api);
-  await api.put(`/api/admin/storefront/sections/${await heroId(api)}`, {data: {headlineRu: 'Черновик\nзаголовка'}});
+  await assertTestDatabase(api);
+  await assertNoForeignDrafts(api);
+  const hero = await heroId(api);
+  await api.put(`/api/admin/storefront/sections/${hero}`, {data: {headlineRu: 'Черновик\nзаголовка'}});
+  ourDraftSectionId = hero;
   await api.dispose();
 });
 
 test.afterEach(async () => {
-  if (!API) return;
+  if (!API || !ourDraftSectionId) return;
   const api = await adminApi();
-  await dropAllDrafts(api);
+  // discard — идемпотентен: если тест сам опубликовал и очистил черновик
+  // (см. "правка доезжает до витрины"), второй discard просто вернёт
+  // опубликованное состояние без ошибки.
+  await api.delete(`/api/admin/storefront/sections/${ourDraftSectionId}/draft`);
+  ourDraftSectionId = null;
   await api.dispose();
 });
 
@@ -139,7 +221,15 @@ test.describe('правка доезжает до витрины', () => {
 
   test('правка → черновик → предпросмотр → публикация → покупатель', async ({page, browser}) => {
     const api = await adminApi();
-    await dropAllDrafts(api); // чтобы в списке публикации была ровно одна строка
+    const hero = await heroId(api);
+
+    // Общий beforeEach уже завёл на этой секции свой черновик ('Черновик\nзаголовка') —
+    // он нужен ДРУГИМ тестам файла (проверить, что владелец его видит), а этому мешает:
+    // панель редактора показывает черновик поверх опубликованного, и не сбрось его здесь,
+    // `headline.inputValue()` прочитал бы ЧЕРНОВИК как «опубликованное», а `finally` ниже
+    // навсегда переносил бы этот черновик в колонки вместо настоящего исходного текста —
+    // витрина осталась бы с заголовком «Черновик заголовка» уже для настоящих покупателей.
+    await api.delete(`/api/admin/storefront/sections/${hero}/draft`);
 
     await asOwner(page);
     await page.goto('/ru?edit=1');
@@ -180,7 +270,6 @@ test.describe('правка доезжает до витрины', () => {
       await guest.close();
     } finally {
       // Возвращаем витрину в исходное состояние тем же путём, которым правили.
-      const hero = await heroId(api);
       await api.put(`/api/admin/storefront/sections/${hero}`, {data: {headlineRu: published}});
       await api.post(`/api/admin/storefront/sections/${hero}/publish`);
       await api.dispose();
