@@ -83,7 +83,7 @@ public class FileUploadController {
         if ("image/webp".equals(detectedType)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UploadMessages.WEBP_NOT_ACCEPTED);
         }
-        if (!sameFamily(detectedType, file.getContentType())) {
+        if (!ImageContentValidator.sameFamily(detectedType, file.getContentType())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UploadMessages.CONTENT_TYPE_MISMATCH);
         }
 
@@ -183,12 +183,6 @@ public class FileUploadController {
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to save file");
         }
-    }
-
-    // "image/jpg" — не официальный MIME-тип, но некоторые клиенты присылают его
-    // для JPEG; настоящий формат при этом всё равно "image/jpeg" по байтам.
-    private static boolean sameFamily(String detected, String declared) {
-        return detected.equals(declared) || ("image/jpeg".equals(detected) && "image/jpg".equals(declared));
     }
 
     private static String sha256(byte[] bytes) {

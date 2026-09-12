@@ -9,15 +9,6 @@ public final class ImageContentValidator {
     private ImageContentValidator() {
     }
 
-    public static boolean isSupportedImage(MultipartFile file) throws IOException {
-        byte[] head = new byte[12];
-        int read = file.getInputStream().read(head);
-        if (read < 4) {
-            return false;
-        }
-        return isJpeg(head, read) || isPng(head, read) || isWebp(head, read);
-    }
-
     /**
      * Настоящий тип файла по магическим байтам, а не по заявленному
      * Content-Type: {@code image/jpeg}, {@code image/png}, {@code image/webp}
@@ -39,6 +30,12 @@ public final class ImageContentValidator {
             return "image/webp";
         }
         return null;
+    }
+
+    // "image/jpg" — не официальный MIME-тип, но некоторые клиенты присылают его
+    // для JPEG; настоящий формат при этом всё равно "image/jpeg" по байтам.
+    public static boolean sameFamily(String detected, String declared) {
+        return detected.equals(declared) || ("image/jpeg".equals(detected) && "image/jpg".equals(declared));
     }
 
     private static boolean isJpeg(byte[] h, int len) {
