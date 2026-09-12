@@ -13,8 +13,13 @@ import {CATALOGUE_SLUGS, CATALOGUE_SLUGS_IS_STUB} from '../generated/product-slu
 describe('middleware route segments', () => {
   it('lists every first segment that has a page behind it', () => {
     const routeDir = join(process.cwd(), 'app', '[locale]');
+    // Dot-directories are never routes: Next ignores them, and tools drop their
+    // state wherever the process happened to be running — `.omc` from the
+    // orchestration plugin turned up here and reddened this test for a
+    // directory that is not in the repository. Filtered by the leading dot
+    // rather than by name, so the next tool does not repeat it.
     const onDisk = readdirSync(routeDir, {withFileTypes: true})
-      .filter((e) => e.isDirectory() && !e.name.startsWith('[') && !e.name.startsWith('_'))
+      .filter((e) => e.isDirectory() && !e.name.startsWith('[') && !e.name.startsWith('_') && !e.name.startsWith('.'))
       .map((e) => e.name)
       .sort();
 
