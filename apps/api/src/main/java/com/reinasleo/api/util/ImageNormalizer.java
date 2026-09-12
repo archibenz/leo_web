@@ -4,8 +4,10 @@ import com.reinasleo.api.exception.BadRequestException;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
 import java.awt.RenderingHints;
 import java.awt.geom.AffineTransform;
@@ -33,6 +35,12 @@ public final class ImageNormalizer {
 
     /** Длинная сторона витринного кадра. Шире — покупатель платит трафиком, не видя разницы. */
     public static final int MAX_SIDE = 2000;
+    // Потолок площади, а не веса: маленький сжатый файл может объявить в
+    // заголовке какие угодно размеры, а ImageIO.read разворачивает растр
+    // целиком (ширина × высота × 4 байта) ещё до того, как мы увидим итоговый
+    // вес. 50 Мпикс — с большим запасом над любым настоящим снимком с
+    // телефона (12-48 Мпикс сенсоры).
+    public static final long MAX_PIXELS = 50_000_000L;
     private static final float JPEG_QUALITY = 0.82f;
 
     public record Normalized(byte[] bytes, String extension, int width, int height) {}
@@ -55,16 +63,40 @@ public final class ImageNormalizer {
     }
 
     private static BufferedImage decode(byte[] source) {
-        BufferedImage image;
-        try {
-            image = ImageIO.read(new ByteArrayInputStream(source));
+        try (ImageInputStream iis = ImageIO.createImageInputStream(new ByteArrayInputStream(source))) {
+            if (iis == null) {
+                throw new BadRequestException(UploadMessages.UNREADABLE_IMAGE);
+            }
+            Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+            if (!readers.hasNext()) {
+                throw new BadRequestException(UploadMessages.UNREADABLE_IMAGE);
+            }
+            ImageReader reader = readers.next();
+            try {
+                reader.setInput(iis, true, true);
+                // Размеры — из заголовка, БЕЗ раскодирования пикселей. reader.read
+                // ниже разворачивает растр целиком (ширина×высота×4 байта); маленький
+                // файл не должен успеть это сделать раньше, чем мы проверим площадь,
+                // которую сам же объявил. int*int здесь переполнился бы на реальных
+                // значениях (65535×65535 больше Integer.MAX_VALUE) — оба множителя
+                // приведены к long ДО умножения.
+                long pixels = (long) reader.getWidth(0) * (long) reader.getHeight(0);
+                if (pixels > MAX_PIXELS) {
+                    throw new BadRequestException(UploadMessages.IMAGE_TOO_MANY_PIXELS);
+                }
+                BufferedImage image = reader.read(0);
+                if (image == null || image.getWidth() <= 0 || image.getHeight() <= 0) {
+                    throw new BadRequestException(UploadMessages.UNREADABLE_IMAGE);
+                }
+                return image;
+            } finally {
+                reader.dispose();
+            }
+        } catch (BadRequestException e) {
+            throw e;
         } catch (Exception e) {
             throw new BadRequestException(UploadMessages.UNREADABLE_IMAGE);
         }
-        if (image == null || image.getWidth() <= 0 || image.getHeight() <= 0) {
-            throw new BadRequestException(UploadMessages.UNREADABLE_IMAGE);
-        }
-        return image;
     }
 
     /** Восемь положений EXIF: четыре поворота и четыре они же с отражением. */

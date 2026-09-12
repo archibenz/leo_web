@@ -106,7 +106,54 @@ class ImageNormalizerTest {
                 .hasMessageContaining("разобрать картинку");
     }
 
+    @Test
+    void aTinyFileDeclaringHugeDimensionsIsRefusedNotDecoded() {
+        // 33 байта: подпись PNG плюс один чанк IHDR, объявляющий 60000x60000
+        // (3.6 млрд пикселей) — ни одного байта пиксельных данных дальше нет,
+        // да они и не нужны: IHDR читается ДО того, как что-то раскодируется,
+        // и именно на этом расхождении веса и площади ловит настоящий эксплойт.
+        byte[] tinyButLying = pngDeclaringSize(60_000, 60_000);
+
+        assertThatThrownBy(() -> ImageNormalizer.normalize(tinyButLying, "image/png"))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("Мпикс");
+    }
+
     // ---------------------------------------------------------------- фикстуры
+
+    /** Валидный PNG-заголовок (подпись + IHDR) без единого байта пиксельных данных. */
+    private static byte[] pngDeclaringSize(int width, int height) {
+        try {
+            java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+            out.write(new byte[]{(byte) 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A});
+
+            java.io.ByteArrayOutputStream chunk = new java.io.ByteArrayOutputStream();
+            java.io.DataOutputStream data = new java.io.DataOutputStream(chunk);
+            data.writeInt(width);
+            data.writeInt(height);
+            data.writeByte(8);  // битность канала
+            data.writeByte(2);  // цветовой тип: truecolor RGB
+            data.writeByte(0);  // сжатие
+            data.writeByte(0);  // фильтрация
+            data.writeByte(0);  // без чересстрочности
+            byte[] ihdrData = chunk.toByteArray();
+
+            byte[] typeAndData = new byte[4 + ihdrData.length];
+            System.arraycopy(new byte[]{'I', 'H', 'D', 'R'}, 0, typeAndData, 0, 4);
+            System.arraycopy(ihdrData, 0, typeAndData, 4, ihdrData.length);
+
+            java.util.zip.CRC32 crc = new java.util.zip.CRC32();
+            crc.update(typeAndData);
+
+            java.io.DataOutputStream png = new java.io.DataOutputStream(out);
+            png.writeInt(ihdrData.length);
+            png.write(typeAndData);
+            png.writeInt((int) crc.getValue());
+            return out.toByteArray();
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
     private static byte[] noisyJpeg(int w, int h) {
         // Шум, а не заливка: ровный цвет сжался бы в килобайты, и «тяжёлый
