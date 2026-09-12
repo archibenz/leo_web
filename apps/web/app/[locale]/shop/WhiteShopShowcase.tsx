@@ -225,12 +225,18 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
         </div>
         </div>
 
-        {/* Filter bar */}
-        <div className="flex items-center justify-between gap-3 border-y px-6 py-2.5 sm:items-start sm:px-0 sm:py-4" style={{borderColor: HAIR}}>
+        {/* Filter bar. Below sm the row wraps: sort was sharing the line with the
+            categories and taking close to half the width, so the scrolling
+            chips (already faded at their own edge, see edgeMask below) ran out
+            of room and cut off mid-word well short of the screen edge — read as
+            broken layout, not "scroll for more". Categories get the full first
+            line instead, sort drops to its own line under it. sm and up is
+            unchanged: one line, everything fits. */}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-y px-6 py-2.5 sm:flex-nowrap sm:items-start sm:px-0 sm:py-4" style={{borderColor: HAIR}}>
           <div
             ref={catRef}
             onScroll={syncEdge}
-            className="-mx-1 -my-1 flex min-w-0 flex-1 gap-1 overflow-x-auto py-1 sm:mx-0 sm:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="-mx-1 -my-1 flex w-full min-w-0 gap-1 overflow-x-auto py-1 sm:mx-0 sm:w-auto sm:flex-1 sm:flex-wrap [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             style={edgeMask ? {maskImage: edgeMask, WebkitMaskImage: edgeMask} : undefined}
           >
             {cats.map((c) => (
@@ -246,11 +252,11 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
               </button>
             ))}
           </div>
-          {/* A hairline between the categories and the sort. On a phone the two
-              sit on one line with nothing between them, and the scrolling row of
-              chips runs straight into the sort control — the rule says where one
-              ends and the other begins. */}
-          <span aria-hidden="true" className="mx-1 h-5 w-px shrink-0 self-center sm:mx-2" style={{background: HAIR}} />
+          {/* A hairline between the categories and the sort — only meaningful
+              once the row wrap above puts sort back on the same line as the
+              chips (sm and up). Below sm they're stacked, and a lone vertical
+              tick with nothing beside it would read as a rendering glitch. */}
+          <span aria-hidden="true" className="hidden h-5 w-px shrink-0 self-center sm:mx-2 sm:block" style={{background: HAIR}} />
           <label className="flex shrink-0 items-center gap-2 text-[12px] uppercase tracking-[0.14em]" style={{color: MUTED}}>
             <span className="hidden sm:inline">{t('sort')}</span>
             <span className="relative inline-flex items-center">
