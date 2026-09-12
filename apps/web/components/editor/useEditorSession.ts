@@ -12,14 +12,29 @@ import {apiFetch, getToken} from '../../lib/api';
 // Это ТОЛЬКО про показ кнопки. Право на черновик даёт бэкенд: ручка
 // предпросмотра лежит под ROLE_ADMIN, и посторонний не получит черновых данных,
 // даже если нарисует себе кнопку в консоли.
+//
+// ЦЕНА ЗАПРОСА ЗДЕСЬ — НЕ МЕЛОЧЬ, И ПОЭТОМУ ОН ОДИН.
+// `/api/auth/**` лимитирован десятью запросами в минуту на IP. Хук зовут два
+// одновременно смонтированных компонента (переключатель в чроме и полоса режима
+// внутри провайдера); без общего обещания оба эффекта стартовали бы в одном
+// такте, оба увидели бы пустой кэш и оба ушли бы в сеть — по два из десяти на
+// каждую перезагрузку. Отсюда дедупликация на уровне модуля.
+//
+// Неудача тоже запоминается, на минуту: попав на 429, страница иначе стучалась
+// бы снова при каждой перезагрузке и держала бакет пустым.
 
 type Session = {checked: boolean; isAdmin: boolean};
 
 const ANONYMOUS: Session = {checked: true, isAdmin: false};
 
-// Ответ живёт до конца вкладки. Без этого каждая навигация по витрине стоила
-// бы залогиненному покупателю лишнего запроса к /api/auth/me.
+// Ответ живёт до конца вкладки: иначе каждая навигация по витрине стоила бы
+// залогиненному покупателю лишнего запроса.
 const CACHE_KEY = 'reinasleo_editor_role';
+// Окно лимитера — минута; столько же не трогаем ручку после отказа.
+const FAILURE_TTL_MS = 60_000;
+
+let inFlight: Promise<boolean> | null = null;
+let silentUntil = 0;
 
 function remembered(): boolean | null {
   try {
@@ -38,6 +53,29 @@ function remember(isAdmin: boolean): void {
   }
 }
 
+/** Одно обещание на всех: сколько бы компонентов ни спросило, запрос уйдёт один. */
+function resolveRole(): Promise<boolean> {
+  const cached = remembered();
+  if (cached !== null) return Promise.resolve(cached);
+  if (Date.now() < silentUntil) return Promise.resolve(false);
+  if (inFlight === null) {
+    inFlight = apiFetch<{role?: string}>('/api/auth/me', {skipAuthHandler: true})
+      .then((me) => {
+        const isAdmin = me.role === 'admin';
+        remember(isAdmin);
+        return isAdmin;
+      })
+      .catch(() => {
+        silentUntil = Date.now() + FAILURE_TTL_MS;
+        return false;
+      })
+      .finally(() => {
+        inFlight = null;
+      });
+  }
+  return inFlight;
+}
+
 export function useEditorSession(): Session {
   const [session, setSession] = useState<Session>({checked: false, isAdmin: false});
 
@@ -48,21 +86,10 @@ export function useEditorSession(): Session {
       setSession(ANONYMOUS);
       return;
     }
-    const cached = remembered();
-    if (cached !== null) {
-      setSession({checked: true, isAdmin: cached});
-      return;
-    }
     let alive = true;
-    apiFetch<{role?: string}>('/api/auth/me', {skipAuthHandler: true})
-      .then((me) => {
-        const isAdmin = me.role === 'admin';
-        remember(isAdmin);
-        if (alive) setSession({checked: true, isAdmin});
-      })
-      .catch(() => {
-        if (alive) setSession(ANONYMOUS);
-      });
+    void resolveRole().then((isAdmin) => {
+      if (alive) setSession({checked: true, isAdmin});
+    });
     return () => {
       alive = false;
     };
