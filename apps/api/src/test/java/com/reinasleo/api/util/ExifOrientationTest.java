@@ -70,6 +70,71 @@ class ExifOrientationTest {
     }
 
     @Test
+    void littleEndianByteOrderIsReadCorrectlyAndNumerically() {
+        // 'II' — не «раз не упало», а численно то же значение, что записано.
+        byte[] jpeg = validExifWithOrientation(true, 6);
+
+        assertThat(ExifOrientation.of(jpeg)).isEqualTo(6);
+    }
+
+    @Test
+    void orientationThreeInARealJpegReturnsExactlyThree() {
+        // Мутация «return NORMAL» тоже удовлетворила бы «в 1..8» — здесь
+        // утверждается конкретное значение, отличное от NORMAL (1).
+        byte[] jpeg = validExifWithOrientation(true, 3);
+
+        assertThat(ExifOrientation.of(jpeg)).isEqualTo(3);
+    }
+
+    @Test
+    void anOrientationValueOfZeroFallsBackToNormal() {
+        assertThat(ExifOrientation.of(validExifWithOrientation(true, 0))).isEqualTo(ExifOrientation.NORMAL);
+    }
+
+    @Test
+    void anOrientationValueOfNineFallsBackToNormal() {
+        assertThat(ExifOrientation.of(validExifWithOrientation(true, 9))).isEqualTo(ExifOrientation.NORMAL);
+    }
+
+    @Test
+    void anOrientationValueOf65535FallsBackToNormal() {
+        assertThat(ExifOrientation.of(validExifWithOrientation(true, 65535))).isEqualTo(ExifOrientation.NORMAL);
+    }
+
+    @Test
+    void exifFoundAfterAnotherSegmentIsStillRead() {
+        // Покрывает pos += 2 + length: без него цикл не добрался бы до
+        // второго сегмента вовсе.
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write(0xFF);
+        out.write(0xD8); // SOI
+        out.writeBytes(app0Segment());
+        out.writeBytes(app1Segment(exifPayload(tiffWithOrientation(true, 6))));
+
+        assertThat(ExifOrientation.of(out.toByteArray())).isEqualTo(6);
+    }
+
+    @Test
+    void aSosMarkerStopsTheScanEvenWhenARealExifSegmentFollows() {
+        // Ранний выход на SOS ничем не покрыт, если после SOS нет ничего,
+        // что могло бы дать другой ответ, — мутация «удалить return» тогда
+        // осталась бы незамеченной. Здесь после (поддельного, минимальной
+        // длины) SOS сразу идёт настоящий Exif с ориентацией: без раннего
+        // выхода результат был бы 6, а не NORMAL.
+        byte[] realExifAfterSos = app1Segment(exifPayload(tiffWithOrientation(true, 6)));
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write(0xFF);
+        out.write(0xD8); // SOI
+        out.write(0xFF);
+        out.write(0xDA); // SOS
+        out.write(0x00);
+        out.write(0x02); // длина сегмента SOS — минимально валидная, без данных
+        out.writeBytes(realExifAfterSos);
+
+        assertThat(ExifOrientation.of(out.toByteArray())).isEqualTo(ExifOrientation.NORMAL);
+    }
+
+    @Test
     void aLyingEntryCountOf65535DoesNotReadPastTheSegment() {
         ByteArrayOutputStream ifd = new ByteArrayOutputStream();
         writeU16(ifd, 65535, true); // заявлено 65535 записей, ни одной настоящей дальше нет
@@ -122,8 +187,13 @@ class ExifOrientationTest {
         return blob;
     }
 
-    /** Настоящий валидный Exif/TIFF с одной записью Orientation. */
+    /** Настоящий валидный Exif/TIFF с одной записью Orientation, готовый JPEG. */
     private static byte[] validExifWithOrientation(boolean little, int orientationValue) {
+        return jpegWithApp1(exifPayload(tiffWithOrientation(little, orientationValue)));
+    }
+
+    /** То же самое, но только заголовок TIFF+IFD0 — без обёртки APP1/JPEG. */
+    private static byte[] tiffWithOrientation(boolean little, int orientationValue) {
         ByteArrayOutputStream ifd = new ByteArrayOutputStream();
         writeU16(ifd, 1, little);           // одна запись
         writeU16(ifd, 0x0112, little);      // тег Orientation
@@ -136,7 +206,7 @@ class ExifOrientationTest {
         ByteArrayOutputStream tiff = new ByteArrayOutputStream();
         tiff.writeBytes(tiffHeader(little, 8)); // IFD0 сразу после восьмибайтного заголовка
         tiff.writeBytes(ifd.toByteArray());
-        return jpegWithApp1(exifPayload(tiff.toByteArray()));
+        return tiff.toByteArray();
     }
 
     private static byte[] exifPayload(byte[] tiff) {
@@ -164,9 +234,29 @@ class ExifOrientationTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         out.write(0xFF);
         out.write(0xD8); // SOI
+        out.writeBytes(app1Segment(payload));
+        return out.toByteArray();
+    }
+
+    /** Один сегмент APP1 целиком (маркер + длина + тело), без SOI и без обёртки JPEG. */
+    private static byte[] app1Segment(byte[] payload) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
         out.write(0xFF);
         out.write(0xE1); // APP1
         int length = payload.length + 2; // длина сегмента включает себя, не включает маркер
+        out.write((length >> 8) & 0xFF);
+        out.write(length & 0xFF);
+        out.writeBytes(payload);
+        return out.toByteArray();
+    }
+
+    /** Безобидный сегмент APP0/JFIF — просто «что-то ещё» перед интересующим нас сегментом. */
+    private static byte[] app0Segment() {
+        byte[] payload = "JFIF\0".getBytes(StandardCharsets.US_ASCII);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.write(0xFF);
+        out.write(0xE0); // APP0
+        int length = payload.length + 2;
         out.write((length >> 8) & 0xFF);
         out.write(length & 0xFF);
         out.writeBytes(payload);
