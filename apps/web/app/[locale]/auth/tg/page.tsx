@@ -4,7 +4,7 @@ import {Suspense, useEffect, useState} from 'react';
 import {useSearchParams, useRouter} from 'next/navigation';
 import {useLocale, useTranslations} from 'next-intl';
 import {apiFetch} from '../../../../lib/api';
-import {useAuth} from '../../../../contexts';
+import {whiteAdoptToken} from '../../../../hooks/useWhiteAuth';
 import {Button} from '../../../../components/ui/button';
 import {INK, MUTED, HAIR} from '../../wv-palette';
 
@@ -21,18 +21,19 @@ type ExchangeResponse = {
 // which stays put for the gradient admin, see components/LoaderSplash.tsx).
 // A plain ring in the vitrine's own ink reads as "working" without borrowing
 // the old brand's loader. animate-spin bows out under prefers-reduced-motion,
-// same as every other spinner on the White routes.
+// same as every other spinner on the White routes. #wv-main is the skip-link
+// target WhiteHeader always points at (WhiteHeader.tsx).
 function TgWaitingSign() {
   const t = useTranslations('common');
   return (
-    <div className="relative min-h-screen bg-white pt-28 pb-6 flex items-center justify-center px-6">
+    <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="flex flex-1 flex-col items-center justify-center px-6 py-24">
       <span
         role="status"
         aria-label={t('loading')}
         className="h-9 w-9 animate-spin rounded-full border-2 motion-reduce:animate-none"
         style={{borderColor: HAIR, borderTopColor: INK}}
       />
-    </div>
+    </main>
   );
 }
 
@@ -41,7 +42,6 @@ function TelegramAuthContent() {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations('auth.tg.expired');
-  const {loginWithToken} = useAuth();
   const [status, setStatus] = useState<'loading' | 'error'>('loading');
 
   useEffect(() => {
@@ -58,17 +58,26 @@ function TelegramAuthContent() {
       headers: {Authorization: `Bearer ${token}`},
     })
       .then(async data => {
-        await loginWithToken(data.token);
+        // Same adoption WhiteTelegramLogin's poll loop uses: sets the token
+        // and resolves /api/auth/me itself, no AuthProvider required. A false
+        // `ok` means the exchange answered but the account didn't come back —
+        // landing on /account signed-out would look like a login that
+        // worked when it didn't, so that counts as failure too.
+        const {ok} = await whiteAdoptToken(data.token);
+        if (!ok) {
+          setStatus('error');
+          return;
+        }
         router.replace(`/${locale}/account`);
       })
       .catch(() => {
         setStatus('error');
       });
-  }, [searchParams, router, locale, loginWithToken]);
+  }, [searchParams, router, locale]);
 
   if (status === 'error') {
     return (
-      <div className="relative min-h-screen bg-white pt-28 pb-6 flex items-center justify-center px-6">
+      <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center">
         <div className="w-full max-w-md border p-10 text-center" style={{borderColor: HAIR}}>
           <p className="font-display text-xl" style={{color: INK}}>{t('title')}</p>
           <p className="mt-4 text-sm leading-relaxed" style={{color: MUTED}}>{t('description')}</p>
@@ -82,7 +91,7 @@ function TelegramAuthContent() {
             {t('cta')}
           </Button>
         </div>
-      </div>
+      </main>
     );
   }
 

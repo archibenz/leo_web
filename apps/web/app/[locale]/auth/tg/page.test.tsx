@@ -24,17 +24,29 @@ vi.mock('next-intl', () => ({
   useTranslations: () => Object.assign((key: string) => key, {rich: (key: string) => key}),
 }));
 
-const loginWithToken = vi.fn(async () => {});
-vi.mock('../../../../contexts', () => ({
-  useAuth: () => ({loginWithToken}),
+// The page adopts its token the same way WhiteTelegramLogin does — no
+// AuthProvider in its tree, so the module-level function is what's mocked,
+// not a hook.
+const whiteAdoptToken = vi.fn(async (_token: string) => ({ok: true}));
+vi.mock('../../../../hooks/useWhiteAuth', () => ({
+  whiteAdoptToken: (token: string) => whiteAdoptToken(token),
 }));
+
+function mockExchange(token = 'jwt-xyz') {
+  global.fetch = vi.fn(async () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({token, id: '1', email: null, name: 'A'}),
+  })) as unknown as typeof fetch;
+}
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
   push.mockClear();
   replace.mockClear();
-  loginWithToken.mockClear();
+  whiteAdoptToken.mockClear();
+  whiteAdoptToken.mockImplementation(async () => ({ok: true}));
   searchParams = new URLSearchParams();
 });
 
@@ -65,17 +77,27 @@ describe('TelegramAuthPage — error state', () => {
 });
 
 describe('TelegramAuthPage — successful exchange', () => {
-  it('adopts the token and redirects to the account page, unchanged', async () => {
+  it('adopts the token via whiteAdoptToken and redirects to the account page', async () => {
     searchParams = new URLSearchParams({token: GOOD_TOKEN});
-    global.fetch = vi.fn(async () => ({
-      ok: true,
-      status: 200,
-      json: async () => ({token: 'jwt-xyz', id: '1', email: null, name: 'A'}),
-    })) as unknown as typeof fetch;
+    mockExchange('jwt-xyz');
 
     render(<TelegramAuthPage />);
 
-    await waitFor(() => expect(loginWithToken).toHaveBeenCalledWith('jwt-xyz'));
+    await waitFor(() => expect(whiteAdoptToken).toHaveBeenCalledWith('jwt-xyz'));
     expect(replace).toHaveBeenCalledWith('/ru/account');
+  });
+});
+
+describe('TelegramAuthPage — exchange answers but the account never resolves', () => {
+  it('stays on the error card and never redirects — a quiet false "ok" would look like a login that worked', async () => {
+    searchParams = new URLSearchParams({token: GOOD_TOKEN});
+    mockExchange('jwt-orphan');
+    whiteAdoptToken.mockImplementation(async () => ({ok: false}));
+
+    render(<TelegramAuthPage />);
+
+    expect(await screen.findByText('title')).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: 'cta'})).toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalled();
   });
 });
