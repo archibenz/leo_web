@@ -169,7 +169,7 @@ export default async function WhiteProductSlugPage({params, searchParams}: Props
     <>
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(productJsonLd)}} />
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(breadcrumbJsonLd)}} />
-      <EditorProvider editing={view.editing} brokenDrafts={view.storefront.brokenDrafts}>
+      <EditorProvider editing={view.editing} wantsEdit={view.wantsEdit} brokenDrafts={view.storefront.brokenDrafts}>
         <WhitePdpShowcase locale={locale} product={product} products={products} sets={sets} onWildberries={onWildberries} />
       </EditorProvider>
     </>

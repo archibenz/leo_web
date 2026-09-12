@@ -7,7 +7,6 @@ import {useWhiteFavourites} from '../../hooks/useWhiteFavourites';
 import WhiteHeader from './WhiteHeader';
 import WhiteHeaderActions from './WhiteHeaderActions';
 import WhiteFooter from './WhiteFooter';
-import EditorToggle from '../../components/editor/EditorToggle';
 import {INK} from './wv-palette';
 
 // The storefront chrome lives in the layout: one header and one footer that
@@ -29,17 +28,12 @@ export default function WhiteChrome({locale, children}: {locale: string; childre
         locale={locale}
         activeCat={activeCat ?? undefined}
         left={null}
-        right={
-          <>
-            <WhiteHeaderActions locale={locale} favCount={favCount} count={count} search={!onShop} />
-            {/* Переключатель режима правки. Рисуется только владельцу и только
-                после того, как клиент опознал роль; посторонний не увидит его
-                никогда, а черновик ему не отдаст бэкенд. */}
-            <EditorToggle />
-          </>
-        }
+        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} search={!onShop} />}
       />
-      <div className="flex flex-1 flex-col">{children}</div>
+      {/* wv-page: граница «страница, не шапка и не подвал» для e2e (см.
+          e2e/tests/12-edit-switch.spec.ts) — режим правки не имеет права
+          менять шапку, и спека проверяет это по области, а не по словам. */}
+      <div id="wv-page" className="flex flex-1 flex-col">{children}</div>
       <WhiteFooter locale={locale} />
     </div>
   );

@@ -9,6 +9,10 @@ import enMessages from '../../../messages/en.json';
 vi.mock('next/navigation', () => ({
   usePathname: () => '/en/account',
   useSearchParams: () => new URLSearchParams(),
+  // EditModeSwitch (owner-only, self-gating) calls useRouter() unconditionally
+  // — React's rules of hooks mean it runs even for the anonymous visitors most
+  // of this file's tests render as.
+  useRouter: () => ({refresh: vi.fn()}),
 }));
 
 // No token in storage → the hook resolves to signed-out immediately.
