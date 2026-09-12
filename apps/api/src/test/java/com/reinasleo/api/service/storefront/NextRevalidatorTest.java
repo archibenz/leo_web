@@ -106,7 +106,7 @@ class NextRevalidatorTest {
                 try {
                     acceptDrainAndRespond(server, "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\n\r\n");
                 } catch (Exception ignored) {
-                    // соединение закрыта — так и задумано
+                    // соединение закрыто — так и задумано
                 } finally {
                     arrived.countDown();
                 }
