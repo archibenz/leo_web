@@ -7,7 +7,12 @@ package com.reinasleo.api.dto.admin.storefront;
  */
 public final class MediaUrl {
 
-    public static final String PATTERN = "^/(?!.*\\.\\.)[A-Za-z0-9._/-]+$";
+    // (?!/) — не техническая мелочь: без него `//чужой-хост/кадр.jpg` проходил
+    // проверку, потому что слэш входит в класс символов ниже. Браузер такой
+    // адрес разворачивает во внешний, то есть витрина грузила бы чужой файл —
+    // ровно то, что javadoc выше обещал не пускать. Обещание стояло с самого
+    // начала, запрет — нет.
+    public static final String PATTERN = "^/(?!/)(?!.*\\.\\.)[A-Za-z0-9._/-]+$";
     public static final String MESSAGE = "media url must be a local /path without ..";
 
     private MediaUrl() {}
