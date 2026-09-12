@@ -106,11 +106,44 @@ describe('WhiteShowcase image-led home', () => {
     const {container} = renderHome();
     await screen.findByRole('heading', {level: 1});
 
+    // `poster` can't take a media query, so the still frame is a <picture>
+    // layer instead of a video attribute — see WhiteShowcase.tsx.
+    const picture = container.querySelector('picture')!;
+    expect(picture.querySelector('source')?.getAttribute('srcset')).toBe(HERO.posterDesktopUrl);
+    expect(picture.querySelector('img')?.getAttribute('src')).toBe(HERO.posterUrl);
+
+    // The video ships with no <source> — JS is the only thing that ever sets
+    // one, on every engine (see WhiteShowcase.tsx). The shared matchMedia
+    // mock above always reports narrow, so the mount effect resolves here to
+    // the portrait file.
     const video = container.querySelector('video')!;
-    expect(video.getAttribute('poster')).toBe(HERO.posterUrl);
-    expect(container.querySelector(`video source[src="${HERO.videoUrl}"]`)).toBeTruthy();
-    expect(container.querySelector(`video source[src="${HERO.videoDesktopUrl}"]`)).toBeTruthy();
+    await waitFor(() => expect(video.getAttribute('src')).toBe(HERO.videoUrl));
+    expect(video).not.toHaveAttribute('autoplay');
+
     expect(screen.getByText(HERO.eyebrowEn!)).toBeInTheDocument();
+  });
+
+  it('leaves the poster as the whole banner under reduced motion, never setting a video source', async () => {
+    const original = window.matchMedia;
+    window.matchMedia = ((query: string) => ({
+      matches: query.includes('prefers-reduced-motion'),
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    })) as typeof window.matchMedia;
+
+    try {
+      const {container} = renderHome();
+      await screen.findByRole('heading', {level: 1});
+      // No source ever gets set — there is nothing here to later pause.
+      expect(container.querySelector('video')).not.toHaveAttribute('src');
+    } finally {
+      window.matchMedia = original;
+    }
   });
 
   it('falls back to the bundled copy and media when there is no hero section', async () => {
@@ -120,7 +153,13 @@ describe('WhiteShowcase image-led home', () => {
     expect(h1.textContent ?? '').toContain(enMessages.white.landing.heroLine1);
     expect(h1.textContent ?? '').toContain(enMessages.white.landing.heroLine2);
     expect(screen.getByText(enMessages.white.landing.season)).toBeInTheDocument();
-    expect(container.querySelector('video source[src="/videos/white/hero-mark2.mp4"]')).toBeTruthy();
+    const video = container.querySelector('video')!;
+    await waitFor(() => expect(video.getAttribute('src')).toBe('/videos/white/hero-mark2.mp4'));
+    // The bundled fallback still goes through the same <picture> layer as the
+    // API-driven section, not through the retired `poster` attribute.
+    const picture = container.querySelector('picture')!;
+    expect(picture.querySelector('source')?.getAttribute('srcset')).toBe('/images/white/hero-desktop.jpg');
+    expect(picture.querySelector('img')?.getAttribute('src')).toBe('/images/white/hero-mark2.jpg');
     expect(screen.getByText(enMessages.white.sets.landingBody)).toBeInTheDocument();
   });
 

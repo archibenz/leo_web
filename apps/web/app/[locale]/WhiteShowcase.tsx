@@ -78,33 +78,39 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser}: {
     return () => window.removeEventListener('hashchange', toHash);
   }, []);
 
-  // Reduced-motion keeps the banner still — the poster frame stays.
+  // Two single-source <video> elements (one per breakpoint, toggled by CSS)
+  // were also tried and measured: a `display:none` container does not stop
+  // either engine from fetching its <video>, so that layout traded the
+  // flicker for doubled traffic and was dropped (see the report).
+  //
+  // What's here instead: the video ships with no <source> at all, and JS is
+  // the only thing that ever picks one, on every engine. `media` on
+  // <video><source> looked like a safe native alternative and is not one —
+  // measured, Safari does not evaluate it and settles on whichever source
+  // lacks a `media` condition, while parsing the initial HTML, before
+  // hydration can run. A wide Safari session opened the portrait file
+  // regardless of JS, and the fix that used to live here (forcing `v.src`
+  // after the fact) corrected playback but not that first, already-wasted
+  // request. Removing the native `<source>` removes the request.
+  //
+  // Cost, stated plainly: motion now starts after hydration on every engine,
+  // where Chrome used to start it natively from the parsed HTML. The
+  // <picture> layer above is what makes that an acceptable trade — the frame
+  // on screen for the entire gap before this effect runs is already the
+  // correct one, not a placeholder standing in for it.
   useEffect(() => {
     const v = heroVideoRef.current;
     if (!v) return;
-    // `poster` takes one value, so it is the portrait frame in the markup and
-    // gets swapped here on a wide screen. It matters most under reduced motion,
-    // where the poster is the whole banner and a phone-shaped still stretched
-    // across a desktop band would be the thing people see.
-    //
-    // The wide cut is also forced here rather than trusted to `media` on the
-    // <source>. Chrome honours it, Safari does not, and a Safari desktop was
-    // quietly falling through to the portrait file — the exact softness this
-    // was meant to fix. currentSrc is checked first so the browsers that got
-    // it right are not made to reload the file they already chose.
-    if (window.matchMedia('(min-width: 1024px)').matches) {
-      v.poster = heroPosterDesktop;
-      if (!v.currentSrc.includes(heroVideoDesktop)) {
-        v.src = heroVideoDesktop;
-        v.load();
-        void v.play().catch(() => {});
-      }
-    }
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      v.pause();
-      v.removeAttribute('autoplay');
-    }
-  }, [heroPosterDesktop, heroVideoDesktop]);
+    // Reduced motion leaves the poster as the whole banner — no source is
+    // ever set, so there is nothing to later pause.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    v.src = window.matchMedia('(min-width: 1024px)').matches ? heroVideoDesktop : heroVideo;
+    v.load();
+    // Optional chaining, not just the catch: jsdom's HTMLMediaElement.play()
+    // returns undefined instead of a Promise, and a real browser is not
+    // guaranteed to differ in every embedding (e.g. some WebViews).
+    void v.play()?.catch(() => {});
+  }, [heroVideo, heroVideoDesktop]);
 
 
 
@@ -116,29 +122,47 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser}: {
           its base. */}
       <EditableSection section={hero} label="Герой">
       <section className="relative h-[82vh] min-h-[540px] w-full overflow-hidden">
-        {/* The season banner is a quiet fashion-film loop; the still frame is
-            the poster, so slow networks and reduced-motion see the photo.
+        {/* The season banner is a quiet fashion-film loop; the still frame
+            below (the <picture>) is the poster, so slow networks and
+            reduced-motion see the photo — and it's what's on screen for the
+            entire gap before the effect above picks a video file.
 
             Two cuts of the film, because the band is a different shape on each.
             A phone gets the 3:4 portrait; a desktop is a ~2:1 letterbox, and
             filling it from the portrait file meant scaling 1080px of width up
             by nearly two, which is what made it look soft. The wide cut is its
-            own shot at 2160px. `media` on <source> is read once at load — which
-            is all we need, nobody resizes a window across that boundary
-            mid-visit — and it keeps the browser from fetching both. */}
+            own shot at 2160px. Picked once on mount, not re-checked on resize —
+            nobody resizes a window across that boundary mid-visit. */}
+        {/* `poster` takes one value and the server can't know the viewport, so
+            the still frame is its own layer instead of a video attribute —
+            `<picture><source media>` is evaluated before any script runs and
+            works the same in every engine, Safari included (measured; the
+            video below can't say the same about `media` on its own
+            <source>, which is why it no longer has one). Sits under the
+            video, same box, pixel for pixel; the video paints over it the
+            moment it has a frame to show, exactly like `poster` used to.
+            Plain `<img>` on purpose, not next/image: art direction that
+            swaps the whole file per media query has no next/image
+            equivalent — this is the one deliberate exception to the
+            project's "raster goes through next/image" rule. */}
+        <picture aria-hidden="true">
+          <source media="(min-width: 1024px)" srcSet={heroPosterDesktop} />
+          <img
+            src={heroPoster}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-[50%_22%]"
+          />
+        </picture>
+        {/* No <source>, no autoPlay: the effect above is the only thing that
+            ever sets a src, on every engine — see it for why. */}
         <video
           ref={heroVideoRef}
-          autoPlay
           muted
           loop
           playsInline
-          preload="metadata"
-          poster={heroPoster}
+          preload="none"
           className="absolute inset-0 h-full w-full object-cover object-[50%_22%]"
-        >
-          <source src={heroVideoDesktop} type="video/mp4" media="(min-width: 1024px)" />
-          <source src={heroVideo} type="video/mp4" />
-        </video>
+        />
         {/* The scrim carries the text contrast on its own so any Higgsfield shot
             (however light in its lower third) keeps the white type AA-legible —
             it ramps to a firm base across the bottom band where the text sits,

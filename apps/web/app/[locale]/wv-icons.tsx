@@ -78,6 +78,51 @@ export function WhiteArrow({back = false, size = 13}: {back?: boolean; size?: nu
   );
 }
 
+// The two channels the brand actually keeps. Drawn here rather than taken from
+// the block we borrowed the footer layout from: those ship solid-filled marks in
+// six networks we do not use, and a solid blob is the one thing this footer has
+// no room for. Same hairline as WhiteArrow — 1px, currentColor, no fill.
+export function WhiteInstagramGlyph({size = 17}: {size?: number}) {
+  return (
+    <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+      <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" />
+      <circle cx="12" cy="12" r="4.75" />
+      <circle cx="17.6" cy="6.4" r="0.9" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function WhiteTelegramGlyph({size = 17}: {size?: number}) {
+  return (
+    <svg
+      aria-hidden="true"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinejoin="round"
+    >
+      <path d="M21.5 2.5 14.8 21.5 11 13 2.5 9.2Z" />
+      <path d="M21.5 2.5 11 13" />
+    </svg>
+  );
+}
+
+// The addon the auth-5 form keeps: Efferd sets an @ inside the e-mail field
+// through its InputGroup primitive. The primitive is not here (a bordered,
+// rounded box is not the White field), the mark is — same hairline as the rest
+// of this file, 1px and no fill.
+export function WhiteAtGlyph({size = 15}: {size?: number}) {
+  return (
+    <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M16 8v5.2a2.8 2.8 0 0 0 5.5.8A9.5 9.5 0 1 0 18 20.4" />
+    </svg>
+  );
+}
+
 // Bag glyph for the header: the house cart icon as ever; with items in the
 // bag a small ink count sits inside the body.
 export function WhiteBagGlyph({count, size = 18}: {count: number; size?: number}) {

@@ -74,8 +74,11 @@ jobs:
       - name: npm ci
         run: npm ci --no-audit --no-fund
 
+      # npm run typecheck = генерация списка слагов (--allow-stub, API здесь нет,
+      # значит пустой список) + tsc. Без первого шага tsc падает на
+      # lib/generated/product-slugs.ts, который намеренно не лежит в git.
       - name: tsc --noEmit
-        run: npx tsc --noEmit -p tsconfig.json
+        run: npm run typecheck
 
       - name: vitest
         run: npm test -- --run

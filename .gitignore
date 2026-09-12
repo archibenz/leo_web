@@ -4,6 +4,11 @@ node_modules/
 # Build output
 .next/
 *.tsbuildinfo
+# Список слагов витрины для edge — результат генерации, не исходник.
+# Пишется перед сборкой, dev-сервером и тестам
+# (apps/web/scripts/generate-product-slugs.mjs). В git ему нельзя: на проде
+# сборка переписывала бы отслеживаемый файл, и очередной git pull встал бы.
+apps/web/lib/generated/
 apps/api/build/
 apps/api/.gradle/
 apps/api/bin/
@@ -21,6 +26,7 @@ docker-compose-wg.yml
 .idea/
 .vscode/
 .claude/
+.superpowers/
 *.swp
 *.swo
 

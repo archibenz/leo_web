@@ -7,6 +7,7 @@ import {getStorefront} from '../../../../lib/catalogue/fetch';
 import {storefrontForViewer, wantsEditing} from '../../../../lib/catalogue/viewer';
 import {EditorProvider} from '../../../../components/editor/EditorProvider';
 import EditorUnavailable from '../../../../components/editor/EditorUnavailable';
+import {CATALOGUE_SLUGS} from '../../../../lib/generated/product-slugs';
 import {findProductBySlug, whiteProductHref, whitePriceRange} from '../../../../lib/catalogue/select';
 import {safeJsonLd, buildBreadcrumbJsonLd} from '../../../../lib/jsonLd';
 import {SITE_URL} from '../../../../lib/siteUrl';
@@ -23,10 +24,11 @@ type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-// The catalogue is fully known at build time, so anything outside it is a real
-// 404 rather than a page to render on demand. Left at the default, an unknown
-// slug rendered notFound() into a cached 200 — a soft 404 that invites crawlers
-// to index every mistyped address.
+// Остаётся страховкой, но сегодня ничего не решает: ни одна страница
+// не пререндерится (лейаут локали ждёт headers() ради CSP-нонса), каталог
+// приезжает в рантайме, и слаг, которого не было на сборке, спокойно
+// рисуется — проверено на стенде. Тело «не найдено» рисует notFound() ниже,
+// а статус ставит middleware: переписыватель next-intl иначе отдаёт 200.
 export const dynamicParams = false;
 
 // Stock is read per request from a snapshot on disk, so the page must not be
@@ -34,11 +36,33 @@ export const dynamicParams = false;
 // response for almost every visitor while never showing yesterday's shelf.
 export const revalidate = 600;
 
-// Every garment is known at build time, so the whole catalogue prerenders as
-// static HTML — crawlers get the full markup without running any JS.
-// `generateStaticParams` ходит в API на сборке — API должен быть поднят до `next build`.
+// Ходит в API на сборке — API должен быть поднят до `next build`. Статического
+// HTML это сейчас не даёт (см. dynamicParams выше), но остаётся единственным
+// местом, где сборка держит в руках весь каталог сразу — и потому единственным,
+// где есть с чем сверить список слагов для edge.
 export async function generateStaticParams() {
   const {products} = await getStorefront();
+  // Сторож сборки. Каталог здесь и список слагов у middleware — две выводки
+  // из одного ответа API: список пишет шаг prebuild
+  // (scripts/generate-product-slugs.mjs) перед этой сборкой. Разошлись —
+  // значит собрали мимо `npm run build` или подсунули dev-заглушку с пустым
+  // списком; и то и другое в проде означает неверные коды ответа.
+  //
+  // Сверка только с опасной стороны: слага нет в списке — падаем, лишний
+  // старый слаг в списке безвреден (мягкий 404 на снятом товаре — отдельная
+  // задача). В dev и тестах не сторожит: там живёт и фикстура, и база
+  // разработчика, и заглушка без API. Проверено, что эта функция выполняется
+  // только на сборке: с разошедшимся каталогом в рантайме страницы отвечают
+  // как обычно, никакого исключения не бросается.
+  if (process.env.NODE_ENV === 'production') {
+    const missing = products.map((p) => p.slug).filter((slug) => !CATALOGUE_SLUGS.has(slug));
+    if (missing.length > 0) {
+      throw new Error(
+        `список слагов для edge отстал от каталога (нет: ${missing.join(', ')}). `
+        + 'Запустите сборку как `npm run build` — шаг prebuild перепишет lib/generated/product-slugs.ts из живого каталога.',
+      );
+    }
+  }
   return products.flatMap((p) =>
     ['en', 'ru'].map((locale) => ({locale, slug: p.slug})),
   );

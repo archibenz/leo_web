@@ -31,6 +31,30 @@
   --lux-btn-hover-glow: 0 0 20px rgba(212, 165, 116, 0.14);
   --lux-btn-primary-from: #c9955f;
   --lux-btn-primary-to: #a87a48;
+
+  /* ── shadcn tokens (--sh-*, HSL triplets) ──
+     Blocks from the Efferd registry are written against background/foreground/
+     border/primary/... . The names are mapped in tailwind.config.ts; the values
+     are the White palette (wv-palette.ts), so a freshly added block lands in the
+     storefront's colours instead of shadcn's greys. Prefixed because shadcn's own
+     names (--accent, --ink-adjacent ones) already mean something on this site. */
+  --sh-background: 0 0% 100%;
+  --sh-foreground: 22 17% 9%;       /* INK  #1c1714 */
+  --sh-card: 0 0% 100%;
+  --sh-card-foreground: 22 17% 9%;
+  --sh-popover: 0 0% 100%;
+  --sh-popover-foreground: 22 17% 9%;
+  --sh-primary: 22 17% 9%;
+  --sh-primary-foreground: 40 38% 97%; /* FOOT #faf8f4 */
+  --sh-secondary: 40 38% 97%;
+  --sh-secondary-foreground: 22 17% 9%;
+  --sh-muted: 40 38% 97%;
+  --sh-muted-foreground: 32 9% 43%; /* MUTED #776e64 */
+  --sh-destructive: 10 59% 45%;     /* SIGNAL #b4452f */
+  --sh-destructive-foreground: 0 0% 100%;
+  --sh-border: 35 20% 88%;          /* HAIR #e7e2db */
+  --sh-input: 35 20% 88%;
+  --sh-ring: 22 17% 9%;
 }
 
 html {
@@ -1467,6 +1491,15 @@ h2.font-display:not(.wv-root *),
   cursor: not-allowed;
 }
 
+/* Та же кнопка, но прямыми углами. Пилюля читается кнопкой, пока она короткая
+   («В корзину», «В магазин», «Хорошо»); растянутая на всю ширину формы она
+   превращается в капсулу, а витрина везде держит прямой угол и волосяную
+   линию. Правило стоит после .wv-btn и поэтому перебивает его радиус без
+   !important. */
+.wv-btn-flat {
+  border-radius: 0;
+}
+
 .wv-quickadd {
   transform: translateY(100%);
   opacity: 0;
@@ -2107,5 +2140,34 @@ body:has(.wv-root)::after {
   .wv-bagpop-out {
     animation-duration: 0.01ms;
     transform: none;
+  }
+}
+
+/* Плавающие линии на странице входа (блок auth-5, WhiteFloatingPaths.tsx).
+   У Efferd ими занимается motion/react: 72 пути, каждый со своей покадровой
+   анимацией pathLength/pathOffset. Здесь ровно тот же эффект без библиотеки —
+   атрибут pathLength="1" на <path> нормирует длину любой кривой к единице,
+   поэтому один и тот же штрих с разрывом гоняется по всем путям сразу;
+   длительность и сдвиг фазы приходят инлайном. Ключевые кадры непрозрачности
+   взяты из блока дословно (0.3 → 0.6 → 0.3). */
+@keyframes wv-paths {
+  0%   { stroke-dashoffset: 0; opacity: 0.3; }
+  50%  { stroke-dashoffset: -0.5; opacity: 0.6; }
+  100% { stroke-dashoffset: -1; opacity: 0.3; }
+}
+.wv-path {
+  /* 0.8 нарисовано, 0.2 разрыв: разрыв едет по кривой и читается как движение,
+     но линия при этом всё время на месте. Поставить разрыв в целую единицу
+     (буквально «1 1») — и половину цикла кривой не видно вовсе; на светлом
+     фоне панель от этого пустеет. */
+  stroke-dasharray: 0.8 0.2;
+  animation: wv-paths 24s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Линии остаются — стоит только движение. */
+  .wv-path {
+    animation: none;
+    stroke-dasharray: none;
+    opacity: 0.5;
   }
 }
