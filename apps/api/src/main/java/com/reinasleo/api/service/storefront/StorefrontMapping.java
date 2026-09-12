@@ -7,6 +7,7 @@ import com.reinasleo.api.dto.admin.storefront.StorefrontSectionRequest;
 import com.reinasleo.api.dto.admin.storefront.StorefrontSetItemRequest;
 import com.reinasleo.api.dto.admin.storefront.StorefrontSetRequest;
 import com.reinasleo.api.dto.admin.storefront.StorefrontVariantRequest;
+import com.reinasleo.api.dto.admin.storefront.TickerItemRequest;
 import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.model.Product;
 import com.reinasleo.api.model.ProductModel;
@@ -40,6 +41,7 @@ public class StorefrontMapping {
     private static final Logger log = LoggerFactory.getLogger(StorefrontMapping.class);
     private static final TypeReference<List<String>> STRING_LIST = new TypeReference<>() {};
     private static final TypeReference<List<Map<String, String>>> IMAGE_LIST = new TypeReference<>() {};
+    private static final TypeReference<List<TickerItemRequest>> TICKER_ITEM_LIST = new TypeReference<>() {};
 
     private final ObjectMapper json = new ObjectMapper();
 
@@ -48,7 +50,8 @@ public class StorefrontMapping {
     public StorefrontSectionRequest published(StorefrontSection s) {
         return new StorefrontSectionRequest(s.getNameRu(), s.getNameEn(), s.getEyebrowRu(), s.getEyebrowEn(),
                 s.getHeadlineRu(), s.getHeadlineEn(), s.getBodyRu(), s.getBodyEn(),
-                s.getVideoUrl(), s.getVideoDesktopUrl(), s.getPosterUrl(), s.getPosterDesktopUrl(), s.getSortOrder());
+                s.getVideoUrl(), s.getVideoDesktopUrl(), s.getPosterUrl(), s.getPosterDesktopUrl(), s.getSortOrder(),
+                readTickerItems(s.getItems()));
     }
 
     public StorefrontModelRequest published(ProductModel m, List<Product> variants) {
@@ -93,6 +96,7 @@ public class StorefrontMapping {
         s.setPosterUrl(r.posterUrl());
         s.setPosterDesktopUrl(r.posterDesktopUrl());
         s.setSortOrder(r.sortOrder());
+        s.setItems(writeTickerItems(r.items()));
     }
 
     public void apply(StorefrontModelRequest r, ProductModel m, Map<String, Product> variants) {
@@ -237,6 +241,27 @@ public class StorefrontMapping {
             return json.writeValueAsString(values == null ? List.of() : values);
         } catch (Exception e) {
             throw new BadRequestException("gallery_is_not_serialisable");
+        }
+    }
+
+    // Строки тикера читаются так же снисходительно, как галерея: сломанный
+    // items не имеет права уронить чтение всей карточки — тем же путём идёт
+    // StorefrontService.applyDrafts, которому есть куда откатиться, если
+    // merge() споткнётся дальше.
+    private List<TickerItemRequest> readTickerItems(String jsonArray) {
+        try {
+            return jsonArray == null ? List.of() : json.readValue(jsonArray, TICKER_ITEM_LIST);
+        } catch (Exception e) {
+            log.error("Failed to parse ticker items JSON; returning an empty ticker", e);
+            return List.of();
+        }
+    }
+
+    private String writeTickerItems(List<TickerItemRequest> items) {
+        try {
+            return json.writeValueAsString(items == null ? List.of() : items);
+        } catch (Exception e) {
+            throw new BadRequestException("ticker_items_are_not_serialisable");
         }
     }
 

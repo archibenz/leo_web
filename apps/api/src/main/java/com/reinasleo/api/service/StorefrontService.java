@@ -9,6 +9,7 @@ import com.reinasleo.api.dto.storefront.StorefrontResponse;
 import com.reinasleo.api.dto.storefront.StorefrontSectionDto;
 import com.reinasleo.api.dto.storefront.StorefrontSet;
 import com.reinasleo.api.dto.storefront.StorefrontSetItem;
+import com.reinasleo.api.dto.storefront.TickerItemDto;
 import com.reinasleo.api.model.Product;
 import com.reinasleo.api.model.ProductModel;
 import com.reinasleo.api.model.ProductSet;
@@ -49,6 +50,7 @@ public class StorefrontService {
 
     private static final TypeReference<List<String>> STRING_LIST = new TypeReference<>() {};
     private static final TypeReference<List<Map<String, String>>> IMAGE_LIST = new TypeReference<>() {};
+    private static final TypeReference<List<TickerItemDto>> TICKER_ITEM_LIST = new TypeReference<>() {};
 
     private final ObjectMapper json = new ObjectMapper();
 
@@ -292,7 +294,8 @@ public class StorefrontService {
         return new StorefrontSectionDto(s.getId().toString(), s.getSlug(), s.getLayout(), s.getStatus(),
                 s.getNameRu(), s.getNameEn(), s.getEyebrowRu(), s.getEyebrowEn(),
                 s.getHeadlineRu(), s.getHeadlineEn(), s.getBodyRu(), s.getBodyEn(),
-                s.getVideoUrl(), s.getVideoDesktopUrl(), s.getPosterUrl(), s.getPosterDesktopUrl(), s.getSortOrder());
+                s.getVideoUrl(), s.getVideoDesktopUrl(), s.getPosterUrl(), s.getPosterDesktopUrl(), s.getSortOrder(),
+                readTickerItems(s.getItems()));
     }
 
     // Модельная галерея хранится как ["/a.jpg", ...], галерея варианта — как [{src, alt}] из админки.
@@ -313,6 +316,17 @@ public class StorefrontService {
                     .toList();
         } catch (Exception e) {
             log.error("Failed to parse variant images JSON; returning empty gallery", e);
+            return List.of();
+        }
+    }
+
+    // Языком (en/ru) и датой (until) владеет фронтенд (lib/catalogue/select.ts) —
+    // сервер отдаёт строки как лежат, не решая, кому что показывать.
+    private List<TickerItemDto> readTickerItems(String jsonArray) {
+        try {
+            return jsonArray == null ? List.of() : json.readValue(jsonArray, TICKER_ITEM_LIST);
+        } catch (Exception e) {
+            log.error("Failed to parse ticker items JSON; returning an empty ticker", e);
             return List.of();
         }
     }
