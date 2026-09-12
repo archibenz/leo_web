@@ -16,17 +16,31 @@ public final class ImageContentValidator {
      */
     public static String detect(MultipartFile file) throws IOException {
         byte[] head = new byte[12];
-        int read = file.getInputStream().read(head);
-        if (read < 4) {
+        int total = 0;
+        // try-with-resources: без него дескриптор течёт на каждую загрузку с
+        // обеих ручек. Цикл, а не один read(): поток вправе вернуть меньше
+        // байт, чем попросили (обычное дело для сетевых/буферизованных
+        // источников), а WebP опознаётся только по всем двенадцати байтам —
+        // короткое первое чтение увело бы настоящий WebP в «это не картинка».
+        try (var in = file.getInputStream()) {
+            while (total < head.length) {
+                int n = in.read(head, total, head.length - total);
+                if (n < 0) {
+                    break;
+                }
+                total += n;
+            }
+        }
+        if (total < 4) {
             return null;
         }
-        if (isJpeg(head, read)) {
+        if (isJpeg(head, total)) {
             return "image/jpeg";
         }
-        if (isPng(head, read)) {
+        if (isPng(head, total)) {
             return "image/png";
         }
-        if (isWebp(head, read)) {
+        if (isWebp(head, total)) {
             return "image/webp";
         }
         return null;
