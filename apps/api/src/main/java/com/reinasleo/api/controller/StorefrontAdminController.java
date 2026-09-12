@@ -8,6 +8,7 @@ import com.reinasleo.api.dto.storefront.StorefrontResponse;
 import com.reinasleo.api.service.StorefrontService;
 import com.reinasleo.api.service.storefront.NextRevalidator;
 import com.reinasleo.api.service.storefront.StorefrontAdminService;
+import com.reinasleo.api.service.storefront.StorefrontCaches;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,13 +38,23 @@ public class StorefrontAdminController {
 
     private final StorefrontAdminService admin;
     private final StorefrontService storefront;
+    private final StorefrontCaches caches;
     private final NextRevalidator revalidator;
 
     public StorefrontAdminController(StorefrontAdminService admin, StorefrontService storefront,
-                                     NextRevalidator revalidator) {
+                                     StorefrontCaches caches, NextRevalidator revalidator) {
         this.admin = admin;
         this.storefront = storefront;
+        this.caches = caches;
         this.revalidator = revalidator;
+    }
+
+    // Оба сброса — строго после возврата из транзакционного метода, то есть
+    // после коммита. Внутри транзакции они утащили бы докоммитные данные в
+    // Caffeine на пять минут и в Next на десять.
+    private void afterPublish() {
+        caches.drop();
+        revalidator.storefrontChanged();
     }
 
     /** Витрина с наложенным черновиком. Никогда не кэшируется — см. StorefrontService. */
@@ -70,7 +81,7 @@ public class StorefrontAdminController {
     @PostMapping("/sections/{id}/publish")
     public StorefrontSectionRequest publishSection(@PathVariable UUID id) {
         StorefrontSectionRequest published = admin.publishSection(id);
-        revalidator.storefrontChanged();
+        afterPublish();
         return published;
     }
 
@@ -89,7 +100,7 @@ public class StorefrontAdminController {
     @PostMapping("/models/{id}/publish")
     public StorefrontModelRequest publishModel(@PathVariable UUID id) {
         StorefrontModelRequest published = admin.publishModel(id);
-        revalidator.storefrontChanged();
+        afterPublish();
         return published;
     }
 
@@ -117,7 +128,7 @@ public class StorefrontAdminController {
     @PostMapping("/sets/{id}/publish")
     public StorefrontSetRequest publishSet(@PathVariable UUID id) {
         StorefrontSetRequest published = admin.publishSet(id);
-        revalidator.storefrontChanged();
+        afterPublish();
         return published;
     }
 

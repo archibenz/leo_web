@@ -21,7 +21,6 @@ import com.reinasleo.api.repository.StorefrontSectionRepository;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +44,10 @@ import java.util.stream.Collectors;
  * DTO, что приходит в ручку записи (через {@link StorefrontDraftMerge#merge}),
  * и прогоняют через него ТЕ ЖЕ правила валидации. «Слить и сохранить» вслепую
  * запрещено: JSONB не проверяет ничего, и опечатка иначе доедет до витрины.
+ *
+ * Кэши здесь НЕ сбрасываются: сброс внутри транзакции лёг бы до коммита, и
+ * параллельный публичный запрос перезалил бы в Caffeine докоммитные данные на
+ * пять минут. Этим занимается контроллер после возврата — см. StorefrontCaches.
  */
 @Service
 public class StorefrontAdminService {
@@ -91,7 +94,6 @@ public class StorefrontAdminService {
         return merged;
     }
 
-    @CacheEvict(value = {"storefront", "products", "homepage", "lookbook"}, allEntries = true)
     @Transactional
     public StorefrontSectionRequest publishSection(UUID id) {
         StorefrontSection section = section(id);
@@ -167,7 +169,6 @@ public class StorefrontAdminService {
         return saveModelDraft(variant.getModelId(), wrapped.toString());
     }
 
-    @CacheEvict(value = {"storefront", "products", "homepage", "lookbook"}, allEntries = true)
     @Transactional
     public StorefrontModelRequest publishModel(UUID id) {
         ProductModel model = model(id);
@@ -223,7 +224,6 @@ public class StorefrontAdminService {
         return merged;
     }
 
-    @CacheEvict(value = {"storefront", "products", "homepage", "lookbook"}, allEntries = true)
     @Transactional
     public StorefrontSetRequest publishSet(UUID id) {
         ProductSet set = set(id);

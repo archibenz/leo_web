@@ -3,6 +3,7 @@ package com.reinasleo.api.controller;
 import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.util.FilenameSanitizer;
 import com.reinasleo.api.util.ImageContentValidator;
+import com.reinasleo.api.util.UploadMessages;
 import com.reinasleo.api.util.VideoContentValidator;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -38,7 +39,7 @@ public class FileUploadController {
     // приходит отсюда понятным текстом, а не от nginx или Tomcat.
     private static final Set<String> ALLOWED_VIDEO_TYPES = Set.of("video/mp4", "video/webm");
     private static final long MAX_VIDEO_SIZE = 8 * 1024 * 1024;
-    private static final String TELEGRAM_HINT = "Пришлите исходник в телеграм — сожму и верну готовый для витрины.";
+    private static final String TELEGRAM_HINT = UploadMessages.TELEGRAM_HINT;
 
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;

@@ -1,6 +1,8 @@
 package com.reinasleo.api.service.storefront;
 
+import com.reinasleo.api.model.Collection;
 import com.reinasleo.api.model.StorefrontSection;
+import com.reinasleo.api.repository.CollectionRepository;
 import com.reinasleo.api.repository.ProductModelRepository;
 import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.ProductSetItemRepository;
@@ -38,6 +40,7 @@ class StorefrontMediaCleanupTest {
     @Autowired private ProductSetRepository sets;
     @Autowired private ProductRepository products;
     @Autowired private ProductModelRepository models;
+    @Autowired private CollectionRepository collections;
 
     private UUID sectionId;
 
@@ -48,6 +51,7 @@ class StorefrontMediaCleanupTest {
         sections.deleteAll();
         products.deleteAll();
         models.deleteAll();
+        collections.deleteAll();
         Files.createDirectories(UPLOADS.resolve("video"));
 
         StorefrontSection section = new StorefrontSection();
@@ -125,6 +129,42 @@ class StorefrontMediaCleanupTest {
         admin.publishSection(sectionId);
 
         assertThat(exists("published.mp4")).as("на файл ссылается второй блок — он живой").isTrue();
+    }
+
+    @Test
+    void aFileNobodyEverMentionedIsLeftAlone() throws Exception {
+        // Каталог не обходится никогда. Всё, что старая админка когда-либо
+        // загрузила и не прикрепила, публикация трогать не имеет права:
+        // uploads не бэкапится, восстанавливать неоткуда.
+        write("lежит-с-прошлого-года.mp4");
+        write("fresh.mp4");
+
+        admin.saveSectionDraft(sectionId, "{\"videoUrl\":\"/uploads/video/fresh.mp4\"}");
+        admin.publishSection(sectionId);
+
+        assertThat(exists("lежит-с-прошлого-года.mp4"))
+                .as("файл, не упомянутый ни в одной таблице, кандидатом не является")
+                .isTrue();
+        assertThat(exists("published.mp4")).as("а вот этот открепила сама правка").isFalse();
+    }
+
+    @Test
+    void aFileAlsoUsedAsACollectionCoverSurvives() throws Exception {
+        // Старая админка (ImageUpload.tsx) грузит обложки коллекций в тот же
+        // /uploads/products/. Один снимок может стоять и там, и в витрине.
+        Collection collection = new Collection();
+        collection.setName("Осень");
+        collection.setSlug("autumn-" + UUID.randomUUID());
+        collection.setImageUrl("/uploads/video/published.mp4");
+        collections.save(collection);
+
+        write("fresh.mp4");
+        admin.saveSectionDraft(sectionId, "{\"videoUrl\":\"/uploads/video/fresh.mp4\"}");
+        admin.publishSection(sectionId);
+
+        assertThat(exists("published.mp4"))
+                .as("на файл ссылается обложка коллекции — предохранитель обязан сработать")
+                .isTrue();
     }
 
     @Test

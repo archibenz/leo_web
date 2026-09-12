@@ -2,6 +2,7 @@ package com.reinasleo.api.controller;
 
 import com.reinasleo.api.exception.OutOfStockException;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,6 +26,21 @@ class RestExceptionHandlerTest {
 
     @Autowired private MockMvc mockMvc;
     @Autowired private RestExceptionHandler handler;
+
+    @Test
+    void fileHeavierThanTheRequestCeiling_returns400WithOurWords_notSpringsDefault() {
+        // Резолвер multipart отказывает ДО входа в контроллер, так что наш
+        // текст про 8 МБ туда не доедет. Владелец обязан прочитать то же
+        // самое: сколько влезает и куда нести тяжёлое.
+        ResponseEntity<Map<String, Object>> response =
+                handler.handleTooLarge(new MaxUploadSizeExceededException(64L * 1024 * 1024));
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).containsEntry("error", "file_too_large");
+        assertThat((String) response.getBody().get("message"))
+                .contains("64 МБ")
+                .contains("телеграм");
+    }
 
     @Test
     void missingRequiredHeader_returns400_notGeneric500() throws Exception {

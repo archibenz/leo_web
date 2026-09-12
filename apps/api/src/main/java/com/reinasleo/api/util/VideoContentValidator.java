@@ -108,14 +108,18 @@ public final class VideoContentValidator {
             return null;
         }
         long entries = u32(b, from + 4);
-        int pos = from + 8;
+        // pos — long нарочно: size читается из четырёх байт файла и доходит до
+        // 4 294 967 295. В int это даёт отрицательный pos, а с ним ascii()
+        // уходит за левую границу массива и отвечает пятисоткой вместо
+        // честного «кодек не читается».
+        long pos = from + 8;
         for (long i = 0; i < entries && pos + 8 <= to; i++) {
-            long size = u32(b, pos);
-            String format = ascii(b, pos + 4, 4);
+            long size = u32(b, (int) pos);
+            String format = ascii(b, (int) pos + 4, 4);
             if (isVideoSampleFormat(format)) {
                 return format;
             }
-            if (size < 8) {
+            if (size < 8 || pos + size > to) {
                 return null;
             }
             pos += size;
@@ -155,7 +159,7 @@ public final class VideoContentValidator {
     }
 
     private static String ascii(byte[] b, int at, int len) {
-        if (at + len > b.length) {
+        if (at < 0 || len < 0 || at + len > b.length) {
             return "";
         }
         return new String(b, at, len, StandardCharsets.US_ASCII);
