@@ -5,7 +5,8 @@ import {useSearchParams, useRouter} from 'next/navigation';
 import {useLocale, useTranslations} from 'next-intl';
 import {apiFetch} from '../../../../lib/api';
 import {useAuth} from '../../../../contexts';
-import LoaderSplash from '../../../../components/LoaderSplash';
+import {Button} from '../../../../components/ui/button';
+import {INK, MUTED, HAIR} from '../../wv-palette';
 
 type ExchangeResponse = {
   token: string;
@@ -14,6 +15,26 @@ type ExchangeResponse = {
   name: string;
   surname?: string;
 };
+
+// The moment between "bot handed us a token" and "exchange answered" — the
+// White DNA has no golden-glow splash of its own (that belongs to LoaderSplash,
+// which stays put for the gradient admin, see components/LoaderSplash.tsx).
+// A plain ring in the vitrine's own ink reads as "working" without borrowing
+// the old brand's loader. animate-spin bows out under prefers-reduced-motion,
+// same as every other spinner on the White routes.
+function TgWaitingSign() {
+  const t = useTranslations('common');
+  return (
+    <div className="relative min-h-screen bg-white pt-28 pb-6 flex items-center justify-center px-6">
+      <span
+        role="status"
+        aria-label={t('loading')}
+        className="h-9 w-9 animate-spin rounded-full border-2 motion-reduce:animate-none"
+        style={{borderColor: HAIR, borderTopColor: INK}}
+      />
+    </div>
+  );
+}
 
 function TelegramAuthContent() {
   const searchParams = useSearchParams();
@@ -47,27 +68,30 @@ function TelegramAuthContent() {
 
   if (status === 'error') {
     return (
-      <div className="relative min-h-screen pt-28 pb-6 flex items-center justify-center px-6">
-        <div className="paper-card p-10 text-center max-w-md w-full">
-          <p className="font-display text-xl text-ink mb-4">{t('title')}</p>
-          <p className="text-sm text-ink-soft mb-6">{t('description')}</p>
-          <button
+      <div className="relative min-h-screen bg-white pt-28 pb-6 flex items-center justify-center px-6">
+        <div className="w-full max-w-md border p-10 text-center" style={{borderColor: HAIR}}>
+          <p className="font-display text-xl" style={{color: INK}}>{t('title')}</p>
+          <p className="mt-4 text-sm leading-relaxed" style={{color: MUTED}}>{t('description')}</p>
+          <Button
+            type="button"
             onClick={() => router.push(`/${locale}/account`)}
-            className="lux-btn-primary w-full"
+            variant="white"
+            size="white"
+            className="mt-7 w-full"
           >
             {t('cta')}
-          </button>
+          </Button>
         </div>
       </div>
     );
   }
 
-  return <LoaderSplash />;
+  return <TgWaitingSign />;
 }
 
 export default function TelegramAuthPage() {
   return (
-    <Suspense fallback={<LoaderSplash />}>
+    <Suspense fallback={<TgWaitingSign />}>
       <TelegramAuthContent />
     </Suspense>
   );
