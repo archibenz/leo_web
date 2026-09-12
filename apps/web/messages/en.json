@@ -1604,6 +1604,9 @@
       "tgExpired": "The sign-in link has expired. Press the button again.",
       "tgError": "Could not reach Telegram. Please try again."
     },
+    "editModeSwitch": {
+      "label": "Site edit mode"
+    },
     "error": {
       "eyebrow": "Error",
       "title": "Something went wrong",

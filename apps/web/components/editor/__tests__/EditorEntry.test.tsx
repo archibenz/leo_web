@@ -1,12 +1,14 @@
 import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
 import {render, screen, cleanup, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 const search = {value: ''};
 const path = {value: '/ru'};
+const refresh = vi.fn();
 vi.mock('next/navigation', () => ({
   usePathname: () => path.value,
   useSearchParams: () => new URLSearchParams(search.value),
-  useRouter: () => ({refresh: vi.fn()}),
+  useRouter: () => ({refresh}),
 }));
 
 const token = {value: null as string | null};
@@ -17,7 +19,6 @@ vi.mock('../../../lib/api', () => ({
   API_BASE: '',
 }));
 
-import EditorToggle from '../EditorToggle';
 import EditorNotice from '../EditorNotice';
 import EditableBlock from '../EditableBlock';
 import {EditorProvider} from '../EditorProvider';
@@ -28,98 +29,11 @@ beforeEach(() => {
   token.value = null;
   me.mockReset().mockResolvedValue({role: 'admin'});
   sessionStorage.clear();
+  refresh.mockReset();
+  document.cookie = 'rl_edit=; Path=/; Max-Age=0';
 });
 
 afterEach(cleanup);
-
-describe('вход в режим', () => {
-  it('посторонний не видит переключателя и не стоит ни одного запроса', async () => {
-    render(<EditorToggle />);
-
-    await waitFor(() => expect(screen.queryByRole('link')).toBeNull());
-    expect(me).not.toHaveBeenCalled();
-  });
-
-  it('залогиненный покупатель переключателя тоже не получает', async () => {
-    token.value = 'shopper-token';
-    me.mockResolvedValue({role: 'user'});
-
-    render(<EditorToggle />);
-
-    await waitFor(() => expect(me).toHaveBeenCalledWith('/api/auth/me'));
-    expect(screen.queryByRole('link')).toBeNull();
-  });
-
-  // Переключатель смонтирован в чроме — он есть на КАЖДОЙ странице витрины, а
-  // правка живёт только там, где расставлены её точки. Кнопка на /ru/shop
-  // обещала бы режим, который молча не включится: полосы нет, рамок нет, а
-  // владелец правил бы опубликованное, считая, что правит черновик.
-  it.each([
-    ['/ru/shop', 'раздел магазина'],
-    ['/ru/sets', 'образы'],
-    ['/ru/bag', 'корзина'],
-    ['/ru/account', 'аккаунт'],
-    ['/ru/lookbook', 'лукбук'],
-  ])('на %s (%s) переключателя нет — режим туда не доезжает', async (pathname) => {
-    token.value = 'admin-token';
-    path.value = pathname;
-
-    render(<EditorToggle />);
-
-    await waitFor(() => expect(me).toHaveBeenCalled());
-    expect(screen.queryByRole('link')).toBeNull();
-  });
-
-  it.each([
-    ['/ru', 'главная'],
-    ['/ru/product/palto-pidzhak-pritalennoe', 'карточка товара'],
-  ])('на %s (%s) переключатель есть', async (pathname) => {
-    token.value = 'admin-token';
-    path.value = pathname;
-
-    render(<EditorToggle />);
-
-    expect(await screen.findByRole('link')).toBeInTheDocument();
-  });
-
-  it('владелец получает переключатель, и тот ставит флаг в адрес', async () => {
-    token.value = 'admin-token';
-
-    render(<EditorToggle />);
-
-    const link = await screen.findByRole('link');
-    expect(link).toHaveAttribute('href', '/ru?edit=1');
-    expect(link).toHaveAttribute('aria-pressed', 'false');
-  });
-
-  it('в режиме переключатель снимает флаг', async () => {
-    token.value = 'admin-token';
-    search.value = 'edit=1';
-
-    render(<EditorToggle />);
-
-    const link = await screen.findByRole('link');
-    expect(link).toHaveAttribute('href', '/ru');
-    expect(link).toHaveAttribute('aria-pressed', 'true');
-  });
-
-  // «Выйти» на витрине занято выходом из аккаунта (white.account.signOut,
-  // header.dropdown.logOut). Назвав тем же словом выход из режима правки, мы
-  // ставим рядом два разных действия под одной подписью: владелец нажмёт не то
-  // и решит, что редактор его разлогинил.
-  it.each([
-    ['вне режима', ''],
-    ['в режиме', 'edit=1'],
-  ])('%s подпись переключателя не совпадает с выходом из аккаунта', async (_case, query) => {
-    token.value = 'admin-token';
-    search.value = query;
-
-    render(<EditorToggle />);
-
-    const link = await screen.findByRole('link');
-    expect(link.textContent?.trim()).not.toBe('Выйти');
-  });
-});
 
 describe('честность режима', () => {
   it('выход из режима подписан не как выход из аккаунта', async () => {
@@ -128,6 +42,21 @@ describe('честность режима', () => {
     const exit = await screen.findByRole('link');
     expect(exit).toHaveTextContent('Закончить правку');
     expect(exit.textContent?.trim()).not.toBe('Выйти');
+  });
+
+  // Раньше ссылка только снимала ?edit=1 из адреса. Кука, которую ставит
+  // выключатель в аккаунте, той навигацией не трогалась — режим включился бы
+  // снова на следующей загрузке той же страницы.
+  it('снимает куку rl_edit, а не только параметр из адреса', async () => {
+    document.cookie = 'rl_edit=1; Path=/; SameSite=Lax; Secure';
+    const user = userEvent.setup();
+    render(<EditorNotice editing />);
+
+    const exit = await screen.findByRole('link');
+    await user.click(exit);
+
+    expect(document.cookie).not.toContain('rl_edit=1');
+    expect(refresh).toHaveBeenCalled();
   });
 
   it('говорит вслух, когда флаг стоит, а черновика сервер не дал', async () => {

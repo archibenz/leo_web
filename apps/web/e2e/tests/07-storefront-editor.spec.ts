@@ -1,4 +1,5 @@
 import {test, expect, request, type APIRequestContext, type Page} from '@playwright/test';
+import {copy} from '../fixtures/messages';
 
 // Режим правки на живых страницах витрины.
 //
@@ -14,6 +15,7 @@ import {test, expect, request, type APIRequestContext, type Page} from '@playwri
 const TOKEN = process.env.E2E_EDITOR_TOKEN ?? 'fixture-editor-token';
 const API = process.env.E2E_API_PROXY;
 const DRAFT_MARK = /Черновик/;
+const EDIT_LABEL = copy('editModeSwitch', 'label');
 
 // Живой путь удаляет черновики и правит витрину — гонять его можно только по
 // сговору с самой базой (assertTestDatabase ниже) и только последовательно:
@@ -170,15 +172,20 @@ test.describe('вход в режим правки', () => {
     await expect(page.getByText('Режим правки')).toHaveCount(0);
   });
 
-  test('владелец входит в режим из шапки и видит черновик', async ({page}) => {
+  // Вход больше не в шапке (см. e2e/tests/12-edit-switch.spec.ts — шапка
+  // одинакова у всех) — владелец включает режим выключателем в аккаунте,
+  // кука едет с ним на следующую страницу.
+  test('владелец включает режим в аккаунте и видит черновик на витрине', async ({page}) => {
     await asOwner(page);
-    await page.goto('/ru');
+    await page.goto('/ru/account');
 
-    const toggle = page.getByRole('link', {name: 'Править'});
+    const toggle = page.getByRole('switch', {name: EDIT_LABEL});
     await expect(toggle).toBeVisible();
     await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-checked', 'true');
 
-    await expect(page).toHaveURL(/\?edit=1/);
+    await page.goto('/ru');
+
     await expect(page.getByText('Режим правки')).toBeVisible();
     await expect(page.locator('h1')).toContainText(DRAFT_MARK);
   });
