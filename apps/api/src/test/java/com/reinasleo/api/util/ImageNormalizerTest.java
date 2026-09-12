@@ -35,6 +35,39 @@ class ImageNormalizerTest {
     }
 
     @Test
+    void aSixThousandByFourThousandPhotoStillEndsUpAtTheSameLongSideWithSubsampling() {
+        // Подвыборка при раскодировании (потолок в 50 Мпикс сам по себе не
+        // спасает от двух одновременных ~400 МБ запросов) не должна поменять
+        // конечный результат для честного кадра — только то, каким путём он
+        // получен. 6000×4000 — та же фикстура, что у heavyPhoto по соседству.
+        byte[] photo = noisyJpeg(6000, 4000);
+
+        ImageNormalizer.Normalized out = ImageNormalizer.normalize(photo, "image/jpeg");
+
+        assertThat(out.width()).isEqualTo(2000);
+        assertThat(out.height()).isEqualTo(1333); // пропорции 3:2 сохранены
+        assertThat(out.bytes().length).isLessThan(photo.length); // вес разумный, не тяжелее исходника
+    }
+
+    @Test
+    void anOddSubsamplingStepDoesNotSkewAspectRatio() {
+        // Длинная сторона 12000 даёт нечётный шаг подвыборки (12000 / 4000 = 3)
+        // — ровно случай, где независимое округление по X и Y могло бы
+        // разъехаться и исказить пропорции. Соотношение сторон — 3:1, а не
+        // обычное 3:2: иначе при такой длинной стороне площадь превысила бы
+        // потолок в 50 Мпикс (12000×8000 = 96 Мп) ещё до подвыборки.
+        byte[] photo = noisyJpeg(12000, 4000);
+        assertThat(12000L * 4000).isLessThanOrEqualTo(ImageNormalizer.MAX_PIXELS);
+
+        ImageNormalizer.Normalized out = ImageNormalizer.normalize(photo, "image/jpeg");
+
+        assertThat(out.width()).isEqualTo(2000); // длинная сторона — ровно потолок
+        double expectedRatio = 12000.0 / 4000.0;
+        double actualRatio = (double) out.width() / out.height();
+        assertThat(actualRatio).isCloseTo(expectedRatio, org.assertj.core.data.Percentage.withPercentage(2));
+    }
+
+    @Test
     void aPortraitPhotoIsMeasuredByItsLongSideToo() {
         ImageNormalizer.Normalized out = ImageNormalizer.normalize(noisyJpeg(3024, 4032), "image/jpeg");
 

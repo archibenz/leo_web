@@ -4,6 +4,7 @@ import com.reinasleo.api.exception.BadRequestException;
 
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
 import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
@@ -74,17 +75,35 @@ public final class ImageNormalizer {
             ImageReader reader = readers.next();
             try {
                 reader.setInput(iis, true, true);
-                // Размеры — из заголовка, БЕЗ раскодирования пикселей. reader.read
-                // ниже разворачивает растр целиком (ширина×высота×4 байта); маленький
-                // файл не должен успеть это сделать раньше, чем мы проверим площадь,
-                // которую сам же объявил. int*int здесь переполнился бы на реальных
-                // значениях (65535×65535 больше Integer.MAX_VALUE) — оба множителя
-                // приведены к long ДО умножения.
-                long pixels = (long) reader.getWidth(0) * (long) reader.getHeight(0);
+                // Размеры — из заголовка, БЕЗ раскодирования пикселей, чтобы решить
+                // и потолок, и шаг подвыборки ДО того, как что-то попадёт в память.
+                // int*int здесь переполнился бы на реальных значениях (65535×65535
+                // больше Integer.MAX_VALUE) — оба множителя приведены к long ДО
+                // умножения.
+                int width = reader.getWidth(0);
+                int height = reader.getHeight(0);
+                long pixels = (long) width * (long) height;
                 if (pixels > MAX_PIXELS) {
                     throw new BadRequestException(UploadMessages.IMAGE_TOO_MANY_PIXELS);
                 }
-                BufferedImage image = reader.read(0);
+
+                // Потолок в 50 Мпикс сам по себе не спасает: даже честный кадр под
+                // потолком разворачивается в ширина×высота×4 байта, а decode и turn
+                // держат два таких растра разом — на 50 Мпикс это ~400 МБ на один
+                // запрос, и второй одновременный запрос кладёт процесс целиком
+                // (Dockerfile гасит его при нехватке памяти). Подвыборка при самом
+                // чтении не даёт полноразмерному растру появиться вовсе: reader.read
+                // ниже разворачивает уже уменьшенное изображение. Шаг подобран так,
+                // чтобы результат остался не меньше удвоенной целевой стороны
+                // (MAX_SIDE) — тогда bicubic-уменьшение в fit() ниже всё ещё берёт
+                // материал с запасом резкости, а не растягивает то, что уже мелко.
+                ImageReadParam param = reader.getDefaultReadParam();
+                int step = subsamplingStep(Math.max(width, height));
+                if (step > 1) {
+                    param.setSourceSubsampling(step, step, 0, 0);
+                }
+
+                BufferedImage image = reader.read(0, param);
                 if (image == null || image.getWidth() <= 0 || image.getHeight() <= 0) {
                     throw new BadRequestException(UploadMessages.UNREADABLE_IMAGE);
                 }
@@ -97,6 +116,15 @@ public final class ImageNormalizer {
         } catch (Exception e) {
             throw new BadRequestException(UploadMessages.UNREADABLE_IMAGE);
         }
+    }
+
+    /**
+     * Наибольший целый шаг, при котором длинная сторона после подвыборки
+     * остаётся не меньше удвоенного {@link #MAX_SIDE}. 1 — если исходник и
+     * так меньше этого порога: подвыборка ему не нужна, читаем как есть.
+     */
+    private static int subsamplingStep(int longSide) {
+        return Math.max(1, longSide / (2 * MAX_SIDE));
     }
 
     /** Восемь положений EXIF: четыре поворота и четыре они же с отражением. */
