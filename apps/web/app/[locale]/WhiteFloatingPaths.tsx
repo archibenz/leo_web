@@ -15,10 +15,7 @@ import {INK} from './wv-palette';
 
 const COUNT = 36;
 
-// `fill` — для узкой полосы на телефоне: по умолчанию SVG вписывается целиком
-// и в низкой коробке съёживается по ширине, а `slice` заполняет её и обрезает
-// кривые сверху и снизу. На боковой панели остаётся вписывание, как у блока.
-export default function WhiteFloatingPaths({position, fill = false}: {position: number; fill?: boolean}) {
+export default function WhiteFloatingPaths({position}: {position: number}) {
   const paths = Array.from({length: COUNT}, (_, i) => ({
     id: i,
     d: `M-${380 - i * 5 * position} -${189 + i * 6}C-${
@@ -38,14 +35,7 @@ export default function WhiteFloatingPaths({position, fill = false}: {position: 
   }));
 
   return (
-    <svg
-      className="h-full w-full"
-      viewBox="0 0 696 316"
-      preserveAspectRatio={fill ? 'xMidYMid slice' : undefined}
-      fill="none"
-      aria-hidden="true"
-      focusable="false"
-    >
+    <svg className="h-full w-full" viewBox="0 0 696 316" fill="none" aria-hidden="true" focusable="false">
       {paths.map((path) => (
         <path
           className="wv-path"

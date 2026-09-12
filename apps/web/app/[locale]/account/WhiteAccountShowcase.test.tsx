@@ -137,14 +137,15 @@ describe('WhiteAccountShowcase — auth-5 contract', () => {
     const user = userEvent.setup();
     const {container} = renderPage();
 
-    // Two of them: the side panel on a wide screen, the wash behind the top of
-    // the form on a narrow one. Neither may be reachable.
+    // Exactly one, and it is the side panel: the owner asked for the moving
+    // lines on the wide screen only. jsdom applies no CSS, so which screens it
+    // shows on is asserted through the classes it carries; that it really is
+    // invisible on a phone is proven in e2e/tests/01-account-auth.spec.ts.
     const decor = Array.from(container.querySelectorAll('[data-wv-decor]'));
-    expect(decor.length).toBeGreaterThanOrEqual(2);
-    for (const layer of decor) {
-      expect(layer).toHaveAttribute('aria-hidden', 'true');
-      expect(layer.querySelectorAll('a, button, input, [tabindex]:not([tabindex="-1"])')).toHaveLength(0);
-    }
+    expect(decor).toHaveLength(1);
+    expect(decor[0]).toHaveAttribute('aria-hidden', 'true');
+    expect(decor[0]).toHaveClass('hidden', 'lg:flex');
+    expect(decor[0].querySelectorAll('a, button, input, [tabindex]:not([tabindex="-1"])')).toHaveLength(0);
 
     // The form keeps its own tab order: e-mail hands focus to password, and a
     // tab switch leaves focus on the control that was pressed rather than

@@ -276,6 +276,26 @@ test.describe('telegram alternative', () => {
   });
 });
 
+test.describe('the decorative panel', () => {
+  test('rides the wide screen and leaves the phone alone', async ({page}) => {
+    await blockApi(page);
+    await openAccount(page);
+
+    // Owner's call: the floating lines are a wide-screen thing. Asserted here
+    // rather than in the unit test because the breakpoint is CSS, and jsdom
+    // applies none — there the panel is only checked for being unreachable.
+    const decor = page.locator('[data-wv-decor]');
+    await expect(decor).toHaveCount(1);
+    await expect(decor).toBeVisible();
+
+    await page.setViewportSize({width: 390, height: 844});
+    await expect(decor).toBeHidden();
+    // Nothing of it is left behind either: no animated path is rendered on a
+    // narrow screen, so the phone paints no decoration at all.
+    await expect(page.locator('.wv-path:visible')).toHaveCount(0);
+  });
+});
+
 test.describe('the route this spec replaced', () => {
   test('/auth/register is gone, and offers no form', async ({page}) => {
     await blockApi(page);
