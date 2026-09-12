@@ -1,6 +1,8 @@
 package com.reinasleo.api.model;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -61,6 +63,13 @@ public class StorefrontSection {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder = 0;
 
+    // Неопубликованная правка — перекрытие полей выше. NULL = черновика нет.
+    // Публикация переносит поля в колонки и очищает черновик: в draft лежит
+    // намерение, в колонках — факт.
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private String draft;
+
     @Column(name = "archived_at")
     private Instant archivedAt;
 
@@ -104,6 +113,7 @@ public class StorefrontSection {
     public Instant getArchivedAt() { return archivedAt; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public String getDraft() { return draft; }
 
     public void setSlug(String slug) { this.slug = slug; }
     public void setLayout(String layout) { this.layout = layout; }
@@ -122,4 +132,5 @@ public class StorefrontSection {
     public void setPosterDesktopUrl(String posterDesktopUrl) { this.posterDesktopUrl = posterDesktopUrl; }
     public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
     public void setArchivedAt(Instant archivedAt) { this.archivedAt = archivedAt; }
+    public void setDraft(String draft) { this.draft = draft; }
 }

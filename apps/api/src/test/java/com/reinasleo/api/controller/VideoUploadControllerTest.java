@@ -1,0 +1,211 @@
+package com.reinasleo.api.controller;
+
+import com.reinasleo.api.model.User;
+import com.reinasleo.api.repository.UserRepository;
+import com.reinasleo.api.security.JwtService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * Приём видео на витрину. ffmpeg на сервере нет, поэтому сервер не сжимает,
+ * а отказывает: выше 8 МБ или не H.264 — файл едет в телеграм, там его жмут и
+ * присылают готовым.
+ */
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+class VideoUploadControllerTest {
+
+    private static final Path VIDEO_DIR = Paths.get("/tmp/test-uploads/video").toAbsolutePath().normalize();
+
+    @Autowired private MockMvc mockMvc;
+    @Autowired private UserRepository users;
+    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired private JwtService jwtService;
+
+    private String adminToken;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        users.deleteAll();
+        User admin = new User("admin-video@example.com", "Админ", "Витрины",
+                passwordEncoder.encode("Sup3rSecret!"), LocalDate.of(1990, 1, 1), false, true);
+        admin.setRole("admin");
+        admin = users.save(admin);
+        adminToken = jwtService.generateToken(admin.getId(), admin.getEmail());
+
+        if (Files.isDirectory(VIDEO_DIR)) {
+            try (Stream<Path> entries = Files.list(VIDEO_DIR)) {
+                entries.forEach(p -> p.toFile().delete());
+            }
+        }
+    }
+
+    // ------------------------------------------------------------ фикстуры MP4
+
+    private static byte[] box(String type, byte[] body) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        int size = 8 + body.length;
+        out.write(size >>> 24);
+        out.write(size >>> 16);
+        out.write(size >>> 8);
+        out.write(size);
+        out.writeBytes(type.getBytes(StandardCharsets.US_ASCII));
+        out.writeBytes(body);
+        return out.toByteArray();
+    }
+
+    // Байты, а не строковые литералы: настоящий \0 внутри .java делает файл
+    // бинарным для git — он выпадает из дифов, из ревью и из git grep.
+    private static byte[] ftypBody() {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.writeBytes("isom".getBytes(StandardCharsets.US_ASCII));   // major brand
+        out.writeBytes(new byte[]{0, 0, 2, 0});                       // minor version
+        out.writeBytes("isomavc1".getBytes(StandardCharsets.US_ASCII)); // compatible brands
+        return out.toByteArray();
+    }
+
+    private static byte[] mp4(String format, int padding) {
+        ByteArrayOutputStream stsdBody = new ByteArrayOutputStream();
+        stsdBody.writeBytes(new byte[]{0, 0, 0, 0});
+        stsdBody.writeBytes(new byte[]{0, 0, 0, 1});
+        stsdBody.writeBytes(box(format, new byte[78]));
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.writeBytes(box("ftyp", ftypBody()));
+        out.writeBytes(box("mdat", new byte[padding]));
+        out.writeBytes(box("moov", box("trak", box("mdia", box("minf",
+                box("stbl", box("stsd", stsdBody.toByteArray())))))));
+        return out.toByteArray();
+    }
+
+    private static MockMultipartFile video(String name, String type, byte[] bytes) {
+        return new MockMultipartFile("file", name, type, bytes);
+    }
+
+    // ------------------------------------------------------------ приёмка
+
+    @Test
+    void h264Mp4IsAcceptedAndItsNameCarriesTheContentHash() throws Exception {
+        String body = mockMvc.perform(multipart("/api/admin/upload/video")
+                        .file(video("hero.mp4", "video/mp4", mp4("avc1", 64)))
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.url").value(org.hamcrest.Matchers.matchesPattern(
+                        "^/uploads/video/[0-9a-f]{64}\\.mp4$")))
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(body).contains("/uploads/video/");
+        try (Stream<Path> entries = Files.list(VIDEO_DIR)) {
+            assertThat(entries.count()).isEqualTo(1);
+        }
+    }
+
+    @Test
+    void theSameContentUploadedTwiceDoesNotBreedCopies() throws Exception {
+        byte[] bytes = mp4("avc1", 128);
+
+        String first = upload("a.mp4", bytes);
+        String second = upload("совсем-другое-имя.mp4", bytes);
+
+        assertThat(first).isEqualTo(second);
+        try (Stream<Path> entries = Files.list(VIDEO_DIR)) {
+            assertThat(entries.count()).as("одно содержимое — один файл").isEqualTo(1);
+        }
+    }
+
+    @Test
+    void differentContentGetsADifferentName_soNginxCannotServeTheOldClipForAWeek() throws Exception {
+        String first = upload("hero.mp4", mp4("avc1", 64));
+        String second = upload("hero.mp4", mp4("avc1", 65));
+
+        assertThat(first).isNotEqualTo(second);
+    }
+
+    private String upload(String name, byte[] bytes) throws Exception {
+        String json = mockMvc.perform(multipart("/api/admin/upload/video")
+                        .file(video(name, "video/mp4", bytes))
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        int at = json.indexOf("/uploads/video/");
+        return json.substring(at, json.indexOf('"', at));
+    }
+
+    // ------------------------------------------------------------ отказы
+
+    @Test
+    void aFileHeavierThanEightMegabytesIsRefusedWithTheTelegramHint() throws Exception {
+        mockMvc.perform(multipart("/api/admin/upload/video")
+                        .file(video("huge.mp4", "video/mp4", mp4("avc1", 9 * 1024 * 1024)))
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("телеграм")));
+
+        assertThat(Files.isDirectory(VIDEO_DIR) && VIDEO_DIR.toFile().list().length > 0).isFalse();
+    }
+
+    @Test
+    void aCodecTheBrowserWillNotPlayIsRefusedWithTheTelegramHint() throws Exception {
+        mockMvc.perform(multipart("/api/admin/upload/video")
+                        .file(video("iphone.mp4", "video/mp4", mp4("hvc1", 64)))
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("телеграм")));
+    }
+
+    @Test
+    void aFileWhoseCodecWeCannotReadIsRefused_notWavedThrough() throws Exception {
+        byte[] ftypOnly = box("ftyp", ftypBody());
+        mockMvc.perform(multipart("/api/admin/upload/video")
+                        .file(video("broken.mp4", "video/mp4", ftypOnly))
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void aTypeWeDoNotServeIsRefused() throws Exception {
+        mockMvc.perform(multipart("/api/admin/upload/video")
+                        .file(video("clip.mov", "video/quicktime", mp4("avc1", 64)))
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("MP4")));
+    }
+
+    @Test
+    void aTypeThatLiesAboutItsContentIsRefused() throws Exception {
+        // Заголовок Content-Type приходит от клиента и ничему не обязан
+        // соответствовать: решает содержимое.
+        mockMvc.perform(multipart("/api/admin/upload/video")
+                        .file(video("clip.mp4", "video/mp4", "вовсе не видео".getBytes(StandardCharsets.UTF_8)))
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void uploadingVideoIsAdminOnly() throws Exception {
+        mockMvc.perform(multipart("/api/admin/upload/video")
+                        .file(video("hero.mp4", "video/mp4", mp4("avc1", 64))))
+                .andExpect(status().isForbidden());
+    }
+}

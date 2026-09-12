@@ -10,4 +10,6 @@ import java.util.UUID;
 public interface ProductModelRepository extends JpaRepository<ProductModel, UUID> {
     List<ProductModel> findByActiveTrueOrderBySortOrderAsc();
     Optional<ProductModel> findBySlug(String slug);
+    List<ProductModel> findAllByOrderBySortOrderAsc();
+    List<ProductModel> findByDraftIsNotNull();
 }

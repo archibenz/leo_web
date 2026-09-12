@@ -8,4 +8,6 @@ import java.util.UUID;
 
 public interface ProductSetRepository extends JpaRepository<ProductSet, UUID> {
     List<ProductSet> findByActiveTrueOrderBySortOrderAsc();
+    List<ProductSet> findAllByOrderBySortOrderAsc();
+    List<ProductSet> findByDraftIsNotNull();
 }

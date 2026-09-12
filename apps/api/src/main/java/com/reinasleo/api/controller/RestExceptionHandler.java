@@ -13,6 +13,7 @@ import com.reinasleo.api.exception.NotFoundException;
 import com.reinasleo.api.exception.OutOfStockException;
 import com.reinasleo.api.exception.TokenAlreadyConsumedException;
 import com.reinasleo.api.exception.UnauthorizedException;
+import com.reinasleo.api.util.UploadMessages;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
 import org.slf4j.Logger;
@@ -227,6 +229,18 @@ public class RestExceptionHandler {
         log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
         Map<String, Object> body = Map.of("message", "email_exists");
         return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+    }
+
+    // Резолвер multipart отказывает ДО входа в контроллер, поэтому наш текст
+    // про 8 МБ сюда не доедет. Без этого обработчика владелец получил бы
+    // умолчание Spring вместо человеческих слов.
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Map<String, Object>> handleTooLarge(MaxUploadSizeExceededException ex) {
+        Map<String, Object> body = Map.of(
+                "message", UploadMessages.TOO_LARGE_FOR_THE_REQUEST,
+                "error", "file_too_large"
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     @ExceptionHandler(Exception.class)

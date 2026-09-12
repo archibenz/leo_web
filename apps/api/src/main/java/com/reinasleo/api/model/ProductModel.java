@@ -85,6 +85,13 @@ public class ProductModel {
     @Column(nullable = false)
     private boolean active = true;
 
+    // Неопубликованная правка — перекрытие полей выше. NULL = черновика нет.
+    // Публикация переносит поля в колонки и очищает черновик: в draft лежит
+    // намерение, в колонках — факт.
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private String draft;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -130,6 +137,7 @@ public class ProductModel {
     public boolean isActive() { return active; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+    public String getDraft() { return draft; }
 
     public void setModelKey(int modelKey) { this.modelKey = modelKey; }
     public void setSlug(String slug) { this.slug = slug; }
@@ -153,4 +161,5 @@ public class ProductModel {
     public void setLookbookOrder(Integer lookbookOrder) { this.lookbookOrder = lookbookOrder; }
     public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
     public void setActive(boolean active) { this.active = active; }
+    public void setDraft(String draft) { this.draft = draft; }
 }

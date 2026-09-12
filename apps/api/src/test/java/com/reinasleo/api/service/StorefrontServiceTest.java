@@ -11,6 +11,8 @@ import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.ProductSetItemRepository;
 import com.reinasleo.api.repository.ProductSetRepository;
 import com.reinasleo.api.repository.StorefrontSectionRepository;
+import com.reinasleo.api.service.storefront.StorefrontMapping;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,12 +35,14 @@ class StorefrontServiceTest {
     @Mock private ProductSetRepository sets;
     @Mock private ProductSetItemRepository setItems;
     @Mock private StorefrontSectionRepository sections;
+    @Mock private EntityManager entityManager;
 
     private StorefrontService service;
 
     @BeforeEach
     void setUp() {
-        service = new StorefrontService(models, products, sets, setItems, sections);
+        service = new StorefrontService(models, products, sets, setItems, sections,
+                new StorefrontMapping(), entityManager);
     }
 
     private static ProductModel model(UUID id, int key, String slug) {

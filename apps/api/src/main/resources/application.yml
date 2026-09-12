@@ -36,10 +36,14 @@ spring:
         jdbc:
           time_zone: UTC
 
+  # 64 МБ — ровно столько же, сколько client_max_body_size в nginx. Если
+  # половины разойдутся, отказ придёт с разных уровней разными словами, и
+  # владелец не поймёт, что произошло. Это НЕ разрешение класть на витрину
+  # 64 МБ: видео режется на 8 МБ в FileUploadController, с понятным текстом.
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 64MB
+      max-request-size: 64MB
 
   flyway:
     enabled: true
@@ -77,6 +81,14 @@ app:
     dir: ${UPLOAD_DIR:uploads}
   metrics:
     secret: ${METRICS_SECRET}
+  # Сброс кэша данных Next после публикации витрины. Пустые фолбэки — то же
+  # осознанное исключение, что и у yookassa ниже: без них API не стартует ни в
+  # CI, ни на машине разработчика, а публикация без сброса не ломается — правка
+  # доедет до покупателя сама, просто не за минуту, а за пятнадцать. Незаданный
+  # секрет пишется в лог предупреждением при каждой публикации.
+  web:
+    revalidate-url: ${WEB_REVALIDATE_URL:}
+    revalidate-secret: ${REVALIDATE_SECRET:}
 # Пустые фолбэки для shop-id/secret-key — осознанное исключение из правила
 # «секреты без :default»: фича выключена по умолчанию и приложение обязано
 # стартовать без YooKassa credentials. При CHECKOUT_ENABLED=true пустые
