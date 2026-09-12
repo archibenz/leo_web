@@ -36,10 +36,14 @@ spring:
         jdbc:
           time_zone: UTC
 
+  # 64 МБ — ровно столько же, сколько client_max_body_size в nginx. Если
+  # половины разойдутся, отказ придёт с разных уровней разными словами, и
+  # владелец не поймёт, что произошло. Это НЕ разрешение класть на витрину
+  # 64 МБ: видео режется на 8 МБ в FileUploadController, с понятным текстом.
   servlet:
     multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
+      max-file-size: 64MB
+      max-request-size: 64MB
 
   flyway:
     enabled: true
