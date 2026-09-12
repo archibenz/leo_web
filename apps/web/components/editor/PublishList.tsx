@@ -83,7 +83,10 @@ export default function PublishList({reloadKey}: {reloadKey: number}) {
               </p>
             )}
             <div className="mt-2 flex flex-wrap gap-2">
-              <EditorButton tone="solid" disabled={busy !== null} onClick={() => void run('publish', row)}>
+              {/* Публикация выключена там, где в сантиметре от кнопки написано
+                  «опубликовать нельзя». Сервер отказ держит и без этого, но
+                  самая опасная кнопка не должна спорить с собственной подписью. */}
+              <EditorButton tone="solid" disabled={busy !== null || broken !== undefined} onClick={() => void run('publish', row)}>
                 {busy === `publish:${row.id}` ? 'публикую…' : 'Опубликовать'}
               </EditorButton>
               <EditorButton tone="signal" disabled={busy !== null} onClick={() => void run('discard', row)}>

@@ -118,7 +118,7 @@ describe('публикация и отмена', () => {
     expect(calls.find((c) => c.path.endsWith('/draft'))!.init?.method).toBe('DELETE');
   });
 
-  it('у нечитаемого черновика говорит, что публиковать его нельзя', async () => {
+  it('у нечитаемого черновика говорит, что публиковать его нельзя — и не даёт', async () => {
     answer.mockImplementation((path: string) => Promise.resolve(path.endsWith('/drafts') ? drafts : {}));
     render(
       <EditorProvider editing brokenDrafts={[{kind: 'section', id: 'sec-1', key: 'aw26-hero', reason: 'unknown_variant:wb-404'}]}>
@@ -127,5 +127,8 @@ describe('публикация и отмена', () => {
     );
 
     expect(await screen.findByRole('status')).toHaveTextContent(/опубликовать его нельзя/i);
+    // Отказ держит сервер, но кнопка не должна спорить с подписью рядом с собой.
+    expect(screen.getByRole('button', {name: /Опубликовать/i})).toBeDisabled();
+    expect(screen.getByRole('button', {name: /Отменить черновик/i})).toBeEnabled();
   });
 });
