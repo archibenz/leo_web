@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -65,6 +66,40 @@ class StorefrontSchemaTest {
         assertThat(setItems.findAllByOrderBySetIdAscPositionAsc()).hasSize(1);
         assertThat(sections.findByStatusOrderBySortOrderAsc("active")).extracting(StorefrontSection::getSlug).containsExactly("aw26-hero");
         assertThat(sections.findByStatusOrderBySortOrderAsc("archived")).isEmpty();
+    }
+
+    @Test
+    void tickerSectionItemsColumnRoundTripsThroughH2() {
+        // H2 не знает JSONB — INIT в application-test.yml заводит для него домен
+        // (см. комментарий там). Здесь проверяется именно это: JdbcTypeCode/
+        // columnDefinition у StorefrontSection.items не роняет create-drop и
+        // строка читается такой же, какой легла, а не пустым массивом по умолчанию.
+        StorefrontSection ticker = new StorefrontSection();
+        ticker.setSlug("home-ticker");
+        ticker.setLayout("ticker");
+        ticker.setStatus("active");
+        ticker.setNameRu("Бегущая строка");
+        ticker.setNameEn("Home ticker");
+        ticker.setItems("[{\"ru\":\"Скидка 20% до воскресенья\",\"href\":\"/ru/sets\"}]");
+        UUID id = sections.save(ticker).getId();
+
+        StorefrontSection reloaded = sections.findById(id).orElseThrow();
+        assertThat(reloaded.getItems()).contains("Скидка 20% до воскресенья").contains("/ru/sets");
+    }
+
+    @Test
+    void tickerSectionDefaultsToAnEmptyItemsArray() {
+        // '[]' — колонка NOT NULL DEFAULT '[]'::jsonb в V33; строка без вызова
+        // setItems() обязана прийти пустым массивом, а не null.
+        StorefrontSection ticker = new StorefrontSection();
+        ticker.setSlug("home-ticker-2");
+        ticker.setLayout("ticker");
+        ticker.setStatus("active");
+        ticker.setNameRu("Бегущая строка");
+        ticker.setNameEn("Home ticker");
+        UUID id = sections.save(ticker).getId();
+
+        assertThat(sections.findById(id).orElseThrow().getItems()).isEqualTo("[]");
     }
 
     private static ProductModel model(int key, String slug, String nameRu, String nameEn) {

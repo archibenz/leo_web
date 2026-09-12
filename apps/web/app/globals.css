@@ -2171,3 +2171,76 @@ body:has(.wv-root)::after {
     opacity: 0.5;
   }
 }
+
+/* Бегущая строка на главной (WhiteTicker.tsx, storefront_sections
+   layout='ticker'). Один замер в компоненте решает, нужна ли анимация вообще:
+   класс --animated появляется только когда содержимое шире полосы — короткая
+   строка, которая помещается, стоит на месте без единого правила ниже. */
+.wv-ticker-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+.wv-ticker-track {
+  display: flex;
+  align-items: stretch;
+  width: max-content;
+}
+.wv-ticker-track--animated {
+  animation: wv-ticker-scroll var(--wv-ticker-duration, 20s) linear infinite;
+}
+@keyframes wv-ticker-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+/* Наведение мышью и любое удержание останавливают ленту — иначе по ссылке
+   внутри неё не попасть. :active покрывает касание на телефоне; :focus-within
+   держит паузу, пока фокус (в т.ч. после тапа по ссылке) не ушёл дальше. */
+.wv-ticker-track:hover,
+.wv-ticker-track:focus-within,
+.wv-ticker-track:active {
+  animation-play-state: paused;
+}
+.wv-ticker-segment {
+  display: flex;
+  align-items: stretch;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+.wv-ticker-dot {
+  display: inline-flex;
+  align-items: center;
+  padding-inline: 10px;
+  font-size: 13px;
+}
+/* 14px, не капитель мелких подписей рядом (eyebrow у героя — 11px): владелец
+   просил, чтобы текст, который читают, не был мелким. min-height держит зону
+   нажатия не меньше 44px по высоте, даже когда сама строка ниже — движущуюся
+   ссылку иначе пальцем не поймать. */
+.wv-ticker-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-block: 4px;
+  font-size: 14px;
+  line-height: 1.3;
+  color: inherit;
+  text-decoration: none;
+}
+a.wv-ticker-link:hover,
+a.wv-ticker-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Движение останавливается, а не замедляется — дрожащий текст читать хуже,
+     чем неподвижный. Прокрутка вручную остаётся: единственный сегмент (без
+     дубликата — см. компонент) шире полосы никуда не делся, viewport просто
+     перестаёт его обрезать молча. */
+  .wv-ticker-track--animated {
+    animation: none;
+  }
+  .wv-ticker-viewport {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}

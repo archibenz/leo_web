@@ -5,6 +5,7 @@ import com.reinasleo.api.dto.admin.storefront.StorefrontSectionRequest;
 import com.reinasleo.api.dto.admin.storefront.StorefrontSetItemRequest;
 import com.reinasleo.api.dto.admin.storefront.StorefrontSetRequest;
 import com.reinasleo.api.dto.admin.storefront.StorefrontVariantRequest;
+import com.reinasleo.api.dto.admin.storefront.TickerItemRequest;
 import com.reinasleo.api.exception.BadRequestException;
 import org.junit.jupiter.api.Test;
 
@@ -20,7 +21,7 @@ class StorefrontDraftMergeTest {
     private static StorefrontSectionRequest section() {
         return new StorefrontSectionRequest("Осень", "Autumn", "О/З", "A/W", "Точный крой", "Precise cut",
                 null, null, "/videos/white/hero.mp4", "/videos/white/hero-desktop.mp4",
-                "/images/white/hero.jpg", null, 0);
+                "/images/white/hero.jpg", null, 0, List.of());
     }
 
     private static StorefrontVariantRequest variant(String price, String sale) {
@@ -102,6 +103,22 @@ class StorefrontDraftMergeTest {
     }
 
     @Test
+    void merge_tickerItemsReplaceWholesale_notAppended() {
+        StorefrontSectionRequest published = new StorefrontSectionRequest("Бегущая строка", "Home ticker",
+                null, null, null, null, null, null, null, null, null, null, -1,
+                List.of(new TickerItemRequest("Старая строка", null, null, null)));
+
+        StorefrontSectionRequest merged = StorefrontDraftMerge.merge(published,
+                "{\"items\":[{\"ru\":\"Скидка 20% до воскресенья\",\"en\":\"20% off until Sunday\","
+                        + "\"href\":\"/ru/sets\",\"until\":\"2026-09-14\"}]}",
+                StorefrontSectionRequest.class);
+
+        assertThat(merged.items()).hasSize(1);
+        assertThat(merged.items().get(0).ru()).isEqualTo("Скидка 20% до воскресенья");
+        assertThat(merged.items().get(0).href()).isEqualTo("/ru/sets");
+    }
+
+    @Test
     void merge_unknownKeyIsRejected_becauseJsonbValidatesNothing() {
         // Опечатка в ключе иначе тихо доедет до витрины: JSONB примет что угодно.
         assertThatThrownBy(() -> StorefrontDraftMerge.merge(
@@ -116,6 +133,17 @@ class StorefrontDraftMergeTest {
                 model(), "{\"variants\":{\"wb-1\":{\"prise\":19000}}}", StorefrontModelRequest.class))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("prise");
+    }
+
+    @Test
+    void merge_unknownKeyInsideATickerItemIsRejectedToo() {
+        // FAIL_ON_UNKNOWN_PROPERTIES каскадится и в элементы List<TickerItemRequest>,
+        // не только в объекты и значения Map — опечатка в поле строки тикера
+        // не имеет права тихо потеряться.
+        assertThatThrownBy(() -> StorefrontDraftMerge.merge(
+                section(), "{\"items\":[{\"ru\":\"x\",\"hrf\":\"/y\"}]}", StorefrontSectionRequest.class))
+                .isInstanceOf(BadRequestException.class)
+                .hasMessageContaining("hrf");
     }
 
     @Test

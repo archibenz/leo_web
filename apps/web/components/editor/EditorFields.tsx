@@ -83,6 +83,35 @@ export function NumberField({label, value, onChange, hint}: {
   );
 }
 
+// 'YYYY-MM-DD' or null — never a Date object, so the same string round-trips
+// straight into the JSONB item and into the server's own regex validation.
+export function DateField({label, value, onChange, hint}: {
+  label: string;
+  value: string | null;
+  onChange: (next: string | null) => void;
+  hint?: string;
+}) {
+  const id = `wv-edit-${label.replace(/\s+/g, '-')}`;
+  return (
+    <label htmlFor={id} className="block">
+      <EditorLabel>{label}</EditorLabel>
+      <input
+        id={id}
+        type="date"
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value === '' ? null : e.target.value)}
+        className={inputClass}
+        style={{border: `1px solid ${HAIR}`, color: INK}}
+      />
+      {hint && (
+        <span className="mt-1 block text-[11px] leading-snug" style={{color: MUTED}}>
+          {hint}
+        </span>
+      )}
+    </label>
+  );
+}
+
 export function MediaField({label, value, kind, onChange}: {
   label: string;
   value: string | undefined;

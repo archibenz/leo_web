@@ -112,13 +112,27 @@ export type WhiteSet = {
   items: WhiteSetItem[];
 };
 
-// A media block of the storefront — the hero and the sets teaser. `layout` is
-// the dressing, everything else is the content, which is what the editor
-// changes without a deploy.
+// One line of the home ticker. `ru` is the only field the write side requires;
+// everything else narrows who sees the line and where it points.
+export type TickerItem = {
+  ru: string;
+  // Absent means the line does not show on the English site at all — the ru
+  // text is never substituted there. See lib/catalogue/select.ts.
+  en?: string;
+  // Internal path only ('/...'); validated server-side (StorefrontAdminService)
+  // so an external address never reaches this field.
+  href?: string;
+  // 'YYYY-MM-DD', compared as a Moscow-time calendar date, not a UTC instant.
+  until?: string;
+};
+
+// A media block of the storefront — the hero, the sets teaser, and the home
+// ticker. `layout` is the dressing, everything else is the content, which is
+// what the editor changes without a deploy.
 export type StorefrontSection = {
   id: string;
   slug: string;
-  layout: 'hero' | 'sets-teaser';
+  layout: 'hero' | 'sets-teaser' | 'ticker';
   status: 'active' | 'archived' | 'draft';
   nameRu: string;
   nameEn: string;
@@ -135,6 +149,9 @@ export type StorefrontSection = {
   posterUrl?: string;
   posterDesktopUrl?: string;
   sortOrder: number;
+  // layout='ticker' only; always present there (possibly empty), absent on
+  // every other layout's TS literal since nothing there ever reads it.
+  items?: TickerItem[];
 };
 
 // Строка, чей черновик не прочитался: витрина отдаёт её ОПУБЛИКОВАННОЙ, а

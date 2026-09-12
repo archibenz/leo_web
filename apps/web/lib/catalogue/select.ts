@@ -1,4 +1,4 @@
-import type {WhiteCat, WhiteColor, WhiteProduct, WhiteSet} from './types';
+import type {TickerItem, WhiteCat, WhiteColor, WhiteProduct, WhiteSet} from './types';
 
 export {WHITE_SIZES} from './types';
 export type {WhiteSize} from './types';
@@ -133,4 +133,54 @@ const WHITE_CAT_LABELS: Record<WhiteCat, [en: string, ru: string]> = {
 export function whiteCatLabel(cat: WhiteCat, locale: string): string {
   const [en, ru] = WHITE_CAT_LABELS[cat];
   return locale === 'ru' ? ru : en;
+}
+
+// Home ticker (owner-edited announcements above the hero, layout='ticker' in
+// storefront_sections). This is the only place that decides which of its
+// lines a given visitor sees right now — WhiteTicker just renders the result.
+
+// Europe/Moscow has been a fixed UTC+3 with no DST since 2014, so a constant
+// offset is correct and needs no timezone database. This is deliberately NOT
+// UTC: reading it as UTC would drop a line up to three hours before the owner
+// (in Moscow) expects it to go.
+const MOSCOW_OFFSET_MINUTES = 3 * 60;
+
+export function moscowDateString(now: Date): string {
+  const moscow = new Date(now.getTime() + MOSCOW_OFFSET_MINUTES * 60_000);
+  const year = moscow.getUTCFullYear();
+  const month = String(moscow.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(moscow.getUTCDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function tickerText(item: TickerItem, locale: string): string | undefined {
+  const text = locale === 'ru' ? item.ru : item.en;
+  return text?.trim() ? text : undefined;
+}
+
+// `until` and `today` are both 'YYYY-MM-DD' — comparing them as strings is
+// exact for this format and avoids re-parsing a date the server already
+// validated the shape of.
+function tickerIsCurrent(item: TickerItem, today: string): boolean {
+  return !item.until || today <= item.until;
+}
+
+/**
+ * Строки, которые видит именно этот покупатель прямо сейчас — уже
+ * отфильтрованные по языку страницы и по дате. Пустой результат значит
+ * «полосы нет вовсе»: WhiteTicker в этом случае не рендерит ничего, не
+ * пустую ленту и не заглушку.
+ *
+ * `now` — параметр со значением по умолчанию `new Date()`, а не жёстко внутри
+ * функции: тесты подставляют фиксированный момент, чтобы проверить границу
+ * суток по МСК, а не то, что показывают часы машины, на которой идёт тест.
+ */
+export function selectTickerItems(
+  items: readonly TickerItem[] | undefined,
+  locale: string,
+  now: Date = new Date(),
+): TickerItem[] {
+  if (!items || items.length === 0) return [];
+  const today = moscowDateString(now);
+  return items.filter((item) => tickerText(item, locale) !== undefined && tickerIsCurrent(item, today));
 }

@@ -148,6 +148,20 @@ const SETS: WhiteSet[] = [
 
 const SECTIONS: StorefrontSection[] = [
   {
+    id: '9c2f9e2a-6b8b-5f9e-8a2b-7c6e9f6a2b41',
+    slug: 'home-ticker',
+    layout: 'ticker',
+    status: 'active',
+    nameRu: 'Бегущая строка',
+    nameEn: 'Home ticker',
+    sortOrder: -1,
+    // Пусто — ровно то, что стоит на витрине сразу после выкатки V33, пока
+    // владелец не впишет первую строку. Наполненная версия — только в
+    // STOREFRONT_DRAFT_FIXTURE ниже: другого способа выдать e2e-спеке оба
+    // состояния («полосы нет» и «полоса видна») без второго фикстур-модуля нет.
+    items: [],
+  },
+  {
     id: 'f312be81-f743-5e5f-bd71-08d225bafbca',
     slug: 'aw26-hero',
     layout: 'hero',
@@ -198,9 +212,24 @@ export const STOREFRONT_DRAFT_FIXTURE: Storefront = {
       : p,
   ),
   sets: SETS,
-  sections: SECTIONS.map((s) =>
-    s.layout === 'hero' ? {...s, eyebrowRu: 'Черновик · Осень / Зима 2026', headlineRu: 'Черновик\nзаголовка'} : s,
-  ),
+  sections: SECTIONS.map((s) => {
+    if (s.layout === 'hero') return {...s, eyebrowRu: 'Черновик · Осень / Зима 2026', headlineRu: 'Черновик\nзаголовка'};
+    // Черновик ticker: пусто у STOREFRONT_FIXTURE — здесь ровно то, что владелец
+    // увидит, набрав первые строки. Одна без даты (всегда видна), одна с датой
+    // в далёком будущем (проверка поля «до», не протухнет сама по себе), одна
+    // без en (не должна показаться на английской странице).
+    if (s.layout === 'ticker') {
+      return {
+        ...s,
+        items: [
+          {ru: 'Открытие шоурума на Патриарших', en: 'Showroom opening on Patriarshiye', href: '/ru/lookbook'},
+          {ru: 'Скидка 20% до конца сезона', en: '20% off through the end of the season', until: '2099-01-01'},
+          {ru: 'Новая примерка по записи'},
+        ],
+      };
+    }
+    return s;
+  }),
   brokenDrafts: [
     {
       kind: 'set',

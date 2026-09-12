@@ -60,6 +60,7 @@ class StorefrontAdminControllerTest {
     private UUID modelId;
     private UUID setId;
     private UUID sectionId;
+    private UUID tickerSectionId;
 
     @BeforeEach
     void setUp() {
@@ -118,6 +119,19 @@ class StorefrontAdminControllerTest {
         section.setHeadlineEn("Precise cut");
         section.setVideoUrl("/videos/white/hero.mp4");
         sectionId = sections.save(section).getId();
+
+        // sortOrder ПОСЛЕ героя (не -1, как в реальной миграции V33) — нарочно:
+        // существующие тесты этого файла читают $.sections[0] как героя, и более
+        // ранний sortOrder сдвинул бы им индекс. Порядок для продукта решает V33,
+        // а не эта фикстура.
+        StorefrontSection ticker = new StorefrontSection();
+        ticker.setSlug("home-ticker");
+        ticker.setLayout("ticker");
+        ticker.setStatus("active");
+        ticker.setNameRu("Бегущая строка");
+        ticker.setNameEn("Home ticker");
+        ticker.setSortOrder(5);
+        tickerSectionId = sections.save(ticker).getId();
     }
 
     private String tokenFor(String email, String role) {
@@ -277,6 +291,63 @@ class StorefrontAdminControllerTest {
                 .andExpect(status().isBadRequest());
 
         assertThat(models.findById(modelId).orElseThrow().getDraft()).isNull();
+    }
+
+    // ============================================================ бегущая строка (V33)
+
+    @Test
+    void tickerItemValidationRejectsAnExternalHref() throws Exception {
+        mockMvc.perform(put("/api/admin/storefront/sections/" + tickerSectionId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"items\":[{\"ru\":\"Скидка\",\"href\":\"https://evil.example.com\"}]}"))
+                .andExpect(status().isBadRequest());
+
+        assertThat(sections.findById(tickerSectionId).orElseThrow().getDraft()).isNull();
+    }
+
+    @Test
+    void tickerItemValidationRejectsAnEmptyRu() throws Exception {
+        mockMvc.perform(put("/api/admin/storefront/sections/" + tickerSectionId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"items\":[{\"ru\":\"\"}]}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void tickerItemValidationRejectsTextLongerThan160Characters() throws Exception {
+        String tooLong = "а".repeat(161);
+        mockMvc.perform(put("/api/admin/storefront/sections/" + tickerSectionId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"items\":[{\"ru\":\"" + tooLong + "\"}]}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void aValidTickerDraftPublishesAndReachesThePublicStorefront() throws Exception {
+        mockMvc.perform(put("/api/admin/storefront/sections/" + tickerSectionId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"items\":[{\"ru\":\"Скидка 20% до воскресенья\",\"en\":\"20% off until Sunday\","
+                                + "\"href\":\"/ru/sets\",\"until\":\"2026-09-14\"}]}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].ru").value("Скидка 20% до воскресенья"));
+
+        clearStorefrontCache();
+        // Черновик не виден покупателю — тот же контракт, что и у текста героя.
+        mockMvc.perform(get("/api/catalog/storefront"))
+                .andExpect(jsonPath("$.sections[1].slug").value("home-ticker"))
+                .andExpect(jsonPath("$.sections[1].items").isEmpty());
+
+        mockMvc.perform(post("/api/admin/storefront/sections/" + tickerSectionId + "/publish")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/catalog/storefront"))
+                .andExpect(jsonPath("$.sections[1].items[0].ru").value("Скидка 20% до воскресенья"))
+                .andExpect(jsonPath("$.sections[1].items[0].href").value("/ru/sets"));
     }
 
     @Test

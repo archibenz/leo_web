@@ -8,6 +8,7 @@ import com.reinasleo.api.dto.storefront.StorefrontResponse;
 import com.reinasleo.api.dto.storefront.StorefrontSectionDto;
 import com.reinasleo.api.dto.storefront.StorefrontSet;
 import com.reinasleo.api.dto.storefront.StorefrontSetItem;
+import com.reinasleo.api.dto.storefront.TickerItemDto;
 import com.reinasleo.api.service.StorefrontService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +60,11 @@ class StorefrontContractTest {
     private static final List<String> SECTION_KEYS = List.of(
             "id", "slug", "layout", "status", "nameRu", "nameEn", "eyebrowRu", "eyebrowEn",
             "headlineRu", "headlineEn", "bodyRu", "bodyEn",
-            "videoUrl", "videoDesktopUrl", "posterUrl", "posterDesktopUrl", "sortOrder");
+            "videoUrl", "videoDesktopUrl", "posterUrl", "posterDesktopUrl", "sortOrder", "items");
+
+    // TickerItemDto — items[] внутри StorefrontSection; пусто у hero/sets-teaser,
+    // заполнено только у layout='ticker'.
+    private static final List<String> TICKER_ITEM_KEYS = List.of("ru", "en", "href", "until");
 
     private static StorefrontResponse fullyPopulated() {
         StorefrontColour colour = new StorefrontColour("wb-1", "camel", "#b89a6e", "Camel", "Кэмел", 1L,
@@ -72,7 +77,8 @@ class StorefrontContractTest {
                 List.of(new StorefrontSetItem("wb-1", 2, "camel")));
         StorefrontSectionDto section = new StorefrontSectionDto("s1", "aw26-hero", "hero", "active",
                 "Осень", "Autumn", "Осень", "Autumn", "Точный крой", "Precise tailoring", "текст", "body",
-                "/v/a.mp4", "/v/b.mp4", "/i/a.jpg", "/i/b.jpg", 0);
+                "/v/a.mp4", "/v/b.mp4", "/i/a.jpg", "/i/b.jpg", 0,
+                List.of(new TickerItemDto("Скидка 20% до воскресенья", "20% off until Sunday", "/ru/sets", "2026-09-14")));
         return new StorefrontResponse(List.of(product), List.of(set), List.of(section));
     }
 
@@ -111,6 +117,10 @@ class StorefrontContractTest {
 
         JsonNode section = root.get("sections").get(0);
         assertThat(keysOf(section)).containsExactlyInAnyOrderElementsOf(SECTION_KEYS);
-        assertThat(SECTION_KEYS).hasSize(17);
+        assertThat(SECTION_KEYS).hasSize(18);
+
+        JsonNode tickerItem = section.get("items").get(0);
+        assertThat(keysOf(tickerItem)).containsExactlyInAnyOrderElementsOf(TICKER_ITEM_KEYS);
+        assertThat(TICKER_ITEM_KEYS).hasSize(4);
     }
 }
