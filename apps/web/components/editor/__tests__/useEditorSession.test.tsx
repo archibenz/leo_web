@@ -9,18 +9,28 @@ vi.mock('../../../lib/api', () => ({
   apiFetch: (path: string) => me(path),
 }));
 
-import {useEditorSession} from '../useEditorSession';
+// useEditorSession хранит inFlight/silentUntil в переменных на уровне модуля —
+// одно обещание и один отказ-на-минуту на все компоненты страницы, это и
+// проверяется ниже. Но тот же module-scope переживает и переход между
+// тестами: «отказ запоминается» выставляет silentUntil на минуту вперёд, и
+// без сброса модуля это глушило бы все ПОСЛЕДУЮЩИЕ тесты файла тем же
+// молчанием, вне зависимости от их собственного мока. Зелёное держалось
+// только на том, что «отказ» объявлен последним по тексту — vi.resetModules()
+// плюс динамический re-import перед каждым тестом делают порядок неважным.
+let useEditorSession: typeof import('../useEditorSession').useEditorSession;
 
 function Probe({label}: {label: string}) {
   const {isAdmin, checked} = useEditorSession();
   return <span data-testid={label}>{!checked ? 'ждём' : isAdmin ? 'редактор' : 'посторонний'}</span>;
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   token.value = null;
   me.mockReset().mockResolvedValue({role: 'admin'});
   sessionStorage.clear();
   vi.useRealTimers();
+  vi.resetModules();
+  ({useEditorSession} = await import('../useEditorSession'));
 });
 
 afterEach(cleanup);

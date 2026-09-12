@@ -47,6 +47,7 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
 
     setUploading(true);
     const newImages = [...images];
+    const serverRejections: string[] = [];
     for (const file of validFiles) {
       const formData = new FormData();
       formData.append('file', file);
@@ -61,10 +62,21 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
         if (res.ok) {
           const data = await res.json();
           newImages.push({src: data.url, alt: file.name.replace(/\.[^/.]+$/, '')});
+        } else {
+          // Сервер отвечает по-русски и по делу (WebP — своим текстом,
+          // расхождение типа — своим): владелец жал и не видел ничего, потому
+          // что отказ молча терялся здесь. Показываем ровно то же, что и
+          // editorApi.ts — текст из тела ответа.
+          const body = (await res.json().catch(() => ({}))) as {message?: string};
+          serverRejections.push(`${file.name}: ${body.message ?? 'сервер отказал'}`);
         }
       } catch {
-        // skip failed uploads
+        serverRejections.push(`${file.name}: не удалось отправить файл`);
       }
+    }
+
+    if (serverRejections.length > 0) {
+      setErrorMessage([...rejections, ...serverRejections].join('; '));
     }
 
     onChange(newImages);
