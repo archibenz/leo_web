@@ -71,7 +71,7 @@ export default async function WhiteVariantPage({params, searchParams}: Props) {
     <>
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}} />
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(siteJsonLd)}} />
-      <EditorProvider editing={view.editing} brokenDrafts={view.storefront.brokenDrafts}>
+      <EditorProvider editing={view.editing} wantsEdit={view.wantsEdit} brokenDrafts={view.storefront.brokenDrafts}>
         <WhiteShowcase locale={locale} featured={featured} hero={hero} setsTeaser={setsTeaser} />
       </EditorProvider>
     </>

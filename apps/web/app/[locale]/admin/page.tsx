@@ -6,6 +6,7 @@ import {usePathname} from 'next/navigation';
 import Link from 'next/link';
 import AdminLayout from '../../../components/admin/AdminLayout';
 import BrandLoader from '../../../components/BrandLoader';
+import EditModeSwitch from '../../../components/editor/EditModeSwitch';
 import {apiFetch} from '../../../lib/api';
 
 type Dashboard = {
@@ -387,6 +388,11 @@ export default function AdminDashboardPage() {
             </section>
           </>
         )}
+
+        {/* Второе место выключателя — он назвал оба. Не внутри loading/
+            loadError веток дашборда: провал статистики не должен уносить с
+            собой единственный вход в режим правки. */}
+        <EditModeSwitch />
       </div>
     </AdminLayout>
   );
