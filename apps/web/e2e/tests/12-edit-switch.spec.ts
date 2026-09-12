@@ -1,0 +1,160 @@
+import {test, expect} from '@playwright/test';
+import type {Page, BrowserContext} from '@playwright/test';
+import {copy} from '../fixtures/messages';
+import {openWhite, acknowledgeCookies} from '../fixtures/white';
+
+// Вход в режим правки переехал из шапки в аккаунт/админку: «ПРАВИТЬ» не
+// существует в шапке ни в каком виде, и шапка обязана выглядеть ОДИНАКОВО
+// для покупателя и для владельца с выключенным режимом.
+//
+// Два кейса ниже проверяют РАЗНЫЕ области, а не разными словами одно и то
+// же: кейс «шапка» смотрит только внутрь <header> (состав и фон), кейс
+// «страница» — только внутрь #wv-page (WhiteChrome.tsx), то есть везде,
+// КРОМЕ шапки и подвала. Если бы оба читали весь документ, одна и та же
+// мутация красила бы оба — и один из двух ничего не доказывал бы, будучи
+// лишним. Так мутация «вернуть кнопку в шапку» красит ровно кейс про шапку.
+
+const HOME = '/ru';
+const ACCOUNT = '/ru/account';
+const EDIT_LABEL = copy('editModeSwitch', 'label');
+const DRAFT_BAR = 'Режим правки · страница показывает черновик';
+
+async function mockOwnerRole(page: Page) {
+  // /api/auth/** лимитирован 10 запросами в минуту на IP, а спеки идут
+  // параллельно с одного адреса — тот же приём, что в
+  // 07-storefront-editor.spec.ts. Проверяем не роль, а поведение куки и шапки.
+  await page.route('**/api/auth/me', (route) =>
+    route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({id: 'owner', role: 'admin'})}),
+  );
+  await page.addInitScript(() => window.localStorage.setItem('reinasleo_token', 'owner-token'));
+}
+
+// rl_session — то, что даёт ПРАВО (см. lib/catalogue/viewer.ts). Против
+// CATALOGUE_SOURCE=fixture бэкенд не поднят: getStorefrontPreview в
+// фикстурном режиме всегда отдаёт черновик, так что для доказательства входа
+// в режим достаточно, чтобы сервер увидел саму куку — её значение он не
+// проверяет, это дело живого API.
+async function grantSession(context: BrowserContext) {
+  await context.addCookies([{name: 'rl_session', value: 'owner-session', domain: 'localhost', path: '/'}]);
+}
+
+async function asOwner(page: Page) {
+  await mockOwnerRole(page);
+  await grantSession(page.context());
+}
+
+async function open(page: Page, path: string) {
+  await acknowledgeCookies(page);
+  await openWhite(page, path);
+}
+
+// Отпечаток шапки: видимый текст (без пробельного мусора) плюс фон — тот же
+// приём сравнения backgroundColor, что и в 11-tg-landing.spec.ts, усиленный
+// textContent, чтобы ловить любую лишнюю кнопку, а не только именно эту.
+async function headerFingerprint(page: Page) {
+  const header = page.locator('header').first();
+  await expect(header).toBeVisible();
+  return header.evaluate((el) => ({
+    text: el.textContent?.replace(/\s+/g, ' ').trim(),
+    background: getComputedStyle(el).backgroundColor,
+  }));
+}
+
+async function assertHeaderHasNoEditEntry(page: Page) {
+  const header = page.locator('header').first();
+  await expect(header.getByRole('switch')).toHaveCount(0);
+  await expect(header.getByRole('link', {name: /Прав/})).toHaveCount(0);
+  await expect(header.locator('[aria-pressed]')).toHaveCount(0);
+}
+
+// Поверхность правки: полоса режима, рамки правимых блоков (EditableBlock.tsx
+// рисует их пунктиром — см. style="border: 1px dashed ...") и само слово
+// «черновик» (STOREFRONT_DRAFT_FIXTURE прячет его в hero). Область — #wv-page,
+// то есть заведомо не шапка и не подвал.
+async function assertNoEditSurface(page: Page) {
+  const content = page.locator('#wv-page');
+  await expect(content.getByText(DRAFT_BAR)).toHaveCount(0);
+  await expect(content.getByText(/черновик/i)).toHaveCount(0);
+  await expect(content.locator('[style*="dashed"]')).toHaveCount(0);
+}
+
+for (const viewport of [
+  {width: 390, height: 844},
+  {width: 1440, height: 900},
+] as const) {
+  test(`шапка не содержит входа в режим правки — ни у гостя, ни у владельца (${viewport.width}px)`, async ({page, browser}) => {
+    await page.setViewportSize(viewport);
+    await open(page, HOME);
+    await assertHeaderHasNoEditEntry(page);
+    const guestFingerprint = await headerFingerprint(page);
+
+    const ownerContext = await browser.newContext({viewport});
+    const ownerPage = await ownerContext.newPage();
+    await asOwner(ownerPage);
+    await open(ownerPage, HOME);
+    await assertHeaderHasNoEditEntry(ownerPage);
+    const ownerFingerprint = await headerFingerprint(ownerPage);
+
+    expect(ownerFingerprint).toEqual(guestFingerprint);
+    await ownerContext.close();
+  });
+}
+
+test('страница вне режима совпадает с покупательской: без полосы, без рамок, без слова «черновик»', async ({page, browser}) => {
+  await open(page, HOME);
+  await assertNoEditSurface(page);
+
+  const ownerContext = await browser.newContext();
+  const ownerPage = await ownerContext.newPage();
+  await asOwner(ownerPage);
+  await open(ownerPage, HOME);
+  await assertNoEditSurface(ownerPage);
+  await ownerContext.close();
+});
+
+test('включил выключатель в аккаунте → перешёл на главную → режим пережил переход', async ({page}) => {
+  await asOwner(page);
+  await open(page, ACCOUNT);
+
+  const toggle = page.getByRole('switch', {name: EDIT_LABEL});
+  await expect(toggle).toHaveAttribute('aria-checked', 'false');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-checked', 'true');
+
+  const cookiesOn = await page.context().cookies();
+  expect(cookiesOn.find((c) => c.name === 'rl_edit')?.value).toBe('1');
+
+  await open(page, HOME);
+  await expect(page.getByText(DRAFT_BAR)).toBeVisible();
+  await expect(page.locator('#wv-page').getByText(/черновик/i).first()).toBeVisible();
+});
+
+test('«Закончить правку» снимает куку — следующая страница уже обычная', async ({page}) => {
+  await asOwner(page);
+  await open(page, ACCOUNT);
+  await page.getByRole('switch', {name: EDIT_LABEL}).click();
+
+  await open(page, HOME);
+  await expect(page.getByText(DRAFT_BAR)).toBeVisible(); // подтверждаем, что было включено — иначе клик ниже ничего не доказывает
+
+  await page.getByRole('link', {name: 'Закончить правку'}).click();
+
+  const cookiesAfter = await page.context().cookies();
+  expect(cookiesAfter.find((c) => c.name === 'rl_edit')).toBeUndefined();
+
+  await open(page, HOME);
+  await assertNoEditSurface(page);
+});
+
+// Кейс безопасности этапа: кука — это «хочу видеть черновик», не «мне
+// можно». rl_session здесь НЕ выдан — сервер про право ничего не знает и не
+// должен даже спрашивать ручку предпросмотра (lib/catalogue/viewer.ts).
+test('кука есть, прав нет — витрина публичная, черновика не видно', async ({page}) => {
+  await mockOwnerRole(page);
+  await page.context().addCookies([{name: 'rl_edit', value: '1', domain: 'localhost', path: '/'}]);
+
+  await open(page, HOME);
+
+  await assertNoEditSurface(page);
+});
+
