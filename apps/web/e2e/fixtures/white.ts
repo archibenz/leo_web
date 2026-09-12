@@ -7,6 +7,10 @@ import {copy} from './messages';
 
 export const BAG_KEY = 'wv-bag'; // hooks/useWhiteBag.ts
 export const COOKIE_KEY = 'wv-cookie-ok'; // app/[locale]/WhiteCookieNotice.tsx
+// The notice's live height, broadcast onto <html> while it's up so anything
+// else pinned to the bottom of the viewport can reserve the same space
+// instead of sitting underneath it. app/[locale]/WhiteCookieNotice.tsx
+export const COOKIE_HEIGHT_VAR = '--wv-cookie-h';
 
 // `next dev` compiles a route the first time it is asked for; on a cold runner
 // that compile alone can outrun the config's 15s navigationTimeout. This covers
