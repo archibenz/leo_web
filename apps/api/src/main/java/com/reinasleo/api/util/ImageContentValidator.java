@@ -9,13 +9,47 @@ public final class ImageContentValidator {
     private ImageContentValidator() {
     }
 
-    public static boolean isSupportedImage(MultipartFile file) throws IOException {
+    /**
+     * Настоящий тип файла по магическим байтам, а не по заявленному
+     * Content-Type: {@code image/jpeg}, {@code image/png}, {@code image/webp}
+     * или {@code null}, если ни один магический заголовок не совпал.
+     */
+    public static String detect(MultipartFile file) throws IOException {
         byte[] head = new byte[12];
-        int read = file.getInputStream().read(head);
-        if (read < 4) {
-            return false;
+        int total = 0;
+        // try-with-resources: без него дескриптор течёт на каждую загрузку с
+        // обеих ручек. Цикл, а не один read(): поток вправе вернуть меньше
+        // байт, чем попросили (обычное дело для сетевых/буферизованных
+        // источников), а WebP опознаётся только по всем двенадцати байтам —
+        // короткое первое чтение увело бы настоящий WebP в «это не картинка».
+        try (var in = file.getInputStream()) {
+            while (total < head.length) {
+                int n = in.read(head, total, head.length - total);
+                if (n < 0) {
+                    break;
+                }
+                total += n;
+            }
         }
-        return isJpeg(head, read) || isPng(head, read) || isWebp(head, read);
+        if (total < 4) {
+            return null;
+        }
+        if (isJpeg(head, total)) {
+            return "image/jpeg";
+        }
+        if (isPng(head, total)) {
+            return "image/png";
+        }
+        if (isWebp(head, total)) {
+            return "image/webp";
+        }
+        return null;
+    }
+
+    // "image/jpg" — не официальный MIME-тип, но некоторые клиенты присылают его
+    // для JPEG; настоящий формат при этом всё равно "image/jpeg" по байтам.
+    public static boolean sameFamily(String detected, String declared) {
+        return detected.equals(declared) || ("image/jpeg".equals(detected) && "image/jpg".equals(declared));
     }
 
     private static boolean isJpeg(byte[] h, int len) {

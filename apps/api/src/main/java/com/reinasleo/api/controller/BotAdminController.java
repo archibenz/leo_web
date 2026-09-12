@@ -6,6 +6,7 @@ import com.reinasleo.api.service.AdminProductService;
 import com.reinasleo.api.service.CollectionService;
 import com.reinasleo.api.util.FilenameSanitizer;
 import com.reinasleo.api.util.ImageContentValidator;
+import com.reinasleo.api.util.ImageNormalizer;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +24,6 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -33,9 +33,6 @@ public class BotAdminController {
     private final AdminProductService adminProductService;
     private final CollectionService collectionService;
 
-    private static final Set<String> ALLOWED_TYPES = Set.of(
-            "image/jpeg", "image/png", "image/webp", "image/jpg"
-    );
     private static final long MAX_UPLOAD_SIZE = 10L * 1024 * 1024; // 10MB
 
     @Value("${app.bot.api-secret}")
@@ -152,6 +149,18 @@ public class BotAdminController {
         return ResponseEntity.ok(collectionService.create(request));
     }
 
+    /**
+     * Same shrink-and-strip pipeline as the admin upload endpoint
+     * ({@link com.reinasleo.api.controller.FileUploadController}): both write
+     * into the same {@code uploads/products} directory, served from the same
+     * public URL. Type is decided by the actual bytes, not the declared
+     * Content-Type, and every accepted file goes through
+     * {@link ImageNormalizer} before it touches disk — orientation applied,
+     * long side capped at {@link ImageNormalizer#MAX_SIDE}, shooting metadata
+     * (including GPS) dropped. WebP is refused outright, same reasoning as
+     * the sibling endpoint: rewriting a container we don't fully parse is
+     * riskier than rejecting it.
+     */
     @PostMapping("/upload")
     public ResponseEntity<Map<String, String>> upload(
             @RequestHeader("X-Bot-Secret") String secret,
@@ -164,35 +173,54 @@ public class BotAdminController {
         if (file.getSize() > MAX_UPLOAD_SIZE) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File too large (max 10MB)");
         }
-        String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only JPG, PNG, WebP");
-        }
+
+        String detectedType;
         try {
-            if (!ImageContentValidator.isSupportedImage(file)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "uploaded file is not a valid image");
-            }
+            detectedType = ImageContentValidator.detect(file);
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to read uploaded file");
         }
+        if (detectedType == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only JPG and PNG are supported");
+        }
+        if ("image/webp".equals(detectedType)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "WebP is not supported, please use JPEG or PNG");
+        }
+        if (!ImageContentValidator.sameFamily(detectedType, file.getContentType())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Declared content type does not match the file");
+        }
+
+        byte[] source;
+        try {
+            source = file.getBytes();
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to read uploaded file");
+        }
+
+        String originalName = file.getOriginalFilename();
+        if (originalName != null && !originalName.isBlank()) {
+            FilenameSanitizer.sanitize(originalName);
+        }
+
+        ImageNormalizer.Normalized normalized;
+        try {
+            normalized = ImageNormalizer.normalize(source, detectedType);
+        } catch (BadRequestException e) {
+            // ImageNormalizer's own messages are Russian, owner-facing text
+            // (UploadMessages.*) — this endpoint is read by a bot, not the
+            // owner, so it keeps its own English style instead of reusing them.
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to process image");
+        }
+
         try {
             Path uploadPath = Paths.get(uploadDir, "products").toAbsolutePath().normalize();
             Files.createDirectories(uploadPath);
-            String ext = "";
-            String originalName = file.getOriginalFilename();
-            if (originalName != null && !originalName.isBlank()) {
-                String safeOriginal = FilenameSanitizer.sanitize(originalName);
-                int dot = safeOriginal.lastIndexOf('.');
-                if (dot > 0 && dot < safeOriginal.length() - 1) {
-                    String rawExt = safeOriginal.substring(dot);
-                    if (rawExt.matches("\\.[a-zA-Z0-9]{1,10}")) {
-                        ext = rawExt;
-                    }
-                }
-            }
-            String filename = UUID.randomUUID() + ext;
+
+            // Extension comes from what we actually wrote, not the uploaded
+            // filename: a .png upload can come back out as .jpg once flattened.
+            String filename = UUID.randomUUID() + normalized.extension();
             Path filePath = FilenameSanitizer.resolveInside(uploadPath, filename);
-            file.transferTo(filePath.toFile());
+            Files.write(filePath, normalized.bytes());
             return ResponseEntity.ok(Map.of("url", "/uploads/products/" + filename));
         } catch (BadRequestException e) {
             throw e;

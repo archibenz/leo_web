@@ -3,6 +3,7 @@ package com.reinasleo.api.controller;
 import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.util.FilenameSanitizer;
 import com.reinasleo.api.util.ImageContentValidator;
+import com.reinasleo.api.util.ImageNormalizer;
 import com.reinasleo.api.util.UploadMessages;
 import com.reinasleo.api.util.VideoContentValidator;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,10 +27,12 @@ import java.util.UUID;
 @RequestMapping("/api/admin/upload")
 public class FileUploadController {
 
-    private static final Set<String> ALLOWED_TYPES = Set.of(
-            "image/jpeg", "image/png", "image/webp", "image/jpg"
-    );
-    private static final long MAX_SIZE = 10 * 1024 * 1024; // 10MB
+    // Снимок с айфона весит 5–12 МБ, и прежние 10 МБ отбивали его на первой же
+    // попытке. Предел поднят — но строго В ПАРЕ с уменьшением: принимаем тяжёлое,
+    // на витрину кладём лёгкое. Поднять предел без уменьшения значило бы
+    // перенести боль с владельца на покупателя, которому этот кадр поехал бы
+    // в галерею товара.
+    private static final long MAX_IMAGE_SIZE = 32L * 1024 * 1024;
 
     // ffmpeg на сервере нет, и ставить его — решение владельца, а не конфиг.
     // Значит сервер не сжимает, а отказывает: нынешние ролики витрины весят
@@ -44,55 +47,79 @@ public class FileUploadController {
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
+    /**
+     * Картинка витрины. Принимается тяжёлый снимок с телефона (JPEG или PNG),
+     * кладётся лёгкий кадр: поворот по EXIF, длинная сторона до 2000 px, JPEG
+     * q82, метаданные съёмки (включая координаты) выброшены — это верно для
+     * всего, что ручка принимает. Подробности порядка шагов — в
+     * {@link ImageNormalizer}.
+     *
+     * WebP не принимается вовсе: метаданные этого контейнера мы не вычищаем,
+     * а положить кадр как есть значило бы оставить координаты съёмки на
+     * витрине. Тип определяется по байтам, а не по заявленному Content-Type —
+     * иначе JPEG, назвавшийся WebP, миновал бы и уменьшение, и сброс
+     * метаданных.
+     */
     @PostMapping
     public ResponseEntity<Map<String, String>> upload(@RequestParam("file") MultipartFile file) {
 
         if (file.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is empty");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Файл пустой");
         }
 
-        if (file.getSize() > MAX_SIZE) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File too large (max 10MB)");
+        if (file.getSize() > MAX_IMAGE_SIZE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UploadMessages.IMAGE_TOO_LARGE);
         }
 
-        String contentType = file.getContentType();
-        if (contentType == null || !ALLOWED_TYPES.contains(contentType)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Only JPG, PNG, and WebP images are allowed");
-        }
-
+        String detectedType;
         try {
-            if (!ImageContentValidator.isSupportedImage(file)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "uploaded file is not a valid image");
-            }
+            detectedType = ImageContentValidator.detect(file);
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to read uploaded file");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Не удалось прочитать загруженный файл");
         }
+        if (detectedType == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UploadMessages.NOT_AN_IMAGE);
+        }
+        if ("image/webp".equals(detectedType)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UploadMessages.WEBP_NOT_ACCEPTED);
+        }
+        if (!ImageContentValidator.sameFamily(detectedType, file.getContentType())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, UploadMessages.CONTENT_TYPE_MISMATCH);
+        }
+
+        // Имя проверяется ДО разбора картинки: отказать на обходе каталога
+        // дешевле, чем сначала раскодировать тридцать мегабайт. На диск оно
+        // всё равно не попадает — файл ложится под UUID.
+        String originalName = file.getOriginalFilename();
+        if (originalName != null && !originalName.isBlank()) {
+            FilenameSanitizer.sanitize(originalName);
+        }
+
+        byte[] source;
+        try {
+            source = file.getBytes();
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Не удалось прочитать загруженный файл");
+        }
+
+        // detectedType — настоящий формат, а не заявленный: ImageNormalizer
+        // решает по нему, снимать ли ориентацию PNG (у PNG её не бывает).
+        ImageNormalizer.Normalized normalized = ImageNormalizer.normalize(source, detectedType);
+        byte[] bytes = normalized.bytes();
+        // Расширение берётся из того, что мы РЕАЛЬНО записали, а не из имени
+        // загрузки: png на входе мог уехать в jpg, и .png на диске отдавался
+        // бы с чужим Content-Type.
+        String extension = normalized.extension();
 
         try {
             Path uploadPath = Paths.get(uploadDir, "products").toAbsolutePath().normalize();
             Files.createDirectories(uploadPath);
 
-            // FilenameSanitizer rejects traversal even though we persist under a UUID:
-            // an attacker-controlled filename never reaches the filesystem.
-            String extension = "";
-            String originalName = file.getOriginalFilename();
-            if (originalName != null && !originalName.isBlank()) {
-                String safeOriginal = FilenameSanitizer.sanitize(originalName);
-                int dot = safeOriginal.lastIndexOf('.');
-                if (dot > 0 && dot < safeOriginal.length() - 1) {
-                    String ext = safeOriginal.substring(dot);
-                    if (ext.matches("\\.[a-zA-Z0-9]{1,10}")) {
-                        extension = ext;
-                    }
-                }
-            }
             String filename = UUID.randomUUID() + extension;
-
             Path filePath = FilenameSanitizer.resolveInside(uploadPath, filename);
-            file.transferTo(filePath.toFile());
+            Files.write(filePath, bytes);
 
-            String url = "/uploads/products/" + filename;
-            return ResponseEntity.ok(Map.of("url", url));
+            return ResponseEntity.ok(Map.of("url", "/uploads/products/" + filename));
 
         } catch (BadRequestException e) {
             throw e;

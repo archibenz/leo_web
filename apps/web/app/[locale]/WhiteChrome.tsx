@@ -7,6 +7,7 @@ import {useWhiteFavourites} from '../../hooks/useWhiteFavourites';
 import WhiteHeader from './WhiteHeader';
 import WhiteHeaderActions from './WhiteHeaderActions';
 import WhiteFooter from './WhiteFooter';
+import EditorToggle from '../../components/editor/EditorToggle';
 import {INK} from './wv-palette';
 
 // The storefront chrome lives in the layout: one header and one footer that
@@ -28,7 +29,15 @@ export default function WhiteChrome({locale, children}: {locale: string; childre
         locale={locale}
         activeCat={activeCat ?? undefined}
         left={null}
-        right={<WhiteHeaderActions locale={locale} favCount={favCount} count={count} search={!onShop} />}
+        right={
+          <>
+            <WhiteHeaderActions locale={locale} favCount={favCount} count={count} search={!onShop} />
+            {/* Переключатель режима правки. Рисуется только владельцу и только
+                после того, как клиент опознал роль; посторонний не увидит его
+                никогда, а черновик ему не отдаст бэкенд. */}
+            <EditorToggle />
+          </>
+        }
       />
       <div className="flex flex-1 flex-col">{children}</div>
       <WhiteFooter locale={locale} />

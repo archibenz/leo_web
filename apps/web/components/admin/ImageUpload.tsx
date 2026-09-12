@@ -10,7 +10,10 @@ interface ImageUploadProps {
   onChange: (images: {src: string; alt: string}[]) => void;
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+// Держится вровень с сервером (FileUploadController.MAX_IMAGE_SIZE). Оставшись
+// на 10 МБ, эта проверка отбивала бы снимок с телефона ещё до запроса — тот
+// самый, который сервер теперь принимает и сам уменьшает до витринного веса.
+const MAX_FILE_SIZE = 32 * 1024 * 1024;
 
 export default function ImageUpload({images, onChange}: ImageUploadProps) {
   const t = useTranslations('admin.upload');
@@ -26,11 +29,11 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (!file.type.startsWith('image/')) {
-        rejections.push(`${file.name}: not an image`);
+        rejections.push(`${file.name}: это не картинка`);
         continue;
       }
       if (file.size > MAX_FILE_SIZE) {
-        rejections.push(`${file.name}: exceeds 10MB`);
+        rejections.push(`${file.name}: тяжелее 32 МБ`);
         continue;
       }
       validFiles.push(file);
@@ -44,6 +47,7 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
 
     setUploading(true);
     const newImages = [...images];
+    const serverRejections: string[] = [];
     for (const file of validFiles) {
       const formData = new FormData();
       formData.append('file', file);
@@ -58,10 +62,21 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
         if (res.ok) {
           const data = await res.json();
           newImages.push({src: data.url, alt: file.name.replace(/\.[^/.]+$/, '')});
+        } else {
+          // Сервер отвечает по-русски и по делу (WebP — своим текстом,
+          // расхождение типа — своим): владелец жал и не видел ничего, потому
+          // что отказ молча терялся здесь. Показываем ровно то же, что и
+          // editorApi.ts — текст из тела ответа.
+          const body = (await res.json().catch(() => ({}))) as {message?: string};
+          serverRejections.push(`${file.name}: ${body.message ?? 'сервер отказал'}`);
         }
       } catch {
-        // skip failed uploads
+        serverRejections.push(`${file.name}: не удалось отправить файл`);
       }
+    }
+
+    if (serverRejections.length > 0) {
+      setErrorMessage([...rejections, ...serverRejections].join('; '));
     }
 
     onChange(newImages);
@@ -140,7 +155,7 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
       >
         <input
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/jpeg,image/png"
           multiple
           className="sr-only"
           onChange={e => handleUpload(e.target.files)}

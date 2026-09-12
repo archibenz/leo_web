@@ -92,6 +92,12 @@ public class StorefrontAdminController {
 
     // ------------------------------------------------------------ модели
 
+    /** Карточка модели с наложенным черновиком — то, с чем открывается панель. */
+    @GetMapping("/models/{id}")
+    public ResponseEntity<StorefrontModelRequest> model(@PathVariable UUID id) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(admin.model(id, true));
+    }
+
     @PutMapping(value = "/models/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public StorefrontModelRequest saveModelDraft(@PathVariable UUID id, @RequestBody String patch) {
         return admin.saveModelDraft(id, patch);

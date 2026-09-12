@@ -39,3 +39,49 @@ export async function getStorefront(): Promise<Storefront> {
     return lastKnownGood;
   }
 }
+
+// Три честных исхода предпросмотра. Четвёртого — «показать что-нибудь» — нет.
+export type StorefrontPreview =
+  | {state: 'draft'; storefront: Storefront}
+  // Смотрит не редактор: cookie чужая, протухшая или роль не admin. Страница
+  // отдаёт опубликованное, как любому посетителю.
+  | {state: 'forbidden'}
+  // Сервер данных недоступен. Показывать при этом снимок нельзя — см. ниже.
+  | {state: 'unavailable'; reason: string};
+
+/**
+ * Витрина глазами владельца: опубликованное с наложенным черновиком.
+ *
+ * ОТДЕЛЬНАЯ ДОРОГА, И ЭТО ТРЕБОВАНИЕ ЭТАПА, А НЕ УДОБСТВО:
+ *   • своя ручка (`/api/admin/storefront/preview`, у неё нет @Cacheable);
+ *   • `cache: 'no-store'` и никакого тега — черновик не имеет права попасть
+ *     ни в общий Data Cache Next, ни под `revalidateTag('storefront')`;
+ *   • `lastKnownGood` не читается и не пишется.
+ *
+ * Последнее — главное. Черновик это НАМЕРЕНИЕ. Увидев вместо него снимок,
+ * владелец решит одно из двух: «правка потерялась» — и сделает её заново, или,
+ * хуже, «правка применилась» — и нажмёт «Опубликовать» вслепую. Поэтому при
+ * недоступном API предпросмотр обязан честно сказать, что данных нет, а не
+ * подсунуть последнее удачное.
+ *
+ * Cookie передаётся явным параметром: модуль не знает про `next/headers` и
+ * остаётся проверяемым без окружения запроса.
+ */
+export async function getStorefrontPreview(cookie: string): Promise<StorefrontPreview> {
+  if (process.env.CATALOGUE_SOURCE === 'fixture') {
+    if (process.env.NODE_ENV === 'production') throw new Error('CATALOGUE_SOURCE=fixture is not allowed in production');
+    const {STOREFRONT_DRAFT_FIXTURE} = await import('./fixture');
+    return {state: 'draft', storefront: STOREFRONT_DRAFT_FIXTURE};
+  }
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/storefront/preview`, {
+      cache: 'no-store',
+      headers: {cookie},
+    });
+    if (res.status === 401 || res.status === 403) return {state: 'forbidden'};
+    if (!res.ok) return {state: 'unavailable', reason: `storefront preview failed: ${res.status}`};
+    return {state: 'draft', storefront: (await res.json()) as Storefront};
+  } catch (error) {
+    return {state: 'unavailable', reason: error instanceof Error ? error.message : 'storefront preview failed'};
+  }
+}

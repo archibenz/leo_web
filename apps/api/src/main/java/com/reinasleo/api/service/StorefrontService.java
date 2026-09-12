@@ -2,6 +2,7 @@ package com.reinasleo.api.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.reinasleo.api.dto.storefront.StorefrontBrokenDraft;
 import com.reinasleo.api.dto.storefront.StorefrontColour;
 import com.reinasleo.api.dto.storefront.StorefrontProduct;
 import com.reinasleo.api.dto.storefront.StorefrontResponse;
@@ -30,6 +31,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -115,9 +117,9 @@ public class StorefrontService {
         Map<UUID, List<ProductSetItem>> itemsBySet = setItems.findAllByOrderBySetIdAscPositionAsc().stream()
                 .collect(Collectors.groupingBy(ProductSetItem::getSetId, LinkedHashMap::new, Collectors.toList()));
 
-        if (withDrafts) {
-            applyDrafts(modelRows, variantsByModel, setRows, itemsBySet, sectionRows);
-        }
+        List<StorefrontBrokenDraft> brokenDrafts = withDrafts
+                ? applyDrafts(modelRows, variantsByModel, setRows, itemsBySet, sectionRows)
+                : null;
 
         List<StorefrontProduct> productDtos = modelRows.stream()
                 .filter(ProductModel::isActive)
@@ -146,24 +148,44 @@ public class StorefrontService {
 
         List<StorefrontSectionDto> sectionDtos = sectionRows.stream().map(this::toSection).toList();
 
-        return new StorefrontResponse(productDtos, setDtos, sectionDtos);
+        return new StorefrontResponse(productDtos, setDtos, sectionDtos, brokenDrafts);
     }
 
     /**
      * Черновик поверх опубликованного — на отсоединённых от сессии строках,
      * чтобы предпросмотр физически не мог ничего записать в базу.
+     *
+     * ПОСТРОЧНО, И ЭТО ГЛАВНОЕ (lw-sjek). Нечитаемый черновик одной карточки
+     * раньше уносил весь предпросмотр в 400: владелец не видел ни одной своей
+     * правки, включая исправные, и не понимал, какая из них виновата. Теперь
+     * сломанная строка возвращается в ОПУБЛИКОВАННЫЙ вид (тем же применением
+     * DTO к полям, которым правка и накладывалась), а рядом кладётся маркер.
+     *
+     * Маркер обязателен: «правки нет» и «правка есть, но её не прочитать» —
+     * разные вещи, и молча показать первое вместо второго значит заставить
+     * владельца сделать правку заново поверх той, что уже лежит в базе.
+     *
+     * Показать сломанное можно, опубликовать — нет: публикация зовёт ту же
+     * функцию слияния без этого перехвата и отвечает 400.
      */
-    private void applyDrafts(List<ProductModel> modelRows, Map<UUID, List<Product>> variantsByModel,
-                             List<ProductSet> setRows, Map<UUID, List<ProductSetItem>> itemsBySet,
-                             List<StorefrontSection> sectionRows) {
+    private List<StorefrontBrokenDraft> applyDrafts(List<ProductModel> modelRows, Map<UUID, List<Product>> variantsByModel,
+                                                    List<ProductSet> setRows, Map<UUID, List<ProductSetItem>> itemsBySet,
+                                                    List<StorefrontSection> sectionRows) {
+        List<StorefrontBrokenDraft> broken = new ArrayList<>();
         for (StorefrontSection s : sectionRows) {
             entityManager.detach(s);
             if (s.getDraft() == null) {
                 continue;
             }
-            StorefrontSectionRequest merged = StorefrontDraftMerge.merge(
-                    mapping.published(s), s.getDraft(), StorefrontSectionRequest.class);
-            mapping.apply(merged, s);
+            StorefrontSectionRequest published = mapping.published(s);
+            try {
+                StorefrontSectionRequest merged = StorefrontDraftMerge.merge(
+                        published, s.getDraft(), StorefrontSectionRequest.class);
+                mapping.apply(merged, s);
+            } catch (RuntimeException e) {
+                broken.add(unreadable("section", s.getId().toString(), s.getSlug(), e));
+                restore(() -> mapping.apply(published, s), "section", s.getSlug());
+            }
         }
         for (ProductModel m : modelRows) {
             entityManager.detach(m);
@@ -172,21 +194,57 @@ public class StorefrontService {
             if (m.getDraft() == null) {
                 continue;
             }
-            StorefrontModelRequest merged = StorefrontDraftMerge.merge(
-                    mapping.published(m, variants), m.getDraft(), StorefrontModelRequest.class);
-            mapping.apply(merged, m, variants.stream().collect(
-                    Collectors.toMap(Product::getId, java.util.function.Function.identity())));
+            Map<String, Product> variantsById = variants.stream()
+                    .collect(Collectors.toMap(Product::getId, java.util.function.Function.identity()));
+            StorefrontModelRequest published = mapping.published(m, variants);
+            try {
+                StorefrontModelRequest merged = StorefrontDraftMerge.merge(
+                        published, m.getDraft(), StorefrontModelRequest.class);
+                mapping.apply(merged, m, variantsById);
+            } catch (RuntimeException e) {
+                broken.add(unreadable("model", m.getId().toString(), m.getSlug(), e));
+                // Применение могло успеть тронуть часть полей и часть вариантов
+                // до отказа — возвращаем всю карточку целиком, а не то, что
+                // «кажется» изменившимся.
+                restore(() -> mapping.apply(published, m, variantsById), "model", m.getSlug());
+            }
         }
         for (ProductSet set : setRows) {
             entityManager.detach(set);
             if (set.getDraft() == null) {
                 continue;
             }
-            StorefrontSetRequest merged = StorefrontDraftMerge.merge(
-                    mapping.published(set, itemsBySet.getOrDefault(set.getId(), List.of())),
-                    set.getDraft(), StorefrontSetRequest.class);
-            mapping.apply(merged, set);
-            itemsBySet.put(set.getId(), mapping.itemsOf(set.getId(), merged));
+            StorefrontSetRequest published = mapping.published(set, itemsBySet.getOrDefault(set.getId(), List.of()));
+            try {
+                StorefrontSetRequest merged = StorefrontDraftMerge.merge(
+                        published, set.getDraft(), StorefrontSetRequest.class);
+                mapping.apply(merged, set);
+                // Состав подменяется последним: он заменяет опубликованные
+                // строки, и делать это до успешного слияния значило бы оставить
+                // сломанный образ с чужим составом.
+                itemsBySet.put(set.getId(), mapping.itemsOf(set.getId(), merged));
+            } catch (RuntimeException e) {
+                broken.add(unreadable("set", set.getId().toString(), set.getKey(), e));
+                restore(() -> mapping.apply(published, set), "set", set.getKey());
+            }
+        }
+        return broken;
+    }
+
+    private StorefrontBrokenDraft unreadable(String kind, String id, String key, RuntimeException e) {
+        String reason = e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+        log.warn("Draft of {} {} is unreadable; serving the published row instead: {}", kind, key, reason);
+        return new StorefrontBrokenDraft(kind, id, key, reason);
+    }
+
+    // Возврат строки в опубликованный вид. Своё исключение здесь означало бы,
+    // что опубликованные колонки сами себя не переживают, — такое надо видеть
+    // в логе, но валить из-за него весь предпросмотр нельзя.
+    private void restore(Runnable restore, String kind, String key) {
+        try {
+            restore.run();
+        } catch (RuntimeException e) {
+            log.error("Could not restore the published state of {} {}", kind, key, e);
         }
     }
 

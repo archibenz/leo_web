@@ -127,6 +127,33 @@ public class StorefrontAdminService {
 
     // =========================================================== модели и их варианты
 
+    /**
+     * Карточка целиком глазами панели редактора: опубликованное с наложенным
+     * черновиком, ТОЙ ЖЕ функцией слияния, что у предпросмотра и публикации.
+     *
+     * Отдельная ручка нужна из-за наличия: `stock_quantity` в публичном ответе
+     * витрины нет и быть не должно — покупателю остаток не показываем, — а поле
+     * «наличие» обязано открываться с текущим значением, а не пустым.
+     *
+     * Нечитаемый черновик здесь НЕ отказ: иначе карточку со сломанным
+     * черновиком нельзя было бы даже открыть, чтобы починить. Отдаём
+     * опубликованное — ровно как предпросмотр, который рядом ставит маркер.
+     */
+    @Transactional(readOnly = true)
+    public StorefrontModelRequest model(UUID id, boolean withDraft) {
+        ProductModel model = model(id);
+        List<Product> variants = products.findByModelIdOrderBySortOrderAsc(id);
+        StorefrontModelRequest published = mapping.published(model, variants);
+        if (!withDraft || model.getDraft() == null) {
+            return published;
+        }
+        try {
+            return StorefrontDraftMerge.merge(published, model.getDraft(), StorefrontModelRequest.class);
+        } catch (RuntimeException e) {
+            return published;
+        }
+    }
+
     @Transactional
     public StorefrontModelRequest saveModelDraft(UUID id, String patchJson) {
         ProductModel model = model(id);

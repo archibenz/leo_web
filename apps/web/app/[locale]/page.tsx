@@ -3,12 +3,17 @@ import {headers} from 'next/headers';
 import {safeJsonLd} from '../../lib/jsonLd';
 import {SITE_URL} from '../../lib/siteUrl';
 import {brandMeta} from '../../lib/openGraph';
-import {getStorefront} from '../../lib/catalogue/fetch';
+import {storefrontForViewer, wantsEditing} from '../../lib/catalogue/viewer';
+import {EditorProvider} from '../../components/editor/EditorProvider';
+import EditorUnavailable from '../../components/editor/EditorUnavailable';
 import WhiteShowcase from './WhiteShowcase';
 
 // The White storefront home — the site's landing page.
 
-type Props = {params: Promise<{locale: string}>};
+// `?edit=1` — режим правки. Параметр делает страницу динамической, что для
+// витрины ничего не меняет: она и так рендерится на каждый запрос (layout
+// ждёт headers() ради CSP-нонса).
+type Props = {params: Promise<{locale: string}>; searchParams: Promise<Record<string, string | string[] | undefined>>};
 
 export async function generateMetadata({params}: Props): Promise<Metadata> {
   const {locale} = await params;
@@ -29,11 +34,15 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
   };
 }
 
-export default async function WhiteVariantPage({params}: Props) {
+export default async function WhiteVariantPage({params, searchParams}: Props) {
   const {locale} = await params;
   const ru = locale === 'ru';
   const nonce = (await headers()).get('x-nonce') ?? undefined;
-  const {products, sections} = await getStorefront();
+  // Публичное чтение идёт через снимок, предпросмотр — никогда: решает одна
+  // функция, и обе дороги внутри неё не смешиваются.
+  const view = await storefrontForViewer(wantsEditing(await searchParams));
+  if (view.storefront === null) return <EditorUnavailable plainHref={`/${locale}`} reason={view.previewError} />;
+  const {products, sections} = view.storefront;
   // The edit and the two media blocks are the database's to order now — a piece
   // joins the home page by getting a featuredOrder, not by editing this file.
   const featured = products.filter((p) => p.featuredOrder != null).sort((a, b) => a.featuredOrder! - b.featuredOrder!);
@@ -62,7 +71,9 @@ export default async function WhiteVariantPage({params}: Props) {
     <>
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}} />
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(siteJsonLd)}} />
-      <WhiteShowcase locale={locale} featured={featured} hero={hero} setsTeaser={setsTeaser} />
+      <EditorProvider editing={view.editing} brokenDrafts={view.storefront.brokenDrafts}>
+        <WhiteShowcase locale={locale} featured={featured} hero={hero} setsTeaser={setsTeaser} />
+      </EditorProvider>
     </>
   );
 }

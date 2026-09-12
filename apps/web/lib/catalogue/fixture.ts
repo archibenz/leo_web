@@ -184,3 +184,29 @@ const SECTIONS: StorefrontSection[] = [
 ];
 
 export const STOREFRONT_FIXTURE: Storefront = {products: PRODUCTS, sets: SETS, sections: SECTIONS};
+
+// Та же витрина, какой её видит владелец в режиме редактирования: поверх
+// опубликованного лежит черновик героя и черновик цены одного варианта, а у
+// одной карточки черновик НЕ ЧИТАЕТСЯ — она отдана опубликованной и помечена.
+// Нужна там же, где и STOREFRONT_FIXTURE: e2e и локальная разработка без API.
+// Отличия от опубликованного видны глазом — иначе спека «без флага черновика
+// нет» проходила бы на одинаковых данных и ничего не доказывала.
+export const STOREFRONT_DRAFT_FIXTURE: Storefront = {
+  products: PRODUCTS.map((p) =>
+    p.key === 2
+      ? {...p, colors: p.colors.map((c, i) => (i === 0 ? {...c, price: 19900, sale: 17900} : c))}
+      : p,
+  ),
+  sets: SETS,
+  sections: SECTIONS.map((s) =>
+    s.layout === 'hero' ? {...s, eyebrowRu: 'Черновик · Осень / Зима 2026', headlineRu: 'Черновик\nзаголовка'} : s,
+  ),
+  brokenDrafts: [
+    {
+      kind: 'set',
+      id: '8f2a1f2c-2f7a-5c2e-9c47-0f1f1f8d7a10',
+      key: SETS[0]!.key,
+      reason: 'duplicate_set_item:wb-795522033',
+    },
+  ],
+};

@@ -28,7 +28,14 @@ public class NextRevalidator {
     private static final Logger log = LoggerFactory.getLogger(NextRevalidator.class);
     private static final String SECRET_HEADER = "X-Revalidate-Secret";
 
+    // HTTP/1.1 ЯВНО. По умолчанию HttpClient берёт HTTP_2 и на открытом порту
+    // сперва просит апгрейд до h2c. Node, на котором стоит Next, такого апгрейда
+    // не умеет и рвёт соединение — запрос падает с «HTTP/1.1 header parser
+    // received no bytes», сброс кэша не происходит, и правка доезжает до
+    // покупателя не за минуту, а за десять. Поймано живьём: curl --http1.1 даёт
+    // 200, curl --http2 к той же ручке — 000.
     private final HttpClient http = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(2))
             .build();
 

@@ -4,6 +4,9 @@ import {notFound} from 'next/navigation';
 import WhitePdpShowcase from '../WhitePdpShowcase';
 import {getStockSnapshot, wbHasStock} from '../../../../lib/stock';
 import {getStorefront} from '../../../../lib/catalogue/fetch';
+import {storefrontForViewer, wantsEditing} from '../../../../lib/catalogue/viewer';
+import {EditorProvider} from '../../../../components/editor/EditorProvider';
+import EditorUnavailable from '../../../../components/editor/EditorUnavailable';
 import {CATALOGUE_SLUGS} from '../../../../lib/generated/product-slugs';
 import {findProductBySlug, whiteProductHref, whitePriceRange} from '../../../../lib/catalogue/select';
 import {safeJsonLd, buildBreadcrumbJsonLd} from '../../../../lib/jsonLd';
@@ -16,6 +19,9 @@ import {brandCardUrl} from '../../../../lib/openGraph';
 
 type Props = {
   params: Promise<{locale: string; slug: string}>;
+  // `?edit=1` — режим правки: цена, скидка, наличие и галерея цветового
+  // варианта правятся на той самой странице, где покупатель их видит.
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 // Остаётся страховкой, но сегодня ничего не решает: ни одна страница
@@ -95,9 +101,11 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
   };
 }
 
-export default async function WhiteProductSlugPage({params}: Props) {
+export default async function WhiteProductSlugPage({params, searchParams}: Props) {
   const {locale, slug} = await params;
-  const {products, sets} = await getStorefront();
+  const view = await storefrontForViewer(wantsEditing(await searchParams));
+  if (view.storefront === null) return <EditorUnavailable plainHref={`/${locale}/product/${slug}`} reason={view.previewError} />;
+  const {products, sets} = view.storefront;
   const product = findProductBySlug(products, slug);
   if (!product) notFound();
   const nonce = (await headers()).get('x-nonce') ?? undefined;
@@ -161,7 +169,9 @@ export default async function WhiteProductSlugPage({params}: Props) {
     <>
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(productJsonLd)}} />
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(breadcrumbJsonLd)}} />
-      <WhitePdpShowcase locale={locale} product={product} products={products} sets={sets} onWildberries={onWildberries} />
+      <EditorProvider editing={view.editing} brokenDrafts={view.storefront.brokenDrafts}>
+        <WhitePdpShowcase locale={locale} product={product} products={products} sets={sets} onWildberries={onWildberries} />
+      </EditorProvider>
     </>
   );
 }

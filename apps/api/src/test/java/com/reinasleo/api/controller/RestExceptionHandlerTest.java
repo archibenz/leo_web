@@ -100,4 +100,76 @@ class RestExceptionHandlerTest {
         assertThat(nullMessage.getBody()).containsEntry("error", "bad_request");
         assertThat(nullMessage.getBody()).containsEntry("message", "Bad request");
     }
+
+    @Test
+    void aBrokenCheckConstraintIsA400_andLeaksNothingFromTheFailingRow() {
+        // Сообщение PSQLException — это ServerErrorMessage.toString() вместе с
+        // «Detail: Failing row contains (…)», то есть значениями всех колонок
+        // отказавшей строки. Обработчик глобальный, CHECK'и есть на order_items и
+        // payments, а чекаут и вебхук YooKassa открыты — отдать этот текст
+        // наружу значит отдать чужие данные заказа.
+        var checkViolation = new org.springframework.dao.DataIntegrityViolationException(
+                "could not execute statement",
+                new java.sql.SQLException(
+                        "ERROR: new row for relation \"order_items\" violates check constraint \"ck_order_items_qty\"\n"
+                                + "  Detail: Failing row contains (ord-77, ivan@example.com, +79990000000, 4, 19000).",
+                        "23514"));
+
+        ResponseEntity<Map<String, Object>> response = handler.handleDataIntegrity(checkViolation);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody()).containsEntry("error", "constraint_violation");
+        assertThat(response.getBody()).containsEntry("constraint", "ck_order_items_qty");
+        String out = String.valueOf(response.getBody());
+        assertThat(out).contains("ck_order_items_qty");
+        assertThat(out).doesNotContain("Failing row");
+        assertThat(out).doesNotContain("ivan@example.com");
+        assertThat(out).doesNotContain("+79990000000");
+    }
+
+    @Test
+    void theCheckBranchIsChosenBySqlState_notByWordsInTheMessage() {
+        // Прежняя версия искала подстроку «check constraint» — это зависело бы и
+        // от драйвера, и от локали сервера. SQLSTATE стандартен: 23514 у
+        // PostgreSQL, 23513 у H2. Проверяем на сообщении, в котором нужных слов
+        // нет вовсе.
+        for (String state : new String[]{"23514", "23513"}) {
+            var violation = new org.springframework.dao.DataIntegrityViolationException(
+                    "nope",
+                    new java.sql.SQLException("нарушено правило \"ck_product_models_category\"", state));
+
+            ResponseEntity<Map<String, Object>> response = handler.handleDataIntegrity(violation);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+            assertThat(response.getBody()).containsEntry("error", "constraint_violation");
+            // Имя правила достаётся по-лучшему: не вышло — «unknown», и наружу
+            // всё равно не уходит ни байта из сообщения драйвера.
+            assertThat(String.valueOf(response.getBody())).doesNotContain("нарушено правило");
+        }
+    }
+
+    @Test
+    void aViolationWithoutSqlStateKeepsTheOldConflictAnswer() {
+        // Не регрессируем на том, чего не знаем: без SQLSTATE ответ остаётся тем
+        // же, что и до правки.
+        var unknown = new org.springframework.dao.DataIntegrityViolationException(
+                "nope", new java.sql.SQLException("что-то пошло не так"));
+
+        ResponseEntity<Map<String, Object>> response = handler.handleDataIntegrity(unknown);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody()).containsEntry("message", "email_exists");
+    }
+
+    @Test
+    void aUniqueViolationStillReadsAsTheEmailConflict() {
+        var uniqueViolation = new org.springframework.dao.DataIntegrityViolationException(
+                "could not execute statement",
+                new java.sql.SQLException("duplicate key value violates unique constraint \"users_email_key\"", "23505"));
+
+        ResponseEntity<Map<String, Object>> response = handler.handleDataIntegrity(uniqueViolation);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+        assertThat(response.getBody()).containsEntry("message", "email_exists");
+    }
 }
