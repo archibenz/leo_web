@@ -135,6 +135,47 @@ describe('WildberriesButton', () => {
     expect(open).not.toHaveBeenCalled();
   });
 
+  it('calls onClick once per genuine tap, not on a re-tap during the flood', () => {
+    vi.useFakeTimers();
+    mockMatchMedia(false);
+    vi.spyOn(window, 'open').mockReturnValue({} as unknown as Window);
+    const onClick = vi.fn();
+    render(
+      <WildberriesButton href="https://wb.example/item" onClick={onClick}>
+        Buy on WB
+      </WildberriesButton>,
+    );
+    const link = screen.getByRole('link');
+
+    fireEvent.pointerDown(link, {pointerType: 'touch'});
+    fireEvent.click(link);
+    expect(onClick).toHaveBeenCalledTimes(1);
+
+    // Re-tap while the flood is in flight — already covered by the pending
+    // timer, must not double-count as a second click.
+    fireEvent.pointerDown(link, {pointerType: 'touch'});
+    fireEvent.click(link);
+    expect(onClick).toHaveBeenCalledTimes(1);
+
+    act(() => vi.advanceTimersByTime(400));
+  });
+
+  it('calls onClick on a plain desktop (mouse) click too', () => {
+    mockMatchMedia(false);
+    const onClick = vi.fn();
+    render(
+      <WildberriesButton href="https://wb.example/item" onClick={onClick}>
+        Buy on WB
+      </WildberriesButton>,
+    );
+    const link = screen.getByRole('link');
+
+    fireEvent.pointerDown(link, {pointerType: 'mouse'});
+    fireEvent.click(link);
+
+    expect(onClick).toHaveBeenCalledTimes(1);
+  });
+
   it('does not intercept mouse or keyboard activation', () => {
     mockMatchMedia(false);
     const open = vi.spyOn(window, 'open');

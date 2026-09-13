@@ -13,6 +13,9 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+const trackSiteEvent = vi.fn();
+vi.mock('../../../lib/siteEvents', () => ({trackSiteEvent: (...args: unknown[]) => trackSiteEvent(...args)}));
+
 // jsdom has no localStorage; the White bag/favourites hooks read it on mount.
 const lsStore = new Map<string, string>();
 const mockLocalStorage = {
@@ -88,6 +91,36 @@ function position(dialog: HTMLElement): string {
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  trackSiteEvent.mockClear();
+});
+
+describe('WhitePdpShowcase site-events tracking', () => {
+  it('tracks product_view once on mount with the variant id, not the model id', async () => {
+    renderPdp(PRODUCTS[0]!);
+
+    await waitFor(() => expect(trackSiteEvent).toHaveBeenCalledWith('product_view', {
+      productId: PRODUCTS[0]!.colors[0]!.id,
+      modelId: PRODUCTS[0]!.id,
+    }));
+    expect(trackSiteEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks add_to_favourite with the selected colour on add, not on remove', async () => {
+    const user = userEvent.setup();
+    renderPdp(PRODUCTS[0]!);
+    trackSiteEvent.mockClear(); // drop the product_view call from mount
+
+    // The PDP renders the heart twice (main CTA block + mobile sticky bar),
+    // both bound to the same toggle — pick one consistently.
+    const hearts = await screen.findAllByRole('button', {name: /favourites/i});
+    await user.click(hearts[0]!);
+    await waitFor(() =>
+      expect(trackSiteEvent).toHaveBeenCalledWith('add_to_favourite', {productId: PRODUCTS[0]!.colors[0]!.id}));
+
+    trackSiteEvent.mockClear();
+    await user.click(screen.getAllByRole('button', {name: /favourites/i})[0]!);
+    expect(trackSiteEvent).not.toHaveBeenCalled();
+  });
 });
 
 describe('WhitePdpShowcase zoom lightbox keyboard navigation', () => {

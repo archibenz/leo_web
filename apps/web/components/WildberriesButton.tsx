@@ -20,12 +20,14 @@ interface WildberriesButtonProps {
   href: string;
   children: ReactNode;
   className?: string;
+  onClick?: () => void;
 }
 
 export default function WildberriesButton({
   href,
   children,
   className,
+  onClick,
 }: WildberriesButtonProps) {
   // Pointer events, not mouse events: on touch, mouseenter latched on the
   // first tap and mouseleave never fired, so the ripple kept running after
@@ -62,6 +64,9 @@ export default function WildberriesButton({
       e.preventDefault();
       return;
     }
+    // Fires exactly once per genuine tap/click, before the touch-vs-desktop
+    // branches below (both end in a real navigation to WB).
+    onClick?.();
     if (pointerType !== 'touch') return;
     // Reduced-motion users get the native, undelayed navigation.
     if (
