@@ -1,7 +1,7 @@
 import {test, expect, type Page} from '@playwright/test';
 import {STOREFRONT_DRAFT_FIXTURE} from '../../lib/catalogue/fixture';
 import {skipUnlessFixtureCatalogue} from '../fixtures/catalogue';
-import {openWhite} from '../fixtures/white';
+import {openSettledForOwner} from '../fixtures/white';
 
 // P1: владелец открыл панель на телефоне и не смог добавить строку бегущей
 // строки — вписал «Коллекция» в свободное поле «Куда ведёт», получил 400
@@ -22,6 +22,13 @@ import {openWhite} from '../fixtures/white';
 // «сохраняю…»); (3) строка со сделанным выбором остаётся на месте в панели.
 // Серверное правило href остаётся под своим тестом (TickerItemRequest) и
 // здесь не переисследуется — только форма, которая раньше пускала «Коллекция».
+//
+// openSettledForOwner (не openWhite впрямую) — ярлык «Бегущая строка» и
+// панель зависят от isAdmin/editing, которые решаются асинхронно клиентским
+// эффектом на /api/auth/me; действие сразу после навигации иногда обгоняло
+// его же появление (третий кейс этого класса гонки в спеках после
+// 12-edit-switch.spec.ts — см. комментарий у openSettledForOwner в
+// fixtures/white.ts).
 
 const TOKEN = 'fixture-editor-token';
 const TICKER = STOREFRONT_DRAFT_FIXTURE.sections.find((s) => s.layout === 'ticker')!;
@@ -65,7 +72,7 @@ test('добавить строку, выбрать «Сеты» из списк
     await route.abort();
   });
 
-  await openWhite(page, '/ru?edit=1');
+  await openSettledForOwner(page, '/ru?edit=1');
   await page.getByRole('button', {name: 'Бегущая строка'}).click();
   const panel = page.getByRole('complementary', {name: 'Правка витрины'});
   await expect(panel).toBeVisible();
