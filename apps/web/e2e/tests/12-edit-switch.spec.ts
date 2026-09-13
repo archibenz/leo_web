@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 import type {Page, BrowserContext} from '@playwright/test';
 import {copy} from '../fixtures/messages';
-import {openWhite, acknowledgeCookies, hydrateViaCookieNotice} from '../fixtures/white';
+import {openWhite, acknowledgeCookies, hydrateViaCookieNotice, openSettledForOwner} from '../fixtures/white';
 
 // Вход в режим правки переехал из шапки в аккаунт/админку: «ПРАВИТЬ» не
 // существует в шапке ни в каком виде, и шапка обязана выглядеть ОДИНАКОВО
@@ -71,16 +71,9 @@ async function openSettled(page: Page, path: string): Promise<void> {
   await hydrateViaCookieNotice(page);
 }
 
-// У владельца вдобавок есть и точный признак — сетевой ответ на
-// /api/auth/me. Слушателя ставим ДО навигации (Promise.all): иначе возможна
-// гонка, если ответ придёт раньше, чем мы начнём его ждать.
-async function openSettledForOwner(page: Page, path: string): Promise<void> {
-  await Promise.all([
-    page.waitForResponse((r) => r.url().includes('/api/auth/me')),
-    openWhite(page, path),
-  ]);
-  await hydrateViaCookieNotice(page);
-}
+// openSettledForOwner (тот же приём + точный сетевой признак /api/auth/me
+// для владельца) — в fixtures/white.ts: понадобился и 13-ticker-usability.spec.ts,
+// дублировать не стал.
 
 // Отпечаток шапки: видимый текст (без пробельного мусора) плюс фон — тот же
 // приём сравнения backgroundColor, что и в 11-tg-landing.spec.ts, усиленный
