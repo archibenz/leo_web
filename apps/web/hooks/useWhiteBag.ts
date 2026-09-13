@@ -1,4 +1,5 @@
 import {useEffect, useState} from 'react';
+import {trackSiteEvent} from '../lib/siteEvents';
 
 // Variant 2 "White" — client-only bag, backed by localStorage. The storefront
 // portals are client-mount-gated (useWhitePortal), so there is no SSR of this
@@ -151,6 +152,10 @@ export function addToWhiteBag(item: Omit<WhiteBagItem, 'id' | 'qty'>): void {
   persist();
   const added = items.find((i) => i.id === id);
   if (added) for (const fn of addListeners) fn(added);
+  // Tracked here, not per call site: every caller (PDP, card quick-add, sets
+  // page) already funnels through this one function, and the variant id
+  // travels with the item itself — no separate lookup needed.
+  if (added) trackSiteEvent('add_to_cart', {productId: added.productId});
 }
 
 export function setWhiteBagQty(id: string, qty: number): void {
