@@ -3,12 +3,11 @@
 import {useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {INK, MUTED, HAIR} from './wv-palette';
+import {COOKIE_CONSENT_KEY} from '../../lib/cookieConsent';
 
 // A quiet cookie line: one sentence, the policy link, one button. Shown once —
 // the acknowledgement lives in localStorage, and until the client mounts
 // nothing renders, so the server and first paint agree.
-
-const KEY = 'wv-cookie-ok';
 // Read by anything else pinned to the bottom of the viewport (the PDP's mobile
 // sticky add-to-bag bar) so it can reserve this much space instead of sitting
 // underneath the notice — both are `fixed inset-x-0 bottom-0`, and this one
@@ -22,7 +21,7 @@ export default function WhiteCookieNotice({locale}: {locale: string}) {
 
   useEffect(() => {
     try {
-      if (!localStorage.getItem(KEY)) setShow(true);
+      if (!localStorage.getItem(COOKIE_CONSENT_KEY)) setShow(true);
     } catch {
       /* storage unavailable — stay quiet */
     }
@@ -59,7 +58,7 @@ export default function WhiteCookieNotice({locale}: {locale: string}) {
 
   const accept = () => {
     try {
-      localStorage.setItem(KEY, '1');
+      localStorage.setItem(COOKIE_CONSENT_KEY, '1');
     } catch {
       /* storage unavailable — dismiss for the session anyway */
     }
