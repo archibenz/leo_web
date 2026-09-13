@@ -1,7 +1,7 @@
 import {test, expect, type Page} from '@playwright/test';
 import {STOREFRONT_DRAFT_FIXTURE} from '../../lib/catalogue/fixture';
 import {skipUnlessFixtureCatalogue} from '../fixtures/catalogue';
-import {openWhite} from '../fixtures/white';
+import {openSettledForOwner, openWhite} from '../fixtures/white';
 
 // Бегущая строка на главной (storefront_sections, layout='ticker') — тот же
 // приём редактора, что герой и тизер сетов (07-storefront-editor.spec.ts):
@@ -41,7 +41,7 @@ test('без строк полосы на главной нет вовсе', asy
 
 test('с черновиком строк полоса видна и несёт текст строки', async ({page}) => {
   await asOwner(page);
-  await openWhite(page, '/ru?edit=1');
+  await openSettledForOwner(page, '/ru?edit=1');
 
   const ticker = page.getByRole('region', {name: TICKER_REGION_NAME});
   await expect(ticker).toBeVisible();
@@ -50,7 +50,7 @@ test('с черновиком строк полоса видна и несёт �
 
 test('в режиме правки по полосе открывается панель со списком строк', async ({page}) => {
   await asOwner(page);
-  await openWhite(page, '/ru?edit=1');
+  await openSettledForOwner(page, '/ru?edit=1');
 
   await page.getByRole('button', {name: 'Бегущая строка'}).click();
   const panel = page.getByRole('complementary', {name: 'Правка витрины'});

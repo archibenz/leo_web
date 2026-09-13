@@ -73,8 +73,8 @@ async function openSettled(page: Page, path: string): Promise<void> {
 }
 
 // openSettledForOwner (тот же приём + точный сетевой признак /api/auth/me
-// для владельца) — в fixtures/white.ts: понадобился и 13-ticker-usability.spec.ts,
-// дублировать не стал.
+// для владельца) — в fixtures/white.ts: понадобился трём спекам сразу
+// (ticker-usability, admin-media и этому), дублировать не стал.
 
 // Отпечаток шапки: видимый текст (без пробельного мусора) плюс фон — тот же
 // приём сравнения backgroundColor, что и в 11-tg-landing.spec.ts, усиленный

@@ -2,9 +2,10 @@
 
 import {useEffect, useState} from 'react';
 import {apiFetch} from '../../lib/api';
-import {HAIR, MUTED, SIGNAL} from '../../app/[locale]/wv-palette';
-import {EditorButton, EditorLabel, MediaField, NumberField} from './EditorFields';
-import {saveVariantDraft, uploadMedia, type Patch} from './editorApi';
+import {MUTED, SIGNAL} from '../../app/[locale]/wv-palette';
+import {EditorButton, EditorLabel, NumberField} from './EditorFields';
+import GalleryField from './GalleryField';
+import {saveVariantDraft, type Patch} from './editorApi';
 
 // Цена, скидка, наличие и галерея цветового варианта.
 //
@@ -43,10 +44,18 @@ export default function VariantForm({modelId, variantId, onSaved}: {
   const [before, setBefore] = useState<Draft | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
+    // Переключение на другой вариант без закрытия панели (клик по другому
+    // свотчу) не размонтирует VariantForm — меняются только props. Черновик
+    // сбрасываем СРАЗУ, а не ждём ответа сети: иначе GalleryField, ключом
+    // на variantId, перемонтировался бы РАНЬШЕ, чем придут новые image/gallery,
+    // и получил бы в качестве «начального» состояния ещё старые, чужие кадры.
+    setBefore(null);
+    setDraft(null);
     apiFetch<ModelDto>(`/api/admin/storefront/models/${modelId}`)
       .then((model) => {
         const v = model.variants[variantId];
@@ -103,20 +112,6 @@ export default function VariantForm({modelId, variantId, onSaved}: {
     }
   }
 
-  async function addToGallery(file: File | undefined) {
-    if (!file || !draft) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const url = await uploadMedia(file, 'image');
-      setDraft({...draft, gallery: [...draft.gallery, url]});
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'не загрузилось');
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
     <div className="flex flex-col gap-4">
       <NumberField
@@ -127,40 +122,30 @@ export default function VariantForm({modelId, variantId, onSaved}: {
       />
       <NumberField label="Цена со скидкой, ₽" value={draft.salePrice} onChange={set('salePrice')} hint="Только вместе с ценой и ниже неё." />
       <NumberField label="Наличие, шт" value={draft.stockQuantity} onChange={set('stockQuantity')} />
-      <MediaField label="Главный снимок" value={draft.image} kind="image" onChange={(next) => set('image')(next ?? '')} />
       <div>
         <EditorLabel>Галерея</EditorLabel>
-        <ul className="mb-2 flex flex-col gap-1">
-          {draft.gallery.map((src, i) => (
-            <li key={src} className="flex items-center justify-between gap-2 py-1" style={{borderBottom: `1px solid ${HAIR}`}}>
-              <span className="break-all text-[11px]">{src}</span>
-              <EditorButton tone="quiet" onClick={() => set('gallery')(draft.gallery.filter((_, j) => j !== i))}>
-                убрать
-              </EditorButton>
-            </li>
-          ))}
-          {draft.gallery.length === 0 && (
-            <li className="text-[12px]" style={{color: MUTED}}>
-              пусто — покажем главный снимок
-            </li>
-          )}
-        </ul>
-        <label className="inline-flex cursor-pointer items-center px-3 py-2 text-[11px] uppercase tracking-[0.16em]" style={{border: `1px solid ${HAIR}`, color: MUTED}}>
-          Добавить кадр
-          <input
-            type="file"
-            accept="image/jpeg,image/png"
-            className="hidden"
-            onChange={(e) => void addToGallery(e.target.files?.[0])}
-          />
-        </label>
+        {/* key=variantId: при переключении на другой цвет без закрытия панели
+            GalleryField обязан начать с чистого состояния — иначе на экране
+            повисла бы галерея прошлого варианта, пока не прилетит сеть. */}
+        <GalleryField
+          key={variantId}
+          image={draft.image}
+          gallery={draft.gallery}
+          onChange={(next) => setDraft((d) => (d ? {...d, image: next.image, gallery: next.gallery} : d))}
+          onUploadingChange={setUploading}
+        />
       </div>
       {error && (
         <p role="alert" className="text-[12px] leading-snug" style={{color: SIGNAL}}>
           {error}
         </p>
       )}
-      <EditorButton tone="solid" onClick={() => void save()} disabled={!dirty || busy}>
+      {uploading && (
+        <p className="text-[12px] leading-snug" style={{color: MUTED}}>
+          Дождитесь загрузки кадров — сохранение начнётся, как только все долетят.
+        </p>
+      )}
+      <EditorButton tone="solid" onClick={() => void save()} disabled={!dirty || busy || uploading}>
         {busy ? 'сохраняю…' : 'Сохранить в черновик'}
       </EditorButton>
     </div>
