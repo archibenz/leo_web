@@ -6,6 +6,7 @@ import com.reinasleo.api.dto.FavoriteExportDto;
 import com.reinasleo.api.dto.OrderExportDto;
 import com.reinasleo.api.dto.OrderItemExportDto;
 import com.reinasleo.api.dto.ProductInterestEventExportDto;
+import com.reinasleo.api.dto.SiteEventExportDto;
 import com.reinasleo.api.dto.UserExportDto;
 import com.reinasleo.api.model.User;
 import com.reinasleo.api.repository.UserRepository;
@@ -97,6 +98,7 @@ class AuthControllerExportTest {
                 new CartExportDto(List.of(), null, null),
                 List.of(),
                 List.of(),
+                List.of(),
                 0L,
                 Instant.now()
         );
@@ -119,7 +121,8 @@ class AuthControllerExportTest {
                 .andExpect(jsonPath("$.orders").isArray())
                 .andExpect(jsonPath("$.cart").exists())
                 .andExpect(jsonPath("$.favorites").isArray())
-                .andExpect(jsonPath("$.productInterestEvents").isArray());
+                .andExpect(jsonPath("$.productInterestEvents").isArray())
+                .andExpect(jsonPath("$.siteEvents").isArray());
     }
 
     @Test
@@ -155,6 +158,7 @@ class AuthControllerExportTest {
                 new CartExportDto(List.of(), null, null),
                 List.of(),
                 List.of(),
+                List.of(),
                 0L,
                 Instant.now());
         when(authService.exportAccountData(any(User.class))).thenReturn(response);
@@ -180,6 +184,7 @@ class AuthControllerExportTest {
                 new CartExportDto(List.of(), null, null),
                 List.of(fav),
                 List.of(),
+                List.of(),
                 0L,
                 Instant.now());
         when(authService.exportAccountData(any(User.class))).thenReturn(response);
@@ -203,6 +208,7 @@ class AuthControllerExportTest {
                 .andExpect(jsonPath("$.favorites").isEmpty())
                 .andExpect(jsonPath("$.cart.items").isEmpty())
                 .andExpect(jsonPath("$.productInterestEvents").isEmpty())
+                .andExpect(jsonPath("$.siteEvents").isEmpty())
                 .andExpect(jsonPath("$.verificationCodesIssued").value(0));
     }
 
@@ -216,6 +222,7 @@ class AuthControllerExportTest {
                 new CartExportDto(List.of(), null, null),
                 List.of(),
                 List.of(event),
+                List.of(),
                 0L,
                 Instant.now());
         when(authService.exportAccountData(any(User.class))).thenReturn(response);
@@ -227,5 +234,28 @@ class AuthControllerExportTest {
                 .andExpect(jsonPath("$.productInterestEvents[0].productId").value("p-evt-1"))
                 .andExpect(jsonPath("$.productInterestEvents[0].productTitle").value("Tracked Dress"))
                 .andExpect(jsonPath("$.productInterestEvents[0].eventType").value("add_to_cart"));
+    }
+
+    @Test
+    void export_includesSiteEvents_whenUserHasSiteEvents() throws Exception {
+        SiteEventExportDto event = new SiteEventExportDto(
+                "add_to_cart", Instant.now(), "wb-evt-1", "/ru/product/x", null);
+        AccountExportResponse response = new AccountExportResponse(
+                userExportDto(user, true, false),
+                List.of(),
+                new CartExportDto(List.of(), null, null),
+                List.of(),
+                List.of(),
+                List.of(event),
+                0L,
+                Instant.now());
+        when(authService.exportAccountData(any(User.class))).thenReturn(response);
+
+        mockMvc.perform(get("/api/auth/me/export")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.siteEvents.length()").value(1))
+                .andExpect(jsonPath("$.siteEvents[0].eventType").value("add_to_cart"))
+                .andExpect(jsonPath("$.siteEvents[0].productId").value("wb-evt-1"));
     }
 }
