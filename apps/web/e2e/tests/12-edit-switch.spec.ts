@@ -1,7 +1,7 @@
 import {test, expect} from '@playwright/test';
 import type {Page, BrowserContext} from '@playwright/test';
 import {copy} from '../fixtures/messages';
-import {openWhite, acknowledgeCookies, hydrateViaCookieNotice} from '../fixtures/white';
+import {openWhite, acknowledgeCookies, hydrateViaCookieNotice, openSettledForOwner} from '../fixtures/white';
 
 // Вход в режим правки переехал из шапки в аккаунт/админку: «ПРАВИТЬ» не
 // существует в шапке ни в каком виде, и шапка обязана выглядеть ОДИНАКОВО
@@ -17,6 +17,7 @@ import {openWhite, acknowledgeCookies, hydrateViaCookieNotice} from '../fixtures
 const HOME = '/ru';
 const ACCOUNT = '/ru/account';
 const EDIT_LABEL = copy('editModeSwitch', 'label');
+const ADMIN_LINK_LABEL = copy('editModeSwitch', 'adminLink');
 const DRAFT_BAR = 'Режим правки · страница показывает черновик';
 
 async function mockOwnerRole(page: Page) {
@@ -71,16 +72,9 @@ async function openSettled(page: Page, path: string): Promise<void> {
   await hydrateViaCookieNotice(page);
 }
 
-// У владельца вдобавок есть и точный признак — сетевой ответ на
-// /api/auth/me. Слушателя ставим ДО навигации (Promise.all): иначе возможна
-// гонка, если ответ придёт раньше, чем мы начнём его ждать.
-async function openSettledForOwner(page: Page, path: string): Promise<void> {
-  await Promise.all([
-    page.waitForResponse((r) => r.url().includes('/api/auth/me')),
-    openWhite(page, path),
-  ]);
-  await hydrateViaCookieNotice(page);
-}
+// openSettledForOwner (тот же приём + точный сетевой признак /api/auth/me
+// для владельца) — в fixtures/white.ts: понадобился и 13-ticker-usability.spec.ts,
+// дублировать не стал.
 
 // Отпечаток шапки: видимый текст (без пробельного мусора) плюс фон — тот же
 // приём сравнения backgroundColor, что и в 11-tg-landing.spec.ts, усиленный
@@ -165,6 +159,27 @@ test('включил выключатель в аккаунте → перешё
   await open(page, HOME);
   await expect(page.getByText(DRAFT_BAR)).toBeVisible();
   await expect(page.locator('#wv-page').getByText(/черновик/i).first()).toBeVisible();
+});
+
+// Владелец не нашёл вход в саму админку: ссылки на /admin не было нигде на
+// витрине, попасть можно было только вписав адрес руками (isAdmin у него уже
+// работал — тем же днём он включал этот самый выключатель). Отсутствие у
+// покупателя проверяется как отсутствие в разметке (toHaveCount(0)), а не
+// видимостью — иначе стиль display:none прошёл бы тест, ничего не починив.
+test('владелец видит ссылку на /admin рядом с выключателем — у покупателя её нет в разметке вовсе', async ({page, browser}) => {
+  await open(page, ACCOUNT);
+  await expect(page.locator('#wv-page').getByRole('link', {name: ADMIN_LINK_LABEL})).toHaveCount(0);
+
+  const ownerContext = await browser.newContext();
+  const ownerPage = await ownerContext.newPage();
+  await asOwner(ownerPage);
+  await openSettledForOwner(ownerPage, ACCOUNT);
+
+  // #wv-page — тот же приём area-scoping, что и у соседних кейсов файла.
+  const adminLink = ownerPage.locator('#wv-page').getByRole('link', {name: ADMIN_LINK_LABEL});
+  await expect(adminLink).toBeVisible();
+  await expect(adminLink).toHaveAttribute('href', '/ru/admin');
+  await ownerContext.close();
 });
 
 test('«Закончить правку» снимает куку — следующая страница уже обычная', async ({page}) => {

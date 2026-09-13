@@ -20,7 +20,7 @@ import PublishList from './PublishList';
 const DURATION = 220;
 
 export default function EditorPanel() {
-  const {editing, target, close, refresh} = useEditor();
+  const {editing, target, close, refresh, locale, products} = useEditor();
   const [saved, setSaved] = useState(0);
   const {mounted, entered} = useMountTransition(editing && target !== null, DURATION);
 
@@ -59,7 +59,7 @@ export default function EditorPanel() {
       <div className="flex-1 overflow-y-auto px-4 py-4">
         {target.kind === 'section' ? (
           target.section.layout === 'ticker' ? (
-            <TickerForm section={target.section} onSaved={onSaved} />
+            <TickerForm section={target.section} products={products} locale={locale} onSaved={onSaved} />
           ) : (
             <SectionForm section={target.section} onSaved={onSaved} />
           )

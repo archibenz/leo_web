@@ -1198,6 +1198,30 @@
     "remove": "Remove",
     "ok": "OK"
   },
+  "editor": {
+    "ticker": {
+      "destinationLabel": "Links to",
+      "destinationNone": "No link",
+      "destinationShop": "Shop",
+      "destinationSets": "Sets",
+      "destinationLookbook": "Lookbook",
+      "destinationProduct": "Specific product",
+      "destinationCustom": "Custom link",
+      "productLabel": "Which product",
+      "productPlaceholder": "Choose a product",
+      "productEmpty": "No products available — enter the address by hand via \"Custom link\".",
+      "customLabel": "Link address",
+      "customHint": "Starts with a slash and points at a page on our own site, e.g. /en/shop.",
+      "errors": {
+        "ru": "Fill in the line's text — 160 characters or fewer.",
+        "en": "English text must be 160 characters or fewer.",
+        "href": "The link must point at a page on our own site — choose from the list.",
+        "until": "The date must be in YYYY-MM-DD format.",
+        "generic": "not saved — please try again",
+        "unknownField": "The server rejected the field \"{field}\" — check it and try saving again."
+      }
+    }
+  },
   "care": {
     "subtitle": "REINASLEO",
     "title": "Garment Care",
@@ -1608,7 +1632,8 @@
       "tgError": "Could not reach Telegram. Please try again."
     },
     "editModeSwitch": {
-      "label": "Site edit mode"
+      "label": "Site edit mode",
+      "adminLink": "Admin Panel"
     },
     "error": {
       "eyebrow": "Error",
