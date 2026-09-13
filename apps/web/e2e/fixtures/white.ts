@@ -87,3 +87,20 @@ export async function hydrateViaCookieNotice(page: Page) {
 export function instantScrollTo(page: Page, top: number) {
   return page.evaluate((y) => window.scrollTo({top: y, behavior: 'instant'}), top);
 }
+
+// isAdmin (useEditorSession) resolves ASYNCHRONOUSLY — an effect that, for the
+// owner, hits /api/auth/me. Anything gated on isAdmin (EditModeSwitch, the
+// editor panel's entry points) cannot exist before that effect has settled.
+// toHaveCount(0)/queries right after navigation are a trap: they return the
+// same "not there" result whether the element genuinely never renders or
+// simply hasn't appeared yet. Caught for real in this codebase (lw-smu6-ish):
+// a temporary mutation that inserted an owner-only control passed a naive
+// check that raced the effect, three times, the last as a flaky spec.
+//
+// The owner has an exact signal beyond hydration — the network response on
+// /api/auth/me. The listener is armed BEFORE navigation (Promise.all): armed
+// after, a fast response could arrive before we start waiting for it.
+export async function openSettledForOwner(page: Page, path: string): Promise<void> {
+  await Promise.all([page.waitForResponse((r) => r.url().includes('/api/auth/me')), openWhite(page, path)]);
+  await hydrateViaCookieNotice(page);
+}
