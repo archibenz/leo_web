@@ -1,5 +1,6 @@
 import type {Metadata} from 'next';
 import type {ReactNode} from 'react';
+import {Suspense} from 'react';
 import {headers} from 'next/headers';
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
@@ -8,6 +9,7 @@ import SmartHeader from '../../components/SmartHeader';
 import Footer from '../../components/Footer';
 import Providers from '../../components/Providers';
 import Metrika from '../../components/Metrika';
+import SiteEventsRouteTracker from '../../components/SiteEventsRouteTracker';
 import WhiteChrome from './WhiteChrome';
 import {safeJsonLd} from '../../lib/jsonLd';
 import {SITE_URL as siteUrl} from '../../lib/siteUrl';
@@ -116,6 +118,9 @@ export default async function LocaleLayout({
         <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}} />
         <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(siteJsonLd)}} />
         <Metrika nonce={nonce} />
+        <Suspense fallback={null}>
+          <SiteEventsRouteTracker />
+        </Suspense>
         <WhiteChrome locale={locale}>{children}</WhiteChrome>
       </NextIntlClientProvider>
     );
@@ -131,6 +136,9 @@ export default async function LocaleLayout({
           dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}}
         />
         <Metrika nonce={nonce} />
+        <Suspense fallback={null}>
+          <SiteEventsRouteTracker />
+        </Suspense>
         {/* Marks the gradient design's own tree. The accent focus glow on form
             fields belongs to it and to nothing else — unscoped it painted a
             rounded gold box around every input on the storefront too. */}
