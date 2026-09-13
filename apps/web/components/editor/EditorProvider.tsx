@@ -2,7 +2,8 @@
 
 import {createContext, useCallback, useContext, useMemo, useState, type ReactNode} from 'react';
 import {useRouter} from 'next/navigation';
-import type {StorefrontBrokenDraft} from '../../lib/catalogue/types';
+import type {StorefrontBrokenDraft, WhiteProduct} from '../../lib/catalogue/types';
+import {defaultLocale} from '../../i18n-routing';
 import EditorPanel from './EditorPanel';
 import EditorNotice from './EditorNotice';
 import type {DraftKind, EditorTarget} from './types';
@@ -17,6 +18,11 @@ type EditorContextValue = {
   brokenDrafts: StorefrontBrokenDraft[];
   brokenFor: (kind: DraftKind, id: string) => StorefrontBrokenDraft | undefined;
   refresh: () => void;
+  // Локаль страницы и полный каталог — нужны TickerForm (лист «Куда ведёт»:
+  // /<locale>/... и /<locale>/product/<slug>). Уже есть на странице
+  // (storefrontForViewer), поэтому проброшены пропом, а не второй ручкой.
+  locale: string;
+  products: WhiteProduct[];
 };
 
 // Витрина без провайдера — обычный магазин. Значение по умолчанию нужно, чтобы
@@ -30,6 +36,8 @@ const CLOSED: EditorContextValue = {
   brokenDrafts: [],
   brokenFor: () => undefined,
   refresh: () => {},
+  locale: defaultLocale,
+  products: [],
 };
 
 const EditorContext = createContext<EditorContextValue | null>(null);
@@ -51,10 +59,12 @@ export function useEditor(): EditorContextValue {
  * баннере — например, страница — передаёт СВОЙ wantsEdit из
  * storefrontForViewer явно, потому что default тут в лучшем случае угадывает.
  */
-export function EditorProvider({editing, wantsEdit = editing, brokenDrafts = [], children}: {
+export function EditorProvider({editing, wantsEdit = editing, brokenDrafts = [], locale = defaultLocale, products = [], children}: {
   editing: boolean;
   wantsEdit?: boolean;
   brokenDrafts?: StorefrontBrokenDraft[];
+  locale?: string;
+  products?: WhiteProduct[];
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -79,8 +89,10 @@ export function EditorProvider({editing, wantsEdit = editing, brokenDrafts = [],
       brokenDrafts,
       brokenFor,
       refresh,
+      locale,
+      products,
     }),
-    [editing, target, brokenDrafts, brokenFor, refresh],
+    [editing, target, brokenDrafts, brokenFor, refresh, locale, products],
   );
 
   // Панель занимает правую колонку на широком экране — содержимое уезжает
