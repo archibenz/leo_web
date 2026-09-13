@@ -85,6 +85,12 @@ public class SecurityConfig {
                         // Guest checkout: аноним разрешён, лимитируется в RateLimitFilter,
                         // feature-flag CHECKOUT_ENABLED проверяется в CheckoutService (503).
                         .requestMatchers("/api/checkout").permitAll()
+                        // Приём событий сайта: sendBeacon с витрины не умеет слать
+                        // Authorization, так что ручка обязана быть anonymous-friendly;
+                        // залогиненный визитёр всё равно опознаётся по JwtAuthFilter
+                        // (Bearer ИЛИ rl_session cookie) в SiteEventController.
+                        // Лимитируется в RateLimitFilter.
+                        .requestMatchers("/api/events").permitAll()
                         // YooKassa webhook: без auth — тело не trusted, статус
                         // перепроверяется verify-by-fetch в PaymentWebhookService.
                         .requestMatchers("/api/payments/yookassa/webhook").permitAll()
