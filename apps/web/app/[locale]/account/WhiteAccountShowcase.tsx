@@ -8,6 +8,7 @@ import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import {useWhiteAuth, whiteLogin, whiteSendCode, whiteRegister, whiteLogout, WHITE_PASSWORD_RE} from '../../../hooks/useWhiteAuth';
 import {Button} from '../../../components/ui/button';
 import EditModeSwitch from '../../../components/editor/EditModeSwitch';
+import AdminPanelLink from '../../../components/editor/AdminPanelLink';
 import WhiteTelegramLogin from '../WhiteTelegramLogin';
 import WhiteFloatingPaths from '../WhiteFloatingPaths';
 import {WhiteAtGlyph} from '../wv-icons';
@@ -287,9 +288,10 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
             </div>
           )}
 
-          {/* Владельцу и только ему — сам компонент проверяет
-              useEditorSession().isAdmin и не рисует ничего постороннему. */}
+          {/* Владельцу и только ему — оба компонента сами проверяют
+              useEditorSession().isAdmin и не рисуют ничего постороннему. */}
           <EditModeSwitch />
+          <AdminPanelLink locale={locale} />
         </div>
       </div>
     </main>

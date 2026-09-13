@@ -82,6 +82,26 @@ export async function hydrateViaCookieNotice(page: Page) {
   await expect(notice).toBeHidden();
 }
 
+// isAdmin (useEditorSession) решается АСИНХРОННО — эффектом, который для
+// владельца бьёт в /api/auth/me. До того, как эффект отработал, всё, что
+// завязано на editing/isAdmin (переключатель в аккаунте, ярлык блока в
+// EditableBlock, панель редактора), физически не могло ни появиться, ни
+// остаться — toBeVisible() сразу после навигации в этом окне гонка: element(s)
+// not found, потому что элемента ЕЩЁ нет, не потому что его не будет.
+// Обнаружено сначала на 12-edit-switch.spec.ts, затем на
+// 13-ticker-usability.spec.ts — тот же класс, не совпадение, поэтому здесь,
+// а не третьей копией в третьей спеке.
+//
+// Слушателя на /api/auth/me ставим ДО навигации (Promise.all) — иначе
+// возможна гонка, если ответ придёт раньше, чем мы начнём его ждать. После
+// сетевого ответа довожу до того же «первый круг клиентских эффектов прошёл»,
+// что и hydrateViaCookieNotice — сеть у владельца точнее, но кука ещё и
+// снимает баннер, который иначе перекрывал бы низ панели.
+export async function openSettledForOwner(page: Page, path: string): Promise<void> {
+  await Promise.all([page.waitForResponse((r) => r.url().includes('/api/auth/me')), openWhite(page, path)]);
+  await hydrateViaCookieNotice(page);
+}
+
 // globals.css sets html{scroll-behavior:smooth}, so a plain scrollTo would
 // animate and every following assertion would race the animation.
 export function instantScrollTo(page: Page, top: number) {
