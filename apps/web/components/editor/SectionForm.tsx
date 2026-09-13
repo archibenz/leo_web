@@ -3,7 +3,7 @@
 import {useState} from 'react';
 import type {StorefrontSection} from '../../lib/catalogue/types';
 import {MUTED} from '../../app/[locale]/wv-palette';
-import {EditorButton, MediaField, TextField} from './EditorFields';
+import {EditorButton, MediaPairField, TextField} from './EditorFields';
 import {saveSectionDraft, type Patch} from './editorApi';
 
 // Тексты и медиа блока главной. Уходит только тронутое: PUT принимает частичный
@@ -83,10 +83,18 @@ export default function SectionForm({section, onSaved}: {section: StorefrontSect
       <p className="text-[11px] leading-snug" style={{color: MUTED}}>
         Перенос строки в заголовке — это перенос строки на витрине.
       </p>
-      <MediaField label="Ролик · телефон" value={draft.videoUrl ?? undefined} kind="video" onChange={set('videoUrl')} />
-      <MediaField label="Ролик · десктоп" value={draft.videoDesktopUrl ?? undefined} kind="video" onChange={set('videoDesktopUrl')} />
-      <MediaField label="Кадр · телефон" value={draft.posterUrl ?? undefined} kind="image" onChange={set('posterUrl')} />
-      <MediaField label="Кадр · десктоп" value={draft.posterDesktopUrl ?? undefined} kind="image" onChange={set('posterDesktopUrl')} />
+      <MediaPairField
+        label="Ролик"
+        kind="video"
+        phone={{value: draft.videoUrl ?? undefined, onChange: set('videoUrl')}}
+        desktop={{value: draft.videoDesktopUrl ?? undefined, onChange: set('videoDesktopUrl')}}
+      />
+      <MediaPairField
+        label="Кадр"
+        kind="image"
+        phone={{value: draft.posterUrl ?? undefined, onChange: set('posterUrl')}}
+        desktop={{value: draft.posterDesktopUrl ?? undefined, onChange: set('posterDesktopUrl')}}
+      />
       {error && (
         <p role="alert" className="text-[12px] leading-snug" style={{color: '#b4452f'}}>
           {error}
