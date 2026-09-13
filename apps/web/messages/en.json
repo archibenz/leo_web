@@ -1632,7 +1632,8 @@
       "tgError": "Could not reach Telegram. Please try again."
     },
     "editModeSwitch": {
-      "label": "Site edit mode"
+      "label": "Site edit mode",
+      "adminLink": "Admin Panel"
     },
     "error": {
       "eyebrow": "Error",
