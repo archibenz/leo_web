@@ -9,6 +9,7 @@ public record AccountExportResponse(
         CartExportDto cart,
         List<FavoriteExportDto> favorites,
         List<ProductInterestEventExportDto> productInterestEvents,
+        List<SiteEventExportDto> siteEvents,
         long verificationCodesIssued,
         Instant exportedAt
 ) {}

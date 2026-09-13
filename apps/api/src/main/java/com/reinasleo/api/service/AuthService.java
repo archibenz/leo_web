@@ -13,6 +13,7 @@ import com.reinasleo.api.dto.OrderExportDto;
 import com.reinasleo.api.dto.OrderItemExportDto;
 import com.reinasleo.api.dto.ProductInterestEventExportDto;
 import com.reinasleo.api.dto.RegisterRequest;
+import com.reinasleo.api.dto.SiteEventExportDto;
 import com.reinasleo.api.dto.UserExportDto;
 import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.exception.ConflictException;
@@ -25,6 +26,7 @@ import com.reinasleo.api.repository.CartRepository;
 import com.reinasleo.api.repository.FavoriteRepository;
 import com.reinasleo.api.repository.OrderRepository;
 import com.reinasleo.api.repository.ProductInterestEventRepository;
+import com.reinasleo.api.repository.SiteEventRepository;
 import com.reinasleo.api.repository.UserRepository;
 import com.reinasleo.api.repository.VerificationCodeRepository;
 import com.reinasleo.api.security.JwtService;
@@ -65,6 +67,7 @@ public class AuthService {
     private final OrderRepository orderRepository;
     private final VerificationCodeRepository verificationCodeRepository;
     private final ProductInterestEventRepository productInterestEventRepository;
+    private final SiteEventRepository siteEventRepository;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        JwtService jwtService, VerificationService verificationService,
@@ -74,7 +77,8 @@ public class AuthService {
                        FavoriteRepository favoriteRepository,
                        OrderRepository orderRepository,
                        VerificationCodeRepository verificationCodeRepository,
-                       ProductInterestEventRepository productInterestEventRepository) {
+                       ProductInterestEventRepository productInterestEventRepository,
+                       SiteEventRepository siteEventRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -86,6 +90,7 @@ public class AuthService {
         this.orderRepository = orderRepository;
         this.verificationCodeRepository = verificationCodeRepository;
         this.productInterestEventRepository = productInterestEventRepository;
+        this.siteEventRepository = siteEventRepository;
     }
 
     @Transactional
@@ -261,6 +266,11 @@ public class AuthService {
         int removedItems = cartItemRepository.deleteAllByUserId(user.getId());
         int removedFavorites = favoriteRepository.deleteAllByUserId(user.getId());
         int removedCarts = cartRepository.deleteByUserId(user.getId());
+        // site_events переживает удаление (это исторический факт аналитики,
+        // не текущее состояние), но связь с личностью рвётся — тем же приёмом,
+        // что и выше: явный UPDATE, а не ожидание ON DELETE SET NULL, которое
+        // здесь не сработает (мягкое удаление не удаляет саму строку users).
+        int detachedSiteEvents = siteEventRepository.clearUserId(user.getId());
 
         log.atInfo()
                 .addKeyValue("event", "account_deleted")
@@ -270,6 +280,7 @@ public class AuthService {
                 .addKeyValue("cart_items_removed", removedItems)
                 .addKeyValue("favorites_removed", removedFavorites)
                 .addKeyValue("carts_removed", removedCarts)
+                .addKeyValue("site_events_detached", detachedSiteEvents)
                 .log("account deletion completed");
     }
 
@@ -363,6 +374,16 @@ public class AuthService {
                                 e.getCreatedAt()))
                         .toList();
 
+        List<SiteEventExportDto> siteEvents =
+                siteEventRepository.findByUserIdOrderByOccurredAtDesc(user.getId()).stream()
+                        .map(e -> new SiteEventExportDto(
+                                e.getEventType(),
+                                e.getOccurredAt(),
+                                e.getProductId(),
+                                e.getPath(),
+                                e.getMarketplace()))
+                        .toList();
+
         long verificationCodesIssued = user.getEmail() == null
                 ? 0L
                 : verificationCodeRepository.countByEmail(user.getEmail().trim().toLowerCase());
@@ -374,10 +395,11 @@ public class AuthService {
                 .addKeyValue("favorites_count", favorites.size())
                 .addKeyValue("cart_items_count", cartDto.items().size())
                 .addKeyValue("product_interest_events_count", productInterestEvents.size())
+                .addKeyValue("site_events_count", siteEvents.size())
                 .log("account data exported");
 
         return new AccountExportResponse(
-                userDto, orders, cartDto, favorites, productInterestEvents,
+                userDto, orders, cartDto, favorites, productInterestEvents, siteEvents,
                 verificationCodesIssued, Instant.now());
     }
 

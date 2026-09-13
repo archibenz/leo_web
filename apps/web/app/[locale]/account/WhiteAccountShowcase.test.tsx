@@ -6,6 +6,9 @@ import {NextIntlClientProvider} from 'next-intl';
 import {whiteLogout} from '../../../hooks/useWhiteAuth';
 import enMessages from '../../../messages/en.json';
 
+const trackSiteEvent = vi.fn();
+vi.mock('../../../lib/siteEvents', () => ({trackSiteEvent: (...args: unknown[]) => trackSiteEvent(...args)}));
+
 vi.mock('next/navigation', () => ({
   usePathname: () => '/en/account',
   useSearchParams: () => new URLSearchParams(),
@@ -42,6 +45,7 @@ afterEach(() => {
   // The auth store is module state, so a test that signs a user in leaves the
   // next one looking at the signed-in page instead of the form.
   whiteLogout();
+  trackSiteEvent.mockClear();
 });
 
 const renderPage = () =>
@@ -102,6 +106,10 @@ describe('WhiteAccountShowcase', () => {
     const register = calls.find((c) => c.url.includes('/api/auth/register'));
     expect(register).toBeDefined();
     expect(register!.body).toMatchObject({privacyAccepted: true});
+    // user_id is never sent by the client (see SiteEventTypes.REQUIRES_USER on
+    // the backend) — the server resolves it from the session the register
+    // response just established.
+    expect(trackSiteEvent).toHaveBeenCalledWith('signup');
   });
 });
 

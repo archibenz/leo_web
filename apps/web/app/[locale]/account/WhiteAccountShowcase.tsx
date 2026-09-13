@@ -6,6 +6,7 @@ import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../hooks/useWhiteFavourites';
 import {useWhiteAuth, whiteLogin, whiteSendCode, whiteRegister, whiteLogout, WHITE_PASSWORD_RE} from '../../../hooks/useWhiteAuth';
+import {trackSiteEvent} from '../../../lib/siteEvents';
 import {Button} from '../../../components/ui/button';
 import EditModeSwitch from '../../../components/editor/EditModeSwitch';
 import AdminPanelLink from '../../../components/editor/AdminPanelLink';
@@ -91,7 +92,8 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
     }
     setBusy(true);
     const r = await whiteRegister({email, code, firstName: name, password});
-    if (!r.ok) setError(t('errRegister'));
+    if (r.ok) trackSiteEvent('signup');
+    else setError(t('errRegister'));
     setBusy(false);
   };
 

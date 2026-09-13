@@ -9,12 +9,14 @@ import com.reinasleo.api.model.Order;
 import com.reinasleo.api.model.OrderItem;
 import com.reinasleo.api.model.Product;
 import com.reinasleo.api.model.ProductInterestEvent;
+import com.reinasleo.api.model.SiteEvent;
 import com.reinasleo.api.model.User;
 import com.reinasleo.api.repository.CartItemRepository;
 import com.reinasleo.api.repository.CartRepository;
 import com.reinasleo.api.repository.FavoriteRepository;
 import com.reinasleo.api.repository.OrderRepository;
 import com.reinasleo.api.repository.ProductInterestEventRepository;
+import com.reinasleo.api.repository.SiteEventRepository;
 import com.reinasleo.api.repository.UserRepository;
 import com.reinasleo.api.repository.VerificationCodeRepository;
 import com.reinasleo.api.security.JwtService;
@@ -50,6 +52,7 @@ class AuthServiceExportTest {
     @Mock private OrderRepository orderRepository;
     @Mock private VerificationCodeRepository verificationCodeRepository;
     @Mock private ProductInterestEventRepository productInterestEventRepository;
+    @Mock private SiteEventRepository siteEventRepository;
 
     private AuthService authService;
 
@@ -58,7 +61,8 @@ class AuthServiceExportTest {
         authService = new AuthService(userRepository, passwordEncoder, jwtService,
                 verificationService, deleteChallengeService,
                 cartItemRepository, cartRepository, favoriteRepository,
-                orderRepository, verificationCodeRepository, productInterestEventRepository);
+                orderRepository, verificationCodeRepository, productInterestEventRepository,
+                siteEventRepository);
     }
 
     private static User emailUser() {
@@ -91,6 +95,7 @@ class AuthServiceExportTest {
         when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.empty());
         when(favoriteRepository.findByUserId(user.getId())).thenReturn(List.of());
         when(productInterestEventRepository.findByUserIdOrderByCreatedAtDesc(user.getId())).thenReturn(List.of());
+        when(siteEventRepository.findByUserIdOrderByOccurredAtDesc(user.getId())).thenReturn(List.of());
         when(verificationCodeRepository.countByEmail("alice@example.com")).thenReturn(0L);
 
         AccountExportResponse response = authService.exportAccountData(user);
@@ -123,6 +128,7 @@ class AuthServiceExportTest {
         when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.empty());
         when(favoriteRepository.findByUserId(user.getId())).thenReturn(List.of());
         when(productInterestEventRepository.findByUserIdOrderByCreatedAtDesc(user.getId())).thenReturn(List.of());
+        when(siteEventRepository.findByUserIdOrderByOccurredAtDesc(user.getId())).thenReturn(List.of());
         when(verificationCodeRepository.countByEmail("alice@example.com")).thenReturn(3L);
 
         AccountExportResponse response = authService.exportAccountData(user);
@@ -151,6 +157,7 @@ class AuthServiceExportTest {
         when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.of(cart));
         when(favoriteRepository.findByUserId(user.getId())).thenReturn(List.of());
         when(productInterestEventRepository.findByUserIdOrderByCreatedAtDesc(user.getId())).thenReturn(List.of());
+        when(siteEventRepository.findByUserIdOrderByOccurredAtDesc(user.getId())).thenReturn(List.of());
         when(verificationCodeRepository.countByEmail("alice@example.com")).thenReturn(0L);
 
         AccountExportResponse response = authService.exportAccountData(user);
@@ -172,6 +179,7 @@ class AuthServiceExportTest {
         when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.empty());
         when(favoriteRepository.findByUserId(user.getId())).thenReturn(List.of(fav));
         when(productInterestEventRepository.findByUserIdOrderByCreatedAtDesc(user.getId())).thenReturn(List.of());
+        when(siteEventRepository.findByUserIdOrderByOccurredAtDesc(user.getId())).thenReturn(List.of());
         when(verificationCodeRepository.countByEmail("alice@example.com")).thenReturn(0L);
 
         AccountExportResponse response = authService.exportAccountData(user);
@@ -192,6 +200,7 @@ class AuthServiceExportTest {
         when(favoriteRepository.findByUserId(user.getId())).thenReturn(List.of());
         when(productInterestEventRepository.findByUserIdOrderByCreatedAtDesc(user.getId()))
                 .thenReturn(List.of(event));
+        when(siteEventRepository.findByUserIdOrderByOccurredAtDesc(user.getId())).thenReturn(List.of());
         when(verificationCodeRepository.countByEmail("alice@example.com")).thenReturn(0L);
 
         AccountExportResponse response = authService.exportAccountData(user);
@@ -200,6 +209,28 @@ class AuthServiceExportTest {
         assertThat(response.productInterestEvents().get(0).productId()).isEqualTo("p-dress-2");
         assertThat(response.productInterestEvents().get(0).productTitle()).isEqualTo("Платье Y");
         assertThat(response.productInterestEvents().get(0).eventType()).isEqualTo("add_to_cart");
+    }
+
+    @Test
+    void exportAccountData_withSiteEvents_aggregatesEvents() {
+        User user = emailUser();
+        SiteEvent event = new SiteEvent();
+        event.setEventType("add_to_cart");
+        event.setProductId("p-dress-3");
+        event.setUserId(user.getId());
+
+        when(orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId())).thenReturn(List.of());
+        when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.empty());
+        when(favoriteRepository.findByUserId(user.getId())).thenReturn(List.of());
+        when(productInterestEventRepository.findByUserIdOrderByCreatedAtDesc(user.getId())).thenReturn(List.of());
+        when(siteEventRepository.findByUserIdOrderByOccurredAtDesc(user.getId())).thenReturn(List.of(event));
+        when(verificationCodeRepository.countByEmail("alice@example.com")).thenReturn(0L);
+
+        AccountExportResponse response = authService.exportAccountData(user);
+
+        assertThat(response.siteEvents()).hasSize(1);
+        assertThat(response.siteEvents().get(0).eventType()).isEqualTo("add_to_cart");
+        assertThat(response.siteEvents().get(0).productId()).isEqualTo("p-dress-3");
     }
 
     @Test
@@ -215,6 +246,7 @@ class AuthServiceExportTest {
         when(cartRepository.findByUserId(user.getId())).thenReturn(Optional.empty());
         when(favoriteRepository.findByUserId(user.getId())).thenReturn(List.of());
         when(productInterestEventRepository.findByUserIdOrderByCreatedAtDesc(user.getId())).thenReturn(List.of());
+        when(siteEventRepository.findByUserIdOrderByOccurredAtDesc(user.getId())).thenReturn(List.of());
         when(verificationCodeRepository.countByEmail("alice@example.com")).thenReturn(0L);
 
         AccountExportResponse response = authService.exportAccountData(user);

@@ -13,6 +13,7 @@ import WhiteProductCard from '../WhiteProductCard';
 import WildberriesButton from '../../../components/WildberriesButton';
 import WhitePreorder from './WhitePreorder';
 import {ozonProductUrl} from '../../../lib/ozon';
+import {trackSiteEvent} from '../../../lib/siteEvents';
 import {INK, MUTED, HAIR, SIGNAL} from '../wv-palette';
 import {WhiteFavHeart, WhiteArrow} from '../wv-icons';
 import {WHITE_SIZES, findProductByKey, whiteInStock, whiteAvailability, whitePrice} from '../../../lib/catalogue/select';
@@ -66,7 +67,14 @@ export default function WhitePdpShowcase({
   // render would make that render disagree with the server's.
   useEffect(() => {
     const wanted = new URLSearchParams(window.location.search).get('c');
-    if (wanted && productColors.some((c) => c.key === wanted)) setColor(wanted);
+    const deepLinked = wanted && productColors.some((c) => c.key === wanted);
+    if (deepLinked) setColor(wanted);
+    // product_view fires once per mount, against the colour actually shown —
+    // computed here rather than from `color` state so it does not wait a
+    // render behind the setColor above (no double-fire, no wrong-colour fire).
+    const resolvedColor = deepLinked ? productColors.find((c) => c.key === wanted)! : productColors[0]!;
+    trackSiteEvent('product_view', {productId: resolvedColor.id, modelId: product.id});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productColors]);
 
   // Picking a colour swaps the whole album, and a colour with fewer frames
@@ -507,7 +515,11 @@ export default function WhitePdpShowcase({
               )}
               <button
                 type="button"
-                onClick={() => toggleFavourite(bagProduct.key)}
+                onClick={() => {
+                  // Track only the add — closed event list has no "remove" type.
+                  if (!favourited) trackSiteEvent('add_to_favourite', {productId: selectedColor.id});
+                  toggleFavourite(bagProduct.key);
+                }}
                 aria-pressed={favourited}
                 aria-label={favourited ? t('removeFav') : t('addFav')}
                 className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[#f5f2ed] sm:h-[52px] sm:w-[52px]"
@@ -529,6 +541,7 @@ export default function WhitePdpShowcase({
             <div className="mt-4 sm:mt-5">
               <WildberriesButton
                 href={wbUrl}
+                onClick={() => trackSiteEvent('marketplace_click', {productId: selectedColor.id, marketplace: 'wildberries'})}
                 className="relative flex h-11 w-full items-center justify-center gap-2.5 overflow-hidden rounded-full border border-[#CB11AB] bg-[#CB11AB]/[0.06] text-[11px] font-medium uppercase tracking-[0.18em] text-[#CB11AB] transition-colors duration-300 hover:text-white active:scale-[0.98] motion-reduce:active:scale-100 sm:h-14 sm:border-2 sm:text-[13px]"
               >
                 {t('buyOnWb')}
@@ -547,6 +560,7 @@ export default function WhitePdpShowcase({
                   href={ozonUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackSiteEvent('marketplace_click', {productId: selectedColor.id, marketplace: 'ozon'})}
                   className="flex h-11 w-full items-center justify-center rounded-full border border-[#005BFF] bg-[#005BFF]/[0.04] text-[11px] font-medium uppercase tracking-[0.18em] text-[#005BFF] transition-colors duration-300 hover:bg-[#005BFF] hover:text-white active:scale-[0.98] motion-reduce:active:scale-100 sm:h-14 sm:border-2 sm:text-[13px]"
                 >
                   {t('buyOnOzon')}

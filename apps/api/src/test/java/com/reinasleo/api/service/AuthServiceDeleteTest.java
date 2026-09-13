@@ -10,6 +10,7 @@ import com.reinasleo.api.repository.CartRepository;
 import com.reinasleo.api.repository.FavoriteRepository;
 import com.reinasleo.api.repository.OrderRepository;
 import com.reinasleo.api.repository.ProductInterestEventRepository;
+import com.reinasleo.api.repository.SiteEventRepository;
 import com.reinasleo.api.repository.UserRepository;
 import com.reinasleo.api.repository.VerificationCodeRepository;
 import com.reinasleo.api.security.JwtService;
@@ -45,6 +46,7 @@ class AuthServiceDeleteTest {
     @Mock private OrderRepository orderRepository;
     @Mock private VerificationCodeRepository verificationCodeRepository;
     @Mock private ProductInterestEventRepository productInterestEventRepository;
+    @Mock private SiteEventRepository siteEventRepository;
 
     private AuthService authService;
 
@@ -53,7 +55,8 @@ class AuthServiceDeleteTest {
         authService = new AuthService(userRepository, passwordEncoder, jwtService,
                 verificationService, deleteChallengeService,
                 cartItemRepository, cartRepository, favoriteRepository,
-                orderRepository, verificationCodeRepository, productInterestEventRepository);
+                orderRepository, verificationCodeRepository, productInterestEventRepository,
+                siteEventRepository);
     }
 
     private static User emailUser() {
@@ -114,6 +117,18 @@ class AuthServiceDeleteTest {
         verify(cartItemRepository).deleteAllByUserId(userId);
         verify(favoriteRepository).deleteAllByUserId(userId);
         verify(cartRepository).deleteByUserId(userId);
+    }
+
+    @Test
+    void deleteAccount_detachesSiteEvents() {
+        User user = emailUser();
+        UUID userId = user.getId();
+        when(passwordEncoder.matches("correct-pw", "hashed-pw")).thenReturn(true);
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        authService.deleteAccount(user, new DeleteAccountRequest("correct-pw", "DELETE"));
+
+        verify(siteEventRepository).clearUserId(userId);
     }
 
     @Test

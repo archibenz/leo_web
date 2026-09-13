@@ -33,6 +33,7 @@ public class RateLimitFilter implements Filter {
     private final Cache<String, Bucket> botBuckets = buildCache();
     private final Cache<String, Bucket> contactBuckets = buildCache();
     private final Cache<String, Bucket> checkoutBuckets = buildCache();
+    private final Cache<String, Bucket> eventsBuckets = buildCache();
 
     private final Counter authHitCounter;
     private final Counter telegramHitCounter;
@@ -40,6 +41,7 @@ public class RateLimitFilter implements Filter {
     private final Counter botHitCounter;
     private final Counter contactHitCounter;
     private final Counter checkoutHitCounter;
+    private final Counter eventsHitCounter;
 
     public RateLimitFilter(MeterRegistry meters) {
         this.authHitCounter = hitCounter(meters, "auth");
@@ -48,6 +50,7 @@ public class RateLimitFilter implements Filter {
         this.botHitCounter = hitCounter(meters, "bot");
         this.contactHitCounter = hitCounter(meters, "contact");
         this.checkoutHitCounter = hitCounter(meters, "checkout");
+        this.eventsHitCounter = hitCounter(meters, "events");
     }
 
     private static Counter hitCounter(MeterRegistry meters, String bucket) {
@@ -92,6 +95,8 @@ public class RateLimitFilter implements Filter {
             // Webhook /api/payments/yookassa/webhook намеренно НЕ лимитируется:
             // лимит по IP мог бы дропнуть легитимные ретраи YooKassa.
             if (isRateLimited(checkoutBuckets, ip, res, this::createCheckoutBucket, checkoutHitCounter)) return;
+        } else if (path.equals("/api/events") && "POST".equalsIgnoreCase(req.getMethod())) {
+            if (isRateLimited(eventsBuckets, ip, res, this::createEventsBucket, eventsHitCounter)) return;
         }
 
         chain.doFilter(request, response);
@@ -155,6 +160,17 @@ public class RateLimitFilter implements Filter {
         // на IP хватает легитимному покупателю (ретраи карт), фарм дорог.
         return Bucket.builder()
                 .addLimit(Bandwidth.simple(5, Duration.ofMinutes(1)))
+                .build();
+    }
+
+    private Bucket createEventsBucket() {
+        // Пачка до 20 событий за вызов, флаш на visibilitychange/pagehide —
+        // за сессию покупки это единицы вызовов, но за общим IP (офис, NAT)
+        // сидит много вкладок сразу. 60/мин с запасом покрывает нормальный
+        // просмотр и всё равно ограничивает шторм: событие дешевле запроса
+        // (см. риски в плане), лимит держит именно частоту запросов.
+        return Bucket.builder()
+                .addLimit(Bandwidth.simple(60, Duration.ofMinutes(1)))
                 .build();
     }
 

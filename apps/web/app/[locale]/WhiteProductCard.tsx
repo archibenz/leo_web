@@ -9,6 +9,7 @@ import {useWhiteFavourites} from '../../hooks/useWhiteFavourites';
 import {WHITE_SIZES, whiteInStock, whiteAvailability, whiteProductHref, whitePrice, whitePriceRange} from '../../lib/catalogue/select';
 import type {WhiteProduct} from '../../lib/catalogue/types';
 import {hasOzonListing} from '../../lib/ozon';
+import {trackSiteEvent} from '../../lib/siteEvents';
 import {MUTED, SIGNAL, HAIR} from './wv-palette';
 import {WHITE_LQIP} from './products-lqip';
 import {WhiteFavHeart} from './wv-icons';
@@ -181,7 +182,14 @@ export default function WhiteProductCard({
         {!hideFav && (
           <button
             type="button"
-            onClick={() => toggle(product.key)}
+            onClick={() => {
+              // Track only the add, not the remove — mirrors the closed event
+              // list (no "remove_from_favourite" type). Card has no colour UI,
+              // so the primary colourway (the one the photo shows) stands in,
+              // same as Quick Add above.
+              if (!favourited) trackSiteEvent('add_to_favourite', {productId: product.colors[0]!.id});
+              toggle(product.key);
+            }}
             aria-pressed={favourited}
             aria-label={favourited ? t('removeFavourite', {name}) : t('addFavourite', {name})}
             className="absolute right-1 top-1 z-[5] flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-100"

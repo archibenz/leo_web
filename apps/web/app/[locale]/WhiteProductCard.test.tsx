@@ -13,6 +13,8 @@ vi.mock('../../lib/catalogue/select', async () => {
   const actual = await vi.importActual<typeof import('../../lib/catalogue/select')>('../../lib/catalogue/select');
   return {...actual, whiteInStock: () => true};
 });
+const trackSiteEvent = vi.fn();
+vi.mock('../../lib/siteEvents', () => ({trackSiteEvent: (...args: unknown[]) => trackSiteEvent(...args)}));
 import {NextIntlClientProvider} from 'next-intl';
 import enMessages from '../../messages/en.json';
 
@@ -74,6 +76,7 @@ afterEach(() => {
   readFavs().forEach((k) => removeWhiteFavourite(k));
   cleanup();
   localStorage.clear();
+  trackSiteEvent.mockClear();
 });
 
 describe('WhiteProductCard Quick Add', () => {
@@ -173,6 +176,31 @@ describe('WhiteProductCard favourite heart', () => {
     await waitFor(() => expect(readFavs()).toEqual([2]));
     await user.click(screen.getByRole('button', {name: /favourites/i}));
     await waitFor(() => expect(readFavs()).toEqual([]));
+  });
+
+  it('tracks add_to_favourite with the card\'s primary colour on add', async () => {
+    const user = userEvent.setup();
+    renderCard(<WhiteProductCard locale="en" product={PRODUCT} />);
+    const heart = screen.getByRole('button', {name: /add .* to favourites/i});
+
+    await user.click(heart);
+
+    await waitFor(() =>
+      expect(trackSiteEvent).toHaveBeenCalledWith('add_to_favourite', {productId: PRODUCT.colors[0]!.id}));
+  });
+
+  it('does not track a site event when removing a favourite', async () => {
+    const user = userEvent.setup();
+    renderCard(<WhiteProductCard locale="en" product={PRODUCT} />);
+    const heart = screen.getByRole('button', {name: /favourites/i});
+    await user.click(heart);
+    await waitFor(() => expect(readFavs()).toEqual([2]));
+    trackSiteEvent.mockClear();
+
+    await user.click(screen.getByRole('button', {name: /favourites/i}));
+
+    await waitFor(() => expect(readFavs()).toEqual([]));
+    expect(trackSiteEvent).not.toHaveBeenCalled();
   });
 
   it('renders no heart when hideFav is set (tiny set-grid cards)', () => {

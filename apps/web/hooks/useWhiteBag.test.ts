@@ -1,5 +1,9 @@
-import {afterEach, describe, it, expect} from 'vitest';
+import {afterEach, describe, it, expect, vi} from 'vitest';
 import {renderHook, act} from '@testing-library/react';
+
+const trackSiteEvent = vi.fn();
+vi.mock('../lib/siteEvents', () => ({trackSiteEvent: (...args: unknown[]) => trackSiteEvent(...args)}));
+
 import {addToWhiteBag, setWhiteBagQty, removeFromWhiteBag, useWhiteBag, type WhiteBagItem} from './useWhiteBag';
 
 // jsdom here doesn't provide localStorage (and Node's experimental one is off),
@@ -49,6 +53,29 @@ const sample = (over: Partial<Omit<WhiteBagItem, 'id' | 'qty'>> = {}) => ({
 afterEach(() => {
   readBag().forEach((i) => removeFromWhiteBag(i.id));
   localStorage.clear();
+  trackSiteEvent.mockClear();
+});
+
+describe('useWhiteBag site-events tracking', () => {
+  it('tracks add_to_cart with the variant id on a fresh line', () => {
+    addToWhiteBag(sample({productId: 'wb-1'}));
+    expect(trackSiteEvent).toHaveBeenCalledWith('add_to_cart', {productId: 'wb-1'});
+  });
+
+  it('tracks add_to_cart again on a repeat add (qty increment), not just the first', () => {
+    addToWhiteBag(sample({productId: 'wb-1'}));
+    trackSiteEvent.mockClear();
+    addToWhiteBag(sample({productId: 'wb-1'}));
+    expect(trackSiteEvent).toHaveBeenCalledTimes(1);
+    expect(trackSiteEvent).toHaveBeenCalledWith('add_to_cart', {productId: 'wb-1'});
+  });
+
+  it('does not track when the line cap refuses the add', () => {
+    for (let i = 0; i < 100; i++) addToWhiteBag(sample({key: i, productId: `wb-${i}`}));
+    trackSiteEvent.mockClear();
+    addToWhiteBag(sample({key: 999, productId: 'wb-999'}));
+    expect(trackSiteEvent).not.toHaveBeenCalled();
+  });
 });
 
 describe('useWhiteBag store', () => {
