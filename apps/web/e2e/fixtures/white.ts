@@ -86,16 +86,18 @@ export async function hydrateViaCookieNotice(page: Page) {
 // владельца бьёт в /api/auth/me. До того, как эффект отработал, всё, что
 // завязано на editing/isAdmin (переключатель в аккаунте, ярлык блока в
 // EditableBlock, панель редактора), физически не могло ни появиться, ни
-// остаться — toBeVisible() сразу после навигации в этом окне гонка: element(s)
-// not found, потому что элемента ЕЩЁ нет, не потому что его не будет.
-// Обнаружено сначала на 12-edit-switch.spec.ts, затем на
-// 13-ticker-usability.spec.ts — тот же класс, не совпадение, поэтому здесь,
-// а не третьей копией в третьей спеке.
+// остаться. Проверка сразу после навигации — ловушка: и «не появится», и
+// «ещё не появилось» выглядят одинаково, а toHaveCount(0) в этом окне зелёный
+// всегда, в том числе на пустой странице.
 //
-// Слушателя на /api/auth/me ставим ДО навигации (Promise.all) — иначе
-// возможна гонка, если ответ придёт раньше, чем мы начнём его ждать. После
-// сетевого ответа довожу до того же «первый круг клиентских эффектов прошёл»,
-// что и hydrateViaCookieNotice — сеть у владельца точнее, но кука ещё и
+// Поймано трижды: 12-edit-switch (два ложно-зелёных кейса при мутации),
+// 13-ticker-usability (мигающий спек), 15-admin-media. Тот же класс, не
+// совпадение — поэтому помощник живёт здесь, а не четвёртой копией.
+//
+// У владельца есть точный признак помимо гидратации — сетевой ответ
+// /api/auth/me. Слушатель ставится ДО навигации (Promise.all): поставленный
+// после, он может опоздать за быстрым ответом. Затем добираем «первый круг
+// клиентских эффектов прошёл» через hydrateViaCookieNotice — он заодно
 // снимает баннер, который иначе перекрывал бы низ панели.
 export async function openSettledForOwner(page: Page, path: string): Promise<void> {
   await Promise.all([page.waitForResponse((r) => r.url().includes('/api/auth/me')), openWhite(page, path)]);
@@ -106,21 +108,4 @@ export async function openSettledForOwner(page: Page, path: string): Promise<voi
 // animate and every following assertion would race the animation.
 export function instantScrollTo(page: Page, top: number) {
   return page.evaluate((y) => window.scrollTo({top: y, behavior: 'instant'}), top);
-}
-
-// isAdmin (useEditorSession) resolves ASYNCHRONOUSLY — an effect that, for the
-// owner, hits /api/auth/me. Anything gated on isAdmin (EditModeSwitch, the
-// editor panel's entry points) cannot exist before that effect has settled.
-// toHaveCount(0)/queries right after navigation are a trap: they return the
-// same "not there" result whether the element genuinely never renders or
-// simply hasn't appeared yet. Caught for real in this codebase (lw-smu6-ish):
-// a temporary mutation that inserted an owner-only control passed a naive
-// check that raced the effect, three times, the last as a flaky spec.
-//
-// The owner has an exact signal beyond hydration — the network response on
-// /api/auth/me. The listener is armed BEFORE navigation (Promise.all): armed
-// after, a fast response could arrive before we start waiting for it.
-export async function openSettledForOwner(page: Page, path: string): Promise<void> {
-  await Promise.all([page.waitForResponse((r) => r.url().includes('/api/auth/me')), openWhite(page, path)]);
-  await hydrateViaCookieNotice(page);
 }
