@@ -218,7 +218,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                       href={l.href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
-                      className="wv-menu-item wv-menu-link relative flex min-h-10 items-center font-display text-[26px] sm:min-h-11 font-light tracking-[-0.01em] md:min-h-[44px] md:text-[30px]"
+                      className="wv-menu-item wv-menu-link flex min-h-10 items-center font-display text-[26px] sm:min-h-11 font-light tracking-[-0.01em] md:min-h-[44px] md:text-[30px]"
                       style={{color: active ? INK : MUTED, fontWeight: active ? 500 : 300, animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
                     >
                       <span className="wv-menu-label">{l.label}</span>
