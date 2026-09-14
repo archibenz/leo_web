@@ -63,6 +63,18 @@ export default function AdminCarePage() {
           </Link>
         </div>
 
+        {/* Справочники ухода на сайт не попадают. Ручка /api/care-guides их
+            отдаёт, но читает её только components/CarePageClient.tsx, который
+            подключён лишь из gradient-archive; живая /care берёт текст из
+            messages (white.info.care.sections). То есть здесь можно писать
+            час, и на сайте не изменится ничего. Подпись в стиле файла —
+            тернарник по locale, как и заголовок выше. */}
+        <p className="rounded border border-[var(--ink-soft)]/25 px-3 py-2 text-[11px] leading-relaxed text-[var(--ink-soft)]">
+          {locale === 'ru'
+            ? 'Эти справочники на сайте сейчас не показываются: страница «Уход за вещами» берёт текст из перевода, а не отсюда. Пока это так, записи здесь видит только админка.'
+            : 'These guides are not shown on the storefront right now: the “Garment care” page takes its text from the translation file, not from here. Until that changes, entries here are visible only inside the admin.'}
+        </p>
+
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <BrandLoader size={32} />

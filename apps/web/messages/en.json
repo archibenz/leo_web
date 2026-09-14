@@ -1173,6 +1173,8 @@
       "delete": "Deactivate",
       "id": "Product ID (slug)",
       "idHint": "Unique identifier, e.g. silk-evening-gown",
+      "scopeNotice": "Only price, stock, photos and the “active” flag from this form reach the storefront. The remaining fields serve the Telegram bot and stock alerts; shoppers never see them — the site takes a product's name and description from its model, which for now can only be changed through development.",
+      "notOnSite": "Not shown on the storefront",
       "isTest": "Demo product",
       "real": "Real",
       "demo": "Demo",
@@ -1193,6 +1195,7 @@
       "delete": "Deactivate",
       "productCount": "products",
       "noCollections": "No collections yet",
+      "notOnSiteNotice": "Collections are not shown on the storefront right now — the storefront pages never request them. The section stays useful for the Telegram bot and the older catalogue.",
       "created": "Collection created",
       "updated": "Collection updated"
     },
