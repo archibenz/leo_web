@@ -374,7 +374,18 @@ export default function WhitePdpShowcase({
           {/* Info */}
           <div className="wv-rise wv-delay-1 lg:sticky lg:top-24 lg:self-start lg:pt-6">
             <p className="text-[11px] uppercase tracking-[0.3em]" style={{color: MUTED}}>{t('season')}</p>
-            <h1 className="mt-4 font-display text-[34px] font-light leading-tight sm:text-[42px]">{name}</h1>
+            {/* Точка правки названия модели — там же, где покупатель его
+                читает. Тот же модельный target, что и у описания ниже: обе
+                точки открывают одну и ту же панель ModelForm, а не по одной
+                на КАЖДОЕ поле формы (полей там десять). Не объединяется с
+                точкой правки цены/варианта (EditableBlock чуть ниже) — та
+                стоит на месте и её нельзя сдвигать или сливать с этой. */}
+            <EditableBlock
+              target={{kind: 'model', id: bagProduct.id, label: 'Название', product: bagProduct}}
+              owner={{kind: 'model', id: bagProduct.id}}
+            >
+              <h1 className="mt-4 font-display text-[34px] font-light leading-tight sm:text-[42px]">{name}</h1>
+            </EditableBlock>
             {/* A sale shows as the marketplace shows it: the old price struck
                 through, the live one beside it. */}
             {/* Точка правки цветового варианта: цена, скидка, наличие и
@@ -402,7 +413,16 @@ export default function WhitePdpShowcase({
                 <p className="mt-3 text-[18px]" style={{color: INK}}>{priceStr}</p>
               )}
             </EditableBlock>
-            <p className="mt-6 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>{desc}</p>
+            {/* Точка правки короткого описания — см. комментарий у точки
+                правки названия выше: та же цель вида 'model', своя рамка на
+                своём месте, потому что покупатель смотрит на описание не там
+                же, где на название (между ними — блок цены). */}
+            <EditableBlock
+              target={{kind: 'model', id: bagProduct.id, label: 'Короткое описание', product: bagProduct}}
+              owner={{kind: 'model', id: bagProduct.id}}
+            >
+              <p className="mt-6 max-w-md text-[14px] leading-relaxed" style={{color: MUTED}}>{desc}</p>
+            </EditableBlock>
 
             {/* Color */}
             <div className="mt-8">
