@@ -131,3 +131,105 @@ test.describe('quiet link underlines hug their text', () => {
     expect(colour).not.toContain('rgba(0, 0, 0, 0)');
   });
 });
+
+// ── Вторая, независимая механика подчёркивания: .wv-menu-link ──────────────
+//
+// Выше меряется .wv-link-ink — тихая ссылка, у которой черта рисуется ::after
+// на внутреннем спане. У .wv-menu-link всё иначе: черта это ::before,
+// position: absolute, top: 50%, — и разрешается она относительно ближайшего
+// ПОЗИЦИОНИРОВАННОГО предка. Поэтому проверки выше про этот класс не говорят
+// ничего: они честно отвечают за свой механизм и молчат о соседнем.
+//
+// Что было сломано: у самого .wv-menu-link не было position: relative. В
+// шторке меню это не проявлялось, потому что `relative` дописан в месте
+// вызова; на странице аккаунта предком оказывался блок .wv-rise высотой 336px,
+// и top: 50% разрешался в 168px от ЕГО верха. Черта уезжала на соседние
+// строки — владелец прислал снимок, где она лежит на «ВАШЕ» и «ВЫЙТИ».
+//
+// Меряется положение черты, а не наличие свойства: свойство это причина,
+// положение — следствие, и владелец жаловался именно на следствие.
+
+const MENU_LINK_PAGES = ['/ru/account'];
+
+// Без вошедшего пользователя страница аккаунта показывает форму входа, а не
+// список ссылок — и спека ниже тихо пропустилась бы, ничего не доказав.
+// Подделываем тем же приёмом, что 12-edit-switch.spec.ts: токен в
+// localStorage до первой отрисовки плюс подставленный /api/auth/me.
+async function asUser(page: import('@playwright/test').Page): Promise<void> {
+  await page.route('**/api/auth/me', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({id: 'u1', name: 'Александр', email: 'owner@reinasleo.com', role: 'admin'}),
+    }),
+  );
+  await page.addInitScript(() => window.localStorage.setItem('reinasleo_token', 'user-token'));
+}
+
+test.describe('черта .wv-menu-link рисуется внутри своей строки', () => {
+  for (const path of MENU_LINK_PAGES) {
+    test(`${path}: ни одна черта не уезжает из своей ссылки`, async ({page}) => {
+      await asUser(page);
+      await page.goto(path);
+      await page.waitForLoadState('networkidle');
+
+      const measured = await page.evaluate(() => {
+        const out: {text: string; drift: number; blockTag: string}[] = [];
+        document.querySelectorAll<HTMLElement>('.wv-menu-link').forEach((link) => {
+          const before = getComputedStyle(link, '::before');
+          if (before.content === 'none') return;
+          const box = link.getBoundingClientRect();
+          if (box.height === 0) return;
+
+          // Содержащий блок для absolute — ближайший предок с position != static.
+          let block: HTMLElement | null = link.parentElement;
+          while (block && getComputedStyle(block).position === 'static') {
+            block = block.parentElement;
+          }
+          const isSelf = getComputedStyle(link).position !== 'static';
+          const cb = isSelf ? box : (block ? block.getBoundingClientRect() : document.body.getBoundingClientRect());
+
+          // Куда фактически ляжет top: 50% этого содержащего блока.
+          const lineY = cb.top + cb.height * 0.5;
+          const linkMidY = box.top + box.height * 0.5;
+          out.push({
+            text: (link.textContent || '').trim().slice(0, 40),
+            drift: lineY - linkMidY,
+            blockTag: isSelf ? 'сама ссылка' : (block ? block.tagName.toLowerCase() : 'body'),
+          });
+        });
+        return out;
+      });
+
+      test.skip(measured.length === 0, `на ${path} нет отрисованных .wv-menu-link`);
+
+      for (const l of measured) {
+        expect(
+          Math.abs(l.drift),
+          `черта у «${l.text}» уехала на ${l.drift.toFixed(0)}px от середины своей строки (содержащий блок: ${l.blockTag})`,
+        ).toBeLessThanOrEqual(1);
+      }
+    });
+  }
+
+  // Контракт принадлежит классу, а не тому, кто его применяет: пока position
+  // жил в месте вызова, шторка его ставила, аккаунт — нет, и класс выглядел
+  // исправным ровно там, где его смотрели.
+  test('position: relative лежит на самом классе, а не дописывается в месте вызова', async ({page}) => {
+    await asUser(page);
+    await page.goto('/ru/account');
+    await page.waitForLoadState('networkidle');
+    const positions = await page.evaluate(() =>
+      [...document.querySelectorAll<HTMLElement>('.wv-menu-link')].map((el) => ({
+        text: (el.textContent || '').trim().slice(0, 30),
+        position: getComputedStyle(el).position,
+        hasRelativeClass: el.classList.contains('relative'),
+      })),
+    );
+    test.skip(positions.length === 0, 'на /ru/account нет .wv-menu-link');
+    for (const p of positions) {
+      expect(p.position, `«${p.text}» — position: ${p.position}`).not.toBe('static');
+      expect(p.hasRelativeClass, `«${p.text}» дописывает relative в месте вызова — контракт снова наполовину`).toBe(false);
+    }
+  });
+});

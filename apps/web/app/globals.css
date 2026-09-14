@@ -1926,6 +1926,15 @@ textarea {
    together read as one gesture. transform-origin is the left edge so the
    label grows away from the rule rather than through it. */
 .wv-menu-link {
+  /* position: relative — требование собственного ::before, а не забота того,
+     кто применяет класс. Пока его тут не было, черта искала ближайшего
+     позиционированного предка: в шторке им оказывалась сама ссылка (там
+     `relative` дописан в месте вызова), а на странице аккаунта — блок .wv-rise
+     высотой 336px, и `top: 50%` разрешался в 168px от ЕГО верха. Черта уезжала
+     на соседние строки — владелец видел её на «ВАШЕ» и «ВЫЙТИ». Чем выше
+     блок-предок, тем дальше промах, поэтому в шторке дефект не проявлялся и
+     класс выглядел исправным. */
+  position: relative;
   transition: color 0.2s ease;
 }
 .wv-menu-link::before {

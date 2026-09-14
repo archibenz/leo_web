@@ -166,11 +166,16 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
 
               <p className="mt-12 text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('links')}</p>
               <div className="mt-3 divide-y border-y" style={{borderColor: HAIR}}>
+                {/* wv-menu-label обязателен, а не украшение: на нём висит
+                    сдвиг подписи на 34px, который уводит её от черты. Без
+                    спана подписи некуда отойти, и черта идёт прямо по буквам —
+                    на телефоне это видно постоянно, потому что после касания
+                    фокус залипает. */}
                 <a href={`/${locale}/favourites`} className="wv-menu-link flex min-h-12 items-center text-[14px]">
-                  {t('favourites')}{favCount > 0 ? ` · ${favCount}` : ''}
+                  <span className="wv-menu-label">{t('favourites')}{favCount > 0 ? ` · ${favCount}` : ''}</span>
                 </a>
                 <a href={`/${locale}/bag`} className="wv-menu-link flex min-h-12 items-center text-[14px]">
-                  {t('bag')}{count > 0 ? ` · ${count}` : ''}
+                  <span className="wv-menu-label">{t('bag')}{count > 0 ? ` · ${count}` : ''}</span>
                 </a>
               </div>
 

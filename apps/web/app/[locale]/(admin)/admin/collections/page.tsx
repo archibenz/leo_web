@@ -56,6 +56,15 @@ export default function AdminCollectionsPage() {
           </Link>
         </div>
 
+        {/* Коллекции на белую витрину не попадают: StorefrontResponse — это
+            products + sets + sections, коллекций в нём нет, и ни одна белая
+            страница /api/admin/collections не зовёт. Раздел остаётся рабочим
+            для бота и старого каталога — но человек, который здесь что-то
+            заведёт, ждёт этого на сайте. Говорим заранее. */}
+        <p className="rounded border border-[var(--ink-soft)]/25 px-3 py-2 text-[11px] leading-relaxed text-[var(--ink-soft)]">
+          {t('collection.notOnSiteNotice')}
+        </p>
+
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <BrandLoader size={32} />
