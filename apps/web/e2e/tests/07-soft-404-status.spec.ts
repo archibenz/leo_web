@@ -32,6 +32,25 @@ async function firstGarmentPath(request: APIRequestContext): Promise<string> {
 
 test.describe('404 status survives the next-intl rewrite', () => {
   test('a product slug the catalogue does not carry answers 404', async ({request}) => {
+    // Пропуск ПО УСЛОВИЮ, а не карантин: против собранного приложения этот
+    // тест проходит и обязан остаться сторожем — 404 ставит middleware.ts по
+    // списку из lib/generated/product-slugs.ts. На дев-стенде список пуст,
+    // потому что predev зовёт генератор с --allow-stub, и при недоступном API
+    // тот честно пишет заглушку. Сторож становится инертным, и тест падает не
+    // из-за кода.
+    //
+    // Глухой test.fixme здесь был бы хуже красноты: он выключил бы проверку и
+    // там, где она работает. Поэтому условие, и оно само снимется, когда e2e
+    // переедет в CI на собранное приложение (lw-sud7).
+    //
+    // Запускать так:
+    //   npm run build && npm run start -- -p 3100
+    //   E2E_BUILT=1 E2E_SKIP_WEB_SERVER=1 E2E_BASE_URL=http://127.0.0.1:3100 \
+    //     npx playwright test e2e/tests/07-soft-404-status.spec.ts
+    test.skip(
+      !process.env.E2E_BUILT,
+      'нужен собранный билд: на дев-стенде список слагов — заглушка, и 404 ставить нечем (см. комментарий выше)',
+    );
     const res = await request.get(`/ru/product/${UNKNOWN_SLUG}`);
     expect(res.status()).toBe(404);
   });
