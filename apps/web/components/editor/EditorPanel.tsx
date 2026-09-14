@@ -8,6 +8,7 @@ import {EditorButton} from './EditorFields';
 import SectionForm from './SectionForm';
 import TickerForm from './TickerForm';
 import VariantForm from './VariantForm';
+import ModelForm from './ModelForm';
 import PublishList from './PublishList';
 
 // Панель СБОКУ, а не модальное окно поверх. Владелец смотрит с телефона:
@@ -63,8 +64,10 @@ export default function EditorPanel() {
           ) : (
             <SectionForm section={target.section} onSaved={onSaved} />
           )
-        ) : (
+        ) : target.kind === 'variant' ? (
           <VariantForm modelId={target.modelId} variantId={target.id} onSaved={onSaved} />
+        ) : (
+          <ModelForm modelId={target.id} onSaved={onSaved} />
         )}
 
         <div className="mt-8 pt-4" style={{borderTop: `1px solid ${HAIR}`}}>

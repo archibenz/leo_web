@@ -19,6 +19,7 @@ function put(path: string, patch: Patch): Promise<unknown> {
 
 export const saveSectionDraft = (id: string, patch: Patch) => put(`${ROOT}/sections/${id}`, patch);
 export const saveVariantDraft = (variantId: string, patch: Patch) => put(`${ROOT}/products/${variantId}`, patch);
+export const saveModelDraft = (modelId: string, patch: Patch) => put(`${ROOT}/models/${modelId}`, patch);
 
 export const publishSection = (id: string) => apiFetch(`${ROOT}/sections/${id}/publish`, {method: 'POST'});
 export const publishModel = (id: string) => apiFetch(`${ROOT}/models/${id}/publish`, {method: 'POST'});
