@@ -157,6 +157,19 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Половина полей этой формы пишется в строку ВАРИАНТА (`products`), а
+          витрина берёт имя и описание из МОДЕЛИ (`product_models`) — см.
+          StorefrontMapping, где из варианта читаются только price, salePrice,
+          colorKey/Hex/Name*, image, images, stockQuantity, active, sortOrder.
+          Сохранение при этом проходит, поле записывается, страница не меняется:
+          владелец верит, что переименовал товар, и узнаёт обратное через день.
+          Поведение не трогаем (поля нужны боту и оповещениям склада) — говорим
+          правду словами. Снять подпись можно будет только вместе с выводом
+          полей модели в редактор, не раньше. */}
+      <p className="rounded border border-[var(--ink-soft)]/25 px-3 py-2 text-[11px] leading-relaxed text-[var(--ink-soft)]">
+        {t('scopeNotice')}
+      </p>
+
       {/* ID (only for new) */}
       {isNew && (
         <Field label={t('id')} hint={t('idHint')}>
@@ -171,15 +184,15 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
       )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label={t('title')}>
+        <Field label={t('title')} hint={t('notOnSite')}>
           <input value={form.title} onChange={e => setForm(prev => ({...prev, title: e.target.value}))} className="admin-input" required />
         </Field>
-        <Field label={t('subtitle')}>
+        <Field label={t('subtitle')} hint={t('notOnSite')}>
           <input value={form.subtitle} onChange={e => setForm(prev => ({...prev, subtitle: e.target.value}))} className="admin-input" placeholder="e.g. Evening · Silk" />
         </Field>
       </div>
 
-      <Field label={t('description')}>
+      <Field label={t('description')} hint={t('notOnSite')}>
         <textarea value={form.description} onChange={e => setForm(prev => ({...prev, description: e.target.value}))} className="admin-input min-h-[80px]" />
       </Field>
 
