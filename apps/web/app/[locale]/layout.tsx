@@ -4,9 +4,6 @@ import {Suspense} from 'react';
 import {headers} from 'next/headers';
 import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
-import Header from '../../components/Header';
-import SmartHeader from '../../components/SmartHeader';
-import Footer from '../../components/Footer';
 import Providers from '../../components/Providers';
 import Metrika from '../../components/Metrika';
 import SiteEventsRouteTracker from '../../components/SiteEventsRouteTracker';
@@ -58,15 +55,18 @@ export default async function LocaleLayout({
   const requestHeaders = await headers();
   const nonce = requestHeaders.get('x-nonce') ?? undefined;
   // The White storefront lives at the locale root and is the default chrome.
-  // Only admin still uses the gradient header/footer/providers; everything
+  // Only admin still needs this branch — not for the gradient header/footer
+  // any more (task-admin-white-brief.md: admin is a tool, not a storefront
+  // page, and got its own shell in components/admin/AdminLayout.tsx), but
+  // for <Providers> itself, whose useAuth() feeds AdminGuard; everything
   // else — legal pages and the Telegram exchange landing included — renders
   // inside WhiteChrome, one header and footer that persist across
   // navigations. auth/tg used to sit here too, but it needs none of
   // Providers' contexts (it adopts its token via hooks/useWhiteAuth, same as
   // WhiteTelegramLogin) and app/[locale]/auth/ has no other route to keep
-  // gradient company — see page.test.tsx and e2e/tests/11-tg-landing.spec.ts.
+  // this branch company — see page.test.tsx and e2e/tests/11-tg-landing.spec.ts.
   const pathname = requestHeaders.get('x-pathname') ?? '';
-  const isGradientChrome = /^\/(?:[a-z-]+)\/admin(?:\/|$)/i.test(pathname);
+  const isAdminRoute = /^\/(?:[a-z-]+)\/admin(?:\/|$)/i.test(pathname);
 
   const orgJsonLd = {
     '@context': 'https://schema.org',
@@ -101,7 +101,7 @@ export default async function LocaleLayout({
     },
   };
 
-  if (!isGradientChrome) {
+  if (!isAdminRoute) {
     return (
       <NextIntlClientProvider locale={locale} messages={messages}>
         {/* The storefront is the part of the site search actually sees, yet the
@@ -139,22 +139,18 @@ export default async function LocaleLayout({
         <Suspense fallback={null}>
           <SiteEventsRouteTracker />
         </Suspense>
-        {/* Marks the gradient design's own tree. The accent focus glow on form
-            fields belongs to it and to nothing else — unscoped it painted a
-            rounded gold box around every input on the storefront too. */}
-        <div className="gradient-chrome relative flex min-h-screen flex-col">
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded focus:bg-ink focus:px-4 focus:py-2 focus:text-paper focus:outline-none"
-          >
-            {locale === 'ru' ? 'Перейти к содержанию' : 'Skip to main content'}
-          </a>
-          <SmartHeader>
-            <Header locale={locale} />
-          </SmartHeader>
-          <main id="main-content" className="relative z-40 flex-1">{children}</main>
-          <Footer locale={locale} />
-        </div>
+        {/* task-admin-white-brief.md: admin is a working tool, not a shop
+            page — it needs none of the storefront chrome (Header/Footer
+            below are gone), it has its own shell now
+            (components/admin/AdminLayout.tsx). The class name stays
+            "gradient-chrome" on purpose, unrenamed: app/globals.css still
+            scopes the old gold focus-glow to it for the admin pages this
+            branch does NOT touch yet (ProductForm/CollectionForm/
+            CareGuideForm and the sections still on the old style) — dropping
+            the class would silently de-style their inputs, a behaviour
+            change this branch is not allowed to make. Remove it once every
+            admin page has moved to the White language. */}
+        <div className="gradient-chrome">{children}</div>
       </Providers>
     </NextIntlClientProvider>
   );
