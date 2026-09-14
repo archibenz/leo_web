@@ -103,8 +103,8 @@ const FIELD_ERROR_TEXT: Record<KnownModelField, string> = {
   descEn: 'Впишите короткое описание на английском.',
   compositionRu: 'Впишите состав.',
   compositionEn: 'Впишите состав на английском.',
-  careRu: 'Впишите уход.',
-  careEn: 'Впишите уход на английском.',
+  careRu: 'Впишите, как ухаживать за вещью.',
+  careEn: 'Впишите уход на английском — как ухаживать за вещью.',
 };
 
 const EN_FIELDS_ID = 'wv-model-en-fields';
