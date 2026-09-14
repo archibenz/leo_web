@@ -13,15 +13,29 @@ import {CATALOGUE_SLUGS, CATALOGUE_SLUGS_IS_STUB} from '../generated/product-slu
 describe('middleware route segments', () => {
   it('lists every first segment that has a page behind it', () => {
     const routeDir = join(process.cwd(), 'app', '[locale]');
+
     // Dot-directories are never routes: Next ignores them, and tools drop their
     // state wherever the process happened to be running — `.omc` from the
     // orchestration plugin turned up here and reddened this test for a
     // directory that is not in the repository. Filtered by the leading dot
     // rather than by name, so the next tool does not repeat it.
-    const onDisk = readdirSync(routeDir, {withFileTypes: true})
-      .filter((e) => e.isDirectory() && !e.name.startsWith('[') && !e.name.startsWith('_') && !e.name.startsWith('.'))
-      .map((e) => e.name)
-      .sort();
+    //
+    // (shop) and (admin) are route GROUPS — the parens keep them out of the
+    // URL entirely (task-route-groups-brief.md), so they never appear in
+    // ROUTE_SEGMENTS themselves; what used to sit directly under
+    // app/[locale] now sits one level deeper, inside one of the groups. A
+    // flat readdir would otherwise see "(shop)"/"(admin)" where it expects
+    // "account"/"admin"/etc. and fail for the wrong reason.
+    const listSegments = (dir: string): string[] =>
+      readdirSync(dir, {withFileTypes: true})
+        .filter((e) => e.isDirectory() && !e.name.startsWith('[') && !e.name.startsWith('_') && !e.name.startsWith('.'))
+        .flatMap((e) =>
+          e.name.startsWith('(') && e.name.endsWith(')')
+            ? listSegments(join(dir, e.name))
+            : [e.name]
+        );
+
+    const onDisk = listSegments(routeDir).sort();
 
     // Mirrors ROUTE_SEGMENTS in middleware.ts, which keeps it module-private —
     // the list is an edge implementation detail, not an export.

@@ -3,7 +3,9 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  /* White is the site default now; body.theme-gradient below switches this
+     back to dark for whichever page opts in (see that rule for why). */
+  color-scheme: light;
   --paper-base: #1e120d;
   --paper-muted: #2b1711;
   --paper: var(--paper-base); /* canonical paper surface — mirrors the tailwind `paper` token */
@@ -94,18 +96,36 @@ body {
   min-height: 100vh;
   overflow-x: clip;
   overscroll-behavior-y: auto;
+  /* White by default — every shell gets this for free and none has to
+     remember to opt out. Dark is now the thing you opt INTO, below. */
+  background: #fff;
+  position: relative;
+  overflow-x: clip;
+}
+
+/* The dark atelier theme — not deleted, just no longer the default. Add this
+   class to <body> to bring it back (nothing does yet; it's parked here for
+   the day a shell wants it again). Was the unconditional `body { … }` rule
+   above until app/[locale]/layout.tsx stopped being the one place that
+   decided White vs. dark per request (task-route-groups-brief.md): a shared
+   default that every new shell has to remember to turn off is exactly the
+   footgun that broke admin's "Назад на сайт" in the first place. */
+body.theme-gradient {
+  color-scheme: dark;
   background:
     radial-gradient(ellipse 120% 60% at 50% 0%, var(--lux-bg-warm) 0%, transparent 50%),
     radial-gradient(ellipse 80% 50% at 80% 80%, rgba(30, 18, 13, 0.5) 0%, transparent 50%),
     radial-gradient(ellipse 60% 40% at 15% 60%, rgba(26, 15, 11, 0.4) 0%, transparent 45%),
     linear-gradient(180deg, var(--lux-bg-base) 0%, var(--lux-bg-mid) 40%, var(--lux-bg-deep) 100%);
   color: var(--ink);
-  position: relative;
-  overflow-x: clip;
 }
 
-body::before,
-body::after {
+/* Grain + vignette are part of the dark theme too — scoped the same way, so
+   with no .theme-gradient on <body> neither pseudo-element is generated at
+   all (content defaults to none), instead of painting and then being told
+   not to. */
+body.theme-gradient::before,
+body.theme-gradient::after {
   content: '';
   position: fixed;
   inset: 0;
@@ -113,13 +133,13 @@ body::after {
   z-index: 0;
 }
 
-body::before {
+body.theme-gradient::before {
   background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22 viewBox=%220 0 40 40%22%3E%3Cfilter id=%22n%22 x=%220%22 y=%220%22 width=%22100%25%22 height=%22100%25%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.8%22 numOctaves=%222%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%2240%22 height=%2240%22 filter=%22url(%23n)%22 opacity=%220.24%22/%3E%3C/svg%3E');
   opacity: var(--texture-opacity);
   mix-blend-mode: multiply;
 }
 
-body::after {
+body.theme-gradient::after {
   background:
     radial-gradient(ellipse at 50% 0%, transparent 40%, var(--lux-bg-vignette) 100%),
     radial-gradient(ellipse at 50% 100%, transparent 50%, var(--lux-bg-vignette) 100%),
@@ -129,7 +149,7 @@ body::after {
 }
 
 @media (max-width: 768px) {
-  body::after {
+  body.theme-gradient::after {
     display: none;
   }
 }
@@ -1632,18 +1652,6 @@ textarea {
 
 #wv-main {
   scroll-margin-top: 96px;
-}
-
-/* When a White page is on screen the page background is white — the gradient
-   site's dark paper would flash on rubber-band overscroll. */
-body:has(.wv-root) {
-  background: #fff;
-}
-/* ...and its grain/vignette overlays stay off White pages — without the old
-   full-cover portal they'd wash a grey sheen over the storefront. */
-body:has(.wv-root)::before,
-body:has(.wv-root)::after {
-  content: none;
 }
 
 .wv-root .font-display {
