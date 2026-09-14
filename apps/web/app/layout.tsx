@@ -110,7 +110,16 @@ export default async function RootLayout({children}: {children: React.ReactNode}
 
   return (
     <html lang={lang}>
-      <body className={`${display.variable} ${body.variable} ${accent.variable} font-sans bg-paper text-ink`}>
+      {/* bg-paper/text-ink used to sit here unconditionally — a hardcoded
+          #1E120D/#F3E9DA pair from tailwind.config.ts, wholly separate from
+          the --paper/--ink custom properties and higher-specificity than the
+          plain `body { }` rule in globals.css (a class always beats a bare
+          element selector), so it silently outranked every attempt to make
+          body white by default from there. White is body's default now
+          (app/globals.css); dark is body.theme-gradient, opt-in, and nothing
+          sets it, so these two utility classes would just fight that default
+          and win on every route that isn't (shop) — admin included. */}
+      <body className={`${display.variable} ${body.variable} ${accent.variable} font-sans`}>
         {children}
       </body>
     </html>
