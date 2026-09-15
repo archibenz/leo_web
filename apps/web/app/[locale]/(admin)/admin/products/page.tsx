@@ -1,13 +1,33 @@
 'use client';
 
-import {useState, useEffect} from 'react';
+import {useState, useEffect, useMemo} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
 import Link from 'next/link';
+import {MoreHorizontalIcon, PencilIcon, PlusIcon, Trash2Icon} from 'lucide-react';
 import AdminLayout from '../../../../../components/admin/AdminLayout';
 import BrandLoader from '../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../lib/api';
 import {formatPrice} from '../../../../../lib/formatPrice';
+import {Badge} from '../../../../../components/ui/badge';
+import {Button} from '../../../../../components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../../../../../components/ui/dropdown-menu';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../../../../components/ui/table';
+import {Panel, PanelEmpty} from '../../../../../components/admin/dashboard/panel';
+import {ListPage} from '../../../../../components/admin/list/list-page';
 
 type Product = {
   id: string;
@@ -26,6 +46,7 @@ export default function AdminProductsPage() {
   const locale = pathname.split('/')[1] || 'ru';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     apiFetch<Product[]>('/api/admin/products')
@@ -34,9 +55,7 @@ export default function AdminProductsPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleDelete = async (e: React.MouseEvent, id: string, title: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDelete = async (id: string, title: string) => {
     if (!confirm(t('confirmDelete', {name: title}))) return;
     try {
       await apiFetch(`/api/admin/products/${id}?permanent=true`, {method: 'DELETE'});
@@ -46,73 +65,148 @@ export default function AdminProductsPage() {
     }
   };
 
+  // Поиск идёт по уже загруженному списку — ни одного нового запроса.
+  // Ищем не только по названию: владелец помнит вещь то по имени, то по
+  // коллекции, то по разделу, и поиск, знающий одно название, отказал бы ему
+  // ровно тогда, когда нужен.
+  const filtered = useMemo(() => {
+    const needle = query.trim().toLowerCase();
+    if (!needle) return products;
+    return products.filter(p =>
+      [p.title, p.category, p.collectionName]
+        .filter(Boolean)
+        .some(field => (field as string).toLowerCase().includes(needle)),
+    );
+  }, [products, query]);
+
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-display text-[var(--ink)]">{t('products')}</h1>
-          <Link
-            href={`/${locale}/admin/products/new`}
-            className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--paper-base)] transition hover:opacity-90"
-          >
-            + {t('product.add')}
-          </Link>
-        </div>
-
+      <ListPage
+        action={
+          <Button asChild className="min-h-11">
+            <Link href={`/${locale}/admin/products/new`}>
+              <PlusIcon />
+              {t('product.add')}
+            </Link>
+          </Button>
+        }
+        search={{
+          value: query,
+          onChange: setQuery,
+          placeholder: t('searchProducts'),
+          // Восемьдесят семь цветовых вариантов перебором глазами — это
+          // неработоспособность, а не неудобство. Счётчик говорит, сколько из
+          // скольких видно, чтобы отфильтрованный список не путали с коротким.
+          hint: query.trim() ? t('foundOf', {shown: filtered.length, total: products.length}) : undefined,
+        }}
+        title={t('products')}
+      >
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <BrandLoader size={32} />
           </div>
         ) : products.length === 0 ? (
-          <p className="text-sm text-[var(--ink-soft)]">{t('product.noProducts')}</p>
+          <Panel>
+            <PanelEmpty>{t('product.noProducts')}</PanelEmpty>
+          </Panel>
+        ) : filtered.length === 0 ? (
+          <Panel>
+            <PanelEmpty>{t('nothingFound')}</PanelEmpty>
+          </Panel>
         ) : (
-          <div className="space-y-2">
-            {products.map(product => (
-              <div key={product.id} className="paper-card flex items-center gap-4 p-4 transition hover:bg-[var(--ink)]/3">
-                <Link
-                  href={`/${locale}/admin/products/${product.id}`}
-                  className="min-w-0 flex-1"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-[var(--ink)] truncate">{product.title}</span>
-                    {product.isTest && (
-                      <span className="rounded-full bg-[var(--accent)]/20 px-2 py-0.5 text-[10px] font-semibold uppercase text-[var(--accent)]">
-                        {t('product.demo')}
-                      </span>
-                    )}
-                    {!product.active && (
-                      <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-400">
-                        {t('inactive')}
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-0.5 flex items-center gap-3 text-xs text-[var(--ink-soft)]">
-                    <span>{formatPrice(locale, product.price)}</span>
-                    {product.category && <span>{product.category}</span>}
-                    {product.collectionName && <span>{product.collectionName}</span>}
-                  </div>
-                </Link>
-                <div className="text-right shrink-0">
-                  <p className={`text-sm font-medium ${
-                    product.stockQuantity === 0 ? 'text-red-400' :
-                    product.stockQuantity <= 5 ? 'text-yellow-400' : 'text-[var(--ink)]'
-                  }`}>
-                    {product.stockQuantity}
-                  </p>
-                  <p className="text-[10px] text-[var(--ink-soft)] uppercase">{t('product.stock')}</p>
-                </div>
-                <button
-                  onClick={(e) => handleDelete(e, product.id, product.title)}
-                  className="shrink-0 rounded-full p-2 text-[var(--ink-soft)] hover:bg-red-500/10 hover:text-red-400 transition"
-                  title={t('deleteBtn')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                </button>
-              </div>
-            ))}
+          <div className="overflow-hidden rounded-lg ring-1 ring-border">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-4">{t('product.title')}</TableHead>
+                    {/* Раздел и коллекция прячутся на телефоне: без этого
+                        таблица уезжает вбок, и владелец листает её пальцем
+                        вместо того, чтобы читать. На мониторе они нужны. */}
+                    <TableHead className="hidden md:table-cell">{t('product.category')}</TableHead>
+                    <TableHead className="hidden lg:table-cell">{t('collections')}</TableHead>
+                    <TableHead className="text-right">{t('product.price')}</TableHead>
+                    <TableHead className="text-right">{t('product.stockShort')}</TableHead>
+                    <TableHead className="w-12 pr-2" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filtered.map(product => (
+                    <TableRow key={product.id}>
+                      <TableCell className="pl-4">
+                        <Link
+                          className="block min-h-11 py-2 hover:underline"
+                          href={`/${locale}/admin/products/${product.id}`}
+                        >
+                          <span className="flex flex-wrap items-center gap-2">
+                            <span className="truncate">{product.title}</span>
+                            {product.isTest && <Badge variant="outline">{t('product.demo')}</Badge>}
+                            {!product.active && <Badge variant="destructive">{t('inactive')}</Badge>}
+                          </span>
+                        </Link>
+                      </TableCell>
+                      <TableCell className="hidden text-muted-foreground md:table-cell">
+                        {product.category ?? '—'}
+                      </TableCell>
+                      <TableCell className="hidden text-muted-foreground lg:table-cell">
+                        {product.collectionName ?? '—'}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatPrice(locale, product.price)}
+                      </TableCell>
+                      {/* Красным — только «кончилось». «Мало» набирается тем
+                          же цветом, но жирнее: сигнальный цвет значит беду, и
+                          если красить им и предупреждение, беду перестанут
+                          замечать. То же правило, что на дашборде. */}
+                      <TableCell
+                        className={
+                          product.stockQuantity === 0
+                            ? 'text-right font-medium text-destructive tabular-nums'
+                            : product.stockQuantity <= 5
+                              ? 'text-right font-medium tabular-nums'
+                              : 'text-right text-muted-foreground tabular-nums'
+                        }
+                      >
+                        {product.stockQuantity}
+                      </TableCell>
+                      <TableCell className="pr-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              aria-label={t('rowActions', {name: product.title})}
+                              className="size-11"
+                              size="icon"
+                              variant="ghost"
+                            >
+                              <MoreHorizontalIcon />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/${locale}/admin/products/${product.id}`}>
+                                <PencilIcon />
+                                {t('product.edit')}
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onSelect={() => handleDelete(product.id, product.title)}
+                              variant="destructive"
+                            >
+                              <Trash2Icon />
+                              {t('deleteBtn')}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
-      </div>
+      </ListPage>
     </AdminLayout>
   );
 }

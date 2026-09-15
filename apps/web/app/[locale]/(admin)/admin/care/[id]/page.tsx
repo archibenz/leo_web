@@ -44,7 +44,7 @@ export default function EditCareGuidePage() {
   if (!data) {
     return (
       <AdminLayout>
-        <p className="text-sm text-[var(--ink-soft)]">Not found</p>
+        <p className="text-muted-foreground text-[13px]">Not found</p>
       </AdminLayout>
     );
   }

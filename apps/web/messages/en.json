@@ -1148,7 +1148,9 @@
         "shipped": "Shipped",
         "delivered": "Delivered",
         "cancelled": "Cancelled"
-      }
+      },
+      "totalForPeriod": "Total for the period",
+      "editModeTitle": "Site editing"
     },
     "product": {
       "add": "Add Product",
@@ -1181,7 +1183,27 @@
       "noProducts": "No products yet",
       "updateStock": "Update Stock",
       "created": "Product created",
-      "updated": "Product updated"
+      "updated": "Product updated",
+      "stockShort": "In stock",
+      "saving": "Saving…",
+      "notChosen": "Not chosen",
+      "noCollection": "No collection",
+      "categories": {
+        "dresses": "Dresses",
+        "outerwear": "Outerwear",
+        "tailoring": "Tailoring",
+        "knitwear": "Knitwear",
+        "blouses": "Blouses",
+        "skirts": "Skirts",
+        "trousers": "Trousers"
+      },
+      "occasions": {
+        "evening": "Evening",
+        "office": "Office",
+        "casual": "Casual",
+        "resort": "Resort",
+        "ceremony": "Ceremony"
+      }
     },
     "collection": {
       "add": "Add Collection",
@@ -1197,7 +1219,8 @@
       "noCollections": "No collections yet",
       "notOnSiteNotice": "Collections are not shown on the storefront right now — the storefront pages never request them. The section stays useful for the Telegram bot and the older catalogue.",
       "created": "Collection created",
-      "updated": "Collection updated"
+      "updated": "Collection updated",
+      "saving": "Saving…"
     },
     "alert": {
       "lowStock": "Low stock",
@@ -1243,7 +1266,18 @@
     "recommendationsSaved": "Recommendations saved",
     "recommendationsError": "Error saving recommendations",
     "remove": "Remove",
-    "ok": "OK"
+    "ok": "OK",
+    "navCatalogue": "Catalogue",
+    "navSite": "Site",
+    "toSite": "To the site",
+    "myAccount": "My account",
+    "signOut": "Sign out",
+    "toggleNav": "Toggle navigation",
+    "nothingFound": "Nothing found",
+    "saving": "Saving…",
+    "foundOf": "Showing {shown} of {total}",
+    "rowActions": "Actions: {name}",
+    "cancel": "Cancel"
   },
   "editor": {
     "ticker": {

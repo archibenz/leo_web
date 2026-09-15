@@ -1148,7 +1148,9 @@
         "shipped": "Отправлен",
         "delivered": "Доставлен",
         "cancelled": "Отменён"
-      }
+      },
+      "totalForPeriod": "Всего за период",
+      "editModeTitle": "Правка сайта"
     },
     "product": {
       "add": "Добавить товар",
@@ -1181,7 +1183,27 @@
       "noProducts": "Нет товаров",
       "updateStock": "Обновить запас",
       "created": "Товар создан",
-      "updated": "Товар обновлён"
+      "updated": "Товар обновлён",
+      "stockShort": "Остаток",
+      "saving": "Сохраняем…",
+      "notChosen": "Не выбрано",
+      "noCollection": "Без коллекции",
+      "categories": {
+        "dresses": "Платья",
+        "outerwear": "Верхняя одежда",
+        "tailoring": "Костюмы",
+        "knitwear": "Трикотаж",
+        "blouses": "Блузы",
+        "skirts": "Юбки",
+        "trousers": "Брюки"
+      },
+      "occasions": {
+        "evening": "Вечер",
+        "office": "Офис",
+        "casual": "Повседневный",
+        "resort": "Курорт",
+        "ceremony": "Торжество"
+      }
     },
     "collection": {
       "add": "Добавить коллекцию",
@@ -1197,7 +1219,8 @@
       "noCollections": "Нет коллекций",
       "notOnSiteNotice": "Коллекции сейчас не показываются на сайте: страницы витрины их не запрашивают. Раздел остаётся рабочим для телеграм-бота и старого каталога.",
       "created": "Коллекция создана",
-      "updated": "Коллекция обновлена"
+      "updated": "Коллекция обновлена",
+      "saving": "Сохраняем…"
     },
     "alert": {
       "lowStock": "Мало на складе",
@@ -1243,7 +1266,18 @@
     "recommendationsSaved": "Рекомендации сохранены",
     "recommendationsError": "Ошибка сохранения рекомендаций",
     "remove": "Удалить",
-    "ok": "ОК"
+    "ok": "ОК",
+    "navCatalogue": "Каталог",
+    "navSite": "Сайт",
+    "toSite": "На сайт",
+    "myAccount": "Мой аккаунт",
+    "signOut": "Выйти",
+    "toggleNav": "Свернуть навигацию",
+    "nothingFound": "Ничего не найдено",
+    "saving": "Сохраняем…",
+    "foundOf": "Показано {shown} из {total}",
+    "rowActions": "Действия: {name}",
+    "cancel": "Отмена"
   },
   "editor": {
     "ticker": {

@@ -7,6 +7,16 @@ import ProductForm from '../../../../../../components/admin/ProductForm';
 import BrandLoader from '../../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../../lib/api';
 import {formatPrice} from '../../../../../../lib/formatPrice';
+import {PlusIcon, XIcon} from 'lucide-react';
+import {Button} from '../../../../../../components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../../../../../components/ui/select';
+import {Panel, PanelEmpty} from '../../../../../../components/admin/dashboard/panel';
 
 type Props = {
   params: Promise<{id: string}>;
@@ -31,11 +41,9 @@ export default function EditProductPage({params}: Props) {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-display text-[var(--ink)]">{t('edit')}</h1>
-        <div className="paper-card p-6">
-          <ProductForm productId={id} />
-        </div>
+      <div className="max-w-4xl *:mb-6 last:*:mb-0">
+        <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">{t('edit')}</h1>
+        <ProductForm productId={id} />
         <RecommendationsSection productId={id} />
       </div>
     </AdminLayout>
@@ -105,76 +113,69 @@ function RecommendationsSection({productId}: {productId: string}) {
 
   if (loading) {
     return (
-      <div className="paper-card p-6">
+      <Panel title={t('recommendations')}>
         <div className="flex items-center justify-center py-10">
           <BrandLoader size={32} />
         </div>
-      </div>
+      </Panel>
     );
   }
 
   return (
-    <div className="paper-card p-6 space-y-4">
-      <h2 className="text-lg font-medium text-[var(--ink)]">{t('recommendations')}</h2>
-
-      {/* Current recommendations */}
-      {recommendations.length === 0 ? (
-        <p className="text-sm text-[var(--ink-soft)]">{t('noRecommendations')}</p>
-      ) : (
-        <div className="space-y-2">
-          {recommendations.map(rec => (
-            <div key={rec.id} className="flex items-center justify-between gap-4 rounded-lg bg-[var(--ink)]/3 px-4 py-2.5">
-              <div>
-                <span className="text-sm font-medium text-[var(--ink)]">{rec.title}</span>
-                <span className="ml-2 text-xs text-[var(--ink-soft)]">{formatPrice(locale, rec.price)}</span>
-              </div>
-              <button
-                onClick={() => handleRemove(rec.id)}
-                className="shrink-0 rounded-full p-1.5 text-[var(--ink-soft)] hover:bg-red-500/10 hover:text-red-400 transition"
-                title={t('remove')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Add new recommendation */}
-      <div className="flex items-center gap-3">
-        <select
-          value={selectedId}
-          onChange={e => setSelectedId(e.target.value)}
-          className="admin-input flex-1"
-        >
-          <option value="">{t('selectProduct')}</option>
-          {availableProducts.map(p => (
-            <option key={p.id} value={p.id}>{p.title}</option>
-          ))}
-        </select>
-        <button
-          type="button"
-          onClick={handleAdd}
-          disabled={!selectedId}
-          className="rounded-full bg-[var(--accent)] px-4 py-2 text-sm font-medium text-[var(--paper-base)] transition hover:opacity-90 disabled:opacity-50"
-        >
-          {t('addRecommendation')}
-        </button>
-      </div>
-
-      {/* Save */}
-      <div className="flex items-center gap-4 pt-2">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="lux-btn-primary"
-        >
-          {saving ? '...' : t('saveRecommendations')}
-        </button>
-        {message && (
-          <span className="text-sm text-[var(--accent)]">{message}</span>
+    <Panel title={t('recommendations')}>
+      <div className="space-y-5">
+        {recommendations.length === 0 ? (
+          <PanelEmpty>{t('noRecommendations')}</PanelEmpty>
+        ) : (
+          <ul className="divide-y rounded-lg ring-1 ring-border">
+            {recommendations.map(rec => (
+              <li className="flex items-center justify-between gap-4 px-4 py-2" key={rec.id}>
+                <span className="min-w-0 truncate text-[13px]">
+                  {rec.title}
+                  <span className="ml-2 text-muted-foreground text-[12px] tabular-nums">
+                    {formatPrice(locale, rec.price)}
+                  </span>
+                </span>
+                {/* 44px: владелец убирает рекомендации пальцем, а прежняя
+                    кнопка была 14 пикселей значка в кружке. */}
+                <Button
+                  aria-label={t('remove')}
+                  className="size-11 shrink-0"
+                  onClick={() => handleRemove(rec.id)}
+                  size="icon"
+                  variant="ghost"
+                >
+                  <XIcon />
+                </Button>
+              </li>
+            ))}
+          </ul>
         )}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <Select onValueChange={setSelectedId} value={selectedId}>
+            <SelectTrigger aria-label={t('selectProduct')} className="min-h-11 flex-1">
+              <SelectValue placeholder={t('selectProduct')} />
+            </SelectTrigger>
+            <SelectContent>
+              {availableProducts.map(p => (
+                <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button className="min-h-11" disabled={!selectedId} onClick={handleAdd} type="button">
+            <PlusIcon />
+            {t('addRecommendation')}
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+          <Button className="min-h-11" disabled={saving} onClick={handleSave}>
+            {saving ? t('saving') : t('saveRecommendations')}
+          </Button>
+          {message && <span className="text-muted-foreground text-[13px]">{message}</span>}
+        </div>
       </div>
-    </div>
+    </Panel>
   );
 }
