@@ -2,7 +2,6 @@
 
 import {use} from 'react';
 import {useTranslations} from 'next-intl';
-import AdminLayout from '../../../../../../components/admin/AdminLayout';
 import CollectionForm from '../../../../../../components/admin/CollectionForm';
 
 type Props = {
@@ -14,13 +13,11 @@ export default function EditCollectionPage({params}: Props) {
   const t = useTranslations('admin.collection');
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">{t('edit')}</h1>
-        <div>
-          <CollectionForm collectionId={id} />
-        </div>
+    <div className="space-y-6">
+      <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">{t('edit')}</h1>
+      <div>
+        <CollectionForm collectionId={id} />
       </div>
-    </AdminLayout>
+    </div>
   );
 }

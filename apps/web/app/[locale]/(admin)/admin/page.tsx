@@ -5,7 +5,6 @@ import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
 import Link from 'next/link';
 import {HomeIcon} from 'lucide-react';
-import AdminLayout from '../../../../components/admin/AdminLayout';
 import BrandLoader from '../../../../components/BrandLoader';
 import EditModeSwitch from '../../../../components/editor/EditModeSwitch';
 import {apiFetch} from '../../../../lib/api';
@@ -163,235 +162,235 @@ export default function AdminDashboardPage() {
   const peakUnique = botVisits.length ? Math.max(...botVisits.map((v) => v.uniqueUsers)) : 0;
 
   return (
-    <AdminLayout>
+    <>
       {/* Своего белого полотна здесь больше нет. Прежде страница красила себя
-          сама и отрицательными отступами отменяла поля общей оболочки — тогда
-          это было необходимо, потому что оболочка стояла на тёмном фоне
-          прежней темы. Оболочка переехала на блок Efferd и приносит и белый
-          фон, и поля; повтор того же здесь дал бы двойные отступы.
-          Ритм между блоками задаётся одним правилом `*:mb-6`, как в
-          `dashboard-7`, а не отступом у каждого раздела по отдельности. */}
-      <div className="*:mb-6 last:*:mb-0">
-        <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">{t('dashboard')}</h1>
+        сама и отрицательными отступами отменяла поля общей оболочки — тогда
+        это было необходимо, потому что оболочка стояла на тёмном фоне
+        прежней темы. Оболочка переехала на блок Efferd и приносит и белый
+        фон, и поля; повтор того же здесь дал бы двойные отступы.
+        Ритм между блоками задаётся одним правилом `*:mb-6`, как в
+        `dashboard-7`, а не отступом у каждого раздела по отдельности. */}
+    <div className="*:mb-6 last:*:mb-0">
+      <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">{t('dashboard')}</h1>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <BrandLoader size={32} />
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <BrandLoader size={32} />
+        </div>
+      ) : loadError ? (
+        <Panel>
+          <div className="space-y-4 text-center">
+            <p className="text-[13px]">
+              {loadError === 'forbidden'
+                ? t('dashboardPage.forbidden')
+                : t('dashboardPage.loadFailed')}
+            </p>
+            <Button onClick={() => window.location.reload()}>
+              {t('dashboardPage.refresh')}
+            </Button>
           </div>
-        ) : loadError ? (
-          <Panel>
-            <div className="space-y-4 text-center">
-              <p className="text-[13px]">
-                {loadError === 'forbidden'
-                  ? t('dashboardPage.forbidden')
-                  : t('dashboardPage.loadFailed')}
-              </p>
-              <Button onClick={() => window.location.reload()}>
-                {t('dashboardPage.refresh')}
-              </Button>
-            </div>
-          </Panel>
-        ) : (
-          <>
-            {dashboard && (
-              <Panel title={t('dashboardPage.businessMetrics')}>
-                <StatGrid>
-                  <Stat
-                    delta={
-                      dashboard.newUsers7d > 0
-                        ? t('dashboardPage.deltaWeek', {n: dashboard.newUsers7d})
-                        : undefined
-                    }
-                    label={t('dashboardPage.totalUsers')}
-                    value={dashboard.totalUsers.toString()}
-                  />
-                  {/* Ноль с причиной. Оплата ещё не включена, и крупный «0»
-                      читался бы как «продажи упали». Требование владельца. */}
-                  <Stat
-                    delta={
-                      dashboard.newOrders7d > 0
-                        ? t('dashboardPage.deltaWeek', {n: dashboard.newOrders7d})
-                        : undefined
-                    }
-                    empty={dashboard.totalOrders === 0}
-                    label={t('dashboardPage.totalOrders')}
-                    value={
-                      dashboard.totalOrders === 0
-                        ? t('dashboardPage.ordersZeroReason')
-                        : dashboard.totalOrders.toString()
-                    }
-                  />
-                  <Stat
-                    delta={
-                      dashboard.revenue7d > 0
-                        ? t('dashboardPage.deltaWeekMoney', {amount: formatMoney(dashboard.revenue7d)})
-                        : undefined
-                    }
-                    empty={dashboard.totalRevenue === 0}
-                    label={t('dashboardPage.totalRevenue')}
-                    value={
-                      dashboard.totalRevenue === 0
-                        ? t('dashboardPage.revenueZeroReason')
-                        : formatMoney(dashboard.totalRevenue)
-                    }
-                  />
-                </StatGrid>
-              </Panel>
-            )}
+        </Panel>
+      ) : (
+        <>
+          {dashboard && (
+            <Panel title={t('dashboardPage.businessMetrics')}>
+              <StatGrid>
+                <Stat
+                  delta={
+                    dashboard.newUsers7d > 0
+                      ? t('dashboardPage.deltaWeek', {n: dashboard.newUsers7d})
+                      : undefined
+                  }
+                  label={t('dashboardPage.totalUsers')}
+                  value={dashboard.totalUsers.toString()}
+                />
+                {/* Ноль с причиной. Оплата ещё не включена, и крупный «0»
+                    читался бы как «продажи упали». Требование владельца. */}
+                <Stat
+                  delta={
+                    dashboard.newOrders7d > 0
+                      ? t('dashboardPage.deltaWeek', {n: dashboard.newOrders7d})
+                      : undefined
+                  }
+                  empty={dashboard.totalOrders === 0}
+                  label={t('dashboardPage.totalOrders')}
+                  value={
+                    dashboard.totalOrders === 0
+                      ? t('dashboardPage.ordersZeroReason')
+                      : dashboard.totalOrders.toString()
+                  }
+                />
+                <Stat
+                  delta={
+                    dashboard.revenue7d > 0
+                      ? t('dashboardPage.deltaWeekMoney', {amount: formatMoney(dashboard.revenue7d)})
+                      : undefined
+                  }
+                  empty={dashboard.totalRevenue === 0}
+                  label={t('dashboardPage.totalRevenue')}
+                  value={
+                    dashboard.totalRevenue === 0
+                      ? t('dashboardPage.revenueZeroReason')
+                      : formatMoney(dashboard.totalRevenue)
+                  }
+                />
+              </StatGrid>
+            </Panel>
+          )}
 
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <Panel title={t('dashboardPage.registrationsTitle')}>
-                {registrations.length === 0 ? (
-                  <PanelEmpty>{t('dashboardPage.noRegistrations')}</PanelEmpty>
-                ) : (
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Panel title={t('dashboardPage.registrationsTitle')}>
+              {registrations.length === 0 ? (
+                <PanelEmpty>{t('dashboardPage.noRegistrations')}</PanelEmpty>
+              ) : (
+                <SeriesChart
+                  data={registrations}
+                  label={t('dashboardPage.registrationsTitle')}
+                  totalLabel={t('dashboardPage.totalForPeriod')}
+                />
+              )}
+            </Panel>
+
+            <Panel title={t('dashboardPage.botVisitsTitle')}>
+              {botVisits.length === 0 ? (
+                <PanelEmpty>{t('dashboardPage.noBotVisits')}</PanelEmpty>
+              ) : (
+                <>
                   <SeriesChart
-                    data={registrations}
-                    label={t('dashboardPage.registrationsTitle')}
+                    color="hsl(var(--sh-chart-2))"
+                    data={botVisits.map((v) => ({date: v.date, count: v.count}))}
+                    label={t('dashboardPage.botVisitsTitle')}
                     totalLabel={t('dashboardPage.totalForPeriod')}
                   />
-                )}
-              </Panel>
+                  <p className="mt-3 text-muted-foreground text-[12px]">
+                    {t('dashboardPage.peakDay')}:{' '}
+                    <span className="text-foreground tabular-nums">{peakVisits}</span>{' '}
+                    {t('dashboardPage.visitsWord')} ({peakUnique} {t('dashboardPage.uniqueShort')})
+                  </p>
+                </>
+              )}
+            </Panel>
+          </div>
 
-              <Panel title={t('dashboardPage.botVisitsTitle')}>
-                {botVisits.length === 0 ? (
-                  <PanelEmpty>{t('dashboardPage.noBotVisits')}</PanelEmpty>
-                ) : (
-                  <>
-                    <SeriesChart
-                      color="hsl(var(--sh-chart-2))"
-                      data={botVisits.map((v) => ({date: v.date, count: v.count}))}
-                      label={t('dashboardPage.botVisitsTitle')}
-                      totalLabel={t('dashboardPage.totalForPeriod')}
-                    />
-                    <p className="mt-3 text-muted-foreground text-[12px]">
-                      {t('dashboardPage.peakDay')}:{' '}
-                      <span className="text-foreground tabular-nums">{peakVisits}</span>{' '}
-                      {t('dashboardPage.visitsWord')} ({peakUnique} {t('dashboardPage.uniqueShort')})
-                    </p>
-                  </>
-                )}
-              </Panel>
-            </div>
-
-            {dashboard && (
-              <Panel title={t('dashboardPage.telegramBot')}>
-                <StatGrid>
-                  <Stat
-                    delta={
-                      dashboard.botVisits7d > 0
-                        ? t('dashboardPage.deltaWeek', {n: dashboard.botVisits7d})
-                        : undefined
-                    }
-                    label={t('dashboardPage.totalVisits')}
-                    value={dashboard.totalBotVisits.toString()}
-                  />
-                  <Stat
-                    delta={t('dashboardPage.last7Days')}
-                    label={t('dashboardPage.uniqueUsers7d')}
-                    value={dashboard.uniqueBotUsers7d.toString()}
-                  />
-                  <Stat
-                    label={t('dashboardPage.visitsWeek')}
-                    value={dashboard.botVisits7d.toString()}
-                  />
-                </StatGrid>
-              </Panel>
-            )}
-
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <Panel title={t('dashboardPage.byFavorites')}>
-                <ShareList
-                  emptyText={t('dashboardPage.noPeriodData')}
-                  items={topFavorites.map((p) => ({id: p.productId, title: p.title, count: p.count}))}
+          {dashboard && (
+            <Panel title={t('dashboardPage.telegramBot')}>
+              <StatGrid>
+                <Stat
+                  delta={
+                    dashboard.botVisits7d > 0
+                      ? t('dashboardPage.deltaWeek', {n: dashboard.botVisits7d})
+                      : undefined
+                  }
+                  label={t('dashboardPage.totalVisits')}
+                  value={dashboard.totalBotVisits.toString()}
                 />
-              </Panel>
-              <Panel title={t('dashboardPage.byCarts')}>
-                <ShareList
-                  emptyText={t('dashboardPage.noPeriodData')}
-                  items={topCarts.map((p) => ({id: p.productId, title: p.title, count: p.count}))}
+                <Stat
+                  delta={t('dashboardPage.last7Days')}
+                  label={t('dashboardPage.uniqueUsers7d')}
+                  value={dashboard.uniqueBotUsers7d.toString()}
                 />
-              </Panel>
-            </div>
+                <Stat
+                  label={t('dashboardPage.visitsWeek')}
+                  value={dashboard.botVisits7d.toString()}
+                />
+              </StatGrid>
+            </Panel>
+          )}
 
-            {dashboard && (
-              <Panel title={t('dashboardPage.catalogTitle')}>
-                <StatGrid className="md:grid-cols-4">
-                  <Stat label={t('stats.totalProducts')} value={dashboard.totalProducts.toString()} />
-                  <Stat
-                    label={t('stats.totalCollections')}
-                    value={dashboard.totalCollections.toString()}
-                  />
-                  <Stat
-                    label={t('stats.lowStock')}
-                    value={dashboard.lowStockCount.toString()}
-                    warn={dashboard.lowStockCount > 0}
-                  />
-                  <Stat
-                    label={t('stats.outOfStock')}
-                    value={dashboard.outOfStockCount.toString()}
-                    warn={dashboard.outOfStockCount > 0}
-                  />
-                </StatGrid>
-              </Panel>
-            )}
-
-            <Panel title={t('dashboardPage.recentOrdersTitle')}>
-              <OrdersTable
-                formatDate={formatDate}
-                formatMoney={formatMoney}
-                labels={{
-                  client: t('dashboardPage.client'),
-                  status: t('dashboardPage.statusHeader'),
-                  sum: t('dashboardPage.sum'),
-                  items: t('dashboardPage.items'),
-                  date: t('dashboardPage.date'),
-                  empty: t('dashboardPage.noOrders'),
-                }}
-                orders={recentOrders}
-                statusLabel={statusLabel}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <Panel title={t('dashboardPage.byFavorites')}>
+              <ShareList
+                emptyText={t('dashboardPage.noPeriodData')}
+                items={topFavorites.map((p) => ({id: p.productId, title: p.title, count: p.count}))}
               />
             </Panel>
-
-            <Panel title={`${t('alerts')}${alerts.length > 0 ? ` (${alerts.length})` : ''}`}>
-              <AlertsList
-                alerts={alerts}
-                labels={{
-                  outOfStock: t('alert.outOfStock'),
-                  lowStock: t('alert.lowStock'),
-                  current: t('alert.current'),
-                  acknowledge: t('alert.acknowledge'),
-                  empty: t('alert.noAlerts'),
-                }}
-                onAcknowledge={handleAcknowledge}
+            <Panel title={t('dashboardPage.byCarts')}>
+              <ShareList
+                emptyText={t('dashboardPage.noPeriodData')}
+                items={topCarts.map((p) => ({id: p.productId, title: p.title, count: p.count}))}
               />
             </Panel>
+          </div>
 
-            <Link
-              className="flex items-center gap-4 rounded-lg p-4 ring-1 ring-border transition-colors hover:bg-muted md:p-5"
-              href={`/${locale}/admin/homepage`}
-            >
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-md ring-1 ring-border">
-                <HomeIcon className="size-5" />
-              </span>
-              <span>
-                <span className="block text-[13px]">{t('homepageSettings')}</span>
-                <span className="block text-muted-foreground text-[12px]">{t('homepageDesc')}</span>
-              </span>
-            </Link>
-          </>
-        )}
+          {dashboard && (
+            <Panel title={t('dashboardPage.catalogTitle')}>
+              <StatGrid className="md:grid-cols-4">
+                <Stat label={t('stats.totalProducts')} value={dashboard.totalProducts.toString()} />
+                <Stat
+                  label={t('stats.totalCollections')}
+                  value={dashboard.totalCollections.toString()}
+                />
+                <Stat
+                  label={t('stats.lowStock')}
+                  value={dashboard.lowStockCount.toString()}
+                  warn={dashboard.lowStockCount > 0}
+                />
+                <Stat
+                  label={t('stats.outOfStock')}
+                  value={dashboard.outOfStockCount.toString()}
+                  warn={dashboard.outOfStockCount > 0}
+                />
+              </StatGrid>
+            </Panel>
+          )}
 
-        {/* Второе место выключателя — владелец назвал оба. Стоит СНАРУЖИ веток
-            загрузки и ошибки нарочно: провал статистики не должен уносить с
-            собой единственный вход в режим правки.
-            framed={false} — рамку даёт Panel. Своя черта выключателя рисуется
-            цветом текста, то есть почти чёрным, и на белом полотне давала
-            тяжёлую линию во всю ширину, тогда как все прочие линии здесь
-            волосяные. */}
+          <Panel title={t('dashboardPage.recentOrdersTitle')}>
+            <OrdersTable
+              formatDate={formatDate}
+              formatMoney={formatMoney}
+              labels={{
+                client: t('dashboardPage.client'),
+                status: t('dashboardPage.statusHeader'),
+                sum: t('dashboardPage.sum'),
+                items: t('dashboardPage.items'),
+                date: t('dashboardPage.date'),
+                empty: t('dashboardPage.noOrders'),
+              }}
+              orders={recentOrders}
+              statusLabel={statusLabel}
+            />
+          </Panel>
+
+          <Panel title={`${t('alerts')}${alerts.length > 0 ? ` (${alerts.length})` : ''}`}>
+            <AlertsList
+              alerts={alerts}
+              labels={{
+                outOfStock: t('alert.outOfStock'),
+                lowStock: t('alert.lowStock'),
+                current: t('alert.current'),
+                acknowledge: t('alert.acknowledge'),
+                empty: t('alert.noAlerts'),
+              }}
+              onAcknowledge={handleAcknowledge}
+            />
+          </Panel>
+
+          <Link
+            className="flex items-center gap-4 rounded-lg p-4 ring-1 ring-border transition-colors hover:bg-muted md:p-5"
+            href={`/${locale}/admin/homepage`}
+          >
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-md ring-1 ring-border">
+              <HomeIcon className="size-5" />
+            </span>
+            <span>
+              <span className="block text-[13px]">{t('homepageSettings')}</span>
+              <span className="block text-muted-foreground text-[12px]">{t('homepageDesc')}</span>
+            </span>
+          </Link>
+        </>
+      )}
+
+      {/* Второе место выключателя — владелец назвал оба. Стоит СНАРУЖИ веток
+          загрузки и ошибки нарочно: провал статистики не должен уносить с
+          собой единственный вход в режим правки.
+          framed={false} — рамку даёт Panel. Своя черта выключателя рисуется
+          цветом текста, то есть почти чёрным, и на белом полотне давала
+          тяжёлую линию во всю ширину, тогда как все прочие линии здесь
+          волосяные. */}
         <Panel title={t('dashboardPage.editModeTitle')}>
           <EditModeSwitch framed={false} />
         </Panel>
       </div>
-    </AdminLayout>
+    </>
   );
 }

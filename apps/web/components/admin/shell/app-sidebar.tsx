@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {cn} from '@/lib/utils';
@@ -41,9 +42,9 @@ export function AppSidebar({locale}: {locale: string}) {
     >
       <SidebarHeader className="h-14 justify-center border-b">
         <CustomMenuButton asChild>
-          <a href={`/${locale}/admin`}>
+          <Link href={`/${locale}/admin`}>
             <span className="font-display text-[15px] tracking-[0.12em]">REINASLEO</span>
-          </a>
+          </Link>
         </CustomMenuButton>
       </SidebarHeader>
 
@@ -60,10 +61,10 @@ export function AppSidebar({locale}: {locale: string}) {
         <SidebarMenu className="border-t p-2">
           <SidebarMenuItem>
             <CustomMenuButton asChild className="text-muted-foreground" size="sm" tooltip={t('toSite')}>
-              <a href={`/${locale}`}>
+              <Link href={`/${locale}`}>
                 <ExternalLinkIcon />
                 <span>{t('toSite')}</span>
-              </a>
+              </Link>
             </CustomMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

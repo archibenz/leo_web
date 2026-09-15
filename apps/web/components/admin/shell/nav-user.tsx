@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import {useTranslations} from 'next-intl';
 import {Avatar, AvatarFallback} from '@/components/ui/avatar';
 import {
@@ -18,11 +19,11 @@ import {useAuth} from '@/contexts/AuthContext';
 // заменено на настоящее.
 //
 // ПОЛЬЗОВАТЕЛЬ БЕРЁТСЯ ИЗ AuthContext, А НЕ ИЗ useWhiteAuth — И ЭТО НЕ ВКУС.
-// Админская ветка уже оборачивает страницы в <Providers>, то есть AuthProvider
-// смонтирован и УЖЕ сходил за `/api/auth/me`. Позови я здесь витринный хук,
-// на каждой странице админки уходило бы ДВА обращения к одной ручке против
-// лимита в десять в минуту — ровно та беда, которую мы сегодня чинили на
-// странице аккаунта. Источник правды на странице должен быть один.
+// Обёртка админского раздела поднимает AuthProvider, то есть он смонтирован и
+// УЖЕ сходил за `/api/auth/me`. Позови я здесь витринный хук, на каждой
+// странице админки уходило бы ДВА обращения к одной ручке против лимита в
+// десять в минуту — ровно та беда, которую мы сегодня чинили на странице
+// аккаунта. Источник правды на странице должен быть один.
 //
 // Аватар — буква, а не картинка: изображения профиля у нас нет ни в базе, ни в
 // ответе `/api/auth/me`. Тянуть заглушку с внешнего адреса значило бы отдавать
@@ -64,16 +65,16 @@ export function NavUser({locale}: {locale: string}) {
         )}
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
-            <a href={`/${locale}`}>
+            <Link href={`/${locale}`}>
               <ExternalLinkIcon />
               {t('toSite')}
-            </a>
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <a href={`/${locale}/account`}>
+            <Link href={`/${locale}/account`}>
               <UserIcon />
               {t('myAccount')}
-            </a>
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
