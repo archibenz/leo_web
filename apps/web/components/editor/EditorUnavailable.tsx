@@ -21,7 +21,11 @@ export default function EditorUnavailable({plainHref, reason}: {plainHref: strin
       <p className="mt-6 border-t pt-4 text-[12px]" style={{borderColor: HAIR, color: MUTED}}>
         {reason}
       </p>
-      <Link href={plainHref} className="mt-8 inline-flex self-start px-5 py-3 text-[11px] uppercase tracking-[0.18em]" style={{border: `1px solid ${INK}`, color: INK}}>
+      {/* 44px/13px — та же мера, что у кнопок редактора. Найдено сторожем
+          touchTargets, а не глазом: экран показывается редко (правка была
+          запрошена, а сервер не признал сессию), и именно поэтому мелкую
+          кнопку здесь никто бы не заметил годами. */}
+      <Link href={plainHref} className="mt-8 inline-flex min-h-11 items-center self-start px-5 py-3 text-[13px] uppercase tracking-[0.14em]" style={{border: `1px solid ${INK}`, color: INK}}>
         Открыть витрину как покупатель
       </Link>
     </main>

@@ -99,20 +99,23 @@ describe('MediaThumb', () => {
   });
 });
 
-describe('EditorButton', () => {
-  it('по умолчанию — прежний размер, ничего не выросло у существующих кнопок', () => {
-    render(<EditorButton onClick={() => {}}>Сохранить</EditorButton>);
-    expect(screen.getByRole('button', {name: 'Сохранить'}).className).not.toMatch(/min-h-\[44px\]/);
-  });
+// Порог ищется по НАБОРУ написаний, а не по одному: 44px в этом проекте
+// пишут и как min-h-11 (шкала Tailwind), и как min-h-[44px] (произвольное
+// значение). Тест, приколотый к одному написанию, краснеет на переименовании
+// и — хуже — ЗЕЛЕНЕЕТ на подмене смысла: пока здесь стоял
+// not.toMatch(/min-h-\[44px\]/), проверка «кнопка по умолчанию маленькая»
+// продолжала проходить и после того, как кнопка стала 44px.
+const ПОРОГ_44 = /min-h-(11|12|\[44px\])/;
 
-  it('size="touch" — зона нажатия от 44px и кегль от 13px, как того требует правка с телефона', () => {
-    render(
-      <EditorButton onClick={() => {}} size="touch">
-        Вверх
-      </EditorButton>,
-    );
-    const button = screen.getByRole('button', {name: 'Вверх'});
-    expect(button.className).toMatch(/min-h-\[44px\]/);
+describe('EditorButton', () => {
+  it('единственный размер — 44px и кегль 13, выбора «помельче» нет', () => {
+    render(<EditorButton onClick={() => {}}>Сохранить</EditorButton>);
+
+    // До 15.09 у кнопки было два размера, и по умолчанию она выходила 35px:
+    // порог применили к кадрам галереи и не применили к соседним панелям.
+    // Умолчание и есть то место, где правило либо держится, либо нет.
+    const button = screen.getByRole('button', {name: 'Сохранить'});
+    expect(button.className).toMatch(ПОРОГ_44);
     expect(button.className).toMatch(/text-\[13px\]/);
   });
 });
@@ -129,8 +132,8 @@ describe('MediaField', () => {
   it('«Заменить» и «Убрать» — зоны нажатия от 44px', () => {
     render(<MediaField label="Главный снимок" value="/uploads/products/a.jpg" kind="image" onChange={() => {}} />);
 
-    expect(screen.getByRole('button', {name: 'Заменить'}).className).toMatch(/min-h-\[44px\]/);
-    expect(screen.getByRole('button', {name: 'Убрать'}).className).toMatch(/min-h-\[44px\]/);
+    expect(screen.getByRole('button', {name: 'Заменить'}).className).toMatch(ПОРОГ_44);
+    expect(screen.getByRole('button', {name: 'Убрать'}).className).toMatch(ПОРОГ_44);
   });
 
   it('без значения — «Убрать» не показан, заглушка вместо кадра', () => {

@@ -124,7 +124,7 @@ export default function GalleryField({image, gallery, onChange, onUploadingChang
                     Обложка
                   </span>
                 ) : (
-                  <EditorButton size="touch" tone="quiet" onClick={() => setItems((prev) => markCover(prev, item.url))}>
+                  <EditorButton tone="quiet" onClick={() => setItems((prev) => markCover(prev, item.url))}>
                     Сделать обложкой · кадр {index + 1}
                   </EditorButton>
                 )}
@@ -132,21 +132,18 @@ export default function GalleryField({image, gallery, onChange, onUploadingChang
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <EditorButton
-                size="touch"
                 onClick={() => setItems((prev) => reorderTo(prev, index, index - 1))}
                 disabled={index === 0}
               >
                 Вверх · кадр {index + 1}
               </EditorButton>
               <EditorButton
-                size="touch"
                 onClick={() => setItems((prev) => reorderTo(prev, index, index + 1))}
                 disabled={index === items.length - 1}
               >
                 Вниз · кадр {index + 1}
               </EditorButton>
               <EditorButton
-                size="touch"
                 tone="quiet"
                 onClick={() => setItems((prev) => removeItem(prev, item.url))}
                 disabled={items.length <= 1}
@@ -180,10 +177,10 @@ export default function GalleryField({image, gallery, onChange, onUploadingChang
               </div>
               {u.status === 'error' && (
                 <div className="flex shrink-0 flex-wrap gap-2">
-                  <EditorButton size="touch" onClick={() => retry(u)}>
+                  <EditorButton onClick={() => retry(u)}>
                     Повторить
                   </EditorButton>
-                  <EditorButton size="touch" tone="quiet" onClick={() => setUploads((prev) => prev.filter((x) => x.id !== u.id))}>
+                  <EditorButton tone="quiet" onClick={() => setUploads((prev) => prev.filter((x) => x.id !== u.id))}>
                     Отменить
                   </EditorButton>
                 </div>

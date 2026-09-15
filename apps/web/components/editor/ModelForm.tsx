@@ -233,9 +233,9 @@ export default function ModelForm({modelId, onSaved}: {
 
       <div>
         {/* Сворачиваемый раздел, не отдельная кнопка-ссылка: зона нажатия и
-            кегль — тот же порог 44px/13px, что у EditorButton (size="touch"),
-            только своя разметка — этот переключатель на всю ширину панели и
-            несёт aria-expanded, чего у EditorButton нет. */}
+            кегль — тот же порог 44px/13px, что у EditorButton, только своя
+            разметка — этот переключатель на всю ширину панели и несёт
+            aria-expanded, чего у EditorButton нет. */}
         <button
           type="button"
           onClick={() => setEnOpen((o) => !o)}

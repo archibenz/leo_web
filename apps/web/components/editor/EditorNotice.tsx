@@ -49,7 +49,15 @@ export default function EditorNotice({editing, wantsEdit}: {editing: boolean; wa
         style={{background: FOOT, borderBottom: `1px solid ${HAIR}`, color: INK}}
       >
         <span>Режим правки · страница показывает черновик</span>
-        <Link href={plainHref} onClick={finishEditing} className="underline underline-offset-4">
+        {/* 44px/13px, и это не та же мера, что у кнопок входа, — она важнее.
+            Промах по входу означает «не вошёл, нажму ещё раз». Промах по
+            ВЫХОДУ означает «застрял в режиме правки», а это читается как
+            «сайт сломался». Замер 15.09 дал здесь 17 px — худшее на экране. */}
+        <Link
+          href={plainHref}
+          onClick={finishEditing}
+          className="inline-flex min-h-11 items-center px-3 text-[13px] underline underline-offset-4"
+        >
           Закончить правку
         </Link>
       </div>

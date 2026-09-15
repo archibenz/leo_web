@@ -99,8 +99,10 @@ describe('GalleryField — порядок и обложка', () => {
       <GalleryField image="/uploads/products/a.jpg" gallery={['/uploads/products/b.jpg']} onChange={() => {}} />,
     );
 
-    expect(screen.getByRole('button', {name: /Сделать обложкой.*кадр 2/}).className).toMatch(/min-h-\[44px\]/);
-    expect(screen.getByRole('button', {name: /^Вниз.*кадр 1/}).className).toMatch(/min-h-\[44px\]/);
+    // Набор написаний, а не одно: 44px здесь пишут и min-h-11, и min-h-[44px].
+    const порог = /min-h-(11|12|\[44px\])/;
+    expect(screen.getByRole('button', {name: /Сделать обложкой.*кадр 2/}).className).toMatch(порог);
+    expect(screen.getByRole('button', {name: /^Вниз.*кадр 1/}).className).toMatch(порог);
   });
 });
 
