@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -91,13 +92,36 @@ public class StorefrontMapping {
         return publishedVariant(v, MarketplacePriceLookup.empty());
     }
 
+    /**
+     * price/salePrice отдаются ИЗ КОЛОНОК, а не из калькулятора, и это не
+     * упрощение — это починка потери данных.
+     *
+     * До 15.09 здесь стояло price.basePrice(): при price_source=ozon в поле
+     * price уезжала цена площадки, а applyVariant пишет это поле в
+     * products.price — колонку собственной цены владельца. Черновик сливается
+     * поверх опубликованного, значит правка ЛЮБОГО другого поля варианта
+     * возвращала цену площадки в чужую колонку. Молча. Сторож —
+     * ManualPriceRoundTripTest.
+     *
+     * Посчитанное никуда не делось: оно едет отдельными полями только на
+     * чтение (sourcePrice — цена площадки как пришла, shownPrice — что
+     * заплатит покупатель), и applyVariant их не касается.
+     */
     public StorefrontVariantRequest publishedVariant(Product v, MarketplacePriceLookup prices) {
         VariantPrice price = priceCalculator.compute(v, prices);
-        return new StorefrontVariantRequest(price.basePrice(), price.salePrice(), v.getColorKey(), v.getColorHex(),
+        String source = v.getPriceSource();
+        // Источник не назван вовсе — читаем как «своя цена», а не как площадку
+        // с именем null: иначе ключ поиска собрался бы из строки "null".
+        boolean fromMarketplace = source != null && !VariantPriceCalculator.PRICE_SOURCE_MANUAL.equals(source);
+        Long sourceKop = fromMarketplace ? prices.buyerPriceKop(v.getId(), source) : null;
+        return new StorefrontVariantRequest(v.getPrice(), v.getSalePrice(), v.getColorKey(), v.getColorHex(),
                 v.getColorNameRu(), v.getColorNameEn(), v.getImage(), readImageSrcs(v.getImages()),
                 v.getStockQuantity(), v.isActive(), v.getSortOrder(),
                 v.getPriceSource(), v.getDiscountPct(),
-                price.sourceMissing(), price.costUnknown(), price.thresholdApplied(), price.manualPriceInactive());
+                price.sourceMissing(), price.costUnknown(), price.thresholdApplied(), price.manualPriceInactive(),
+                sourceKop == null ? null : BigDecimal.valueOf(sourceKop, 2),
+                price.shownPrice(),
+                fromMarketplace ? prices.checkedAt(v.getId(), source) : null);
     }
 
     public StorefrontSetRequest published(ProductSet set, List<ProductSetItem> items) {
@@ -161,11 +185,14 @@ public class StorefrontMapping {
     }
 
     public void applyVariant(StorefrontVariantRequest r, Product v) {
-        // price/salePrice здесь — по-прежнему "ручная цена" (products.price) и
-        // старое поле products.sale_price: applyVariant ничего не знает про
-        // VariantPriceCalculator и не обязан — то, что реально видит покупатель,
-        // выше в published()/publishedVariant() считается заново из свежих
-        // priceSource/discountPct, а не из того, что здесь записано в sale_price.
+        // Пишутся ТОЛЬКО поля-зеркала колонок. price — собственная цена
+        // владельца (products.price), и с 15.09 ровно она же и читается выше:
+        // пока чтение отдавало сюда посчитанную цену площадки, публикация
+        // затирала ей эту колонку.
+        //
+        // sourcePrice/shownPrice/sourceCheckedAt не пишутся вовсе: это вывод
+        // калькулятора, и у Product таких полей нет — записать их некуда даже
+        // по ошибке.
         v.setPrice(r.price());
         v.setSalePrice(r.salePrice());
         v.setColorKey(r.colorKey());

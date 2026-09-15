@@ -2,7 +2,7 @@
 
 import {useEffect, useState} from 'react';
 import {apiFetch} from '../../lib/api';
-import {MUTED, SIGNAL} from '../../app/[locale]/wv-palette';
+import {INK, MUTED, SIGNAL} from '../../app/[locale]/wv-palette';
 import {EditorButton, EditorLabel, NumberField, PercentField, SelectField} from './EditorFields';
 import GalleryField from './GalleryField';
 import {saveVariantDraft, type Patch} from './editorApi';
@@ -20,10 +20,17 @@ import {saveVariantDraft, type Patch} from './editorApi';
 // Останься здесь старое поле — владелец правил бы скидку там, где привык,
 // сохранение проходило бы, а витрина не менялась: ровно lw-fbpw, который уже
 // чинили 14.09 у формы товара, только на этот раз — на странице, которую он
-// сам назвал приоритетом. priceSource/discountPct и флаги ниже — то же поле
-// ответа StorefrontVariantRequest, что уже отдаёт бэкенд; salePrice в ответе
-// остался (это посчитанная действующая цена для превью), но патчем больше не
-// уходит — сумму скидки покупателю считает калькулятор на сервере.
+// сам назвал приоритетом. priceSource/discountPct и посчитанные поля ниже —
+// то же поле ответа StorefrontVariantRequest, что уже отдаёт бэкенд; salePrice
+// патчем не уходит — сумму скидки покупателю считает калькулятор на сервере.
+//
+// «Ваша цена» и «цена с Ozon» разведены по двум полям (этап 3б). До 15.09 поле
+// «Цена» при включённом источнике показывало цену ПЛОЩАДКИ под подписью,
+// которая читается как собственная цена владельца, — и, что хуже, публикация
+// записывала это же число в колонку собственной цены, затирая её (сторож —
+// ManualPriceRoundTripTest на бэкенде). Теперь price — только своя,
+// sourcePrice — только с площадки, shownPrice — то, что заплатит покупатель.
+// Из троих патчем уходит одна price.
 type PriceSource = 'manual' | 'ozon';
 
 type VariantDto = {
@@ -34,11 +41,14 @@ type VariantDto = {
   priceSource: PriceSource;
   discountPct: number;
   // Только для чтения — калькулятор считает их заново на каждый GET, патчем
-  // они не уходят (см. patchOf: ни один из четырёх сюда не попадает).
+  // они не уходят (см. patchOf: ни одно из семи сюда не попадает).
   sourceMissing: boolean;
   costUnknown: boolean;
   thresholdApplied: boolean;
   manualPriceInactive: boolean;
+  sourcePrice: number | null;
+  shownPrice: number | null;
+  sourceCheckedAt: string | null;
 };
 
 type ModelDto = {variants: Record<string, VariantDto>};
@@ -52,15 +62,18 @@ type Draft = {
   gallery: string[];
 };
 
-// Флаги — не часть черновика: правка их не трогает, это чужой, всегда свежий
-// вывод VariantPriceCalculator. Отдельное состояние, а не поля Draft — иначе
-// patchOf пришлось бы явно исключать каждый из четырёх, и однажды кто-то забыл
-// бы это сделать для нового флага.
-type Flags = {
+// Посчитанное — не часть черновика: правка его не трогает, это чужой, всегда
+// свежий вывод VariantPriceCalculator. Отдельное состояние, а не поля Draft —
+// иначе patchOf пришлось бы явно исключать каждое поле, и однажды кто-то забыл
+// бы это сделать для нового.
+type Computed = {
   sourceMissing: boolean;
   costUnknown: boolean;
   thresholdApplied: boolean;
   manualPriceInactive: boolean;
+  sourcePrice: number | null;
+  shownPrice: number | null;
+  sourceCheckedAt: string | null;
 };
 
 const PRICE_SOURCE_OPTIONS: {value: PriceSource; label: string}[] = [
@@ -77,6 +90,28 @@ function discountPctError(value: number): string | null {
   if (!Number.isInteger(value)) return 'Скидка — целое число.';
   if (value < 0 || value > 90) return 'От 0 до 90 — сотня означает цену ноль, это почти наверняка опечатка.';
   return null;
+}
+
+function рубли(value: number): string {
+  return `${value.toLocaleString('ru-RU', {maximumFractionDigits: 2})} ₽`;
+}
+
+// «15 сентября, 18:00» — в часовом поясе владельца, потому что вопрос, на
+// который эта строка отвечает, звучит как «когда это было по-моему», а не «по
+// Гринвичу». Год приписывается, только если он не нынешний: застывшая на год
+// цена — ровно тот случай, ради которого дату и показываем, и без года она
+// выглядела бы свежей.
+function когдаПроверено(iso: string): string | null {
+  const момент = new Date(iso);
+  if (Number.isNaN(момент.getTime())) return null;
+  const этотГод = момент.getFullYear() === new Date().getFullYear();
+  const день = new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    ...(этотГод ? {} : {year: 'numeric'}),
+  }).format(момент);
+  const время = new Intl.DateTimeFormat('ru-RU', {hour: '2-digit', minute: '2-digit'}).format(момент);
+  return `${день}, ${время}`;
 }
 
 function patchOf(before: Draft, now: Draft): Patch {
@@ -97,7 +132,7 @@ export default function VariantForm({modelId, variantId, onSaved}: {
 }) {
   const [before, setBefore] = useState<Draft | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
-  const [flags, setFlags] = useState<Flags | null>(null);
+  const [computed, setComputed] = useState<Computed | null>(null);
   const [busy, setBusy] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -111,7 +146,7 @@ export default function VariantForm({modelId, variantId, onSaved}: {
     // и получил бы в качестве «начального» состояния ещё старые, чужие кадры.
     setBefore(null);
     setDraft(null);
-    setFlags(null);
+    setComputed(null);
     apiFetch<ModelDto>(`/api/admin/storefront/models/${modelId}`)
       .then((model) => {
         const v = model.variants[variantId];
@@ -130,11 +165,14 @@ export default function VariantForm({modelId, variantId, onSaved}: {
         };
         setBefore(loaded);
         setDraft(loaded);
-        setFlags({
+        setComputed({
           sourceMissing: v.sourceMissing ?? false,
           costUnknown: v.costUnknown ?? false,
           thresholdApplied: v.thresholdApplied ?? false,
           manualPriceInactive: v.manualPriceInactive ?? false,
+          sourcePrice: v.sourcePrice ?? null,
+          shownPrice: v.shownPrice ?? null,
+          sourceCheckedAt: v.sourceCheckedAt ?? null,
         });
       })
       .catch((e: unknown) => alive && setError(e instanceof Error ? e.message : 'не прочиталось'));
@@ -162,10 +200,12 @@ export default function VariantForm({modelId, variantId, onSaved}: {
   const dirty = Object.keys(patch).length > 0;
   const set = <K extends keyof Draft>(key: K) => (value: Draft[K]) => setDraft((d) => (d ? {...d, [key]: value} : d));
   const discountError = discountPctError(draft.discountPct);
-  // Поднят ДО того, как флаги успели прийти (flags===null, первая отрисовка
-  // после сброса) — поле остаётся активным на этот кадр-два, не заблокированным
-  // "на всякий случай": врать о состоянии, которого ещё не знаем, хуже.
-  const priceDisabled = flags?.manualPriceInactive ?? false;
+  // Поднят ДО того, как посчитанное успело прийти (computed===null, первая
+  // отрисовка после сброса) — поле остаётся активным на этот кадр-два, не
+  // заблокированным "на всякий случай": врать о состоянии, которого ещё не
+  // знаем, хуже.
+  const priceDisabled = computed?.manualPriceInactive ?? false;
+  const проверено = computed?.sourceCheckedAt ? когдаПроверено(computed.sourceCheckedAt) : null;
 
   async function save() {
     setBusy(true);
@@ -189,19 +229,25 @@ export default function VariantForm({modelId, variantId, onSaved}: {
         options={PRICE_SOURCE_OPTIONS}
         hint="«Цена с Ozon» приходит с площадки сама; ручную цену ниже в этом режиме не редактируют."
       />
-      {flags?.sourceMissing && (
+      {computed?.sourceMissing && (
         <p className="text-[12px] leading-snug" style={{color: MUTED}}>
           Цена с Ozon ещё не приходила — показана своя
         </p>
       )}
+      {computed?.sourcePrice != null && (
+        <p className="text-[12px] leading-snug" style={{color: MUTED}}>
+          Цена с Ozon: {рубли(computed.sourcePrice)}
+          {проверено && ` · проверена ${проверено}`}
+        </p>
+      )}
       <NumberField
-        label="Цена, ₽"
+        label="Ваша цена, ₽"
         value={draft.price}
         onChange={set('price')}
         disabled={priceDisabled}
         hint={
           priceDisabled
-            ? 'Не действует, пока источник — Ozon: витрина смотрит не сюда.'
+            ? 'Не действует, пока источник — Ozon: покупатель видит цену площадки. Сохраняется как запасная.'
             : 'Пусто — предзаказ: витрина скажет «Предзаказ» и не даст положить в корзину.'
         }
       />
@@ -212,14 +258,24 @@ export default function VariantForm({modelId, variantId, onSaved}: {
         error={discountError ?? undefined}
         hint="0 — скидки нет. Потолок 90 — сторож от опечатки: сто процентов значит цену ноль."
       />
-      {flags?.costUnknown && (
+      {computed?.costUnknown && (
         <p className="text-[12px] leading-snug" style={{color: MUTED}}>
           Себестоимость неизвестна — порог не действует
         </p>
       )}
-      {flags?.thresholdApplied && (
+      {computed?.thresholdApplied && (
         <p className="text-[12px] leading-snug" style={{color: MUTED}}>
           Скидка уменьшена: ниже себестоимости продавать нельзя
+        </p>
+      )}
+      {computed && (
+        <p className="text-[12px] leading-snug" style={{color: INK}}>
+          {/* Итог блока цены: при сработавшем пороге это себестоимость, и на
+              экране это число больше неоткуда взять — ни из своей цены, ни из
+              процента скидки. */}
+          {computed.shownPrice == null
+            ? 'Покупатель видит «Предзаказ» — цены нет'
+            : `Покупатель платит: ${рубли(computed.shownPrice)}`}
         </p>
       )}
       <NumberField label="Наличие, шт" value={draft.stockQuantity} onChange={set('stockQuantity')} />

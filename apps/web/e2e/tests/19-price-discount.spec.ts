@@ -45,6 +45,12 @@ type VariantMock = {
   costUnknown: boolean;
   thresholdApplied: boolean;
   manualPriceInactive: boolean;
+  // Этап 3б: посчитанное едет отдельными полями, чтобы «цена» на экране не
+  // значила двух разных вещей — и чтобы публикация не записывала цену
+  // площадки в колонку собственной цены владельца.
+  sourcePrice: number | null;
+  shownPrice: number | null;
+  sourceCheckedAt: string | null;
 };
 
 const DEFAULT_VARIANT: VariantMock = {
@@ -54,6 +60,9 @@ const DEFAULT_VARIANT: VariantMock = {
   costUnknown: false,
   thresholdApplied: false,
   manualPriceInactive: false,
+  sourcePrice: null,
+  shownPrice: 23000,
+  sourceCheckedAt: null,
 };
 
 /** Подмена ЕДИНСТВЕННОЙ ручки, которой не хватает в фикстурном режиме — приём из 15-admin-media.spec.ts. */
@@ -135,7 +144,31 @@ test.describe('скидка процентом на странице товар�
     await openSettledForOwner(page, `${PDP}?edit=1`);
     const panel = await openVariantPanel(page);
 
-    await expect(panel.getByRole('spinbutton', {name: 'Цена, ₽', exact: true})).toBeDisabled();
+    await expect(panel.getByRole('spinbutton', {name: 'Ваша цена, ₽', exact: true})).toBeDisabled();
+  });
+
+  // Приёмка этапа 3б. Проверяется не подпись, а ЧИСЛО в поле: до 15.09 сюда
+  // приезжала цена площадки, и публикация записывала её в products.price —
+  // колонку собственной цены владельца (сторож круга на бэкенде —
+  // ManualPriceRoundTripTest). Мутация «верни в поле цену площадки» обязана
+  // покрасить ровно этот тест.
+  test('источник Ozon — в поле стоит СВОЯ цена, цена площадки названа отдельно и с датой', async ({page}) => {
+    await asOwner(page);
+    await mockVariantModel(page, {
+      priceSource: 'ozon',
+      manualPriceInactive: true,
+      sourcePrice: 5000,
+      shownPrice: 5000,
+      // Полдень UTC: календарный день одинаков в любом поясе от −11 до +11.
+      sourceCheckedAt: '2026-09-15T12:00:00Z',
+    });
+    await openSettledForOwner(page, `${PDP}?edit=1`);
+    const panel = await openVariantPanel(page);
+
+    await expect(panel.getByRole('spinbutton', {name: 'Ваша цена, ₽', exact: true})).toHaveValue('23000');
+    await expect(panel.getByText(/Цена с Ozon: 5[\s ]000 ₽/)).toBeVisible();
+    await expect(panel.getByText(/проверена 15 сентября, \d{2}:\d{2}/)).toBeVisible();
+    await expect(panel.getByText(/Покупатель платит: 5[\s ]000 ₽/)).toBeVisible();
   });
 
   test('зона нажатия источника цены и скидки — не меньше 44px, кегль не мельче 13', async ({page}) => {

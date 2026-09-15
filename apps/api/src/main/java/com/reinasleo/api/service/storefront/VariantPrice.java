@@ -37,4 +37,16 @@ public record VariantPrice(
         boolean costUnknown,
         boolean thresholdApplied,
         boolean manualPriceInactive
-) {}
+) {
+
+    /**
+     * Что заплатит покупатель: цена со скидкой, а если её нет — основа.
+     *
+     * Живёт здесь, а не у вызывающего: пара base/sale известна ровно этой
+     * записи, и правило «показываем sale, иначе base» повторённое снаружи
+     * однажды разойдётся с витриной.
+     */
+    public BigDecimal shownPrice() {
+        return salePrice != null ? salePrice : basePrice;
+    }
+}

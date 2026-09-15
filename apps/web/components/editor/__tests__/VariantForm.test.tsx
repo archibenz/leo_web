@@ -25,6 +25,9 @@ type StoredVariant = {
   costUnknown: boolean;
   thresholdApplied: boolean;
   manualPriceInactive: boolean;
+  sourcePrice: number | null;
+  shownPrice: number | null;
+  sourceCheckedAt: string | null;
 };
 
 let store: Record<string, StoredVariant>;
@@ -42,6 +45,9 @@ function resetStore() {
       costUnknown: false,
       thresholdApplied: false,
       manualPriceInactive: false,
+      sourcePrice: null,
+      shownPrice: 11400,
+      sourceCheckedAt: null,
     },
   };
 }
@@ -164,6 +170,9 @@ describe('VariantForm — галерея варианта', () => {
       costUnknown: false,
       thresholdApplied: false,
       manualPriceInactive: false,
+      sourcePrice: null,
+      shownPrice: 9000,
+      sourceCheckedAt: null,
     };
     const {rerender} = render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
     await screen.findAllByRole('img');
@@ -265,14 +274,14 @@ describe('VariantForm — источник цены и скидка процен
     render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
     await screen.findAllByRole('img');
 
-    expect(await screen.findByLabelText('Цена, ₽')).toBeDisabled();
+    expect(await screen.findByLabelText('Ваша цена, ₽')).toBeDisabled();
   });
 
   it('источник «своя цена» (по умолчанию) — поле цены доступно для правки', async () => {
     render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
     await screen.findAllByRole('img');
 
-    expect(screen.getByLabelText('Цена, ₽')).toBeEnabled();
+    expect(screen.getByLabelText('Ваша цена, ₽')).toBeEnabled();
   });
 
   it('сохранение уходит с discountPct — и БЕЗ salePrice в теле вовсе', async () => {
@@ -303,5 +312,106 @@ describe('VariantForm — источник цены и скидка процен
     await waitFor(() => expect(saveVariantDraft).toHaveBeenCalled());
     const [, patch] = saveVariantDraft.mock.calls.at(-1)!;
     expect(patch).toEqual({priceSource: 'ozon'});
+  });
+});
+
+// Этап 3б: «ваша цена» и «цена с площадки» — два разных числа, и на экране их
+// должно быть видно двумя разными строками. Проверка не косметическая: до
+// 15.09 поле «Цена» при включённом источнике показывало цену ПЛОЩАДКИ, а
+// публикация записывала её в колонку собственной цены владельца (сторож
+// круга — ManualPriceRoundTripTest на бэкенде). Здесь — та же беда с той
+// стороны, с которой её видит владелец.
+describe('VariantForm — своя цена и цена с площадки', () => {
+  it('при источнике Ozon в «Вашей цене» стоит СВОЯ цена, а цена площадки — отдельной строкой', async () => {
+    store['wb-1'] = {
+      ...store['wb-1']!,
+      price: 12000,
+      priceSource: 'ozon',
+      manualPriceInactive: true,
+      sourcePrice: 5000,
+      shownPrice: 5000,
+      sourceCheckedAt: '2026-09-15T12:00:00Z',
+    };
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    // Своя цена цела и видна владельцу — именно она вернётся в базу.
+    expect(await screen.findByLabelText('Ваша цена, ₽')).toHaveValue(12000);
+    // Цена площадки названа своим именем и не выдаёт себя за его цену.
+    expect(screen.getByText(/Цена с Ozon: 5[\s ]000 ₽/)).toBeInTheDocument();
+    expect(screen.getByText(/Покупатель платит: 5[\s ]000 ₽/)).toBeInTheDocument();
+  });
+
+  // Полдень UTC выбран нарочно: календарный день у него один и тот же в любом
+  // часовом поясе от −11 до +11, поэтому тест не зависит от TZ машины. Час
+  // зависит — его и не проверяем числом.
+  it('дата показывает, КОГДА площадка присылала цену', async () => {
+    store['wb-1'] = {
+      ...store['wb-1']!,
+      priceSource: 'ozon',
+      sourcePrice: 5000,
+      sourceCheckedAt: '2026-09-15T12:00:00Z',
+    };
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    expect(await screen.findByText(/проверена 15 сентября, \d{2}:\d{2}/)).toBeInTheDocument();
+  });
+
+  it('прошлогодняя цена показывает год — иначе застывшая выглядит свежей', async () => {
+    store['wb-1'] = {
+      ...store['wb-1']!,
+      priceSource: 'ozon',
+      sourcePrice: 5000,
+      sourceCheckedAt: '2024-09-15T12:00:00Z',
+    };
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    expect(await screen.findByText(/проверена 15 сентября 2024/)).toBeInTheDocument();
+  });
+
+  it('источник включён, но цена не приходила — своё число под чужой подписью не показывается', async () => {
+    store['wb-1'] = {
+      ...store['wb-1']!,
+      price: 12000,
+      priceSource: 'ozon',
+      sourceMissing: true,
+      sourcePrice: null,
+      shownPrice: 12000,
+      sourceCheckedAt: null,
+    };
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    expect(await screen.findByText('Цена с Ozon ещё не приходила — показана своя')).toBeInTheDocument();
+    expect(screen.queryByText(/Цена с Ozon: /)).not.toBeInTheDocument();
+    expect(screen.queryByText(/проверена /)).not.toBeInTheDocument();
+    // Покупатель платит свою цену — это и есть «показана своя», но сказанное числом.
+    expect(screen.getByText(/Покупатель платит: 12[\s ]000 ₽/)).toBeInTheDocument();
+  });
+
+  it('порог сработал — «покупатель платит» показывает себестоимость, которую иначе с экрана не вывести', async () => {
+    store['wb-1'] = {
+      ...store['wb-1']!,
+      price: 12000,
+      discountPct: 90,
+      thresholdApplied: true,
+      shownPrice: 2500,
+    };
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    expect(await screen.findByText('Скидка уменьшена: ниже себестоимости продавать нельзя')).toBeInTheDocument();
+    // Ни 12 000, ни 90% на экране не дают 2 500 — число видно только так.
+    expect(screen.getByText(/Покупатель платит: 2[\s ]500 ₽/)).toBeInTheDocument();
+  });
+
+  it('цены нет вовсе — сказано словом «предзаказ», а не нулём', async () => {
+    store['wb-1'] = {...store['wb-1']!, price: null, shownPrice: null};
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    expect(await screen.findByText('Покупатель видит «Предзаказ» — цены нет')).toBeInTheDocument();
   });
 });
