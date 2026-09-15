@@ -13,6 +13,7 @@ import com.reinasleo.api.model.Product;
 import com.reinasleo.api.model.ProductModel;
 import com.reinasleo.api.model.ProductSet;
 import com.reinasleo.api.model.StorefrontSection;
+import com.reinasleo.api.repository.MarketplacePriceRepository;
 import com.reinasleo.api.repository.ProductModelRepository;
 import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.ProductSetItemRepository;
@@ -57,21 +58,33 @@ public class StorefrontAdminService {
     private final ProductSetRepository sets;
     private final ProductSetItemRepository setItems;
     private final StorefrontSectionRepository sections;
+    private final MarketplacePriceRepository marketplacePrices;
     private final StorefrontMapping mapping;
     private final StorefrontMediaCleaner mediaCleaner;
     private final Validator validator;
 
     public StorefrontAdminService(ProductModelRepository models, ProductRepository products, ProductSetRepository sets,
                                   ProductSetItemRepository setItems, StorefrontSectionRepository sections,
-                                  StorefrontMapping mapping, StorefrontMediaCleaner mediaCleaner, Validator validator) {
+                                  MarketplacePriceRepository marketplacePrices, StorefrontMapping mapping,
+                                  StorefrontMediaCleaner mediaCleaner, Validator validator) {
         this.models = models;
         this.products = products;
         this.sets = sets;
         this.setItems = setItems;
         this.sections = sections;
+        this.marketplacePrices = marketplacePrices;
         this.mapping = mapping;
         this.mediaCleaner = mediaCleaner;
         this.validator = validator;
+    }
+
+    /** Один запрос под цены ВСЕХ вариантов модели — см. MarketplacePriceLookup про то, зачем не по одному. */
+    private MarketplacePriceLookup pricesFor(List<Product> variants) {
+        if (variants.isEmpty()) {
+            return MarketplacePriceLookup.empty();
+        }
+        List<String> ids = variants.stream().map(Product::getId).toList();
+        return MarketplacePriceLookup.from(marketplacePrices.findByProductIdIn(ids));
     }
 
     // =========================================================== блоки витрины
@@ -143,7 +156,7 @@ public class StorefrontAdminService {
     public StorefrontModelRequest model(UUID id, boolean withDraft) {
         ProductModel model = model(id);
         List<Product> variants = products.findByModelIdOrderBySortOrderAsc(id);
-        StorefrontModelRequest published = mapping.published(model, variants);
+        StorefrontModelRequest published = mapping.published(model, variants, pricesFor(variants));
         if (!withDraft || model.getDraft() == null) {
             return published;
         }
@@ -158,7 +171,7 @@ public class StorefrontAdminService {
     public StorefrontModelRequest saveModelDraft(UUID id, String patchJson) {
         ProductModel model = model(id);
         List<Product> variants = products.findByModelIdOrderBySortOrderAsc(id);
-        StorefrontModelRequest published = mapping.published(model, variants);
+        StorefrontModelRequest published = mapping.published(model, variants, pricesFor(variants));
         Set<String> before = mediaOfCurrentDraft(published, model.getDraft(), StorefrontModelRequest.class,
                 mapping::media);
 
@@ -200,7 +213,7 @@ public class StorefrontAdminService {
     public StorefrontModelRequest publishModel(UUID id) {
         ProductModel model = model(id);
         List<Product> variants = products.findByModelIdOrderBySortOrderAsc(id);
-        StorefrontModelRequest published = mapping.published(model, variants);
+        StorefrontModelRequest published = mapping.published(model, variants, pricesFor(variants));
         if (model.getDraft() == null) {
             return published;
         }
@@ -221,7 +234,7 @@ public class StorefrontAdminService {
     public StorefrontModelRequest discardModelDraft(UUID id) {
         ProductModel model = model(id);
         List<Product> variants = products.findByModelIdOrderBySortOrderAsc(id);
-        StorefrontModelRequest published = mapping.published(model, variants);
+        StorefrontModelRequest published = mapping.published(model, variants, pricesFor(variants));
         Set<String> abandoned = mediaOfCurrentDraft(published, model.getDraft(), StorefrontModelRequest.class,
                 mapping::media);
 
