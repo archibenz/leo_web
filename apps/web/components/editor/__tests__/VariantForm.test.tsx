@@ -7,12 +7,24 @@ import userEvent from '@testing-library/user-event';
 // маленький сервер: патч накапливается в сторе по тем же правилам, что и
 // StorefrontDraftMerge.accumulate (JSONB-колонка не участвует — поля
 // верхнего уровня перезаписываются целиком, ровно как gallery/image).
+//
+// priceSource/discountPct и четыре флага — то же поле ответа
+// StorefrontVariantRequest, что уже отдаёт бэкенд (этап 2). discountPct у
+// фикстуры — 5, специально НЕ 0 и НЕ 90: тесты ниже проверяют, что ровно эти
+// границы принимаются, и если бы фикстура сама уже стояла на одной из них,
+// «Сохранить» осталась бы включённой не из-за валидности значения, а просто
+// потому что оно совпало с исходным (patchOf не увидел бы изменения).
 type StoredVariant = {
   price: number | null;
-  salePrice: number | null;
   image: string;
   gallery: string[];
   stockQuantity: number;
+  priceSource: 'manual' | 'ozon';
+  discountPct: number;
+  sourceMissing: boolean;
+  costUnknown: boolean;
+  thresholdApplied: boolean;
+  manualPriceInactive: boolean;
 };
 
 let store: Record<string, StoredVariant>;
@@ -21,10 +33,15 @@ function resetStore() {
   store = {
     'wb-1': {
       price: 12000,
-      salePrice: null,
       image: '/uploads/products/a.jpg',
       gallery: ['/uploads/products/b.jpg', '/uploads/products/c.jpg'],
       stockQuantity: 4,
+      priceSource: 'manual',
+      discountPct: 5,
+      sourceMissing: false,
+      costUnknown: false,
+      thresholdApplied: false,
+      manualPriceInactive: false,
     },
   };
 }
@@ -138,10 +155,15 @@ describe('VariantForm — галерея варианта', () => {
   it('переключение на другой вариант не тащит за собой чужую галерею', async () => {
     store['wb-2'] = {
       price: 9000,
-      salePrice: null,
       image: '/uploads/products/x.jpg',
       gallery: [],
       stockQuantity: 1,
+      priceSource: 'manual',
+      discountPct: 0,
+      sourceMissing: false,
+      costUnknown: false,
+      thresholdApplied: false,
+      manualPriceInactive: false,
     };
     const {rerender} = render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
     await screen.findAllByRole('img');
@@ -151,5 +173,135 @@ describe('VariantForm — галерея варианта', () => {
 
     await waitFor(() => expect(screen.getAllByRole('img')).toHaveLength(1));
     expect(screen.getByRole('img').getAttribute('src')).toBe('/uploads/products/x.jpg');
+  });
+});
+
+// Приёмка из task-price-ui-brief.md (этап 3а): процент вместо суммы, ровно
+// два источника без wildberries, три флага различимы, ручная цена блокируется
+// признаком, а не молчит. Мутация из того же брифа («верни отправку salePrice
+// вместо discountPct — e2e обязан покраснеть») целится в e2e-спеку, но тест
+// «уходит без salePrice» ниже — тот же periметр, только на уровне формы: он
+// тоже красный, если patchOf откатить к старому полю.
+describe('VariantForm — источник цены и скидка процентом', () => {
+  it('переключатель источника — ровно два значения, wildberries среди них нет', async () => {
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    const select = screen.getByLabelText('Источник цены') as HTMLSelectElement;
+    const values = Array.from(select.options).map((o) => o.value);
+    expect(values).toEqual(['manual', 'ozon']);
+    expect(values).not.toContain('wildberries');
+  });
+
+  it('скидка принимает 0 и 90 — ошибки нет, «Сохранить» остаётся включённой', async () => {
+    const user = userEvent.setup();
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    const percent = screen.getByLabelText('Скидка, %');
+    const save = screen.getByRole('button', {name: /Сохранить в черновик/i});
+
+    await user.clear(percent);
+    await user.type(percent, '90');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(save).toBeEnabled();
+
+    await user.clear(percent);
+    await user.type(percent, '0');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(save).toBeEnabled();
+  });
+
+  it('скидка отбивает 91 и −1 — ошибка рядом с полем, «Сохранить» выключена', async () => {
+    const user = userEvent.setup();
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    const percent = screen.getByLabelText('Скидка, %');
+    const save = screen.getByRole('button', {name: /Сохранить в черновик/i});
+
+    await user.clear(percent);
+    await user.type(percent, '91');
+    expect(screen.getByRole('alert')).toHaveTextContent(/0 до 90/);
+    expect(save).toBeDisabled();
+
+    await user.clear(percent);
+    await user.type(percent, '-1');
+    expect(screen.getByRole('alert')).toHaveTextContent(/0 до 90/);
+    expect(save).toBeDisabled();
+  });
+
+  it('три флага — три РАЗНЫЕ подписи одновременно, не одна общая', async () => {
+    store['wb-1'] = {...store['wb-1']!, sourceMissing: true, costUnknown: true, thresholdApplied: false};
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    expect(await screen.findByText('Цена с Ozon ещё не приходила — показана своя')).toBeInTheDocument();
+    expect(screen.getByText('Себестоимость неизвестна — порог не действует')).toBeInTheDocument();
+    expect(screen.queryByText('Скидка уменьшена: ниже себестоимости продавать нельзя')).not.toBeInTheDocument();
+  });
+
+  it('порог по себестоимости — своя подпись, отдельная от «себестоимость неизвестна»', async () => {
+    store['wb-1'] = {...store['wb-1']!, costUnknown: false, thresholdApplied: true};
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    expect(await screen.findByText('Скидка уменьшена: ниже себестоимости продавать нельзя')).toBeInTheDocument();
+    expect(screen.queryByText('Себестоимость неизвестна — порог не действует')).not.toBeInTheDocument();
+    expect(screen.queryByText('Цена с Ozon ещё не приходила — показана своя')).not.toBeInTheDocument();
+  });
+
+  it('ни один флаг не поднят — ни одной из трёх подписей нет', async () => {
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    expect(screen.queryByText('Цена с Ozon ещё не приходила — показана своя')).not.toBeInTheDocument();
+    expect(screen.queryByText('Себестоимость неизвестна — порог не действует')).not.toBeInTheDocument();
+    expect(screen.queryByText('Скидка уменьшена: ниже себестоимости продавать нельзя')).not.toBeInTheDocument();
+  });
+
+  it('«ручная цена не действует» — поле цены недоступно для правки', async () => {
+    store['wb-1'] = {...store['wb-1']!, manualPriceInactive: true};
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    expect(await screen.findByLabelText('Цена, ₽')).toBeDisabled();
+  });
+
+  it('источник «своя цена» (по умолчанию) — поле цены доступно для правки', async () => {
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    expect(screen.getByLabelText('Цена, ₽')).toBeEnabled();
+  });
+
+  it('сохранение уходит с discountPct — и БЕЗ salePrice в теле вовсе', async () => {
+    const user = userEvent.setup();
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    const percent = screen.getByLabelText('Скидка, %');
+    await user.clear(percent);
+    await user.type(percent, '20');
+
+    await user.click(screen.getByRole('button', {name: /Сохранить в черновик/i}));
+
+    await waitFor(() => expect(saveVariantDraft).toHaveBeenCalled());
+    const [, patch] = saveVariantDraft.mock.calls.at(-1)!;
+    expect(patch).toEqual({discountPct: 20});
+    expect(patch).not.toHaveProperty('salePrice');
+  });
+
+  it('переключение источника на Ozon уходит патчем priceSource', async () => {
+    const user = userEvent.setup();
+    render(<VariantForm modelId="model-1" variantId="wb-1" onSaved={() => {}} />);
+    await screen.findAllByRole('img');
+
+    await user.selectOptions(screen.getByLabelText('Источник цены'), 'ozon');
+    await user.click(screen.getByRole('button', {name: /Сохранить в черновик/i}));
+
+    await waitFor(() => expect(saveVariantDraft).toHaveBeenCalled());
+    const [, patch] = saveVariantDraft.mock.calls.at(-1)!;
+    expect(patch).toEqual({priceSource: 'ozon'});
   });
 });
