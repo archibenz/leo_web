@@ -42,12 +42,27 @@ function tsxIn(dir: string): string[] {
   }
 }
 
+// СПИСОК РАСТЁТ ПО МЕРЕ ПЕРЕЕЗДА, и это его свойство, а не недоделка: девять
+// экранов ещё в старой палитре, и включить их сюда сейчас значило бы завести
+// сторож, который красный с первого дня и потому ничего не сторожит.
+// Переодел экран — добавь его сюда тем же коммитом.
+//
+// Признак, по которому файл сюда попадает: он РИСУЕТСЯ ВНУТРИ АДМИНКИ.
+// Не «лежит в components/admin/» — на этом признаке список уже один раз
+// оказался неполон: `components/Toaster.tsx` монтируется админской веткой,
+// вставал поверх каждого экрана в старой тёмной палитре, и поиск по папке его
+// не находил. Нашёлся он на кадре.
 const FILES: ReadonlyArray<string> = [
+  'app/[locale]/(admin)/layout.tsx',
   'app/[locale]/(admin)/admin/page.tsx',
+  'app/[locale]/(admin)/admin/homepage/page.tsx',
+  'app/[locale]/(admin)/admin/products/page.tsx',
   'components/admin/AdminLayout.tsx',
   'components/admin/AdminPrimitives.tsx',
+  'components/Toaster.tsx',
   ...tsxIn('components/admin/shell'),
   ...tsxIn('components/admin/dashboard'),
+  ...tsxIn('components/admin/list'),
 ];
 
 const FORBIDDEN: ReadonlyArray<{name: string; pattern: RegExp}> = [

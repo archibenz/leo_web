@@ -54,6 +54,13 @@ export function CustomMenuButton({
       className={cn(
         '[&>span:last-child]:text-clip [&>span]:text-nowrap [&>span]:text-foreground/80',
         'data-[active=true]:[&>span]:text-foreground',
+        // Текущий раздел отмечен ЧЕРТОЙ СЛЕВА, а не заливкой. У блока Efferd
+        // здесь бежевая пилюля; на витрине текущий пункт меню отмечает черта
+        // (.wv-menu-link), и владелец просил админку «светлым стилем как сам
+        // сайт». Черта работает и в свёрнутом виде панели, где от пилюли
+        // остаётся квадрат вокруг значка.
+        'relative data-[active=true]:bg-transparent data-[active=true]:font-medium',
+        'data-[active=true]:before:absolute data-[active=true]:before:inset-y-1 data-[active=true]:before:left-0 data-[active=true]:before:w-[2px] data-[active=true]:before:rounded-full data-[active=true]:before:bg-foreground',
         'duration-[calc(var(--sidebar-animation-duration)*0.5)] ease-(--sidebar-animation-ease) group-data-[collapsible=icon]:duration-(--sidebar-animation-duration)',
         className,
       )}

@@ -1183,7 +1183,8 @@
       "noProducts": "Нет товаров",
       "updateStock": "Обновить запас",
       "created": "Товар создан",
-      "updated": "Товар обновлён"
+      "updated": "Товар обновлён",
+      "stockShort": "Остаток"
     },
     "collection": {
       "add": "Добавить коллекцию",
@@ -1253,7 +1254,9 @@
     "signOut": "Выйти",
     "toggleNav": "Свернуть навигацию",
     "nothingFound": "Ничего не найдено",
-    "saving": "Сохраняем…"
+    "saving": "Сохраняем…",
+    "foundOf": "Показано {shown} из {total}",
+    "rowActions": "Действия: {name}"
   },
   "editor": {
     "ticker": {

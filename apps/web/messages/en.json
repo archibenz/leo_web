@@ -1183,7 +1183,8 @@
       "noProducts": "No products yet",
       "updateStock": "Update Stock",
       "created": "Product created",
-      "updated": "Product updated"
+      "updated": "Product updated",
+      "stockShort": "In stock"
     },
     "collection": {
       "add": "Add Collection",
@@ -1253,7 +1254,9 @@
     "signOut": "Sign out",
     "toggleNav": "Toggle navigation",
     "nothingFound": "Nothing found",
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "foundOf": "Showing {shown} of {total}",
+    "rowActions": "Actions: {name}"
   },
   "editor": {
     "ticker": {
