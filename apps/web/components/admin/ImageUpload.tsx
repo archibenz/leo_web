@@ -104,7 +104,7 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
         <div className="flex flex-wrap gap-3">
           {images.map((img, i) => (
             <div key={i} className="relative group">
-              <div className="h-24 w-24 rounded-lg overflow-hidden bg-[var(--ink)]/5">
+              <div className="h-24 w-24 overflow-hidden rounded-lg bg-muted">
                 {img.src ? (
                   // Admin-only upload preview: src is a dynamic, arbitrary remote
                   // host (or API_BASE) — out of scope for next/image's allow-list
@@ -151,7 +151,7 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
       <label
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-[var(--ink)]/20 p-8 text-center transition hover:border-[var(--accent)]/50 hover:bg-[var(--ink)]/3 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-[var(--accent)] has-[:focus-visible]:outline-offset-2"
+        className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border p-8 text-center transition-colors hover:border-foreground/40 hover:bg-muted has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-offset-2"
       >
         <input
           type="file"
@@ -161,19 +161,19 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
           onChange={e => handleUpload(e.target.files)}
         />
         {uploading ? (
-          <div className="flex items-center gap-2 text-sm text-[var(--ink-soft)]">
+          <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <BrandLoader size={20} />
             {t('uploading')}
           </div>
         ) : (
           <>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="text-[var(--ink-soft)]">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2" className="text-muted-foreground">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeLinecap="round" strokeLinejoin="round" />
               <polyline points="17 8 12 3 7 8" strokeLinecap="round" strokeLinejoin="round" />
               <line x1="12" y1="3" x2="12" y2="15" strokeLinecap="round" />
             </svg>
-            <p className="text-sm text-[var(--ink-soft)]">{t('dropzone')}</p>
-            <p className="text-xs text-[var(--ink-soft)]/60">{t('maxSize')}</p>
+            <p className="text-[13px]">{t('dropzone')}</p>
+            <p className="text-muted-foreground text-[11px]">{t('maxSize')}</p>
           </>
         )}
       </label>

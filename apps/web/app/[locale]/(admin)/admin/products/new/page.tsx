@@ -10,8 +10,8 @@ export default function NewProductPage() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-display text-[var(--ink)]">{t('add')}</h1>
-        <div className="paper-card p-6">
+        <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">{t('add')}</h1>
+        <div>
           <ProductForm isNew />
         </div>
       </div>

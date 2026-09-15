@@ -16,8 +16,8 @@ export default function EditCollectionPage({params}: Props) {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-display text-[var(--ink)]">{t('edit')}</h1>
-        <div className="paper-card p-6">
+        <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">{t('edit')}</h1>
+        <div>
           <CollectionForm collectionId={id} />
         </div>
       </div>

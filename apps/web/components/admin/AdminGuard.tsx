@@ -30,10 +30,10 @@ export default function AdminGuard({children}: {children: React.ReactNode}) {
   if (!isAdmin) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-        <p className="text-lg text-[var(--ink-soft)]">{t('accessDenied')}</p>
+        <p className="text-muted-foreground text-[15px]">{t('accessDenied')}</p>
         <button
           onClick={() => router.push(`/${locale}`)}
-          className="lux-btn-secondary"
+          className="inline-flex min-h-11 items-center justify-center rounded-md border border-border px-5 text-[13px] transition-colors hover:bg-muted"
         >
           {t('backToSite')}
         </button>
