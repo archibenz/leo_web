@@ -53,8 +53,23 @@ async function mockDashboardApi(page: Page, overrides: Partial<typeof ZERO_DASHB
     route.fulfill({status: 200, contentType: 'application/json', body: '[]'}));
 }
 
+// ПЕРЕПИСАНО 15.09 ПОД НЫНЕШНЮЮ ОБОЛОЧКУ. Прежние кейсы описывали механику,
+// которой больше нет: список разделов «сворачивался» прямо в потоке страницы, и
+// тумблером служила единственная на экране кнопка с aria-expanded. Оболочка
+// Efferd заменила это выдвижной панелью: раскрывает её CustomSidebarTrigger, у
+// которого aria-expanded нет вовсе.
+//
+// Поэтому `getByRole('button', {expanded: false})` начал ловить ЧУЖУЮ кнопку —
+// меню «Мой аккаунт» в шапке, 32 px. Спека краснела верно (32 < 44), но
+// говорила не о том элементе, о котором думала. Сузить её мало: узкая спека
+// перестала бы замечать ту самую кнопку в 32 px, ради которой краснела.
+// Поэтому ниже ДВА разных утверждения: про сам тумблер — точечное, про порог
+// 44 px — по ВСЕМ видимым управляющим элементам оболочки, чтобы третья такая
+// кнопка не пряталась за узостью проверки.
 test.describe('админка — мобильная навигация сворачивается (task-admin-white-brief.md, п.1)', () => {
-  test('390px: заголовок дашборда виден без прокрутки, меню свёрнуто и разворачивается по нажатию', async ({page}) => {
+  const ТУМБЛЕР = 'Свернуть навигацию';
+
+  test('390px: заголовок дашборда виден без прокрутки, панель свёрнута и разворачивается по нажатию', async ({page}) => {
     await page.setViewportSize({width: 390, height: 844});
     await asOwner(page);
     await mockDashboardApi(page);
@@ -65,32 +80,48 @@ test.describe('админка — мобильная навигация свор
     const box = await heading.boundingBox();
     expect(box?.y ?? Infinity, 'заголовок дашборда должен попадать в первый экран 390×844').toBeLessThan(844);
 
-    // Список разделов свёрнут по умолчанию — пункт "Товары" не виден.
-    const toggle = page.getByRole('button', {expanded: false});
-    await expect(toggle).toBeVisible();
-    await expect(page.getByRole('link', {name: 'Товары', exact: true})).toBeHidden();
+    // Панель свёрнута — пункт «Товары» на экране не найти.
+    await expect(page.getByRole('link', {name: 'Товары', exact: true})).toHaveCount(0);
 
-    // Разворачивается по нажатию.
-    await toggle.click();
-    await expect(page.getByRole('button', {expanded: true})).toBeVisible();
+    await page.getByRole('button', {name: ТУМБЛЕР, exact: true}).click();
     await expect(page.getByRole('link', {name: 'Товары', exact: true})).toBeVisible();
 
-    // И сворачивается обратно повторным нажатием.
-    await page.getByRole('button', {expanded: true}).click();
+    // И убирается обратно: панель выдвижная, закрывается Esc.
+    await page.keyboard.press('Escape');
     await expect(page.getByRole('link', {name: 'Товары', exact: true})).toBeHidden();
   });
 
-  test('зоны нажатия тумблера и пунктов навигации — не меньше 44px', async ({page}) => {
+  test('зоны нажатия в оболочке — не меньше 44px, и это про ВСЕ её кнопки', async ({page}) => {
     await page.setViewportSize({width: 390, height: 844});
     await asOwner(page);
     await mockDashboardApi(page);
     await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
 
-    const toggle = page.getByRole('button', {expanded: false});
-    const toggleBox = await toggle.boundingBox();
-    expect(toggleBox?.height ?? 0).toBeGreaterThanOrEqual(44);
+    // Ждём ПОСЛЕДСТВИЯ, а не времени: оболочка админки монтируется на клиенте
+    // после того, как AuthProvider сходит за ролью, и обход по <header> до
+    // этого момента находит пустоту. Первая же попытка так и сделала — и
+    // сообщила «шапки нет вовсе» вместо тихого зелёного: ради этого в обходе
+    // и стоит отдельная ветка на отсутствие шапки.
+    await expect(page.getByRole('button', {name: ТУМБЛЕР, exact: true})).toBeVisible();
 
-    await toggle.click();
+    // Сначала шапка: тумблер и всё, что рядом с ним. Проверка по всем видимым
+    // кнопкам, а не по одной названной — кнопка в 32 px приехала сюда именно
+    // потому, что её никто не называл поимённо.
+    const мелкие = await page.evaluate(() => {
+      const header = document.querySelector('header');
+      if (!header) return ['шапки нет вовсе'];
+      return Array.from(header.querySelectorAll('button, a[href]')).flatMap((el) => {
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) return [];
+        if (r.height >= 44) return [];
+        const имя = (el.getAttribute('aria-label') || (el as HTMLElement).innerText || '').trim().slice(0, 40);
+        return [`${имя || el.tagName.toLowerCase()} — ${Math.round(r.height)}px`];
+      });
+    });
+    expect(мелкие, 'владелец правит с телефона: промах по кнопке он читает как «не работает»').toEqual([]);
+
+    // Потом сама навигация.
+    await page.getByRole('button', {name: ТУМБЛЕР, exact: true}).click();
     const productsLink = page.getByRole('link', {name: 'Товары', exact: true});
     await expect(productsLink).toBeVisible();
     const linkBox = await productsLink.boundingBox();
@@ -105,20 +136,20 @@ test.describe('админка — мобильная навигация свор
       route.fulfill({status: 200, contentType: 'application/json', body: '[]'}));
     await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
 
-    await page.getByRole('button', {expanded: false}).click();
+    await page.getByRole('button', {name: ТУМБЛЕР, exact: true}).click();
     await page.getByRole('link', {name: 'Товары', exact: true}).click();
     await expect(page).toHaveURL(/\/ru\/admin\/products/);
   });
 
-  test('на десктопе список разделов открыт постоянной колонкой, без тумблера', async ({page}) => {
+  test('на десктопе список разделов открыт постоянной колонкой', async ({page}) => {
     await page.setViewportSize({width: 1440, height: 900});
     await asOwner(page);
     await mockDashboardApi(page);
     await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
 
-    // Мобильный тумблер скрыт на lg+.
-    await expect(page.getByRole('button', {expanded: false})).toBeHidden();
-    // Пункт навигации виден сразу, без клика.
+    // Пункт навигации виден сразу, без клика. Утверждения «тумблера нет» тут
+    // больше нет: в нынешней оболочке он остаётся и на десктопе — сворачивает
+    // колонку до значков. Это её устройство, а не недосмотр.
     await expect(page.getByRole('link', {name: 'Товары', exact: true})).toBeVisible();
   });
 });

@@ -52,6 +52,12 @@ export function CustomMenuButton({
   return (
     <SidebarMenuButton
       className={cn(
+        // 44 px на телефоне — тот же порог, что у тумблера и у меню аккаунта.
+        // У shadcn размер по умолчанию h-8, то есть 32: мышью попасть легко,
+        // пальцем — нет, а панель на телефоне открывается ИМЕННО пальцем.
+        // На мыши (md+) остаётся прежняя плотность: там лишняя высота съедает
+        // список, не давая ничего взамен.
+        'min-h-11 md:min-h-8',
         '[&>span:last-child]:text-clip [&>span]:text-nowrap [&>span]:text-foreground/80',
         'data-[active=true]:[&>span]:text-foreground',
         // Текущий раздел отмечен ЧЕРТОЙ СЛЕВА, а не заливкой. У блока Efferd
