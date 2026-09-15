@@ -1251,7 +1251,9 @@
     "toSite": "На сайт",
     "myAccount": "Мой аккаунт",
     "signOut": "Выйти",
-    "toggleNav": "Свернуть навигацию"
+    "toggleNav": "Свернуть навигацию",
+    "nothingFound": "Ничего не найдено",
+    "saving": "Сохраняем…"
   },
   "editor": {
     "ticker": {

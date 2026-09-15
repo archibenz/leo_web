@@ -1251,7 +1251,9 @@
     "toSite": "To the site",
     "myAccount": "My account",
     "signOut": "Sign out",
-    "toggleNav": "Toggle navigation"
+    "toggleNav": "Toggle navigation",
+    "nothingFound": "Nothing found",
+    "saving": "Saving…"
   },
   "editor": {
     "ticker": {

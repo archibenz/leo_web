@@ -2,10 +2,25 @@
 
 import {useState, useEffect, useCallback} from 'react';
 import {useTranslations, useLocale} from 'next-intl';
+import {SearchIcon, XIcon} from 'lucide-react';
 import AdminLayout from '../../../../../components/admin/AdminLayout';
 import BrandLoader from '../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../lib/api';
 import {formatPrice} from '../../../../../lib/formatPrice';
+import {Badge} from '../../../../../components/ui/badge';
+import {Button} from '../../../../../components/ui/button';
+import {Checkbox} from '../../../../../components/ui/checkbox';
+import {Input} from '../../../../../components/ui/input';
+import {InputGroup, InputGroupAddon, InputGroupInput} from '../../../../../components/ui/input-group';
+import {Label} from '../../../../../components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../../../../components/ui/select';
+import {Panel, PanelEmpty} from '../../../../../components/admin/dashboard/panel';
 
 type Product = {
   id: string;
@@ -125,10 +140,13 @@ export default function AdminHomepagePage() {
     c.name.toLowerCase().includes(collectionSearch.toLowerCase())
   );
 
+
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <h1 className="text-2xl font-display text-[var(--ink)]">{t('homepageSettings')}</h1>
+      <div className="*:mb-6 last:*:mb-0 pb-20">
+        <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">
+          {t('homepageSettings')}
+        </h1>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
@@ -136,172 +154,192 @@ export default function AdminHomepagePage() {
           </div>
         ) : (
           <>
-            {/* Current Season */}
-            <div className="paper-card p-6 space-y-4">
-              <h2 className="text-lg font-medium text-[var(--ink)]">{t('currentSeason')}</h2>
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">{t('season')}</label>
-                  <select
-                    value={season}
-                    onChange={e => setSeason(e.target.value)}
-                    className="admin-input"
-                  >
-                    {SEASONS.map(s => (
-                      <option key={s} value={s}>{t(`seasons.${s}`)}</option>
-                    ))}
-                  </select>
+            <Panel title={t('currentSeason')}>
+              <div className="grid max-w-md grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="season">{t('season')}</Label>
+                  {/* Раньше это был родной <select> с классом admin-input.
+                      Родной список на телефоне открывается системным колесом,
+                      которое не подчиняется нашей палитре; Select из shadcn
+                      рисует свой и потому выглядит одинаково везде. Значения
+                      и обработчик те же. */}
+                  <Select onValueChange={setSeason} value={season}>
+                    <SelectTrigger className="min-h-11" id="season">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SEASONS.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {t(`seasons.${s}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">{t('year')}</label>
-                  <input
-                    type="number"
+                <div className="space-y-2">
+                  <Label htmlFor="season-year">{t('year')}</Label>
+                  <Input
+                    className="min-h-11"
+                    id="season-year"
+                    inputMode="numeric"
+                    onChange={(e) => setSeasonYear(e.target.value)}
                     value={seasonYear}
-                    onChange={e => setSeasonYear(e.target.value)}
-                    className="admin-input"
-                    min={2020}
-                    max={2040}
                   />
                 </div>
               </div>
-            </div>
+            </Panel>
 
-            {/* Featured Products */}
-            <div className="paper-card p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium text-[var(--ink)]">{t('featuredProducts')}</h2>
-                <span className="text-xs text-[var(--ink-soft)]">
+            <Panel
+              action={
+                <span className="text-muted-foreground text-[12px] tabular-nums">
                   {featuredProductIds.length} {t('selected')}
                 </span>
+              }
+              title={t('featuredProducts')}
+            >
+              <div className="space-y-4">
+                {featuredProductIds.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {featuredProductIds.map((id) => {
+                      const product = products.find((p) => p.id === id);
+                      return (
+                        // Выбранное снимается нажатием на сам ярлык. Зона
+                        // нажатия 44px: владелец снимает их пальцем, а
+                        // прежний ярлык был 24px высотой.
+                        <button
+                          className="inline-flex min-h-11 items-center"
+                          key={id}
+                          onClick={() => toggleFeaturedProduct(id)}
+                          type="button"
+                        >
+                          <Badge className="gap-1.5" variant="secondary">
+                            {product?.title || id}
+                            <XIcon className="size-3.5" />
+                          </Badge>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <InputGroup>
+                  <InputGroupAddon>
+                    <SearchIcon />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    onChange={(e) => setProductSearch(e.target.value)}
+                    placeholder={t('searchProducts')}
+                    value={productSearch}
+                  />
+                </InputGroup>
+
+                {filteredProducts.length === 0 ? (
+                  <PanelEmpty>{t('nothingFound')}</PanelEmpty>
+                ) : (
+                  <ul className="max-h-72 divide-y overflow-y-auto rounded-md ring-1 ring-border">
+                    {filteredProducts.map((product) => (
+                      <li key={product.id}>
+                        <label className="flex min-h-12 cursor-pointer items-center gap-3 px-3 py-2 transition-colors hover:bg-muted">
+                          <Checkbox
+                            checked={featuredProductIds.includes(product.id)}
+                            onCheckedChange={() => toggleFeaturedProduct(product.id)}
+                          />
+                          <span className="min-w-0 flex-1 truncate text-[13px]">{product.title}</span>
+                          <span className="shrink-0 text-muted-foreground text-[12px] tabular-nums">
+                            {formatPrice(locale, product.price)}
+                          </span>
+                          {!product.active && (
+                            <Badge className="shrink-0" variant="destructive">
+                              {t('inactive')}
+                            </Badge>
+                          )}
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
+            </Panel>
 
-              {/* Selected tags */}
-              {featuredProductIds.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {featuredProductIds.map(id => {
-                    const product = products.find(p => p.id === id);
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => toggleFeaturedProduct(id)}
-                        className="flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-3 py-1 text-xs text-[var(--paper-base)] transition hover:opacity-80"
-                      >
-                        {product?.title || id}
-                        <span>&times;</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Search */}
-              <input
-                type="text"
-                placeholder={t('searchProducts')}
-                value={productSearch}
-                onChange={e => setProductSearch(e.target.value)}
-                className="admin-input"
-              />
-
-              {/* Product list */}
-              <div className="max-h-60 overflow-y-auto space-y-1">
-                {filteredProducts.map(product => (
-                  <label
-                    key={product.id}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 cursor-pointer hover:bg-[var(--ink)]/5 transition"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={featuredProductIds.includes(product.id)}
-                      onChange={() => toggleFeaturedProduct(product.id)}
-                      className="accent-[var(--accent)] h-4 w-4"
-                    />
-                    <span className="text-sm text-[var(--ink)]">{product.title}</span>
-                    <span className="text-xs text-[var(--ink-soft)]">{formatPrice(locale, product.price)}</span>
-                    {!product.active && (
-                      <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-400">
-                        {t('inactive')}
-                      </span>
-                    )}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Homepage Collections */}
-            <div className="paper-card p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-medium text-[var(--ink)]">{t('homepageCollections')}</h2>
-                <span className="text-xs text-[var(--ink-soft)]">
+            <Panel
+              action={
+                <span className="text-muted-foreground text-[12px] tabular-nums">
                   {homepageCollectionIds.length} {t('selected')}
                 </span>
+              }
+              title={t('homepageCollections')}
+            >
+              <div className="space-y-4">
+                {homepageCollectionIds.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {homepageCollectionIds.map((id) => {
+                      const col = collections.find((c) => c.id === id);
+                      return (
+                        <button
+                          className="inline-flex min-h-11 items-center"
+                          key={id}
+                          onClick={() => toggleCollection(id)}
+                          type="button"
+                        >
+                          <Badge className="gap-1.5" variant="secondary">
+                            {col?.name || id}
+                            <XIcon className="size-3.5" />
+                          </Badge>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                <InputGroup>
+                  <InputGroupAddon>
+                    <SearchIcon />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    onChange={(e) => setCollectionSearch(e.target.value)}
+                    placeholder={t('searchCollections')}
+                    value={collectionSearch}
+                  />
+                </InputGroup>
+
+                {filteredCollections.length === 0 ? (
+                  <PanelEmpty>{t('nothingFound')}</PanelEmpty>
+                ) : (
+                  <ul className="max-h-72 divide-y overflow-y-auto rounded-md ring-1 ring-border">
+                    {filteredCollections.map((col) => (
+                      <li key={col.id}>
+                        <label className="flex min-h-12 cursor-pointer items-center gap-3 px-3 py-2 transition-colors hover:bg-muted">
+                          <Checkbox
+                            checked={homepageCollectionIds.includes(col.id)}
+                            onCheckedChange={() => toggleCollection(col.id)}
+                          />
+                          <span className="min-w-0 flex-1 truncate text-[13px]">{col.name}</span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-
-              {/* Selected tags */}
-              {homepageCollectionIds.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {homepageCollectionIds.map(id => {
-                    const col = collections.find(c => c.id === id);
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => toggleCollection(id)}
-                        className="flex items-center gap-1.5 rounded-full bg-[var(--accent)] px-3 py-1 text-xs text-[var(--paper-base)] transition hover:opacity-80"
-                      >
-                        {col?.name || id}
-                        <span>&times;</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Search */}
-              <input
-                type="text"
-                placeholder={t('searchCollections')}
-                value={collectionSearch}
-                onChange={e => setCollectionSearch(e.target.value)}
-                className="admin-input"
-              />
-
-              {/* Collection list */}
-              <div className="max-h-60 overflow-y-auto space-y-1">
-                {filteredCollections.map(col => (
-                  <label
-                    key={col.id}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 cursor-pointer hover:bg-[var(--ink)]/5 transition"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={homepageCollectionIds.includes(col.id)}
-                      onChange={() => toggleCollection(col.id)}
-                      className="accent-[var(--accent)] h-4 w-4"
-                    />
-                    <span className="text-sm text-[var(--ink)]">{col.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {/* Save */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                className="lux-btn-primary"
-              >
-                {saving ? '...' : t('saveSettings')}
-              </button>
-              {message && (
-                <span className="text-sm text-[var(--accent)]">{message}</span>
-              )}
-            </div>
+            </Panel>
           </>
         )}
       </div>
+
+      {/* Кнопка сохранения прилипает к низу полотна. Прежде она стояла под
+          двумя списками по два десятка строк каждый, и на телефоне владелец
+          доходил до неё прокруткой через весь экран — а если не доходил,
+          правка пропадала. Это то самое «нормальное расположение кнопок»,
+          о котором он написал про страницу аккаунта.
+          Вне ветки загрузки её нет нарочно: сохранять нечего, пока не
+          загрузилось. */}
+      {!loading && (
+        <div className="-mx-4 sticky bottom-0 flex items-center justify-end gap-4 border-t bg-background/95 px-4 py-3 backdrop-blur md:-mx-6 md:px-6">
+          {message && <span className="text-muted-foreground text-[13px]">{message}</span>}
+          <Button className="min-h-11" disabled={saving} onClick={handleSave}>
+            {saving ? t('saving') : t('saveSettings')}
+          </Button>
+        </div>
+      )}
     </AdminLayout>
   );
 }
