@@ -14,14 +14,38 @@
 -- быть NULL для строк с одной только себестоимостью (см. ниже) — составной
 -- ключ с этим полем физически невозможен.
 --
--- UNIQUE ... NULLS NOT DISTINCT (не обычный UNIQUE) — вот почему: у 55 из 87
--- вариантов нет озоновской пары, и себестоимость на них приходит без source
--- (NULL). Обычный UNIQUE(product_id, source) считает каждую строку с
--- source=NULL отдельной от любой другой такой же — NULL ≠ NULL в стандартной
--- проверке уникальности — и повторный приём себестоимости плодил бы дубликаты
--- вместо upsert именно для этих 55 строк. NULLS NOT DISTINCT (PostgreSQL 15+,
--- здесь 16 — см. docker-compose.yml) требует ровно одну строку на пару, NULL
--- в том числе, и это и есть идемпотентность, которой требует контракт.
+-- Уникальность по ВЫРАЖЕНИЮ, а не UNIQUE(product_id, source) — вот почему: у
+-- 55 из 87 вариантов нет озоновской пары, и себестоимость на них приходит без
+-- source (NULL). Обычный UNIQUE считает каждую строку с source=NULL отдельной
+-- от любой другой такой же — NULL ≠ NULL в стандартной проверке уникальности —
+-- и повторный приём себестоимости плодил бы дубликаты вместо upsert именно для
+-- этих 55 строк.
+--
+-- Напрашивается UNIQUE ... NULLS NOT DISTINCT, и сначала здесь стояло именно
+-- оно. ЭТО БЫЛО ОШИБКОЙ, стоившей десяти минут простоя API 15.09.2026:
+-- NULLS NOT DISTINCT появился в PostgreSQL 15, а НА ПРОДЕ PostgreSQL 14.24.
+-- Flyway упал с «syntax error at or near "NULLS"», Spring без Flyway не
+-- поднялся, /api/health отдавал 502. Витрина при этом отвечала 200 из своего
+-- кэша — то есть снаружи поломка была почти не видна.
+--
+-- Почему не поймали: docker-compose.yml объявляет postgres:16-alpine,
+-- корневой CLAUDE.md пишет «PostgreSQL 16», ручной прогон миграций шёл против
+-- 16, в тестах Flyway не запускается вовсе, а CI миграции не гоняет. Три
+-- уровня проверки, и ни один не знал боевой версии. Проверка была честной и
+-- отвечала не на тот вопрос.
+--
+-- coalesce(source, '') даёт ту же гарантию на 14: две строки без source
+-- сравниваются как две пустые строки и конфликтуют, чего и требует контракт.
+-- Пустая строка не может встретиться настоящим значением — ck_..._source
+-- разрешает только NULL, 'ozon' и 'wildberries'.
+--
+-- ON CONFLICT к этому индексу не привязан: служба делает чтение-затем-запись
+-- через JPA (findByProductIdAndSource[IsNull] → save), и индекс здесь сторож,
+-- а не механизм upsert. Поэтому замена ограничения на индекс не потребовала
+-- ни строки правки в коде.
+--
+-- ПИСАТЬ МИГРАЦИИ ПОД PostgreSQL 14, пока версии прода и docker-compose не
+-- сведены (lw-qpsc).
 --
 -- CHECK на «хотя бы одна цена заполнена» пропускает ИМЕННО состояние «есть
 -- себестоимость, нет цены покупателя» — это не мусор и не промежуточная
@@ -66,12 +90,14 @@ CREATE TABLE marketplace_prices (
     buyer_price_kop BIGINT,
     cost_price_kop  BIGINT,
     checked_at      TIMESTAMPTZ,
-    received_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
-    CONSTRAINT ux_marketplace_prices_product_source UNIQUE NULLS NOT DISTINCT (product_id, source)
-    -- Отдельный индекс на product_id не заводим: он уже покрыт этим
-    -- уникальным ключом (product_id — ведущая колонка), второй был бы
-    -- дублем на запись без пользы на чтение.
+    received_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Отдельный индекс на product_id не заводим: он покрыт этим уникальным
+-- (product_id — ведущая колонка), второй был бы дублем на запись без пользы
+-- на чтение.
+CREATE UNIQUE INDEX ux_marketplace_prices_product_source
+    ON marketplace_prices (product_id, coalesce(source, ''));
 
 ALTER TABLE marketplace_prices
     ADD CONSTRAINT ck_marketplace_prices_source
