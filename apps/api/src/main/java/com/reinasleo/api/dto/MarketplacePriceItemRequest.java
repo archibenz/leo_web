@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 
 import java.time.Instant;
 
@@ -43,8 +44,17 @@ public record MarketplacePriceItemRequest(
         @Pattern(regexp = "^(ozon|wildberries)$", message = "unknown source")
         String source,
 
+        // НОЛЬ ЗАПРЕЩЁН ОБОИМ, и это не придирка к типу. Ozon кладёт в
+        // незаполненные поля цен строку "0.0000"; доедь такой ноль до нас,
+        // VariantPriceCalculator посчитал бы его ЦЕНОЙ — `sourceMissing`
+        // проверяет null, а не величину, — и товар с включённым
+        // переключателем встал бы на витрине по нулю. Отсутствие цены
+        // выражается отсутствием поля, а не нулём в нём: у «не знаем» и
+        // «стоит ноль» не должно быть одинаковой записи.
+        @Positive(message = "buyerPriceKop must be positive")
         Long buyerPriceKop,
 
+        @Positive(message = "costPriceKop must be positive")
         Long costPriceKop,
 
         // Момент, когда МЫ спросили площадку — у отправителя нет отметки

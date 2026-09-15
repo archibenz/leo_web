@@ -192,6 +192,33 @@ class MarketplacePriceIntakeControllerTest {
                 .andExpect(jsonPath("$.errors[0].field").value("items[0].buyerPriceCarriesPlatformPair"));
     }
 
+    // НОЛЬ — НЕ ЦЕНА. Ozon кладёт "0.0000" в незаполненные поля цен, и такой
+    // ноль, доехав до витрины, стал бы ценой: VariantPriceCalculator считает
+    // источник пропавшим по null, а не по величине. Товар с включённым
+    // переключателем встал бы по нулю. Отсекаем на границе, а не надеемся на
+    // отправителя: у «не знаем» и «стоит ноль» не должно быть одной записи.
+    @Test
+    void zeroBuyerPriceIsRejected() throws Exception {
+        String body = batch(item("wb-1", "ozon", 0L, 145000L, "2026-09-15T20:30:00Z"));
+
+        mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("items[0].buyerPriceKop"));
+
+        assertThat(marketplacePrices.count()).isZero();
+    }
+
+    @Test
+    void zeroCostPriceIsRejected() throws Exception {
+        String body = batch(item("wb-1", null, null, 0L, null));
+
+        mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("items[0].costPriceKop"));
+    }
+
     // ============================================================ 7. неизвестный вариант — пропуск, не отказ
 
     @Test
