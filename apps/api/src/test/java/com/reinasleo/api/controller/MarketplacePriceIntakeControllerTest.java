@@ -148,28 +148,26 @@ class MarketplacePriceIntakeControllerTest {
     }
 
     @Test
-    void sourceWithoutBuyerPriceIsRejected() throws Exception {
-        // checkedAt тоже опущен — иначе строка сразу ловит два разных
-        // нарушения (source и checkedAt оба без buyerPriceKop), и индекс
-        // ошибки в errors[0] перестаёт быть однозначным.
+    void sourceWithoutCheckedAtIsRejected() throws Exception {
+        // Источник без отметки опроса: сказано «это с площадки», не сказано
+        // когда её спрашивали. Пара обязана ездить целиком.
         String body = batch(item("wb-1", "ozon", null, 145000L, null));
 
         mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors[0].field").value("items[0].sourcePresenceMatchesBuyerPrice"));
+                .andExpect(jsonPath("$.errors[0].field").value("items[0].platformPairTravelsTogether"));
     }
 
     @Test
-    void checkedAtWithoutBuyerPriceIsRejected() throws Exception {
-        // Симметрично source: площадку по строке без buyerPriceKop не
-        // спрашивали вовсе, checkedAt тут — уже мусор, а не пропуск.
+    void checkedAtWithoutSourceIsRejected() throws Exception {
+        // Симметрично: отметка опроса без указания, кого спрашивали.
         String body = batch(item("wb-1", null, null, 145000L, "2026-09-14T18:00:00Z"));
 
         mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors[0].field").value("items[0].checkedAtPresenceMatchesBuyerPrice"));
+                .andExpect(jsonPath("$.errors[0].field").value("items[0].platformPairTravelsTogether"));
     }
 
     @Test
@@ -183,13 +181,15 @@ class MarketplacePriceIntakeControllerTest {
     }
 
     @Test
-    void buyerPriceWithoutSourceIsRejected() throws Exception {
-        String body = batch(item("wb-1", null, 623000L, null, "2026-09-14T18:00:00Z"));
+    void buyerPriceWithoutThePlatformPairIsRejected() throws Exception {
+        // checkedAt опущен вместе с source — иначе строка ловит сразу два
+        // нарушения и индекс ошибки в errors[0] перестаёт быть однозначным.
+        String body = batch(item("wb-1", null, 623000L, null, null));
 
         mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errors[0].field").value("items[0].sourcePresenceMatchesBuyerPrice"));
+                .andExpect(jsonPath("$.errors[0].field").value("items[0].buyerPriceCarriesPlatformPair"));
     }
 
     // ============================================================ 7. неизвестный вариант — пропуск, не отказ
@@ -241,6 +241,42 @@ class MarketplacePriceIntakeControllerTest {
         assertThat(wb1After.getBuyerPriceKop()).isEqualTo(623000L);
         assertThat(wb1After.getCostPriceKop()).isEqualTo(145000L);
         assertThat(wb1After.getCheckedAt()).isEqualTo(wb1Before.getCheckedAt());
+    }
+
+    // ============================================================ 8b. «спросили, ответ негодный»
+
+    // ТРЕТЬЕ СОСТОЯНИЕ ДОГОВОРА. «Вот цена» он умел, «цены никогда не было»
+    // умел молчанием, а «была, и больше не знаем» сказать было нечем — и
+    // молчание в этом случае консервировало неверную цену вместо того, чтобы
+    // снять её. 15.09.2026 это перестало быть теоретическим: отправитель
+    // научился не публиковать цену, разошедшуюся с деньгами покупателей.
+    //
+    // Проверяется СЛЕДСТВИЕМ, а не кодом ответа: читаем строку из базы.
+    // Вторая часть проверки не менее важна первой — строка обязана остаться
+    // ОДНОЙ. Отправить пустоту без источника нельзя именно потому, что ключ
+    // уникальности `(product_id, coalesce(source,''))` развёл бы строку с
+    // источником и строку без него, и старая цена уцелела бы по соседству.
+    @Test
+    void thePlatformPairWithoutABuyerPriceClearsThePriorPrice_andDoesNotCreateASecondRow() throws Exception {
+        String first = batch(item("wb-1", "ozon", 2000000L, 115400L, "2026-09-15T12:00:00Z"));
+        mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
+                        .contentType(MediaType.APPLICATION_JSON).content(first))
+                .andExpect(status().isOk());
+        assertThat(marketplacePrices.findByProductIdAndSource("wb-1", "ozon").orElseThrow()
+                .getBuyerPriceKop()).isEqualTo(2000000L);
+        assertThat(marketplacePrices.count()).isEqualTo(1);
+
+        // Площадку спросили, ответ негодный: пара на месте, цены нет.
+        String second = batch(item("wb-1", "ozon", null, 115400L, "2026-09-15T20:30:00Z"));
+        mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
+                        .contentType(MediaType.APPLICATION_JSON).content(second))
+                .andExpect(status().isOk());
+
+        MarketplacePrice after = marketplacePrices.findByProductIdAndSource("wb-1", "ozon").orElseThrow();
+        assertThat(after.getBuyerPriceKop()).isNull();
+        // Себестоимость из нашего учёта и к площадке отношения не имеет — едет.
+        assertThat(after.getCostPriceKop()).isEqualTo(115400L);
+        assertThat(marketplacePrices.count()).isEqualTo(1);
     }
 
     // ============================================================ 9. секрет
