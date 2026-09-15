@@ -206,3 +206,123 @@ jobs:
       - name: Stop the API
         if: always()
         run: kill "$(cat "$RUNNER_TEMP/api.pid")" || true
+
+  # e2e гоняется против `next dev` с ФИКСТУРОЙ, а не против собранного
+  # приложения, и это не экономия. `getStorefront()` запрещает фикстуру при
+  # NODE_ENV=production нарочно — чтобы прод никогда не показал выдуманный
+  # каталог; `npm start` это production. Значит собранному приложению нужен
+  # настоящий каталог, а база в CI строится Flyway с V1 и товаров в ней нет
+  # (см. lw-z63j). Снимать запрет ради удобства прогона нельзя.
+  #
+  # ЗАЧЕМ ЭТА РАБОТА ВООБЩЕ. 15.09 три ветки за день внесли четыре беды, и
+  # сторожа покраснели у всех трёх в тот же день. Одна из них — липкая панель
+  # цены, уехавшая за экран телефона: кнопки «в корзину» не было видно два с
+  # половиной часа на проде. Проверка существовала и краснела. Её никто не
+  # запускал.
+  #
+  # Один поток и запрет переиспользовать чужой сервер приходят из
+  # playwright.config.ts сами: там стоит `process.env.CI ? 1 : undefined` и
+  # `reuseExistingServer: !process.env.CI`, а GitHub Actions выставляет CI=true.
+  e2e:
+    name: Web · e2e (Playwright)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    env:
+      NEXT_PUBLIC_API_BASE: http://localhost:8080
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+
+      - name: Set up Node 20
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: npm ci
+        run: npm ci --no-audit --no-fund
+
+      - name: Кэш браузеров Playwright
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4 (latest)
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('apps/web/package-lock.json') }}
+          restore-keys: playwright-${{ runner.os }}-
+
+      - name: Установить Chromium
+        run: npx playwright install --with-deps chromium
+
+      # Дев-сервер поднимает сам Playwright (webServer в конфиге) и передаёт ему
+      # CATALOGUE_SOURCE=fixture. Отдельного шага запуска здесь нет намеренно:
+      # два места, поднимающих сервер, однажды разойдутся настройками.
+      - name: Прогон
+        run: npx playwright test --project=chromium --reporter=list,json
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: e2e-report.json
+
+      # ПОЧЕМУ ПРОПУЩЕННЫЕ СЧИТАЮТСЯ ОТДЕЛЬНО. «Зелёный» с пятью молчащими
+      # спеками и «зелёный» с нулём — разные утверждения, а выглядят одинаково.
+      # Через месяц никто не вспомнит, какой из них перед ним, и отключить
+      # спеку можно будет молча. Порог это закрывает: стало больше — работа
+      # краснеет, и поднять число можно только руками, вписав причину рядом.
+      #
+      # ПЯТЕРО МОЛЧАЩИХ НА 15.09, поимённо — иначе число превращается в
+      # заклинание, а порог нужен именно для того, чтобы его читали:
+      #
+      #   07-soft-404-status  «выдуманный слаг отвечает 404» — ждёт E2E_BUILT,
+      #     то есть НЕПУСТОЙ lib/generated/product-slugs.ts. На дев-стенде
+      #     список — заглушка, и сторожу нечем доказать, что слаг выдуман.
+      #     Упирается в lw-z63j (товаров в базе CI нет), не в проводку.
+      #   07-storefront-editor  «правка → черновик → публикация → покупатель» —
+      #     ждёт E2E_API_PROXY: публикация пишет в базу.
+      #   04-admin-login  «вход админом» — ждёт E2E_ADMIN_EMAIL/PASSWORD,
+      #     то есть настоящую учётку против живого API.
+      #   02-add-to-cart, два кейса про липкую кнопку — пропускают САМИ СЕБЯ по
+      #     геометрии: фикстурная карточка слишком коротка, чтобы прокрутить
+      #     встроенную кнопку за экран, не упёршись в конец страницы. Это не
+      #     среда, а длина страницы в фикстуре; с настоящим каталогом они идут.
+      #
+      # Первые три вернутся в строй не сами: им нужны база и учётка в CI.
+      - name: Сводка и порог пропущенных
+        if: always()
+        env:
+          E2E_EXPECTED_SKIPPED: '5'
+        run: |
+          node -e '
+            const fs = require("node:fs");
+            const путь = "e2e-report.json";
+            if (!fs.existsSync(путь)) {
+              console.log("::error::отчёта нет — прогон не дошёл до записи результата");
+              process.exit(1);
+            }
+            const {stats} = JSON.parse(fs.readFileSync(путь, "utf8"));
+            const порог = Number(process.env.E2E_EXPECTED_SKIPPED);
+            console.log(`${stats.expected} зелёных · ${stats.skipped} пропущено · ${stats.unexpected} упало · ${stats.flaky} с повтора`);
+            if (stats.skipped > порог) {
+              console.log(`::error::пропущенных стало ${stats.skipped} при пороге ${порог}. Спеку отключили — впишите причину и поднимите E2E_EXPECTED_SKIPPED в .github/workflows/ci.yml`);
+              process.exit(1);
+            }
+            if (stats.skipped < порог) {
+              console.log(`::notice::пропущенных стало меньше (${stats.skipped} против ${порог}) — опустите порог, иначе он перестанет ловить отключение`);
+            }
+            if (stats.flaky > 0) {
+              console.log(`::warning::${stats.flaky} прошло только с повтора — набор нестабилен, разберите до того, как повторы станут привычкой`);
+            }
+          '
+
+      - name: Отчёт при падении
+        if: failure()
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
+        with:
+          name: e2e-artifacts
+          # Только test-results: там трассы, кадры и видео упавших кейсов —
+          # то, по чему беду разбирают. HTML-отчёт здесь не собирается вовсе,
+          # потому что `--reporter` в шаге выше заменяет список из конфига, а
+          # тянуть его обратно ради красивой страницы значило бы держать два
+          # места, где сказано, чем отчитываться.
+          path: apps/web/test-results/
+          retention-days: 7

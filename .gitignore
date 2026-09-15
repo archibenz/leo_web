@@ -47,6 +47,7 @@ output/
 # Playwright E2E
 apps/web/playwright-report/
 apps/web/test-results/
+apps/web/e2e-report.json
 apps/web/e2e/.auth/
 
 # Private content lives in the separate repo `archibenz/leo_web-claude`.
