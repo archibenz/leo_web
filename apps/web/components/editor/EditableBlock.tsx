@@ -9,6 +9,11 @@ import type {DraftKind, EditorTarget} from './types';
 // ни разметки, ни классов, ни обработчиков, чтобы покупатель получил ту же
 // страницу, что и раньше.
 //
+// Размер кнопки — порог 44px/13px, тот же, что у EditorButton. Замер 15.09 на
+// 393x852 показал здесь 29 px при кегле 10: владелец правит с телефона, и это
+// вход в КАЖДУЮ правку. Промахнувшись, он не думает «промахнулся» — он думает,
+// что кнопка не работает.
+//
 // Кнопка и маркер стоят В ПОТОКЕ, над содержимым, а не absolute поверх него.
 // Первый вариант был absolute — и на коротком блоке (цена — одна строка) ярлык
 // накрывал ровно то число, которое владелец собрался править. Сдвиг вёрстки в
@@ -32,7 +37,7 @@ export default function EditableBlock({target, owner, children}: {
         <button
           type="button"
           onClick={() => open(target)}
-          className="inline-flex items-center px-3 py-1.5 text-[10px] uppercase tracking-[0.16em]"
+          className="inline-flex min-h-11 items-center px-4 py-2 text-[13px] uppercase tracking-[0.12em]"
           style={{border: `1px solid ${active ? SIGNAL : INK}`, color: active ? SIGNAL : INK}}
         >
           {target.label}

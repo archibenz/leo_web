@@ -17,8 +17,14 @@ export function EditorLabel({children}: {children: ReactNode}) {
   );
 }
 
+// min-h-11 — это и есть порог 44px, единственное место, где он задан для полей
+// редактора. До 15.09 поля выходили 38 px: сами по себе они прощают промах
+// (палец попадает в соседнее поле, а не в пустоту), но два разных порога в
+// одной панели — это ровно та выборочность, из-за которой мелкие кнопки и
+// заводились. Вернуть прежнюю высоту, если владелец скажет «стало длинно», —
+// одно число здесь.
 const inputClass =
-  'w-full bg-white px-3 py-2 text-[13px] outline-none transition-colors focus:border-[#1c1714]';
+  'w-full min-h-11 bg-white px-3 py-2 text-[13px] outline-none transition-colors focus:border-[#1c1714]';
 
 export function TextField({label, value, onChange, rows, hint, error}: {
   label: string;
@@ -117,10 +123,9 @@ export function NumberField({label, value, onChange, hint, disabled}: {
 }
 
 // Скидка, % — целое (границы проверяет и подписывает вызывающая форма, см.
-// VariantForm.discountPctError). min-h-11 — тот же приём, что у SelectField
-// ниже: голый inputClass (px-3 py-2 при text-[13px]) не дотягивает до 44px, а
-// зона нажатия НОВОГО поля обязана — в отличие от старых полей этой же формы,
-// которые её сегодня нарушают (лов lw-cjzy, отдельный бид, не этот).
+// VariantForm.discountPctError). Порог 44px приходит из inputClass и отдельно
+// здесь больше не выставляется: пока он стоял на одном этом поле, соседние в
+// той же форме оставались 38 px — это и был lw-cjzy.
 //
 // type="text" + inputMode="numeric", НЕ type="number": у number-инпута
 // одинокий минус (первая клавиша отрицательного значения) браузер
@@ -168,7 +173,7 @@ export function PercentField({label, value, onChange, hint, error}: {
             // показывает (setText выше), а наружу ждём следующую цифру.
             if (!Number.isNaN(next)) onChange(next);
           }}
-          className={`${inputClass} min-h-11`}
+          className={inputClass}
           style={{border: `1px solid ${HAIR}`, color: INK}}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
@@ -249,10 +254,10 @@ export function DateField({label, value, onChange, hint, error}: {
 }
 
 // Тот же примитив, что TextField/DateField выше: подпись капителью, волосяная
-// линия вместо рамки, свой текст ошибки рядом с полем. min-h-11 — единственное
-// отличие от inputClass: 44px, зона нажатия пальцем (см. WhiteLocaleSwitch.tsx,
-// h-11/min-w-11 — тот же приём для локали на витрине). Нативный <select>
-// открывается пальцем на телефоне сам, без дополнительного JS.
+// линия вместо рамки, свой текст ошибки рядом с полем. Порог 44px приходит из
+// inputClass (см. WhiteLocaleSwitch.tsx, h-11/min-w-11 — тот же приём для
+// локали на витрине). Нативный <select> открывается пальцем на телефоне сам,
+// без дополнительного JS.
 //
 // aria-label дублирует то, что и так даёт обёртка <label> — не для screen
 // reader (там оба пути равнозначны), а потому что вычисленное ИМЯ <select>,
@@ -280,7 +285,7 @@ export function SelectField({label, value, onChange, options, hint, error}: {
           aria-label={label}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`${inputClass} min-h-11`}
+          className={inputClass}
           style={{border: `1px solid ${HAIR}`, color: INK}}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? errorId : undefined}
@@ -377,11 +382,11 @@ export function MediaField({label, value, kind, onChange}: {
             {value ?? 'не задано'}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            <EditorButton size="touch" onClick={() => input.current?.click()} disabled={busy}>
+            <EditorButton onClick={() => input.current?.click()} disabled={busy}>
               {busy ? 'загружаю…' : 'Заменить'}
             </EditorButton>
             {value && (
-              <EditorButton size="touch" tone="quiet" onClick={() => onChange(null)}>
+              <EditorButton tone="quiet" onClick={() => onChange(null)}>
                 Убрать
               </EditorButton>
             )}
@@ -426,21 +431,26 @@ export function MediaPairField({label, kind, phone, desktop}: {
   );
 }
 
-export function EditorButton({children, onClick, disabled, tone = 'plain', type = 'button', size = 'sm'}: {
+export function EditorButton({children, onClick, disabled, tone = 'plain', type = 'button'}: {
   children: ReactNode;
   onClick?: () => void;
   disabled?: boolean;
   tone?: 'plain' | 'solid' | 'quiet' | 'signal';
   type?: 'button' | 'submit';
-  // 'touch' — только для элементов этой ветки, где палец на телефоне должен
-  // попасть наверняка: перестановка кадров, обложка, загрузка. Остальные
-  // кнопки редактора ('sm', по умолчанию) не трогаем — не тот масштаб задачи.
-  size?: 'sm' | 'touch';
 }) {
+  // ОДИН размер, и выбора между размерами больше нет.
+  //
+  // Раньше здесь стоял size='sm' | 'touch': порог 44px применили только к
+  // кадрам галереи, остальным кнопкам оставили 35 px с пометкой «не тот
+  // масштаб задачи». Замер 15.09 показал, чем это кончилось: «Вверх / Вниз /
+  // Убрать» у кадров — 44, те же самые кнопки у строк бегущей строки — 35.
+  // Один жест, две соседние панели, разный размер.
+  //
+  // Правило, которое соблюдают выборочно, — это не правило. Убранный выбор
+  // стоит дороже поднятых пикселей: новая кнопка редактора больше НЕ МОЖЕТ
+  // родиться мелкой, потому что размер ей взять неоткуда, кроме как отсюда.
   const base =
-    size === 'touch'
-      ? 'inline-flex min-h-[44px] items-center justify-center px-4 py-2 text-[13px] uppercase tracking-[0.12em] transition-colors disabled:opacity-45'
-      : 'inline-flex items-center justify-center px-3 py-2 text-[11px] uppercase tracking-[0.16em] transition-colors disabled:opacity-45';
+    'inline-flex min-h-11 items-center justify-center px-4 py-2 text-[13px] uppercase tracking-[0.12em] transition-colors disabled:opacity-45';
   const style =
     tone === 'solid'
       ? {background: INK, color: '#fff', border: `1px solid ${INK}`}
