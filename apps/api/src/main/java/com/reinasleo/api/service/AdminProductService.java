@@ -39,6 +39,7 @@ public class AdminProductService {
     private final BotVisitRepository botVisitRepository;
     private final ProductInterestEventRepository productInterestEventRepository;
     private final ApplicationEventPublisher events;
+    private final BelowCostGuard belowCost;
 
     public AdminProductService(ProductRepository productRepository,
                                CollectionRepository collectionRepository,
@@ -47,7 +48,8 @@ public class AdminProductService {
                                OrderRepository orderRepository,
                                BotVisitRepository botVisitRepository,
                                ProductInterestEventRepository productInterestEventRepository,
-                               ApplicationEventPublisher events) {
+                               ApplicationEventPublisher events,
+                               BelowCostGuard belowCost) {
         this.productRepository = productRepository;
         this.collectionRepository = collectionRepository;
         this.stockAlertRepository = stockAlertRepository;
@@ -56,6 +58,7 @@ public class AdminProductService {
         this.botVisitRepository = botVisitRepository;
         this.productInterestEventRepository = productInterestEventRepository;
         this.events = events;
+        this.belowCost = belowCost;
     }
 
     @Transactional(readOnly = true)
@@ -98,6 +101,10 @@ public class AdminProductService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Product with this ID already exists");
         }
 
+        // Запрет ДО записи, а не после: иначе отказ пришёл бы уже поверх
+        // изменённой строки, и владелец увидел бы ошибку при сохранённой цене.
+        belowCost.verify(candidates(req.id(), req));
+
         Product p = new Product();
         applyFields(p, req);
         p.setId(req.id());
@@ -113,6 +120,7 @@ public class AdminProductService {
         Product p = productRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found"));
         int oldStock = p.getStockQuantity();
+        belowCost.verify(candidates(id, req));
         applyFields(p, req);
         Product saved = productRepository.save(p);
         checkStockAlerts(saved);
@@ -315,6 +323,19 @@ public class AdminProductService {
         if (oldStock == 0 && saved.getStockQuantity() > 0 && !saved.isTest()) {
             events.publishEvent(new BackInStockEvent(saved.getId(), saved.getTitle()));
         }
+    }
+
+    /**
+     * Одна цена на проверку — та, что пишется в products.price.
+     * Название берём из самого запроса: в отказе владельцу нужно, какую вещь
+     * поправить, а не только «цена ниже себестоимости».
+     */
+    private static List<BelowCostGuard.Candidate> candidates(String productId, AdminProductRequest req) {
+        if (req.price() == null) {
+            return List.of();
+        }
+        String label = (req.title() == null || req.title().isBlank()) ? productId : req.title();
+        return List.of(new BelowCostGuard.Candidate(productId, "price", req.price(), label));
     }
 
     private void applyFields(Product p, AdminProductRequest req) {
