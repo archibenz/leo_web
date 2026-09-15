@@ -166,12 +166,26 @@ async function asUser(page: import('@playwright/test').Page): Promise<void> {
   await page.addInitScript(() => window.localStorage.setItem('reinasleo_token', 'user-token'));
 }
 
+/**
+ * Открыть страницу и дождаться СПИСКА ССЫЛОК, а не тишины в сети.
+ *
+ * `networkidle` отвечает за сеть, а не за отрисовку. Список ссылок появляется
+ * ПОСЛЕ того, как клиент сходил за ролью и перерисовался, и на быстрой машине
+ * это успевает произойти внутри тех же 500 мс тишины — а на чужой не успевает.
+ * Первый прогон в CI 15.09 это и показал: обе спеки ниже там МОЛЧАЛИ
+ * (`length === 0`), то есть ровно та тишина, от которой подделка входа и
+ * защищает.
+ */
+async function openAccountAsUser(page: import('@playwright/test').Page, path: string): Promise<void> {
+  await asUser(page);
+  await page.goto(path);
+  await expect(page.locator('.wv-menu-link').first()).toBeVisible();
+}
+
 test.describe('черта .wv-menu-link рисуется внутри своей строки', () => {
   for (const path of MENU_LINK_PAGES) {
     test(`${path}: ни одна черта не уезжает из своей ссылки`, async ({page}) => {
-      await asUser(page);
-      await page.goto(path);
-      await page.waitForLoadState('networkidle');
+      await openAccountAsUser(page, path);
 
       const measured = await page.evaluate(() => {
         const out: {text: string; drift: number; blockTag: string}[] = [];
@@ -201,7 +215,11 @@ test.describe('черта .wv-menu-link рисуется внутри своей
         return out;
       });
 
-      test.skip(measured.length === 0, `на ${path} нет отрисованных .wv-menu-link`);
+      // УТВЕРЖДЕНИЕ, А НЕ ПРОПУСК. Список адресов у спеки фиксированный, вход
+      // подделан — пустота здесь невозможна по условию, а значит это дефект,
+      // а не повод промолчать. Пока тут стоял test.skip, спека имела третье
+      // состояние («ничего не проверил»), неотличимое от зелёного.
+      expect(measured.length, `на ${path} не отрисовано ни одной .wv-menu-link`).toBeGreaterThan(0);
 
       for (const l of measured) {
         expect(
@@ -216,9 +234,7 @@ test.describe('черта .wv-menu-link рисуется внутри своей
   // жил в месте вызова, шторка его ставила, аккаунт — нет, и класс выглядел
   // исправным ровно там, где его смотрели.
   test('position: relative лежит на самом классе, а не дописывается в месте вызова', async ({page}) => {
-    await asUser(page);
-    await page.goto('/ru/account');
-    await page.waitForLoadState('networkidle');
+    await openAccountAsUser(page, '/ru/account');
     const positions = await page.evaluate(() =>
       [...document.querySelectorAll<HTMLElement>('.wv-menu-link')].map((el) => ({
         text: (el.textContent || '').trim().slice(0, 30),
@@ -226,7 +242,7 @@ test.describe('черта .wv-menu-link рисуется внутри своей
         hasRelativeClass: el.classList.contains('relative'),
       })),
     );
-    test.skip(positions.length === 0, 'на /ru/account нет .wv-menu-link');
+    expect(positions.length, 'на /ru/account не отрисовано ни одной .wv-menu-link').toBeGreaterThan(0);
     for (const p of positions) {
       expect(p.position, `«${p.text}» — position: ${p.position}`).not.toBe('static');
       expect(p.hasRelativeClass, `«${p.text}» дописывает relative в месте вызова — контракт снова наполовину`).toBe(false);
