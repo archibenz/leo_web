@@ -3,7 +3,6 @@
 import {useState, useEffect} from 'react';
 import {useParams} from 'next/navigation';
 import CareGuideForm from '../../../../../../components/admin/CareGuideForm';
-import AdminLayout from '../../../../../../components/admin/AdminLayout';
 import BrandLoader from '../../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../../lib/api';
 
@@ -33,19 +32,15 @@ export default function EditCareGuidePage() {
 
   if (loading) {
     return (
-      <AdminLayout>
-        <div className="flex items-center justify-center py-20">
-          <BrandLoader size={32} />
-        </div>
-      </AdminLayout>
+      <div className="flex items-center justify-center py-20">
+        <BrandLoader size={32} />
+      </div>
     );
   }
 
   if (!data) {
     return (
-      <AdminLayout>
-        <p className="text-muted-foreground text-[13px]">Not found</p>
-      </AdminLayout>
+      <p className="text-muted-foreground text-[13px]">Not found</p>
     );
   }
 

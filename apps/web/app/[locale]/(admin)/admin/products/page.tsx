@@ -5,7 +5,6 @@ import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
 import Link from 'next/link';
 import {MoreHorizontalIcon, PencilIcon, PlusIcon, Trash2Icon} from 'lucide-react';
-import AdminLayout from '../../../../../components/admin/AdminLayout';
 import BrandLoader from '../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../lib/api';
 import {formatPrice} from '../../../../../lib/formatPrice';
@@ -80,133 +79,131 @@ export default function AdminProductsPage() {
   }, [products, query]);
 
   return (
-    <AdminLayout>
-      <ListPage
-        action={
-          <Button asChild className="min-h-11">
-            <Link href={`/${locale}/admin/products/new`}>
-              <PlusIcon />
-              {t('product.add')}
-            </Link>
-          </Button>
-        }
-        search={{
-          value: query,
-          onChange: setQuery,
-          placeholder: t('searchProducts'),
-          // Восемьдесят семь цветовых вариантов перебором глазами — это
-          // неработоспособность, а не неудобство. Счётчик говорит, сколько из
-          // скольких видно, чтобы отфильтрованный список не путали с коротким.
-          hint: query.trim() ? t('foundOf', {shown: filtered.length, total: products.length}) : undefined,
-        }}
-        title={t('products')}
-      >
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <BrandLoader size={32} />
-          </div>
-        ) : products.length === 0 ? (
-          <Panel>
-            <PanelEmpty>{t('product.noProducts')}</PanelEmpty>
-          </Panel>
-        ) : filtered.length === 0 ? (
-          <Panel>
-            <PanelEmpty>{t('nothingFound')}</PanelEmpty>
-          </Panel>
-        ) : (
-          <div className="overflow-hidden rounded-lg ring-1 ring-border">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pl-4">{t('product.title')}</TableHead>
-                    {/* Раздел и коллекция прячутся на телефоне: без этого
-                        таблица уезжает вбок, и владелец листает её пальцем
-                        вместо того, чтобы читать. На мониторе они нужны. */}
-                    <TableHead className="hidden md:table-cell">{t('product.category')}</TableHead>
-                    <TableHead className="hidden lg:table-cell">{t('collections')}</TableHead>
-                    <TableHead className="text-right">{t('product.price')}</TableHead>
-                    <TableHead className="text-right">{t('product.stockShort')}</TableHead>
-                    <TableHead className="w-12 pr-2" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map(product => (
-                    <TableRow key={product.id}>
-                      <TableCell className="pl-4">
-                        <Link
-                          className="block min-h-11 py-2 hover:underline"
-                          href={`/${locale}/admin/products/${product.id}`}
-                        >
-                          <span className="flex flex-wrap items-center gap-2">
-                            <span className="truncate">{product.title}</span>
-                            {product.isTest && <Badge variant="outline">{t('product.demo')}</Badge>}
-                            {!product.active && <Badge variant="destructive">{t('inactive')}</Badge>}
-                          </span>
-                        </Link>
-                      </TableCell>
-                      <TableCell className="hidden text-muted-foreground md:table-cell">
-                        {product.category ?? '—'}
-                      </TableCell>
-                      <TableCell className="hidden text-muted-foreground lg:table-cell">
-                        {product.collectionName ?? '—'}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {formatPrice(locale, product.price)}
-                      </TableCell>
-                      {/* Красным — только «кончилось». «Мало» набирается тем
-                          же цветом, но жирнее: сигнальный цвет значит беду, и
-                          если красить им и предупреждение, беду перестанут
-                          замечать. То же правило, что на дашборде. */}
-                      <TableCell
-                        className={
-                          product.stockQuantity === 0
-                            ? 'text-right font-medium text-destructive tabular-nums'
-                            : product.stockQuantity <= 5
-                              ? 'text-right font-medium tabular-nums'
-                              : 'text-right text-muted-foreground tabular-nums'
-                        }
+    <ListPage
+      action={
+        <Button asChild className="min-h-11">
+          <Link href={`/${locale}/admin/products/new`}>
+            <PlusIcon />
+            {t('product.add')}
+          </Link>
+        </Button>
+      }
+      search={{
+        value: query,
+        onChange: setQuery,
+        placeholder: t('searchProducts'),
+        // Восемьдесят семь цветовых вариантов перебором глазами — это
+        // неработоспособность, а не неудобство. Счётчик говорит, сколько из
+        // скольких видно, чтобы отфильтрованный список не путали с коротким.
+        hint: query.trim() ? t('foundOf', {shown: filtered.length, total: products.length}) : undefined,
+      }}
+      title={t('products')}
+    >
+      {loading ? (
+        <div className="flex items-center justify-center py-20">
+          <BrandLoader size={32} />
+        </div>
+      ) : products.length === 0 ? (
+        <Panel>
+          <PanelEmpty>{t('product.noProducts')}</PanelEmpty>
+        </Panel>
+      ) : filtered.length === 0 ? (
+        <Panel>
+          <PanelEmpty>{t('nothingFound')}</PanelEmpty>
+        </Panel>
+      ) : (
+        <div className="overflow-hidden rounded-lg ring-1 ring-border">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="pl-4">{t('product.title')}</TableHead>
+                  {/* Раздел и коллекция прячутся на телефоне: без этого
+                      таблица уезжает вбок, и владелец листает её пальцем
+                      вместо того, чтобы читать. На мониторе они нужны. */}
+                  <TableHead className="hidden md:table-cell">{t('product.category')}</TableHead>
+                  <TableHead className="hidden lg:table-cell">{t('collections')}</TableHead>
+                  <TableHead className="text-right">{t('product.price')}</TableHead>
+                  <TableHead className="text-right">{t('product.stockShort')}</TableHead>
+                  <TableHead className="w-12 pr-2" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map(product => (
+                  <TableRow key={product.id}>
+                    <TableCell className="pl-4">
+                      <Link
+                        className="block min-h-11 py-2 hover:underline"
+                        href={`/${locale}/admin/products/${product.id}`}
                       >
-                        {product.stockQuantity}
-                      </TableCell>
-                      <TableCell className="pr-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              aria-label={t('rowActions', {name: product.title})}
-                              className="size-11"
-                              size="icon"
-                              variant="ghost"
-                            >
-                              <MoreHorizontalIcon />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem asChild>
-                              <Link href={`/${locale}/admin/products/${product.id}`}>
-                                <PencilIcon />
-                                {t('product.edit')}
-                              </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onSelect={() => handleDelete(product.id, product.title)}
-                              variant="destructive"
-                            >
-                              <Trash2Icon />
-                              {t('deleteBtn')}
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                        <span className="flex flex-wrap items-center gap-2">
+                          <span className="truncate">{product.title}</span>
+                          {product.isTest && <Badge variant="outline">{t('product.demo')}</Badge>}
+                          {!product.active && <Badge variant="destructive">{t('inactive')}</Badge>}
+                        </span>
+                      </Link>
+                    </TableCell>
+                    <TableCell className="hidden text-muted-foreground md:table-cell">
+                      {product.category ?? '—'}
+                    </TableCell>
+                    <TableCell className="hidden text-muted-foreground lg:table-cell">
+                      {product.collectionName ?? '—'}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatPrice(locale, product.price)}
+                    </TableCell>
+                    {/* Красным — только «кончилось». «Мало» набирается тем
+                        же цветом, но жирнее: сигнальный цвет значит беду, и
+                        если красить им и предупреждение, беду перестанут
+                        замечать. То же правило, что на дашборде. */}
+                    <TableCell
+                      className={
+                        product.stockQuantity === 0
+                          ? 'text-right font-medium text-destructive tabular-nums'
+                          : product.stockQuantity <= 5
+                            ? 'text-right font-medium tabular-nums'
+                            : 'text-right text-muted-foreground tabular-nums'
+                      }
+                    >
+                      {product.stockQuantity}
+                    </TableCell>
+                    <TableCell className="pr-2">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            aria-label={t('rowActions', {name: product.title})}
+                            className="size-11"
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <MoreHorizontalIcon />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/${locale}/admin/products/${product.id}`}>
+                              <PencilIcon />
+                              {t('product.edit')}
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onSelect={() => handleDelete(product.id, product.title)}
+                            variant="destructive"
+                          >
+                            <Trash2Icon />
+                            {t('deleteBtn')}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-        )}
-      </ListPage>
-    </AdminLayout>
+        </div>
+      )}
+    </ListPage>
   );
 }

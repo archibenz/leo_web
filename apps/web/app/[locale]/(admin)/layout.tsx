@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import {AuthProvider} from '../../../contexts';
 import Toaster from '../../../components/Toaster';
+import AdminLayout from '../../../components/admin/AdminLayout';
 
 // Админке нужны ровно два общих механизма: кто вошёл (AuthProvider) и куда
 // показывать сообщения (Toaster, им пользуется тот же AuthProvider, когда
@@ -17,12 +18,20 @@ import Toaster from '../../../components/Toaster';
 // корзину» — сообщение о беде, которой у владельца нет и быть не может,
 // потому что он в админке ничего не покупает.
 //
-// Витринная оболочка здесь не нужна: у админки своя
-// (components/admin/AdminLayout.tsx на блоке app-shell-7).
+// ОБОЛОЧКА (боковая панель и шапка) СТОИТ ЗДЕСЬ, А НЕ В КАЖДОЙ СТРАНИЦЕ.
+// Раньше все двенадцать экранов оборачивались в неё сами, и на переходе между
+// разделами она ПЕРЕМОНТИРОВАЛАСЬ целиком — замерено на живом стенде: метка,
+// поставленная на узел панели, перехода не переживала. Значит панель заново
+// проигрывала появление, а после добавления анимации перехода мигала бы вся
+// целиком вместе с содержимым.
+//
+// Здесь она живёт в обёртке, переживает переходы, и анимация из
+// `(admin)/template.tsx` достаётся только содержимому раздела — тому, что и
+// правда сменилось.
 export default function AdminRouteLayout({children}: {children: ReactNode}) {
   return (
     <AuthProvider>
-      {children}
+      <AdminLayout>{children}</AdminLayout>
       <Toaster />
     </AuthProvider>
   );

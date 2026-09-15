@@ -2,7 +2,6 @@
 
 import {use, useState, useEffect, useCallback} from 'react';
 import {useTranslations, useLocale} from 'next-intl';
-import AdminLayout from '../../../../../../components/admin/AdminLayout';
 import ProductForm from '../../../../../../components/admin/ProductForm';
 import BrandLoader from '../../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../../lib/api';
@@ -40,13 +39,11 @@ export default function EditProductPage({params}: Props) {
   const t = useTranslations('admin.product');
 
   return (
-    <AdminLayout>
-      <div className="max-w-4xl *:mb-6 last:*:mb-0">
-        <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">{t('edit')}</h1>
-        <ProductForm productId={id} />
-        <RecommendationsSection productId={id} />
-      </div>
-    </AdminLayout>
+    <div className="max-w-4xl *:mb-6 last:*:mb-0">
+      <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">{t('edit')}</h1>
+      <ProductForm productId={id} />
+      <RecommendationsSection productId={id} />
+    </div>
   );
 }
 

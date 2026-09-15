@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -34,10 +35,16 @@ export function NavGroup({
               isActive={isActivePath(pathname, locale, item.path)}
               tooltip={item.title}
             >
-              <a href={item.path}>
+              {/* next/link, а не <a>. В блоке Efferd стояли обычные ссылки —
+                  блок показывает один снимок, и переходов у него нет. У нас
+                  обычная ссылка означала ПОЛНУЮ ПЕРЕЗАГРУЗКУ на каждый переход
+                  между разделами: замерено на живом стенде, два перехода
+                  страницы на один щелчок. Мягкий переход нужен не ради
+                  скорости — без него нечего и анимировать. */}
+              <Link href={item.path ?? '#'}>
                 {item.icon}
                 <span>{item.title}</span>
-              </a>
+              </Link>
             </CustomMenuButton>
           </SidebarMenuItem>
         ))}
