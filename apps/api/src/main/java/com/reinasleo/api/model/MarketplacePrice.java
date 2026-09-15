@@ -6,12 +6,16 @@ import java.util.UUID;
 
 // Пара (product_id, source) не заявлена здесь как @Table(uniqueConstraints=...)
 // нарочно: в проде идемпотентность держит ux_marketplace_prices_product_source
-// (V35, UNIQUE NULLS NOT DISTINCT — обычный JPA-аннотированный UNIQUE так не
-// умеет). Тесты собирают схему через Hibernate (ddl-auto=create-drop, Flyway
-// выключен), и без реплики constraint'а идемпотентность в тестах проверяет
-// ИМЕННО код MarketplacePriceIntakeService (upsert по чтению перед записью),
-// а не БД за него — так задуманная мутация «insert вместо upsert» ломает
-// тест наблюдаемо (дубли строк), а не тонет в исключении о нарушенном ключе.
+// (V35 — уникальный индекс по coalesce(source, ''), не UNIQUE NULLS NOT
+// DISTINCT: та форма требует PostgreSQL 15+, а на проде 14.24, см. заголовок
+// V35 про десятиминутный простой 15.09.2026 — этой строкой раньше стояла та
+// же неверная версия). Обычный JPA-аннотированный UNIQUE ни ту, ни другую
+// форму выразить не умеет. Тесты собирают схему через Hibernate (ddl-auto=
+// create-drop, Flyway выключен), и без реплики constraint'а идемпотентность в
+// тестах проверяет ИМЕННО код MarketplacePriceIntakeService (upsert по чтению
+// перед записью), а не БД за него — так задуманная мутация «insert вместо
+// upsert» ломает тест наблюдаемо (дубли строк), а не тонет в исключении о
+// нарушенном ключе.
 @Entity
 @Table(name = "marketplace_prices")
 public class MarketplacePrice {
