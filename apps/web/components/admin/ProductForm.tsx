@@ -219,7 +219,13 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
           )}
 
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <FormField hint={t('notOnSite')} id="product-title" label={t('title')}>
+            {/* У титула СВОЯ подпись, и это не придирка. Он единственный из
+                трёх, кого читает покупатель: имя строки в корзине, в заказе и
+                в фискальном чеке ЮKassa (CheckoutService.buildPaymentRequest),
+                плюс выгрузка по 152-ФЗ и письма о складе. Общая подпись «на
+                сайте не показывается» говорила владельцу «неважно» про имя,
+                которое печатается в документе покупателя. */}
+            <FormField hint={t('titleHint')} id="product-title" label={t('title')}>
               <Input
                 className="min-h-11"
                 id="product-title"

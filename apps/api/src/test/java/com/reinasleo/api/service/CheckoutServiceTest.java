@@ -164,6 +164,11 @@ class CheckoutServiceTest {
         assertThat(sent.receipt().customer().email()).isEqualTo("buyer@example.com");
         assertThat(sent.receipt().items()).hasSize(1);
         var receiptItem = sent.receipt().items().get(0);
+        // Имя строки чека — products.title, поле «Название» в форме товара
+        // админки. Держать это утверждение важно не только ради чека: подпись
+        // у того поля обещает владельцу ровно это («имя строки в корзине,
+        // заказе и чеке»). Переедет имя чека на другое поле — подпись станет
+        // враньём, и покраснеет здесь, а не у покупателя.
         assertThat(receiptItem.description()).isEqualTo("Silk dress");
         assertThat(receiptItem.quantity()).isEqualTo("2.00");
         assertThat(receiptItem.amount().value()).isEqualTo("2500.00");
