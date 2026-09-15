@@ -84,6 +84,26 @@ class VariantPriceCalculatorTest {
         assertThat(r.manualPriceInactive()).isTrue();
     }
 
+    // 3b. ozon, цена в таблице НОЛЬ — то же, что строки нет.
+    //
+    // Ozon кладёт "0.0000" в незаполненные поля цен. Без этого утверждения
+    // ноль становится ценой: sourceMissing проверял бы null, а не величину.
+    // Порог себестоимости не спасает — он поднимает цену со скидкой, а
+    // salePrice при этом обнуляется (effective >= basePrice), и наружу уходит
+    // основа, то есть ноль. Кейс красный, если правку в калькуляторе убрать.
+    @Test
+    void ozonSource_zeroPriceInTheTable_isTreatedAsMissing_notAsAFreeItem() {
+        Product v = product("ozon", 15, "3000.00");
+        MarketplacePriceLookup prices = MarketplacePriceLookup.from(List.of(
+                row("wb-1", "ozon", 0L, 250000L)));
+
+        VariantPrice r = calculator.compute(v, prices);
+
+        assertThat(r.basePrice()).isEqualByComparingTo("3000.00");
+        assertThat(r.basePrice()).isNotEqualByComparingTo("0.00");
+        assertThat(r.sourceMissing()).isTrue();
+    }
+
     // 4. ozon, строки в таблице нет — берётся ручная цена, флаг "источник не
     // получен" поднят, исключения нет.
     @Test
