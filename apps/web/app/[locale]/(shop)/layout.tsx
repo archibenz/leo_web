@@ -1,6 +1,7 @@
 import type {ReactNode} from 'react';
 import {headers} from 'next/headers';
 import WhiteChrome from '../WhiteChrome';
+import IntentEditNotice from '../../../components/editor/IntentEditNotice';
 import {safeJsonLd} from '../../../lib/jsonLd';
 import {SITE_URL as siteUrl} from '../../../lib/siteUrl';
 import type {Locale} from '../../../i18n';
@@ -66,7 +67,14 @@ export default async function ShopLayout({
           attribute is doing its job; only the comparison is wrong. */}
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(orgJsonLd)}} />
       <script type="application/ld+json" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: safeJsonLd(siteJsonLd)}} />
-      <WhiteChrome locale={locale}>{children}</WhiteChrome>
+      {/* Полоса «режим включён, править нечего» — одна на всю витрину. На
+          главной и в карточке её гасит правило в globals.css: там страница
+          ставит свою, подробную. Держать её здесь, а не в десяти страницах,
+          значит не полагаться на то, что следующую страницу не забудут. */}
+      <WhiteChrome locale={locale}>
+        <IntentEditNotice />
+        {children}
+      </WhiteChrome>
     </>
   );
 }

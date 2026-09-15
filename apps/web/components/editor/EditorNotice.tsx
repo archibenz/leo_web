@@ -75,6 +75,7 @@ export default function EditorNotice({editing, wantsEdit}: {editing: boolean; wa
   if (editing) {
     return (
       <div
+        data-edit-bar="full"
         className="wv-rise flex flex-wrap items-center justify-between gap-3 px-4 py-2 text-[11px] uppercase tracking-[0.16em]"
         style={{background: FOOT, borderBottom: `1px solid ${HAIR}`, color: INK}}
       >
@@ -109,6 +110,7 @@ export default function EditorNotice({editing, wantsEdit}: {editing: boolean; wa
     return (
       <div
         role="alert"
+        data-edit-bar="full"
         className="px-4 py-2 text-[11px] leading-snug"
         style={{background: FOOT, borderBottom: `1px solid ${SIGNAL}`, color: SIGNAL}}
       >
