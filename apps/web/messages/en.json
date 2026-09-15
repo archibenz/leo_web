@@ -1243,7 +1243,13 @@
     "recommendationsSaved": "Recommendations saved",
     "recommendationsError": "Error saving recommendations",
     "remove": "Remove",
-    "ok": "OK"
+    "ok": "OK",
+    "navCatalogue": "Catalogue",
+    "navSite": "Site",
+    "toSite": "To the site",
+    "myAccount": "My account",
+    "signOut": "Sign out",
+    "toggleNav": "Toggle navigation"
   },
   "editor": {
     "ticker": {

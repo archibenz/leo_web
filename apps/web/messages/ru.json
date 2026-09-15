@@ -1243,7 +1243,13 @@
     "recommendationsSaved": "Рекомендации сохранены",
     "recommendationsError": "Ошибка сохранения рекомендаций",
     "remove": "Удалить",
-    "ok": "ОК"
+    "ok": "ОК",
+    "navCatalogue": "Каталог",
+    "navSite": "Сайт",
+    "toSite": "На сайт",
+    "myAccount": "Мой аккаунт",
+    "signOut": "Выйти",
+    "toggleNav": "Свернуть навигацию"
   },
   "editor": {
     "ticker": {

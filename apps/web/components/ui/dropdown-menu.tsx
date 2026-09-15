@@ -75,16 +75,24 @@ const DropdownMenuContent = React.forwardRef<
 ))
 DropdownMenuContent.displayName = DropdownMenuPrimitive.Content.displayName
 
+// `variant="destructive"` есть в свежих версиях shadcn, а установленная у нас
+// его не знает. Блоки Efferd им пользуются (пункт «Удалить» в меню строки
+// таблицы, выход из аккаунта), поэтому поддержка добавлена здесь один раз, а
+// не обойдена классом в каждом месте вызова.
 const DropdownMenuItem = React.forwardRef<
   React.ElementRef<typeof DropdownMenuPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof DropdownMenuPrimitive.Item> & {
     inset?: boolean
+    variant?: "default" | "destructive"
   }
->(({ className, inset, ...props }, ref) => (
+>(({ className, inset, variant = "default", ...props }, ref) => (
   <DropdownMenuPrimitive.Item
     ref={ref}
+    data-variant={variant}
     className={cn(
       "relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-ui-accent focus:text-ui-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&>svg]:size-4 [&>svg]:shrink-0",
+      variant === "destructive" &&
+        "text-destructive focus:bg-destructive/10 focus:text-destructive [&>svg]:text-destructive",
       inset && "pl-8",
       className
     )}
