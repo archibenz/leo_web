@@ -75,6 +75,8 @@ app:
   bot:
     api-secret: ${BOT_API_SECRET}
     username: ${BOT_USERNAME}
+  pricing:
+    intake-secret: ${PRICING_INTAKE_SECRET}
   telegram:
     bot-token: ${TELEGRAM_BOT_TOKEN}
   upload:

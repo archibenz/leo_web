@@ -166,6 +166,14 @@ jobs:
           BOT_USERNAME: ci_bot
           TELEGRAM_BOT_TOKEN: ci-not-a-real-telegram-token
           METRICS_SECRET: ci-not-a-real-metrics-secret
+          # Приложение отказывается стартовать с пустым секретом приёма цен
+          # (MarketplacePriceIntakeController, @PostConstruct) — это сделано
+          # нарочно: пустое значение открыло бы ручку, тихо принимающую что
+          # угодно. Здесь нужна затычка, а НЕ умолчание в application.yml:
+          # умолчание починило бы CI и открыло бы ровно ту дыру, ради которой
+          # отказ написан. Правило проекта: секреты через ${ENV_VAR} без
+          # :fallback.
+          PRICING_INTAKE_SECRET: ci-not-a-real-pricing-secret
         run: |
           ./gradlew bootRun --no-daemon > "$RUNNER_TEMP/api.log" 2>&1 &
           echo $! > "$RUNNER_TEMP/api.pid"

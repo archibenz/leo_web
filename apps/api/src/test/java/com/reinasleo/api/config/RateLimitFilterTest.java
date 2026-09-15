@@ -27,7 +27,10 @@ class RateLimitFilterTest {
     @BeforeEach
     void setUp() {
         meterRegistry = new SimpleMeterRegistry();
-        filter = new RateLimitFilter(meterRegistry);
+        // Второй параметр — предел для /api/integrations/*, единственный в этом
+        // фильтре вынесенный в настройку. Здесь передаётся боевое умолчание,
+        // чтобы тест проверял то же поведение, что поедет на прод.
+        filter = new RateLimitFilter(meterRegistry, 10);
     }
 
     private double hits(String bucket) {

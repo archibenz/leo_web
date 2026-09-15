@@ -23,6 +23,15 @@ app:
   bot:
     api-secret: test-bot-secret
     username: test_bot
+  pricing:
+    intake-secret: test-pricing-secret
+  # Боевое значение 10/мин честно срезает набор тестов: один только класс
+  # MarketplacePriceIntakeControllerTest бьёт в ручку 14 раз, и все обращения
+  # идут с одного адреса. Планка поднята здесь, а НЕ в боевом коде: менять
+  # защиту под удобство проверки — это чинить не то. Что сторож действительно
+  # срабатывает, доказывает отдельный тест со своей низкой планкой.
+  rate-limit:
+    integrations-per-minute: 1000
   resend:
     api-key: "DO-NOT-USE-test-resend-api-key"
     from: "test@test.com"
