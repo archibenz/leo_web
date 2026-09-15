@@ -36,7 +36,24 @@ test.beforeEach(async ({page, request}) => {
 });
 
 test.describe('shop → product → bag', () => {
-  test('a card opens its product, a size unlocks the CTA, and the bag keeps the line', async ({page}) => {
+  // КАРАНТИН. Продажа с сайта выключена решением этапа: whiteInStock()
+  // возвращает false, поэтому на карточке всегда «Только на Wildberries» и до
+  // выбора размера дойти нельзя. Тест падает устойчиво и не потому, что
+  // сломан, — проверяемого пути на сайте сейчас нет.
+  //
+  // СНЯТЬ, когда включат продажу с сайта (этап 4, после ключей ЮKassa) и
+  // whiteInStock() перестанет быть заглушкой.
+  //
+  // Причина лежит здесь, а не только в биде lw-cipt, намеренно: бид читает
+  // тот, кто знает, что бид есть, а этот файл открывает каждый, кто увидел
+  // красное. Эту спеку уже дважды принимали за поломку окружения — 11.09 и
+  // 12.09, второй раз списали на свежий мажор Node. Цена была не в
+  // диагностике, а в чтении.
+  //
+  // И главное, ради чего карантин вообще: постоянная краснота прячет
+  // настоящую. 14.09 набор давал от шести до одиннадцати падений в прогоне, и
+  // на этом фоне никто не заметил бы новое.
+  test.fixme('a card opens its product, a size unlocks the CTA, and the bag keeps the line', async ({page}) => {
     await openWhite(page, '/ru/shop');
 
     const cards = page.locator('#wv-main a[href*="/product/"]');
@@ -127,7 +144,11 @@ test.describe('shop → product → bag', () => {
     await expect(line.locator(`a[href="/ru/product/${product.slug}"]`)).toHaveCount(1);
   });
 
-  test('the sticky CTA on a phone sends a sizeless tap to the sizes instead of adding a line', async ({page}) => {
+  // КАРАНТИН по той же причине, что у теста выше: продажа с сайта выключена,
+  // whiteInStock() возвращает false, липкой кнопки покупки на карточке нет.
+  // Снять вместе с ним — этап 4, после ключей ЮKassa. Подробности и разбор
+  // над первым тестом этой группы; бид lw-cipt.
+  test.fixme('the sticky CTA on a phone sends a sizeless tap to the sizes instead of adding a line', async ({page}) => {
     const product = WHITE_PRODUCTS[0]!;
 
     await page.setViewportSize({width: 390, height: 844});
