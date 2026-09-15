@@ -33,7 +33,7 @@ class StorefrontDraftMergeTest {
                 sale == null ? null : new BigDecimal(sale),
                 "camel", "#b89a6e", "Кэмел", "Camel", "/images/white/camel.jpg", List.of("/images/white/camel-2.jpg"),
                 4, true, 0,
-                "manual", 0, false, false, false, false);
+                "manual", 0, false, false, false, false, null, null, null);
     }
 
     private static StorefrontModelRequest model() {

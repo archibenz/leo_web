@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.reinasleo.api.exception.BadRequestException;
 
 import java.util.Iterator;
@@ -33,8 +34,14 @@ import java.util.Map;
  */
 public final class StorefrontDraftMerge {
 
+    // JavaTimeModule — не украшение: снимок опубликованного собирается из
+    // ТОГО ЖЕ DTO, что уходит наружу, а в нём с 15.09 есть Instant
+    // (sourceCheckedAt). Свой мэппер про java.time не знает по умолчанию и
+    // падает на valueToTree — то есть слияние перестало бы работать вовсе,
+    // хотя само поле правке не подлежит. Поймано ManualPriceRoundTripTest.
     private static final ObjectMapper MAPPER = JsonMapper.builder()
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+            .addModule(new JavaTimeModule())
             .build();
 
     private StorefrontDraftMerge() {}

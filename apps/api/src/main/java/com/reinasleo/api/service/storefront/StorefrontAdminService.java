@@ -8,6 +8,7 @@ import com.reinasleo.api.dto.admin.storefront.StorefrontSectionRequest;
 import com.reinasleo.api.dto.admin.storefront.StorefrontSetItemRequest;
 import com.reinasleo.api.dto.admin.storefront.StorefrontSetRequest;
 import com.reinasleo.api.exception.BadRequestException;
+import com.reinasleo.api.service.BelowCostGuard;
 import com.reinasleo.api.exception.NotFoundException;
 import com.reinasleo.api.model.Product;
 import com.reinasleo.api.model.ProductModel;
@@ -25,11 +26,12 @@ import jakarta.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,11 +64,13 @@ public class StorefrontAdminService {
     private final StorefrontMapping mapping;
     private final StorefrontMediaCleaner mediaCleaner;
     private final Validator validator;
+    private final BelowCostGuard belowCost;
 
     public StorefrontAdminService(ProductModelRepository models, ProductRepository products, ProductSetRepository sets,
                                   ProductSetItemRepository setItems, StorefrontSectionRepository sections,
                                   MarketplacePriceRepository marketplacePrices, StorefrontMapping mapping,
-                                  StorefrontMediaCleaner mediaCleaner, Validator validator) {
+                                  StorefrontMediaCleaner mediaCleaner, Validator validator,
+                                  BelowCostGuard belowCost) {
         this.models = models;
         this.products = products;
         this.sets = sets;
@@ -76,6 +80,7 @@ public class StorefrontAdminService {
         this.mapping = mapping;
         this.mediaCleaner = mediaCleaner;
         this.validator = validator;
+        this.belowCost = belowCost;
     }
 
     /** Один запрос под цены ВСЕХ вариантов модели — см. MarketplacePriceLookup про то, зачем не по одному. */
@@ -221,6 +226,17 @@ public class StorefrontAdminService {
                 StorefrontDraftMerge.merge(published, model.getDraft(), StorefrontModelRequest.class));
         rejectUnknownVariants(merged, variants);
 
+        // ЗАПРЕТ СТОИТ ЗДЕСЬ, А НЕ НА СОХРАНЕНИИ ЧЕРНОВИКА, и это решение.
+        // Черновик цену не пишет — он копится в model.draft и покупателю не
+        // виден; «продавать ниже себестоимости» начинается ровно тут, на
+        // публикации. Отказывать раньше значило бы мешать владельцу набирать
+        // карточку: один патч несёт и тексты, и кадры, и отказ по цене унёс бы
+        // с собой всё остальное.
+        //
+        // Проверяем ДО mapping.apply: иначе отказ пришёл бы поверх уже
+        // изменённых строк вариантов.
+        belowCost.verify(belowCostCandidates(merged));
+
         Set<String> replaced = mapping.media(published);
         mapping.apply(merged, model, variants.stream().collect(Collectors.toMap(Product::getId, Function.identity())));
         model.setDraft(null);
@@ -341,6 +357,27 @@ public class StorefrontAdminService {
     }
 
     // =========================================================== общее
+
+    /**
+     * Цены всех цветовых вариантов модели на проверку разом.
+     *
+     * Путь поля — `variants[<id>].price`, тот же вид, в каком его отдаёт
+     * проверка полей: витрина по нему подсветит именно тот вариант, а не
+     * карточку целиком.
+     *
+     * Названием служит имя цвета: у модели все варианты называются одинаково,
+     * и «Платье «Лея»» в трёх отказах подряд не сказало бы, какой поправить.
+     */
+    private static List<BelowCostGuard.Candidate> belowCostCandidates(StorefrontModelRequest merged) {
+        List<BelowCostGuard.Candidate> out = new ArrayList<>();
+        merged.variants().forEach((id, v) -> {
+            if (v.price() != null) {
+                String label = (v.colorNameRu() == null || v.colorNameRu().isBlank()) ? id : v.colorNameRu();
+                out.add(new BelowCostGuard.Candidate(id, "variants[" + id + "].price", v.price(), label));
+            }
+        });
+        return out;
+    }
 
     private <T> T validated(T dto) {
         Set<ConstraintViolation<T>> violations = validator.validate(dto);

@@ -37,7 +37,8 @@ class StorefrontVariantRequestValidationTest {
     private static StorefrontVariantRequest build(BigDecimal price, BigDecimal salePrice, String priceSource, int discountPct) {
         return new StorefrontVariantRequest(price, salePrice, "camel", "#b89a6e", "Кэмел", "Camel",
                 "/images/white/camel.jpg", List.of("/images/white/camel-2.jpg"), 4, true, 0,
-                priceSource, discountPct, false, false, false, false);
+                priceSource, discountPct, false, false, false, false,
+                null, null, null);
     }
 
     private static Set<String> errorsOn(StorefrontVariantRequest r, String property) {

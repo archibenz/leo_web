@@ -2,6 +2,7 @@ package com.reinasleo.api.controller;
 
 import com.reinasleo.api.client.YooKassaApiException;
 import com.reinasleo.api.exception.BadRequestException;
+import com.reinasleo.api.exception.BelowCostException;
 import com.reinasleo.api.exception.CheckoutDisabledException;
 import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
@@ -151,6 +152,28 @@ public class RestExceptionHandler {
         Map<String, Object> body = Map.of(
                 "message", "Bad request",
                 "error", "bad_request"
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    /**
+     * Отказ продать ниже себестоимости.
+     *
+     * Форма ответа НАРОЧНО та же, что у проверки полей выше: {message, errors:
+     * [{field, message}]}. У витрины для неё уже есть разбор
+     * (components/editor/tickerFieldErrors.ts), то есть новый вид отказа ей
+     * показывать нечем не придётся — она умеет.
+     *
+     * 400, а не 409: это неверный ввод, который владелец поправит прямо в
+     * форме, а не столкновение с чужой правкой.
+     */
+    @ExceptionHandler(BelowCostException.class)
+    public ResponseEntity<Map<String, Object>> handleBelowCost(BelowCostException ex) {
+        Map<String, Object> body = Map.of(
+                "message", "Validation failed",
+                "errors", ex.getViolations().stream()
+                        .map(v -> Map.of("field", v.field(), "message", v.message()))
+                        .toList()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
