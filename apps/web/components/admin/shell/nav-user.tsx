@@ -40,9 +40,18 @@ export function NavUser({locale}: {locale: string}) {
 
   return (
     <DropdownMenu>
+      {/* Зона нажатия 44 px на телефоне при кружке в 32 — тот же приём и тот
+          же порог, что у CustomSidebarTrigger рядом. Кружок остаётся мелким
+          нарочно: он опознавательный знак, а не кнопка на пол-шапки; палец
+          при этом попадает по площади, а не по рисунку.
+
+          До 15.09 зоной был сам кружок, 32 px. Нашлось это не глазом: спека
+          16 краснела на «тумблере», а ловила эту кнопку — единственную на
+          экране с aria-expanded. Мы выкатили оболочку с нарушением того
+          самого порога, который в тот же день чинили в редакторе. */}
       <DropdownMenuTrigger
         aria-label={name || t('myAccount')}
-        className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex size-11 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring md:size-9"
       >
         <Avatar className="size-8">
           <AvatarFallback>{initial}</AvatarFallback>

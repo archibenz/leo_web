@@ -109,14 +109,16 @@ test.describe('оболочки по группам маршрутов — пе�
     await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
     await expect(page.getByRole('heading', {level: 1, name: 'Дашборд'})).toBeVisible();
 
-    // Клиентский переход — предмет проверки, не page.goto. Локатор
-    // осознанно ограничен #admin-nav: «Вернуться на сайт» существует в
-    // AdminLayout.tsx двумя копиями (мобильная шапка + десктопный
-    // сайдбар), у обеих одно и то же имя роли, и на 1440px десктопная
-    // всегда видна через lg:block (AdminLayout.tsx это явно
-    // комментирует) — без scope getByRole увидит оба совпадения и
-    // Playwright откажется кликать по неоднозначности.
-    await page.locator('#admin-nav').getByRole('link', {name: 'Вернуться на сайт'}).click();
+    // Клиентский переход — предмет проверки, не page.goto.
+    //
+    // ПУТЬ ОБРАТНО ПЕРЕЕХАЛ 15.09. Прежняя оболочка держала «Вернуться на
+    // сайт» двумя копиями в #admin-nav, и локатор был ограничен этим узлом
+    // ради однозначности. В оболочке Efferd ни узла, ни тех копий нет:
+    // выход на витрину лежит в меню аккаунта, пунктом «На сайт», и это
+    // по-прежнему next/link — то есть переход остаётся клиентским, а
+    // значит проверка проверяет то же самое свойство.
+    await page.getByRole('button', {name: 'Мой аккаунт'}).click();
+    await page.getByRole('menuitem', {name: 'На сайт'}).click();
     await page.waitForSelector('.wv-root');
 
     await expect(page.locator('.wv-root')).toHaveCount(1);
@@ -175,9 +177,16 @@ test.describe('оболочки по группам маршрутов — пе�
     await page.waitForURL(/\/ru\/admin$/);
     await expect(page.getByRole('heading', {level: 1, name: 'Дашборд'})).toBeVisible();
 
+    // Оболочки витрины на экране нет — это и есть предмет проверки.
     await expect(page.locator('.wv-root')).toHaveCount(0);
-    await expect(page.locator('header')).toHaveCount(0);
-    await expect(page.locator('footer')).toHaveCount(0);
-    await expect(page.locator('.gradient-chrome')).toHaveCount(1);
+
+    // А раньше здесь стояло «header и footer — ноль штук». Утверждение
+    // устарело 15.09 и стало ЛОЖНЫМ: у оболочки Efferd своя шапка, и она
+    // обязана быть. Отрицание, переставшее быть верным, хуже отсутствия
+    // проверки — оно краснеет на исправном коде и учит закрывать глаза.
+    // Поэтому вместо «чужого нет» проверяем «своё есть»: админка показывает
+    // СВОЮ оболочку, а не витринную.
+    await expect(page.getByRole('button', {name: 'Свернуть навигацию'})).toBeVisible();
+    await expect(page.locator('.gradient-chrome')).toHaveCount(0);
   });
 });
