@@ -14,10 +14,18 @@ const me = vi.fn();
 vi.mock('../../../lib/api', () => ({
   getToken: () => token.value,
   apiFetch: (path: string) => me(path),
+  setToken: () => {},
+  clearToken: () => {
+    token.value = null;
+  },
   API_BASE: '',
 }));
 
-import EditModeSwitch from '../EditModeSwitch';
+// Роль приходит из useWhiteAuth, а он держит пользователя в переменных на
+// уровне модуля — одно хранилище на все компоненты страницы. Между тестами
+// этот module-scope тоже переживает: гостевой кейс выставил бы «спросили,
+// никого нет» на весь файл. Сброс плюс динамический импорт снимают порядок.
+let EditModeSwitch: typeof import('../EditModeSwitch').default;
 
 function renderSwitch() {
   return render(
@@ -27,13 +35,14 @@ function renderSwitch() {
   );
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   token.value = null;
   me.mockReset().mockResolvedValue({role: 'admin'});
   refresh.mockReset();
-  sessionStorage.clear();
   // Кука — сеансовая, но между тестами файл остаётся один и тот же jsdom-документ.
   document.cookie = 'rl_edit=; Path=/; Max-Age=0';
+  vi.resetModules();
+  ({default: EditModeSwitch} = await import('../EditModeSwitch'));
 });
 
 afterEach(cleanup);

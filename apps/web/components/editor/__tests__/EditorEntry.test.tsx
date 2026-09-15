@@ -16,21 +16,31 @@ const me = vi.fn();
 vi.mock('../../../lib/api', () => ({
   getToken: () => token.value,
   apiFetch: (path: string) => me(path),
+  setToken: () => {},
+  clearToken: () => {
+    token.value = null;
+  },
   API_BASE: '',
 }));
 
-import EditorNotice from '../EditorNotice';
-import EditableBlock from '../EditableBlock';
-import {EditorProvider} from '../EditorProvider';
+// Роль приходит из useWhiteAuth, а он держит пользователя в переменных на
+// уровне модуля. Без сброса первый гостевой кейс закреплял бы «никого нет»
+// на весь файл, каким бы ни был токен в последующих.
+let EditorNotice: typeof import('../EditorNotice').default;
+let EditableBlock: typeof import('../EditableBlock').default;
+let EditorProvider: typeof import('../EditorProvider').EditorProvider;
 
-beforeEach(() => {
+beforeEach(async () => {
   search.value = '';
   path.value = '/ru';
   token.value = null;
   me.mockReset().mockResolvedValue({role: 'admin'});
-  sessionStorage.clear();
   refresh.mockReset();
   document.cookie = 'rl_edit=; Path=/; Max-Age=0';
+  vi.resetModules();
+  ({default: EditorNotice} = await import('../EditorNotice'));
+  ({default: EditableBlock} = await import('../EditableBlock'));
+  ({EditorProvider} = await import('../EditorProvider'));
 });
 
 afterEach(cleanup);

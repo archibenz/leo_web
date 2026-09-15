@@ -8,8 +8,7 @@ import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import {useWhiteAuth, whiteLogin, whiteSendCode, whiteRegister, whiteLogout, WHITE_PASSWORD_RE} from '../../../../hooks/useWhiteAuth';
 import {trackSiteEvent} from '../../../../lib/siteEvents';
 import {Button} from '../../../../components/ui/button';
-import EditModeSwitch from '../../../../components/editor/EditModeSwitch';
-import AdminPanelLink from '../../../../components/editor/AdminPanelLink';
+import OwnerTools from '../../../../components/editor/OwnerTools';
 import WhiteTelegramLogin from '../../WhiteTelegramLogin';
 import WhiteFloatingPaths from '../../WhiteFloatingPaths';
 import {WhiteAtGlyph} from '../../wv-icons';
@@ -179,6 +178,12 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
                 </a>
               </div>
 
+              {/* Владельцу и только ему. Стоит между своими ссылками и
+                  выходом нарочно: инструменты сайта — часть того, что он
+                  здесь делает, а выход завершает страницу. Прежде оба органа
+                  висели ПОСЛЕ выхода, и «Выйти» оказывалось в середине. */}
+              <OwnerTools locale={locale} />
+
               <button
                 type="button"
                 onClick={() => whiteLogout()}
@@ -295,10 +300,6 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
             </div>
           )}
 
-          {/* Владельцу и только ему — оба компонента сами проверяют
-              useEditorSession().isAdmin и не рисуют ничего постороннему. */}
-          <EditModeSwitch />
-          <AdminPanelLink locale={locale} />
         </div>
       </div>
     </main>
