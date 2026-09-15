@@ -4,12 +4,18 @@ import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
 import Link from 'next/link';
+import {HomeIcon} from 'lucide-react';
 import AdminLayout from '../../../../components/admin/AdminLayout';
 import BrandLoader from '../../../../components/BrandLoader';
 import EditModeSwitch from '../../../../components/editor/EditModeSwitch';
 import {apiFetch} from '../../../../lib/api';
-import {AdminButton, AdminCard, AdminHeading, AdminSectionLabel, AdminStat, AdminTag} from '../../../../components/admin/AdminPrimitives';
-import {HAIR, INK, MUTED} from '../../wv-palette';
+import {Button} from '../../../../components/ui/button';
+import {Panel, PanelEmpty} from '../../../../components/admin/dashboard/panel';
+import {Stat, StatGrid} from '../../../../components/admin/dashboard/stat-grid';
+import {SeriesChart} from '../../../../components/admin/dashboard/series-chart';
+import {ShareList} from '../../../../components/admin/dashboard/share-list';
+import {OrdersTable} from '../../../../components/admin/dashboard/orders-table';
+import {AlertsList} from '../../../../components/admin/dashboard/alerts-list';
 
 type Dashboard = {
   totalProducts: number;
@@ -150,382 +156,242 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const statusLabel = (status: string) =>
+    isKnownStatus(status) ? t(`dashboardPage.status.${status}`) : status;
+
+  const peakVisits = botVisits.length ? Math.max(...botVisits.map((v) => v.count)) : 0;
+  const peakUnique = botVisits.length ? Math.max(...botVisits.map((v) => v.uniqueUsers)) : 0;
+
   return (
     <AdminLayout>
-      {/* AdminLayout's <main> is deliberately unpainted (shared by every
-          admin page, see its own comment) — this wrapper supplies the white
-          canvas for the dashboard specifically. Negative margins cancel
-          <main>'s own padding (px-4 py-6 sm:px-6 lg:px-8 lg:py-8) so the
-          white background reaches main's full box instead of leaving a dark
-          ambient-body frame around a smaller white card, then the same
-          padding is re-applied so the content sits exactly where it did
-          before. min-h-[70vh] keeps the loading/error states from leaving a
-          bare strip of dark ambient below a short card — not 100vh: that
-          would double-count the mobile topbar's height and force a scroll
-          the acceptance test explicitly forbids ("дашборд виден без
-          прокрутки"). */}
-      <div
-        className="-mx-4 -my-6 min-h-[70vh] space-y-8 bg-white px-4 py-6 sm:-mx-6 sm:px-6 lg:-mx-8 lg:-my-8 lg:px-8 lg:py-8"
-        style={{color: INK}}
-      >
-        <AdminHeading as="h1">{t('dashboard')}</AdminHeading>
+      {/* Своего белого полотна здесь больше нет. Прежде страница красила себя
+          сама и отрицательными отступами отменяла поля общей оболочки — тогда
+          это было необходимо, потому что оболочка стояла на тёмном фоне
+          прежней темы. Оболочка переехала на блок Efferd и приносит и белый
+          фон, и поля; повтор того же здесь дал бы двойные отступы.
+          Ритм между блоками задаётся одним правилом `*:mb-6`, как в
+          `dashboard-7`, а не отступом у каждого раздела по отдельности. */}
+      <div className="*:mb-6 last:*:mb-0">
+        <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">{t('dashboard')}</h1>
 
         {loading ? (
-          <div className="flex items-center justify-center py-20" style={{color: INK}}>
+          <div className="flex items-center justify-center py-20">
             <BrandLoader size={32} />
           </div>
         ) : loadError ? (
-          <AdminCard className="text-center">
-            <p className="mb-2 text-[13px]" style={{color: INK}}>
-              {loadError === 'forbidden' ? t('dashboardPage.forbidden') : t('dashboardPage.loadFailed')}
-            </p>
-            <AdminButton tone="solid" onClick={() => window.location.reload()}>
-              {t('dashboardPage.refresh')}
-            </AdminButton>
-          </AdminCard>
+          <Panel>
+            <div className="space-y-4 text-center">
+              <p className="text-[13px]">
+                {loadError === 'forbidden'
+                  ? t('dashboardPage.forbidden')
+                  : t('dashboardPage.loadFailed')}
+              </p>
+              <Button onClick={() => window.location.reload()}>
+                {t('dashboardPage.refresh')}
+              </Button>
+            </div>
+          </Panel>
         ) : (
           <>
-            {/* Business KPI — главные метрики для директора */}
             {dashboard && (
-              <section className="space-y-3">
-                <AdminSectionLabel>{t('dashboardPage.businessMetrics')}</AdminSectionLabel>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-                  <AdminStat
+              <Panel title={t('dashboardPage.businessMetrics')}>
+                <StatGrid>
+                  <Stat
+                    delta={
+                      dashboard.newUsers7d > 0
+                        ? t('dashboardPage.deltaWeek', {n: dashboard.newUsers7d})
+                        : undefined
+                    }
                     label={t('dashboardPage.totalUsers')}
                     value={dashboard.totalUsers.toString()}
-                    delta={dashboard.newUsers7d > 0 ? t('dashboardPage.deltaWeek', {n: dashboard.newUsers7d}) : undefined}
                   />
-                  <AdminStat
-                    label={t('dashboardPage.totalOrders')}
-                    value={dashboard.totalOrders === 0 ? t('dashboardPage.ordersZeroReason') : dashboard.totalOrders.toString()}
+                  {/* Ноль с причиной. Оплата ещё не включена, и крупный «0»
+                      читался бы как «продажи упали». Требование владельца. */}
+                  <Stat
+                    delta={
+                      dashboard.newOrders7d > 0
+                        ? t('dashboardPage.deltaWeek', {n: dashboard.newOrders7d})
+                        : undefined
+                    }
                     empty={dashboard.totalOrders === 0}
-                    delta={dashboard.newOrders7d > 0 ? t('dashboardPage.deltaWeek', {n: dashboard.newOrders7d}) : undefined}
+                    label={t('dashboardPage.totalOrders')}
+                    value={
+                      dashboard.totalOrders === 0
+                        ? t('dashboardPage.ordersZeroReason')
+                        : dashboard.totalOrders.toString()
+                    }
                   />
-                  <AdminStat
-                    label={t('dashboardPage.totalRevenue')}
-                    value={dashboard.totalRevenue === 0 ? t('dashboardPage.revenueZeroReason') : formatMoney(dashboard.totalRevenue)}
+                  <Stat
+                    delta={
+                      dashboard.revenue7d > 0
+                        ? t('dashboardPage.deltaWeekMoney', {amount: formatMoney(dashboard.revenue7d)})
+                        : undefined
+                    }
                     empty={dashboard.totalRevenue === 0}
-                    delta={dashboard.revenue7d > 0 ? t('dashboardPage.deltaWeekMoney', {amount: formatMoney(dashboard.revenue7d)}) : undefined}
+                    label={t('dashboardPage.totalRevenue')}
+                    value={
+                      dashboard.totalRevenue === 0
+                        ? t('dashboardPage.revenueZeroReason')
+                        : formatMoney(dashboard.totalRevenue)
+                    }
                   />
-                </div>
-              </section>
+                </StatGrid>
+              </Panel>
             )}
 
-            {/* График регистраций за 30 дней */}
-            <section className="space-y-3">
-              <h2 className="font-display text-lg" style={{color: INK}}>{t('dashboardPage.registrationsTitle')}</h2>
-              <AdminCard>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <Panel title={t('dashboardPage.registrationsTitle')}>
                 {registrations.length === 0 ? (
-                  <p className="text-[13px]" style={{color: MUTED}}>{t('dashboardPage.noRegistrations')}</p>
+                  <PanelEmpty>{t('dashboardPage.noRegistrations')}</PanelEmpty>
                 ) : (
-                  <RegistrationChart data={registrations} ariaLabel={t('dashboardPage.registrationsTitle')} />
+                  <SeriesChart
+                    data={registrations}
+                    label={t('dashboardPage.registrationsTitle')}
+                    totalLabel={t('dashboardPage.totalForPeriod')}
+                  />
                 )}
-              </AdminCard>
-            </section>
+              </Panel>
 
-            {/* Phase D — Telegram бот KPI */}
-            {dashboard && (
-              <section className="space-y-3">
-                <AdminSectionLabel>{t('dashboardPage.telegramBot')}</AdminSectionLabel>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-                  <AdminStat
-                    label={t('dashboardPage.totalVisits')}
-                    value={dashboard.totalBotVisits.toString()}
-                    delta={dashboard.botVisits7d > 0 ? t('dashboardPage.deltaWeek', {n: dashboard.botVisits7d}) : undefined}
-                  />
-                  <AdminStat
-                    label={t('dashboardPage.uniqueUsers7d')}
-                    value={dashboard.uniqueBotUsers7d.toString()}
-                    delta={t('dashboardPage.last7Days')}
-                  />
-                  <AdminStat
-                    label={t('dashboardPage.visitsWeek')}
-                    value={dashboard.botVisits7d.toString()}
-                  />
-                </div>
-              </section>
-            )}
-
-            {/* Phase E — График визитов бота */}
-            <section className="space-y-3">
-              <h2 className="font-display text-lg" style={{color: INK}}>{t('dashboardPage.botVisitsTitle')}</h2>
-              <AdminCard>
+              <Panel title={t('dashboardPage.botVisitsTitle')}>
                 {botVisits.length === 0 ? (
-                  <p className="text-[13px]" style={{color: MUTED}}>{t('dashboardPage.noBotVisits')}</p>
+                  <PanelEmpty>{t('dashboardPage.noBotVisits')}</PanelEmpty>
                 ) : (
                   <>
-                    <RegistrationChart
-                      data={botVisits.map(v => ({date: v.date, count: v.count}))}
-                      color={MUTED}
-                      ariaLabel={t('dashboardPage.botVisitsTitle')}
+                    <SeriesChart
+                      color="hsl(var(--sh-chart-2))"
+                      data={botVisits.map((v) => ({date: v.date, count: v.count}))}
+                      label={t('dashboardPage.botVisitsTitle')}
+                      totalLabel={t('dashboardPage.totalForPeriod')}
                     />
-                    <p className="mt-2 text-[12px]" style={{color: MUTED}}>
+                    <p className="mt-3 text-muted-foreground text-[12px]">
                       {t('dashboardPage.peakDay')}:{' '}
-                      <span style={{color: INK}}>
-                        {Math.max(...botVisits.map(v => v.count), 0)}
-                      </span>
-                      {' '}{t('dashboardPage.visitsWord')} ({Math.max(...botVisits.map(v => v.uniqueUsers), 0)} {t('dashboardPage.uniqueShort')})
+                      <span className="text-foreground tabular-nums">{peakVisits}</span>{' '}
+                      {t('dashboardPage.visitsWord')} ({peakUnique} {t('dashboardPage.uniqueShort')})
                     </p>
                   </>
                 )}
-              </AdminCard>
-            </section>
+              </Panel>
+            </div>
 
-            {/* Phase F — Топ товаров */}
-            <section className="space-y-3">
-              <h2 className="font-display text-lg" style={{color: INK}}>{t('dashboardPage.topProductsTitle')}</h2>
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <TopProductsCard title={t('dashboardPage.byFavorites')} items={topFavorites} emptyText={t('dashboardPage.noPeriodData')} />
-                <TopProductsCard title={t('dashboardPage.byCarts')} items={topCarts} emptyText={t('dashboardPage.noPeriodData')} />
-              </div>
-            </section>
-
-            {/* Каталог — операционные метрики */}
             {dashboard && (
-              <section className="space-y-3">
-                <AdminSectionLabel>{t('dashboardPage.catalogTitle')}</AdminSectionLabel>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-                  <AdminStat label={t('stats.totalProducts')} value={dashboard.totalProducts} />
-                  <AdminStat label={t('stats.totalCollections')} value={dashboard.totalCollections} />
-                  <AdminStat label={t('stats.lowStock')} value={dashboard.lowStockCount} tone={dashboard.lowStockCount > 0 ? 'warn' : 'default'} />
-                  <AdminStat label={t('stats.outOfStock')} value={dashboard.outOfStockCount} tone={dashboard.outOfStockCount > 0 ? 'warn' : 'default'} />
-                </div>
-              </section>
+              <Panel title={t('dashboardPage.telegramBot')}>
+                <StatGrid>
+                  <Stat
+                    delta={
+                      dashboard.botVisits7d > 0
+                        ? t('dashboardPage.deltaWeek', {n: dashboard.botVisits7d})
+                        : undefined
+                    }
+                    label={t('dashboardPage.totalVisits')}
+                    value={dashboard.totalBotVisits.toString()}
+                  />
+                  <Stat
+                    delta={t('dashboardPage.last7Days')}
+                    label={t('dashboardPage.uniqueUsers7d')}
+                    value={dashboard.uniqueBotUsers7d.toString()}
+                  />
+                  <Stat
+                    label={t('dashboardPage.visitsWeek')}
+                    value={dashboard.botVisits7d.toString()}
+                  />
+                </StatGrid>
+              </Panel>
             )}
 
-            {/* Последние заказы */}
-            <section className="space-y-3">
-              <h2 className="font-display text-lg" style={{color: INK}}>{t('dashboardPage.recentOrdersTitle')}</h2>
-              {recentOrders.length === 0 ? (
-                <p className="text-[13px]" style={{color: MUTED}}>{t('dashboardPage.noOrders')}</p>
-              ) : (
-                <div className="overflow-hidden border" style={{borderColor: HAIR}}>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-[13px]">
-                      <thead>
-                        <tr className="border-b text-[11px] uppercase tracking-[0.1em]" style={{borderColor: HAIR, color: MUTED}}>
-                          <th className="px-4 py-3 text-left font-normal">{t('dashboardPage.client')}</th>
-                          <th className="px-4 py-3 text-left font-normal">{t('dashboardPage.statusHeader')}</th>
-                          <th className="px-4 py-3 text-right font-normal">{t('dashboardPage.sum')}</th>
-                          <th className="px-4 py-3 text-right font-normal">{t('dashboardPage.items')}</th>
-                          <th className="px-4 py-3 text-right font-normal">{t('dashboardPage.date')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {recentOrders.map(order => {
-                          const statusLabel = isKnownStatus(order.status) ? t(`dashboardPage.status.${order.status}`) : order.status;
-                          const statusTone = order.status === 'cancelled' ? 'negative' : 'neutral';
-                          return (
-                            <tr key={order.id} className="border-b last:border-0" style={{borderColor: HAIR}}>
-                              <td className="px-4 py-3">
-                                <div style={{color: INK}}>{order.customerName}</div>
-                                {order.customerEmail && (
-                                  <div className="text-[12px]" style={{color: MUTED}}>{order.customerEmail}</div>
-                                )}
-                              </td>
-                              <td className="px-4 py-3">
-                                <AdminTag tone={statusTone}>{statusLabel}</AdminTag>
-                              </td>
-                              <td className="px-4 py-3 text-right" style={{color: INK}}>
-                                {formatMoney(order.total)}
-                              </td>
-                              <td className="px-4 py-3 text-right" style={{color: MUTED}}>
-                                {order.itemsCount}
-                              </td>
-                              <td className="px-4 py-3 text-right text-[12px]" style={{color: MUTED}}>
-                                {formatDate(order.createdAt)}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </section>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <Panel title={t('dashboardPage.byFavorites')}>
+                <ShareList
+                  emptyText={t('dashboardPage.noPeriodData')}
+                  items={topFavorites.map((p) => ({id: p.productId, title: p.title, count: p.count}))}
+                />
+              </Panel>
+              <Panel title={t('dashboardPage.byCarts')}>
+                <ShareList
+                  emptyText={t('dashboardPage.noPeriodData')}
+                  items={topCarts.map((p) => ({id: p.productId, title: p.title, count: p.count}))}
+                />
+              </Panel>
+            </div>
 
-            {/* Quick Links */}
-            <section className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Link
-                href={`/${locale}/admin/homepage`}
-                className="flex items-center gap-4 border p-5 transition-colors hover:bg-black/[0.02]"
-                style={{borderColor: HAIR}}
-              >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center border" style={{borderColor: HAIR}}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-                    <polyline points="9 22 9 12 15 12 15 22" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-[13px]" style={{color: INK}}>{t('homepageSettings')}</p>
-                  <p className="text-[12px]" style={{color: MUTED}}>{t('homepageDesc')}</p>
-                </div>
-              </Link>
-            </section>
+            {dashboard && (
+              <Panel title={t('dashboardPage.catalogTitle')}>
+                <StatGrid className="md:grid-cols-4">
+                  <Stat label={t('stats.totalProducts')} value={dashboard.totalProducts.toString()} />
+                  <Stat
+                    label={t('stats.totalCollections')}
+                    value={dashboard.totalCollections.toString()}
+                  />
+                  <Stat
+                    label={t('stats.lowStock')}
+                    value={dashboard.lowStockCount.toString()}
+                    warn={dashboard.lowStockCount > 0}
+                  />
+                  <Stat
+                    label={t('stats.outOfStock')}
+                    value={dashboard.outOfStockCount.toString()}
+                    warn={dashboard.outOfStockCount > 0}
+                  />
+                </StatGrid>
+              </Panel>
+            )}
 
-            {/* Alerts */}
-            <section className="space-y-3">
-              <h2 className="font-display text-lg" style={{color: INK}}>{t('alerts')} {alerts.length > 0 && `(${alerts.length})`}</h2>
-              {alerts.length === 0 ? (
-                <p className="text-[13px]" style={{color: MUTED}}>{t('alert.noAlerts')}</p>
-              ) : (
-                <div className="space-y-2">
-                  {alerts.map(alert => (
-                    <AdminCard key={alert.id} className="flex items-center justify-between gap-4">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <AdminTag tone={alert.alertType === 'out_of_stock' ? 'negative' : 'neutral'}>
-                            {alert.alertType === 'out_of_stock' ? t('alert.outOfStock') : t('alert.lowStock')}
-                          </AdminTag>
-                          <span className="text-[13px]" style={{color: INK}}>{alert.productTitle}</span>
-                        </div>
-                        <p className="text-[12px]" style={{color: MUTED}}>
-                          {t('alert.current')}: {alert.currentStock}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => handleAcknowledge(alert.id)}
-                        className="min-h-11 px-2 text-[13px] uppercase tracking-[0.06em] transition-colors"
-                        style={{color: MUTED}}
-                      >
-                        {t('alert.acknowledge')}
-                      </button>
-                    </AdminCard>
-                  ))}
-                </div>
-              )}
-            </section>
+            <Panel title={t('dashboardPage.recentOrdersTitle')}>
+              <OrdersTable
+                formatDate={formatDate}
+                formatMoney={formatMoney}
+                labels={{
+                  client: t('dashboardPage.client'),
+                  status: t('dashboardPage.statusHeader'),
+                  sum: t('dashboardPage.sum'),
+                  items: t('dashboardPage.items'),
+                  date: t('dashboardPage.date'),
+                  empty: t('dashboardPage.noOrders'),
+                }}
+                orders={recentOrders}
+                statusLabel={statusLabel}
+              />
+            </Panel>
+
+            <Panel title={`${t('alerts')}${alerts.length > 0 ? ` (${alerts.length})` : ''}`}>
+              <AlertsList
+                alerts={alerts}
+                labels={{
+                  outOfStock: t('alert.outOfStock'),
+                  lowStock: t('alert.lowStock'),
+                  current: t('alert.current'),
+                  acknowledge: t('alert.acknowledge'),
+                  empty: t('alert.noAlerts'),
+                }}
+                onAcknowledge={handleAcknowledge}
+              />
+            </Panel>
+
+            <Link
+              className="flex items-center gap-4 rounded-lg p-4 ring-1 ring-border transition-colors hover:bg-muted md:p-5"
+              href={`/${locale}/admin/homepage`}
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-md ring-1 ring-border">
+                <HomeIcon className="size-5" />
+              </span>
+              <span>
+                <span className="block text-[13px]">{t('homepageSettings')}</span>
+                <span className="block text-muted-foreground text-[12px]">{t('homepageDesc')}</span>
+              </span>
+            </Link>
           </>
         )}
 
-        {/* Второе место выключателя — он назвал оба. Не внутри loading/
-            loadError веток дашборда: провал статистики не должен уносить с
-            собой единственный вход в режим правки. */}
-        <EditModeSwitch />
+        {/* Второе место выключателя — владелец назвал оба. Стоит СНАРУЖИ веток
+            загрузки и ошибки нарочно: провал статистики не должен уносить с
+            собой единственный вход в режим правки.
+            framed={false} — рамку даёт Panel. Своя черта выключателя рисуется
+            цветом текста, то есть почти чёрным, и на белом полотне давала
+            тяжёлую линию во всю ширину, тогда как все прочие линии здесь
+            волосяные. */}
+        <Panel title={t('dashboardPage.editModeTitle')}>
+          <EditModeSwitch framed={false} />
+        </Panel>
       </div>
     </AdminLayout>
-  );
-}
-
-type LinePoint = {date: string; count: number};
-
-function RegistrationChart({
-  data,
-  color = INK,
-  ariaLabel = 'График',
-}: {
-  data: LinePoint[];
-  color?: string;
-  ariaLabel?: string;
-}) {
-  const W = 640;
-  const H = 220;
-  const PL = 36;
-  const PR = 16;
-  const PT = 16;
-  const PB = 28;
-  const innerW = W - PL - PR;
-  const innerH = H - PT - PB;
-
-  const counts = data.map(d => d.count);
-  const max = Math.max(...counts, 1);
-  const total = counts.reduce((a, b) => a + b, 0);
-
-  const stepX = innerW / Math.max(data.length - 1, 1);
-  const points = data.map((d, i) => ({
-    x: PL + i * stepX,
-    y: PT + innerH - (d.count / max) * innerH,
-    ...d,
-  }));
-
-  const path = points.map((p, i) => (i === 0 ? 'M' : 'L') + p.x + ',' + p.y).join(' ');
-  const areaPath =
-    points.length > 0
-      ? `${path} L${points[points.length - 1].x},${PT + innerH} L${points[0].x},${PT + innerH} Z`
-      : '';
-
-  const yTicks = [0, Math.ceil(max / 2), max];
-  const firstDate = data[0]?.date;
-  const lastDate = data[data.length - 1]?.date;
-  const fmtAxis = (iso: string | undefined) => {
-    if (!iso) return '';
-    const d = new Date(iso);
-    return d.toLocaleDateString('ru-RU', {day: '2-digit', month: 'short'});
-  };
-
-  return (
-    <div className="space-y-2" style={{color: MUTED}}>
-      <div className="flex items-baseline justify-between text-[12px]">
-        <p className="uppercase tracking-[0.08em]">
-          Всего за период: <span style={{color: INK}}>{total}</span>
-        </p>
-        <p>{fmtAxis(firstDate)} — {fmtAxis(lastDate)}</p>
-      </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" role="img" aria-label={ariaLabel}>
-        {yTicks.map((tick, i) => {
-          const y = PT + innerH - (tick / max) * innerH;
-          return (
-            <g key={i}>
-              <line x1={PL} y1={y} x2={W - PR} y2={y} stroke={HAIR} strokeDasharray="2 3" />
-              <text x={PL - 6} y={y + 3} textAnchor="end" className="text-[10px] fill-current">
-                {tick}
-              </text>
-            </g>
-          );
-        })}
-        {areaPath && <path d={areaPath} fill={color} fillOpacity={0.1} />}
-        <path d={path} stroke={color} strokeWidth={2} fill="none" />
-        {points.map((p, i) => (
-          <g key={i}>
-            <circle cx={p.x} cy={p.y} r={3} fill={color} />
-            <title>{`${fmtAxis(p.date)}: ${p.count}`}</title>
-          </g>
-        ))}
-        {firstDate && (
-          <text x={PL} y={H - 8} textAnchor="start" className="text-[10px] fill-current">
-            {fmtAxis(firstDate)}
-          </text>
-        )}
-        {lastDate && (
-          <text x={W - PR} y={H - 8} textAnchor="end" className="text-[10px] fill-current">
-            {fmtAxis(lastDate)}
-          </text>
-        )}
-      </svg>
-    </div>
-  );
-}
-
-function TopProductsCard({title, items, emptyText}: {title: string; items: TopProduct[]; emptyText: string}) {
-  return (
-    <AdminCard>
-      <h3 className="mb-3 text-[13px]" style={{color: INK}}>{title}</h3>
-      {items.length === 0 ? (
-        <p className="text-[13px]" style={{color: MUTED}}>{emptyText}</p>
-      ) : (
-        <ol className="space-y-2">
-          {items.map((p, i) => {
-            const max = Math.max(...items.map(x => x.count), 1);
-            const pct = Math.max(2, Math.round((p.count / max) * 100));
-            return (
-              <li key={p.productId} className="space-y-1">
-                <div className="flex items-baseline justify-between gap-3 text-[13px]">
-                  <span className="truncate" style={{color: INK}}>
-                    <span className="mr-2" style={{color: MUTED}}>{i + 1}.</span>
-                    {p.title}
-                  </span>
-                  <span className="shrink-0 text-[12px]" style={{color: MUTED}}>{p.count}</span>
-                </div>
-                <div className="h-1 w-full overflow-hidden" style={{background: HAIR}}>
-                  <div className="h-full" style={{width: `${pct}%`, background: INK}} />
-                </div>
-              </li>
-            );
-          })}
-        </ol>
-      )}
-    </AdminCard>
   );
 }

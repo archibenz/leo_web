@@ -1148,7 +1148,9 @@
         "shipped": "Shipped",
         "delivered": "Delivered",
         "cancelled": "Cancelled"
-      }
+      },
+      "totalForPeriod": "Total for the period",
+      "editModeTitle": "Site editing"
     },
     "product": {
       "add": "Add Product",
