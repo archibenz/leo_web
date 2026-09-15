@@ -16,6 +16,7 @@ import com.reinasleo.api.model.ProductSetItem;
 import com.reinasleo.api.model.StorefrontSection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -44,6 +45,21 @@ public class StorefrontMapping {
     private static final TypeReference<List<TickerItemRequest>> TICKER_ITEM_LIST = new TypeReference<>() {};
 
     private final ObjectMapper json = new ObjectMapper();
+    private final VariantPriceCalculator priceCalculator;
+
+    // Тестовый путь: большинство существующих тестов строят StorefrontMapping
+    // напрямую, без Spring, и им не нужна настоящая marketplace_prices — только
+    // сама форма DTO. @Autowired на втором конструкторе — иначе Spring не
+    // знает, какой из двух использовать (implicit autowiring работает только
+    // когда конструктор один).
+    public StorefrontMapping() {
+        this(new VariantPriceCalculator());
+    }
+
+    @Autowired
+    public StorefrontMapping(VariantPriceCalculator priceCalculator) {
+        this.priceCalculator = priceCalculator;
+    }
 
     // ----------------------------------------------------------- опубликованное → DTO
 
@@ -54,21 +70,34 @@ public class StorefrontMapping {
                 readTickerItems(s.getItems()));
     }
 
-    public StorefrontModelRequest published(ProductModel m, List<Product> variants) {
+    /**
+     * prices — срез marketplace_prices для ВСЕХ вариантов модели, собранный
+     * ОДНИМ запросом у вызывающего (см. MarketplacePriceLookup): считать цену
+     * по одному варианту за раз здесь же означало бы N+1 на каждую карточку.
+     */
+    public StorefrontModelRequest published(ProductModel m, List<Product> variants, MarketplacePriceLookup prices) {
         Map<String, StorefrontVariantRequest> byId = new LinkedHashMap<>();
         variants.stream()
                 .sorted(Comparator.comparingInt(Product::getSortOrder))
-                .forEach(v -> byId.put(v.getId(), publishedVariant(v)));
+                .forEach(v -> byId.put(v.getId(), publishedVariant(v, prices)));
         return new StorefrontModelRequest(m.getNameRu(), m.getNameEn(), m.getCategory(), m.getDescRu(), m.getDescEn(),
                 m.getStoryRu(), m.getStoryEn(), m.getCompositionRu(), m.getCompositionEn(), m.getCareRu(), m.getCareEn(),
                 m.getSizes() == null ? List.of() : Arrays.asList(m.getSizes()), m.getImage(), readStrings(m.getGallery()),
                 m.getSeason(), m.getFeaturedOrder(), m.getLookbookOrder(), m.getSortOrder(), m.isActive(), byId);
     }
 
+    /** Вариант без источника с площадки — price_source=manual и так не смотрит в marketplace_prices. */
     public StorefrontVariantRequest publishedVariant(Product v) {
-        return new StorefrontVariantRequest(v.getPrice(), v.getSalePrice(), v.getColorKey(), v.getColorHex(),
+        return publishedVariant(v, MarketplacePriceLookup.empty());
+    }
+
+    public StorefrontVariantRequest publishedVariant(Product v, MarketplacePriceLookup prices) {
+        VariantPrice price = priceCalculator.compute(v, prices);
+        return new StorefrontVariantRequest(price.basePrice(), price.salePrice(), v.getColorKey(), v.getColorHex(),
                 v.getColorNameRu(), v.getColorNameEn(), v.getImage(), readImageSrcs(v.getImages()),
-                v.getStockQuantity(), v.isActive(), v.getSortOrder());
+                v.getStockQuantity(), v.isActive(), v.getSortOrder(),
+                v.getPriceSource(), v.getDiscountPct(),
+                price.sourceMissing(), price.costUnknown(), price.thresholdApplied(), price.manualPriceInactive());
     }
 
     public StorefrontSetRequest published(ProductSet set, List<ProductSetItem> items) {
@@ -132,6 +161,11 @@ public class StorefrontMapping {
     }
 
     public void applyVariant(StorefrontVariantRequest r, Product v) {
+        // price/salePrice здесь — по-прежнему "ручная цена" (products.price) и
+        // старое поле products.sale_price: applyVariant ничего не знает про
+        // VariantPriceCalculator и не обязан — то, что реально видит покупатель,
+        // выше в published()/publishedVariant() считается заново из свежих
+        // priceSource/discountPct, а не из того, что здесь записано в sale_price.
         v.setPrice(r.price());
         v.setSalePrice(r.salePrice());
         v.setColorKey(r.colorKey());
@@ -143,6 +177,8 @@ public class StorefrontMapping {
         v.setStockQuantity(r.stockQuantity());
         v.setActive(r.active());
         v.setSortOrder(r.sortOrder());
+        v.setPriceSource(r.priceSource());
+        v.setDiscountPct(r.discountPct());
     }
 
     public void apply(StorefrontSetRequest r, ProductSet set) {

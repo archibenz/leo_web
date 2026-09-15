@@ -15,13 +15,17 @@ import com.reinasleo.api.model.ProductModel;
 import com.reinasleo.api.model.ProductSet;
 import com.reinasleo.api.model.ProductSetItem;
 import com.reinasleo.api.model.StorefrontSection;
+import com.reinasleo.api.repository.MarketplacePriceRepository;
 import com.reinasleo.api.repository.ProductModelRepository;
 import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.ProductSetItemRepository;
 import com.reinasleo.api.repository.ProductSetRepository;
 import com.reinasleo.api.repository.StorefrontSectionRepository;
+import com.reinasleo.api.service.storefront.MarketplacePriceLookup;
 import com.reinasleo.api.service.storefront.StorefrontDraftMerge;
 import com.reinasleo.api.service.storefront.StorefrontMapping;
+import com.reinasleo.api.service.storefront.VariantPrice;
+import com.reinasleo.api.service.storefront.VariantPriceCalculator;
 import com.reinasleo.api.dto.admin.storefront.StorefrontModelRequest;
 import com.reinasleo.api.dto.admin.storefront.StorefrontSectionRequest;
 import com.reinasleo.api.dto.admin.storefront.StorefrontSetRequest;
@@ -59,18 +63,23 @@ public class StorefrontService {
     private final ProductSetRepository sets;
     private final ProductSetItemRepository setItems;
     private final StorefrontSectionRepository sections;
+    private final MarketplacePriceRepository marketplacePrices;
     private final StorefrontMapping mapping;
+    private final VariantPriceCalculator priceCalculator;
     private final EntityManager entityManager;
 
     public StorefrontService(ProductModelRepository models, ProductRepository products, ProductSetRepository sets,
                              ProductSetItemRepository setItems, StorefrontSectionRepository sections,
-                             StorefrontMapping mapping, EntityManager entityManager) {
+                             MarketplacePriceRepository marketplacePrices, StorefrontMapping mapping,
+                             VariantPriceCalculator priceCalculator, EntityManager entityManager) {
         this.models = models;
         this.products = products;
         this.sets = sets;
         this.setItems = setItems;
         this.sections = sections;
+        this.marketplacePrices = marketplacePrices;
         this.mapping = mapping;
+        this.priceCalculator = priceCalculator;
         this.entityManager = entityManager;
     }
 
@@ -116,11 +125,20 @@ public class StorefrontService {
                 .sorted(Comparator.comparingInt(Product::getSortOrder))
                 .collect(Collectors.groupingBy(Product::getModelId, LinkedHashMap::new, Collectors.toList()));
 
+        // Один запрос под цены ВСЕХ вариантов этого построения — см.
+        // MarketplacePriceLookup про то, почему не по одному варианту за раз.
+        // Черновик её не трогает (marketplace_prices вне драфтов), поэтому
+        // один и тот же срез годится и для applyDrafts, и для toProduct ниже.
+        MarketplacePriceLookup prices = variantRows.isEmpty()
+                ? MarketplacePriceLookup.empty()
+                : MarketplacePriceLookup.from(marketplacePrices.findByProductIdIn(
+                        variantRows.stream().map(Product::getId).toList()));
+
         Map<UUID, List<ProductSetItem>> itemsBySet = setItems.findAllByOrderBySetIdAscPositionAsc().stream()
                 .collect(Collectors.groupingBy(ProductSetItem::getSetId, LinkedHashMap::new, Collectors.toList()));
 
         List<StorefrontBrokenDraft> brokenDrafts = withDrafts
-                ? applyDrafts(modelRows, variantsByModel, setRows, itemsBySet, sectionRows)
+                ? applyDrafts(modelRows, variantsByModel, setRows, itemsBySet, sectionRows, prices)
                 : null;
 
         List<StorefrontProduct> productDtos = modelRows.stream()
@@ -128,7 +146,7 @@ public class StorefrontService {
                 .map(m -> toProduct(m, variantsByModel.getOrDefault(m.getId(), List.of()).stream()
                         .filter(Product::isActive)
                         .sorted(Comparator.comparingInt(Product::getSortOrder))
-                        .toList()))
+                        .toList(), prices))
                 .filter(p -> !p.colors().isEmpty())
                 .toList();
 
@@ -172,7 +190,7 @@ public class StorefrontService {
      */
     private List<StorefrontBrokenDraft> applyDrafts(List<ProductModel> modelRows, Map<UUID, List<Product>> variantsByModel,
                                                     List<ProductSet> setRows, Map<UUID, List<ProductSetItem>> itemsBySet,
-                                                    List<StorefrontSection> sectionRows) {
+                                                    List<StorefrontSection> sectionRows, MarketplacePriceLookup prices) {
         List<StorefrontBrokenDraft> broken = new ArrayList<>();
         for (StorefrontSection s : sectionRows) {
             entityManager.detach(s);
@@ -198,7 +216,7 @@ public class StorefrontService {
             }
             Map<String, Product> variantsById = variants.stream()
                     .collect(Collectors.toMap(Product::getId, java.util.function.Function.identity()));
-            StorefrontModelRequest published = mapping.published(m, variants);
+            StorefrontModelRequest published = mapping.published(m, variants, prices);
             try {
                 StorefrontModelRequest merged = StorefrontDraftMerge.merge(
                         published, m.getDraft(), StorefrontModelRequest.class);
@@ -250,12 +268,16 @@ public class StorefrontService {
         }
     }
 
-    private StorefrontProduct toProduct(ProductModel m, List<Product> variants) {
-        List<StorefrontColour> colours = variants.stream().map(this::toColour).toList();
+    private StorefrontProduct toProduct(ProductModel m, List<Product> variants, MarketplacePriceLookup prices) {
+        List<StorefrontColour> colours = variants.stream().map(v -> toColour(v, prices)).toList();
         Product first = variants.isEmpty() ? null : variants.get(0);
+        // Цена карточки — цена ПЕРВОГО цвета, уже посчитанная в colours: своего
+        // вычисления здесь нет нарочно, иначе VariantPriceCalculator.compute
+        // для первого варианта звался бы дважды с одним и тем же результатом.
+        StorefrontColour firstColour = colours.isEmpty() ? null : colours.get(0);
         return new StorefrontProduct(
                 m.getId().toString(), m.getModelKey(), m.getSlug(), m.getNameEn(), m.getNameRu(), m.getCategory(),
-                first == null ? null : first.getPrice(), first == null ? null : first.getSalePrice(),
+                firstColour == null ? null : firstColour.price(), firstColour == null ? null : firstColour.sale(),
                 m.getDescEn(), m.getDescRu(), m.getStoryEn(), m.getStoryRu(),
                 m.getCompositionEn(), m.getCompositionRu(), m.getCareEn(), m.getCareRu(),
                 colours, Arrays.asList(m.getSizes()), m.getImage(), readStrings(m.getGallery()),
@@ -272,9 +294,15 @@ public class StorefrontService {
         return first == null ? null : first.getNm();
     }
 
-    private StorefrontColour toColour(Product v) {
+    // price/sale — НЕ прямое чтение v.getPrice()/v.getSalePrice(): с V36 это
+    // основа и действующая цена из VariantPriceCalculator (price_source,
+    // discount_pct, порог по себестоимости). Флаги калькулятора сюда не идут
+    // намеренно — покупателю про источник цены и себестоимость знать нечего,
+    // это дело только админского StorefrontVariantRequest.
+    private StorefrontColour toColour(Product v, MarketplacePriceLookup prices) {
+        VariantPrice price = priceCalculator.compute(v, prices);
         return new StorefrontColour(v.getId(), v.getColorKey(), v.getColorHex(), v.getColorNameEn(), v.getColorNameRu(),
-                v.getNm(), v.getPrice(), v.getSalePrice(), v.getImage(), readImageSrcs(v.getImages()));
+                v.getNm(), price.basePrice(), price.salePrice(), v.getImage(), readImageSrcs(v.getImages()));
     }
 
     private StorefrontSetItem toSetItem(ProductSetItem it, Map<String, StorefrontProduct> byVariant) {

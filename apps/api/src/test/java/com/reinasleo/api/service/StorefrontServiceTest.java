@@ -6,12 +6,14 @@ import com.reinasleo.api.model.Product;
 import com.reinasleo.api.model.ProductModel;
 import com.reinasleo.api.model.ProductSet;
 import com.reinasleo.api.model.ProductSetItem;
+import com.reinasleo.api.repository.MarketplacePriceRepository;
 import com.reinasleo.api.repository.ProductModelRepository;
 import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.ProductSetItemRepository;
 import com.reinasleo.api.repository.ProductSetRepository;
 import com.reinasleo.api.repository.StorefrontSectionRepository;
 import com.reinasleo.api.service.storefront.StorefrontMapping;
+import com.reinasleo.api.service.storefront.VariantPriceCalculator;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,14 +37,19 @@ class StorefrontServiceTest {
     @Mock private ProductSetRepository sets;
     @Mock private ProductSetItemRepository setItems;
     @Mock private StorefrontSectionRepository sections;
+    @Mock private MarketplacePriceRepository marketplacePrices;
     @Mock private EntityManager entityManager;
 
     private StorefrontService service;
 
     @BeforeEach
     void setUp() {
+        // findByProductIdIn не застаблен нарочно в большинстве тестов этого
+        // класса: MockitoExtension по умолчанию отвечает на него пустым
+        // списком (ReturnsEmptyValues), а варианту с price_source=manual
+        // (дефолт) marketplace_prices всё равно не нужен.
         service = new StorefrontService(models, products, sets, setItems, sections,
-                new StorefrontMapping(), entityManager);
+                marketplacePrices, new StorefrontMapping(), new VariantPriceCalculator(), entityManager);
     }
 
     private static ProductModel model(UUID id, int key, String slug) {
@@ -70,10 +77,18 @@ class StorefrontServiceTest {
     @Test
     void getStorefront_mapsModelWithVariantsIntoWhiteProductShape() {
         UUID mid = UUID.randomUUID();
+        // sale="12000" в фикстуре — старое поле products.sale_price, оно с V36
+        // больше не читается витриной (см. VariantPriceCalculator/toColour) и
+        // здесь просто отражает реальную форму мигрированной строки (backfill
+        // не чистит sale_price). Показанная скидка теперь идёт от discountPct:
+        // 25000 × (100-52)/100 = 12000.00 — тот же процент, что backfill V36
+        // посчитал бы для точно такой пары (price, sale_price) на проде.
+        Product camel = variant(mid, "wb-1", "camel", 1L, "25000", "12000", 0);
+        camel.setDiscountPct(52);
         when(models.findByActiveTrueOrderBySortOrderAsc()).thenReturn(List.of(model(mid, 2, "palto")));
         when(products.findByModelIdIsNotNullAndActiveTrueOrderByModelIdAscSortOrderAsc()).thenReturn(List.of(
                 variant(mid, "wb-2", "black", 2L, "23000", null, 1),
-                variant(mid, "wb-1", "camel", 1L, "25000", "12000", 0)));
+                camel));
         when(sets.findByActiveTrueOrderBySortOrderAsc()).thenReturn(List.of());
         when(setItems.findAllByOrderBySetIdAscPositionAsc()).thenReturn(List.of());
         when(sections.findByStatusOrderBySortOrderAsc("active")).thenReturn(List.of());

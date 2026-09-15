@@ -25,10 +25,15 @@ class StorefrontDraftMergeTest {
     }
 
     private static StorefrontVariantRequest variant(String price, String sale) {
+        // priceSource/discountPct/флаги (этап 2, V36) — нейтральные значения:
+        // этот файл проверяет механику слияния черновика, а не вычисление
+        // цены, и merge() Bean Validation не вызывает, так что сочетание с
+        // salePrice здесь ничем не рискует.
         return new StorefrontVariantRequest(price == null ? null : new BigDecimal(price),
                 sale == null ? null : new BigDecimal(sale),
                 "camel", "#b89a6e", "Кэмел", "Camel", "/images/white/camel.jpg", List.of("/images/white/camel-2.jpg"),
-                4, true, 0);
+                4, true, 0,
+                "manual", 0, false, false, false, false);
     }
 
     private static StorefrontModelRequest model() {
