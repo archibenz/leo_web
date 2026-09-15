@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import {useEffect, useState} from 'react';
 import {useRouter} from 'next/navigation';
 import {FOOT, HAIR, INK, SIGNAL} from '../../app/[locale]/wv-palette';
+import {useEditor} from './EditorProvider';
 import {useEditorSession} from './useEditorSession';
 import {useEditHrefs} from './editHrefs';
 import {writeEditCookie} from './editCookie';
@@ -24,8 +26,36 @@ import {writeEditCookie} from './editCookie';
 // editing и brokenDrafts. Читать document.cookie здесь же значило бы
 // разойтись с серверной разметкой на первом рендере — гидратационная
 // рассинхронизация, которую на этой витрине уже ловили.
+// «3 области» / «1 область» / «5 областей». ICU-множественного здесь нет
+// (полоса живёт вне словаря, как и остальной текст режима правки), а
+// неправильное окончание в числе, которое владелец читает каждый раз, —
+// мелочь ровно до второго раза.
+function областей(n: number): string {
+  const сотня = n % 100;
+  const единица = n % 10;
+  if (сотня >= 11 && сотня <= 14) return 'областей';
+  if (единица === 1) return 'область';
+  if (единица >= 2 && единица <= 4) return 'области';
+  return 'областей';
+}
+
 export default function EditorNotice({editing, wantsEdit}: {editing: boolean; wantsEdit: boolean}) {
   const {isAdmin} = useEditorSession();
+  const {editableCount} = useEditor();
+
+  // ЖДЁМ, ПОКА ТОЧКИ УСПЕЮТ ОТМЕТИТЬСЯ, и это единственное место, где мы
+  // ждём времени, а не следствия. Причина названа честно: мы ждём ОТСУТСТВИЯ,
+  // а у отсутствия нет события. Точки правки отмечаются в эффектах, то есть
+  // после первой отрисовки; до неё ноль означает «ещё не считали», а не «нечего
+  // править», и сказать «нечего править» на этом кадре было бы неправдой.
+  //
+  // Поэтому до конца текущего кадра полоса говорит нейтральное, а числом или
+  // словом «нечего» отвечает только тогда, когда ответ уже не изменится.
+  const [сосчитано, setСосчитано] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setСосчитано(true), 0);
+    return () => clearTimeout(t);
+  }, []);
   const {plainHref} = useEditHrefs();
   const router = useRouter();
 
@@ -48,7 +78,18 @@ export default function EditorNotice({editing, wantsEdit}: {editing: boolean; wa
         className="wv-rise flex flex-wrap items-center justify-between gap-3 px-4 py-2 text-[11px] uppercase tracking-[0.16em]"
         style={{background: FOOT, borderBottom: `1px solid ${HAIR}`, color: INK}}
       >
-        <span>Режим правки · страница показывает черновик</span>
+        {/* ЧИСЛО НА ЭКРАНЕ, А НЕ В СПРАВКЕ. Правится шесть областей на весь
+            сайт; подсветка делает это видимым за секунду, и первый вопрос
+            владельца — «почему только тут». Число отвечает на него ДО вопроса.
+            Ноль назван словами: режим, который включается и ничего не делает,
+            читается как поломка. */}
+        <span>
+          {editableCount > 0
+            ? `Режим правки · правится ${editableCount} ${областей(editableCount)}`
+            : сосчитано
+              ? 'Режим правки · на этой странице пока нечего править'
+              : 'Режим правки · страница показывает черновик'}
+        </span>
         {/* 44px/13px, и это не та же мера, что у кнопок входа, — она важнее.
             Промах по входу означает «не вошёл, нажму ещё раз». Промах по
             ВЫХОДУ означает «застрял в режиме правки», а это читается как
