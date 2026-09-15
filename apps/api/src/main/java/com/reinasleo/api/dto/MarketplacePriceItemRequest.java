@@ -3,7 +3,6 @@ package com.reinasleo.api.dto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 
 import java.time.Instant;
@@ -15,10 +14,12 @@ import java.time.Instant;
 // buyerPriceKop/costPriceKop оба необязательные по отдельности, но хотя бы
 // одно обязано быть: у 55 из 87 вариантов нет озоновской пары, а
 // себестоимость нужна по всем — порог по себестоимости обязан работать и на
-// цене, выставленной руками. source обязателен РОВНО когда есть
-// buyerPriceKop: себестоимость приходит из нашего учёта, а не с площадки, и
-// приписывать ей маркетплейс значило бы врать подписью; а голый source без
-// цены покупателя — сирота, которому нечего описывать.
+// цене, выставленной руками. source и checkedAt оба обязательны РОВНО когда
+// есть buyerPriceKop — симметрично и по одной причине: себестоимость и факт
+// её опроса относятся к площадке, а не к нашему учёту. source без цены
+// покупателя приписывал бы маркетплейс тому, что пришло из бухгалтерии;
+// checkedAt без цены покупателя утверждал бы, что площадку спрашивали, хотя
+// её не спрашивали вовсе. Обе пары — уже мусор, а не законный пропуск.
 public record MarketplacePriceItemRequest(
         @NotBlank(message = "productId is required")
         String productId,
@@ -30,11 +31,11 @@ public record MarketplacePriceItemRequest(
 
         Long costPriceKop,
 
-        // Момент наблюдения на площадке, не момент отправки пачки — застывший
+        // Момент, когда МЫ спросили площадку — у отправителя нет отметки
+        // времени от самой площадки. Не момент отправки пачки: застывший
         // источник не должен выглядеть свежим только потому, что запрос
-        // пришёл только что. Обязателен: без него значение не с чем сверять.
-        @NotNull(message = "capturedAt is required")
-        Instant capturedAt
+        // пришёл только что.
+        Instant checkedAt
 ) {
 
     @JsonIgnore
@@ -47,5 +48,11 @@ public record MarketplacePriceItemRequest(
     @AssertTrue(message = "source is required when buyerPriceKop is present, and must be absent otherwise")
     public boolean isSourcePresenceMatchesBuyerPrice() {
         return (source != null) == (buyerPriceKop != null);
+    }
+
+    @JsonIgnore
+    @AssertTrue(message = "checkedAt is required when buyerPriceKop is present, and must be absent otherwise")
+    public boolean isCheckedAtPresenceMatchesBuyerPrice() {
+        return (checkedAt != null) == (buyerPriceKop != null);
     }
 }

@@ -36,10 +36,12 @@ public class MarketplacePrice {
     @Column(name = "cost_price_kop")
     private Long costPriceKop;
 
-    // Момент наблюдения на площадке — приходит от отправителя как есть, сюда
-    // не подставляется now().
-    @Column(name = "captured_at", nullable = false)
-    private Instant capturedAt;
+    // Момент, когда отправитель СПРОСИЛ площадку — не отметка времени от самой
+    // площадки, её у него нет. NULL для строк с одной себестоимостью: площадку
+    // по ним не спрашивали, проставить момент опроса значило бы соврать, что
+    // он был. Приходит от отправителя как есть, сюда не подставляется now().
+    @Column(name = "checked_at")
+    private Instant checkedAt;
 
     @Column(name = "received_at", nullable = false)
     private Instant receivedAt;
@@ -51,13 +53,13 @@ public class MarketplacePrice {
     public String getSource() { return source; }
     public Long getBuyerPriceKop() { return buyerPriceKop; }
     public Long getCostPriceKop() { return costPriceKop; }
-    public Instant getCapturedAt() { return capturedAt; }
+    public Instant getCheckedAt() { return checkedAt; }
     public Instant getReceivedAt() { return receivedAt; }
 
     public void setProductId(String productId) { this.productId = productId; }
     public void setSource(String source) { this.source = source; }
     public void setBuyerPriceKop(Long buyerPriceKop) { this.buyerPriceKop = buyerPriceKop; }
     public void setCostPriceKop(Long costPriceKop) { this.costPriceKop = costPriceKop; }
-    public void setCapturedAt(Instant capturedAt) { this.capturedAt = capturedAt; }
+    public void setCheckedAt(Instant checkedAt) { this.checkedAt = checkedAt; }
     public void setReceivedAt(Instant receivedAt) { this.receivedAt = receivedAt; }
 }

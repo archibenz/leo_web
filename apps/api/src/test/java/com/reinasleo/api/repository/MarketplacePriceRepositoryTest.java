@@ -24,7 +24,7 @@ class MarketplacePriceRepositoryTest {
         row.setSource(source);
         row.setBuyerPriceKop(buyerKop);
         row.setCostPriceKop(costKop);
-        row.setCapturedAt(Instant.parse("2026-09-14T18:00:00Z"));
+        row.setCheckedAt(Instant.parse("2026-09-14T18:00:00Z"));
         row.setReceivedAt(Instant.now());
         return row;
     }

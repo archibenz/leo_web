@@ -28,13 +28,18 @@ public class MarketplacePriceIntakeService {
     }
 
     // Пачка не длиннее 500, обрезка Bean Validation'ом сделана раньше —
-    // здесь может быть только "нормальная" по форме строка. Единственная
-    // причина отклонить строку на этом уровне — неизвестный productId
-    // (структурные правила уже отбили бы весь запрос до сервиса, целиком).
+    // здесь может быть только "нормальная" по форме строка.
     //
-    // Одна плохая строка не топит пачку: цикл продолжает работу после
-    // rejected-строки, и остальные варианты пачки принимаются как обычно —
-    // ради этого ошибка накапливается в список, а не бросается исключением.
+    // Неизвестный productId — ПРОПУСК (skipped), не отказ: в аналитике 172
+    // артикула, на витрине 87, и ~85 "не найден" — обычный вечер, не мусор.
+    // Отказ на этом месте отправитель получал бы каждый вечер, и красное,
+    // которое горит всегда, читать перестают. rejected/errors остаются для
+    // настоящего мусора — сегодня до сервиса такой мусор не доходит вовсе,
+    // потому что бракованная форма отбивает 400 на весь запрос ещё на Bean
+    // Validation; поле не убрано, оно про диагноз, который может появиться.
+    //
+    // Одна пропущенная строка не топит пачку: цикл продолжает работу, и
+    // остальные варианты пачки принимаются как обычно.
     //
     // Приём никогда не стирает: цикл трогает только те (productId, source),
     // что реально пришли в этой пачке. Вариант, которого в пачке нет,
@@ -43,14 +48,12 @@ public class MarketplacePriceIntakeService {
     public MarketplacePriceIntakeResponse intake(List<MarketplacePriceItemRequest> items) {
         int updated = 0;
         int unchanged = 0;
+        int skipped = 0;
         List<MarketplacePriceRowError> errors = new ArrayList<>();
 
-        for (int i = 0; i < items.size(); i++) {
-            MarketplacePriceItemRequest item = items.get(i);
-
+        for (MarketplacePriceItemRequest item : items) {
             if (!productRepository.existsById(item.productId())) {
-                errors.add(new MarketplacePriceRowError(
-                        "items[" + i + "].productId", "unknown productId"));
+                skipped++;
                 continue;
             }
 
@@ -64,15 +67,15 @@ public class MarketplacePriceIntakeService {
                 MarketplacePrice row = existing.get();
                 boolean changed = !Objects.equals(row.getBuyerPriceKop(), item.buyerPriceKop())
                         || !Objects.equals(row.getCostPriceKop(), item.costPriceKop())
-                        || !Objects.equals(row.getCapturedAt(), item.capturedAt());
+                        || !Objects.equals(row.getCheckedAt(), item.checkedAt());
 
                 row.setBuyerPriceKop(item.buyerPriceKop());
                 row.setCostPriceKop(item.costPriceKop());
-                row.setCapturedAt(item.capturedAt());
+                row.setCheckedAt(item.checkedAt());
                 // received_at обновляется в любом случае — он отвечает на
                 // "когда мы в последний раз видели эту строку в пачке", не
                 // на "изменились ли значения". Повтор той же пачки не меняет
-                // buyer/cost/captured, но received_at честно двигается: мост
+                // buyer/cost/checked, но received_at честно двигается: мост
                 // не молчал, просто источник не поменялся.
                 row.setReceivedAt(now);
                 marketplacePriceRepository.save(row);
@@ -84,13 +87,14 @@ public class MarketplacePriceIntakeService {
                 row.setSource(item.source());
                 row.setBuyerPriceKop(item.buyerPriceKop());
                 row.setCostPriceKop(item.costPriceKop());
-                row.setCapturedAt(item.capturedAt());
+                row.setCheckedAt(item.checkedAt());
                 row.setReceivedAt(now);
                 marketplacePriceRepository.save(row);
                 updated++;
             }
         }
 
-        return new MarketplacePriceIntakeResponse(updated + unchanged, updated, unchanged, errors.size(), errors);
+        return new MarketplacePriceIntakeResponse(
+                updated + unchanged, updated, unchanged, skipped, errors.size(), errors);
     }
 }

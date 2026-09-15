@@ -57,12 +57,12 @@ class MarketplacePriceIntakeControllerTest {
         return p;
     }
 
-    private static String item(String productId, String source, Long buyerKop, Long costKop, String capturedAt) {
+    private static String item(String productId, String source, Long buyerKop, Long costKop, String checkedAt) {
         StringBuilder sb = new StringBuilder("{\"productId\":\"").append(productId).append('"');
         if (source != null) sb.append(",\"source\":\"").append(source).append('"');
         if (buyerKop != null) sb.append(",\"buyerPriceKop\":").append(buyerKop);
         if (costKop != null) sb.append(",\"costPriceKop\":").append(costKop);
-        if (capturedAt != null) sb.append(",\"capturedAt\":\"").append(capturedAt).append('"');
+        if (checkedAt != null) sb.append(",\"checkedAt\":\"").append(checkedAt).append('"');
         return sb.append('}').toString();
     }
 
@@ -76,7 +76,9 @@ class MarketplacePriceIntakeControllerTest {
     void aBatchOfSeveralLinesIsAcceptedAndTheResponseCarriesNumbers() throws Exception {
         String body = batch(
                 item("wb-1", "ozon", 623000L, 145000L, "2026-09-14T18:00:00Z"),
-                item("wb-2", null, null, 98000L, "2026-09-14T18:00:00Z")
+                // Себестоимость без пары с площадкой: ни source, ни checkedAt —
+                // площадку по этой строке не спрашивали вовсе.
+                item("wb-2", null, null, 98000L, null)
         );
 
         mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
@@ -85,6 +87,7 @@ class MarketplacePriceIntakeControllerTest {
                 .andExpect(jsonPath("$.accepted").value(2))
                 .andExpect(jsonPath("$.updated").value(2))
                 .andExpect(jsonPath("$.unchanged").value(0))
+                .andExpect(jsonPath("$.skipped").value(0))
                 .andExpect(jsonPath("$.rejected").value(0))
                 .andExpect(jsonPath("$.errors").isEmpty());
     }
@@ -95,7 +98,7 @@ class MarketplacePriceIntakeControllerTest {
     void repeatingTheSameBatchChangesNothing_verifiedByReadingTheDatabaseAfterTheSecondCall() throws Exception {
         String body = batch(
                 item("wb-1", "ozon", 623000L, 145000L, "2026-09-14T18:00:00Z"),
-                item("wb-2", null, null, 98000L, "2026-09-14T18:00:00Z")
+                item("wb-2", null, null, 98000L, null)
         );
 
         mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
@@ -111,7 +114,8 @@ class MarketplacePriceIntakeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accepted").value(2))
                 .andExpect(jsonPath("$.updated").value(0))
-                .andExpect(jsonPath("$.unchanged").value(2));
+                .andExpect(jsonPath("$.unchanged").value(2))
+                .andExpect(jsonPath("$.skipped").value(0));
 
         // Не код ответа — чтение из базы после второго вызова, как требует приёмка.
         assertThat(marketplacePrices.count()).isEqualTo(2);
@@ -121,7 +125,7 @@ class MarketplacePriceIntakeControllerTest {
         assertThat(wb1AfterSecond.getId()).isEqualTo(wb1AfterFirst.getId());
         assertThat(wb1AfterSecond.getBuyerPriceKop()).isEqualTo(wb1AfterFirst.getBuyerPriceKop());
         assertThat(wb1AfterSecond.getCostPriceKop()).isEqualTo(wb1AfterFirst.getCostPriceKop());
-        assertThat(wb1AfterSecond.getCapturedAt()).isEqualTo(wb1AfterFirst.getCapturedAt());
+        assertThat(wb1AfterSecond.getCheckedAt()).isEqualTo(wb1AfterFirst.getCheckedAt());
         assertThat(wb2AfterSecond.getId()).isEqualTo(wb2AfterFirst.getId());
         assertThat(wb2AfterSecond.getCostPriceKop()).isEqualTo(wb2AfterFirst.getCostPriceKop());
     }
@@ -132,7 +136,7 @@ class MarketplacePriceIntakeControllerTest {
     void aRowWithNeitherPriceIsRejected_fieldCarriesTheIndex() throws Exception {
         String body = batch(
                 item("wb-1", "ozon", 623000L, 145000L, "2026-09-14T18:00:00Z"),
-                item("wb-2", null, null, null, "2026-09-14T18:00:00Z")
+                item("wb-2", null, null, null, null)
         );
 
         mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
@@ -145,12 +149,27 @@ class MarketplacePriceIntakeControllerTest {
 
     @Test
     void sourceWithoutBuyerPriceIsRejected() throws Exception {
-        String body = batch(item("wb-1", "ozon", null, 145000L, "2026-09-14T18:00:00Z"));
+        // checkedAt тоже опущен — иначе строка сразу ловит два разных
+        // нарушения (source и checkedAt оба без buyerPriceKop), и индекс
+        // ошибки в errors[0] перестаёт быть однозначным.
+        String body = batch(item("wb-1", "ozon", null, 145000L, null));
 
         mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errors[0].field").value("items[0].sourcePresenceMatchesBuyerPrice"));
+    }
+
+    @Test
+    void checkedAtWithoutBuyerPriceIsRejected() throws Exception {
+        // Симметрично source: площадку по строке без buyerPriceKop не
+        // спрашивали вовсе, checkedAt тут — уже мусор, а не пропуск.
+        String body = batch(item("wb-1", null, null, 145000L, "2026-09-14T18:00:00Z"));
+
+        mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
+                        .contentType(MediaType.APPLICATION_JSON).content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].field").value("items[0].checkedAtPresenceMatchesBuyerPrice"));
     }
 
     @Test
@@ -173,21 +192,25 @@ class MarketplacePriceIntakeControllerTest {
                 .andExpect(jsonPath("$.errors[0].field").value("items[0].sourcePresenceMatchesBuyerPrice"));
     }
 
-    // ============================================================ 7. неизвестный вариант не топит пачку
+    // ============================================================ 7. неизвестный вариант — пропуск, не отказ
 
     @Test
-    void unknownProductIdIsRejected_otherRowsInTheBatchAreStillAccepted() throws Exception {
+    void unknownProductIdIsSkipped_notRejected_otherRowsInTheBatchAreStillAccepted() throws Exception {
+        // В аналитике артикулов больше, чем на витрине (172 vs 87) — это
+        // обычный вечер, не мусор: skipped, rejected остаётся нулём, errors пуст.
         String body = batch(
                 item("wb-1", "ozon", 623000L, 145000L, "2026-09-14T18:00:00Z"),
-                item("wb-404", "ozon", 100000L, null, "2026-09-14T18:00:00Z")
+                item("wb-404", "ozon", 100000L, null, "2026-09-14T18:00:00Z"),
+                item("wb-405", "ozon", 100000L, null, "2026-09-14T18:00:00Z")
         );
 
         mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
                         .contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accepted").value(1))
-                .andExpect(jsonPath("$.rejected").value(1))
-                .andExpect(jsonPath("$.errors[0].field").value("items[1].productId"));
+                .andExpect(jsonPath("$.skipped").value(2))
+                .andExpect(jsonPath("$.rejected").value(0))
+                .andExpect(jsonPath("$.errors").isEmpty());
 
         assertThat(marketplacePrices.findByProductIdAndSource("wb-1", "ozon")).isPresent();
         assertThat(marketplacePrices.count()).isEqualTo(1);
@@ -199,7 +222,7 @@ class MarketplacePriceIntakeControllerTest {
     void aVariantMissingFromTheNewBatchKeepsItsPriorValues_verifiedByReadingTheDatabase() throws Exception {
         String firstBatch = batch(
                 item("wb-1", "ozon", 623000L, 145000L, "2026-09-14T18:00:00Z"),
-                item("wb-2", null, null, 98000L, "2026-09-14T18:00:00Z")
+                item("wb-2", null, null, 98000L, null)
         );
         mockMvc.perform(post(URL).header("X-Pricing-Secret", SECRET)
                         .contentType(MediaType.APPLICATION_JSON).content(firstBatch))
@@ -217,7 +240,7 @@ class MarketplacePriceIntakeControllerTest {
         assertThat(wb1After.getId()).isEqualTo(wb1Before.getId());
         assertThat(wb1After.getBuyerPriceKop()).isEqualTo(623000L);
         assertThat(wb1After.getCostPriceKop()).isEqualTo(145000L);
-        assertThat(wb1After.getCapturedAt()).isEqualTo(wb1Before.getCapturedAt());
+        assertThat(wb1After.getCheckedAt()).isEqualTo(wb1Before.getCheckedAt());
     }
 
     // ============================================================ 9. секрет
