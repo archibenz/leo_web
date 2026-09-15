@@ -77,31 +77,114 @@ export function TextField({label, value, onChange, rows, hint, error}: {
 
 // Пустое поле цены — это ПРЕДЗАКАЗ, а не ноль: витрина показывает «Предзаказ»
 // и ничего не кладёт в корзину. Поэтому '' уезжает как null, а не как 0.
-export function NumberField({label, value, onChange, hint}: {
+export function NumberField({label, value, onChange, hint, disabled}: {
   label: string;
   value: number | null;
   onChange: (next: number | null) => void;
   hint?: string;
+  // Поле не спрятано, а именно disabled — владелец обязан ВИДЕТЬ, что здесь
+  // есть значение, которое сейчас ни на что не влияет (см. VariantForm,
+  // manualPriceInactive), а не решить, что поле пропало или сломалось.
+  disabled?: boolean;
 }) {
   const id = `wv-edit-${label.replace(/\s+/g, '-')}`;
   return (
-    <label htmlFor={id} className="block">
-      <EditorLabel>{label}</EditorLabel>
-      <input
-        id={id}
-        type="number"
-        inputMode="numeric"
-        value={value ?? ''}
-        onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))}
-        className={inputClass}
-        style={{border: `1px solid ${HAIR}`, color: INK}}
-      />
+    // Хинт — СНАРУЖИ <label>, не внутри (как раньше): вложенный текст входит в
+    // вычисляемое имя <label>, и getByLabelText('Цена, ₽') перестаёт находить
+    // поле, как только у него появляется hint — имя становится «Цена, ₽Пусто —
+    // предзаказ…» целиком. Тот же приём, что уже в TextField/DateField.
+    <div>
+      <label htmlFor={id} className="block">
+        <EditorLabel>{label}</EditorLabel>
+        <input
+          id={id}
+          type="number"
+          inputMode="numeric"
+          value={value ?? ''}
+          onChange={(e) => onChange(e.target.value === '' ? null : Number(e.target.value))}
+          className={`${inputClass}${disabled ? ' opacity-50' : ''}`}
+          style={{border: `1px solid ${HAIR}`, color: INK}}
+          disabled={disabled}
+        />
+      </label>
       {hint && (
         <span className="mt-1 block text-[11px] leading-snug" style={{color: MUTED}}>
           {hint}
         </span>
       )}
-    </label>
+    </div>
+  );
+}
+
+// Скидка, % — целое (границы проверяет и подписывает вызывающая форма, см.
+// VariantForm.discountPctError). min-h-11 — тот же приём, что у SelectField
+// ниже: голый inputClass (px-3 py-2 при text-[13px]) не дотягивает до 44px, а
+// зона нажатия НОВОГО поля обязана — в отличие от старых полей этой же формы,
+// которые её сегодня нарушают (лов lw-cjzy, отдельный бид, не этот).
+//
+// type="text" + inputMode="numeric", НЕ type="number": у number-инпута
+// одинокий минус (первая клавиша отрицательного значения) браузер
+// санитизирует ДО того, как код увидит e.target.value — оно читается пустым,
+// React тут же откатывает контролируемое поле к последнему принятому числу, и
+// «−1» физически не набрать (поймано на тесте отбоя отрицательной скидки).
+// text этой санитизации не подвержен вовсе; числовая клавиатура на телефоне
+// всё равно приходит через inputMode.
+export function PercentField({label, value, onChange, hint, error}: {
+  label: string;
+  value: number;
+  onChange: (next: number) => void;
+  hint?: string;
+  error?: string;
+}) {
+  const id = `wv-edit-${label.replace(/\s+/g, '-')}`;
+  const errorId = `${id}-error`;
+  // Буфер — строка, не то же самое число, что снаружи: видимое поле обязано
+  // показывать РОВНО то, что напечатано, включая промежуточные состояния
+  // («−», пусто), которые сами по себе ещё не число и наружу не уходят.
+  // useState(() => …) — ленивый инициализатор, читает value только на монтаж:
+  // PercentField размонтируется целиком при смене варианта (см. VariantForm —
+  // интерстишл «читаю карточку…» между вариантами), так что чужое значение
+  // сюда не протечёт без явной синхронизации.
+  const [text, setText] = useState(() => String(value));
+
+  return (
+    <div>
+      <label htmlFor={id} className="block">
+        <EditorLabel>{label}</EditorLabel>
+        <input
+          id={id}
+          type="text"
+          inputMode="numeric"
+          value={text}
+          onChange={(e) => {
+            const raw = e.target.value;
+            setText(raw);
+            if (raw === '') {
+              onChange(0);
+              return;
+            }
+            const next = Number(raw);
+            // NaN — промежуточное состояние вроде одного «−»: буфер его уже
+            // показывает (setText выше), а наружу ждём следующую цифру.
+            if (!Number.isNaN(next)) onChange(next);
+          }}
+          className={`${inputClass} min-h-11`}
+          style={{border: `1px solid ${HAIR}`, color: INK}}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? errorId : undefined}
+        />
+      </label>
+      {hint && (
+        <span className="mt-1 block text-[11px] leading-snug" style={{color: MUTED}}>
+          {hint}
+        </span>
+      )}
+      {error && (
+        <p id={errorId} role="alert" className="mt-1 text-[13px] leading-snug" style={{color: SIGNAL}}>
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 
