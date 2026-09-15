@@ -110,6 +110,10 @@ public class SecurityConfig {
                         // exist and rely on the controller-side X-Bot-Secret check.
                         .requestMatchers("/api/bot/admin/**").permitAll()
                         .requestMatchers("/api/bot/**").permitAll()
+                        // Приём цен от базы аналитики: тот же приём, что у бота —
+                        // permitAll на уровне Spring Security, реальная проверка
+                        // X-Pricing-Secret живёт в MarketplacePriceIntakeController.
+                        .requestMatchers("/api/integrations/marketplace-prices").permitAll()
                         // Authenticated APIs (JWT)
                         .requestMatchers("/api/me/**").authenticated()
                         .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")

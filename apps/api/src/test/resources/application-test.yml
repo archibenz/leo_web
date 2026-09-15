@@ -23,6 +23,8 @@ app:
   bot:
     api-secret: test-bot-secret
     username: test_bot
+  pricing:
+    intake-secret: test-pricing-secret
   resend:
     api-key: "DO-NOT-USE-test-resend-api-key"
     from: "test@test.com"
