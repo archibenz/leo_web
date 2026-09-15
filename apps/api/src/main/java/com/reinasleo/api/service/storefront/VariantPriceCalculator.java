@@ -47,7 +47,19 @@ public class VariantPriceCalculator {
         boolean manual = PRICE_SOURCE_MANUAL.equals(source);
 
         Long buyerPriceKop = manual ? null : prices.buyerPriceKop(variant.getId(), source);
-        boolean sourceMissing = !manual && buyerPriceKop == null;
+        // НОЛЬ ОТ ПЛОЩАДКИ — ЭТО «ЦЕНЫ НЕТ», А НЕ «ЦЕНА НОЛЬ». Ozon кладёт
+        // "0.0000" в незаполненные поля цен. Приём такую строку отвергает
+        // (MarketplacePriceItemRequest), но проверка на границе защищает от
+        // одного источника, а это утверждение — от любого, включая тот,
+        // который заведут позже.
+        //
+        // Порог себестоимости здесь НЕ СПАСАЕТ, и это проверено построчно:
+        // при основе 0 порог поднимает цену со скидкой до себестоимости, но
+        // salePrice тут же обнуляется (effective >= basePrice, 2500 >= 0), и
+        // наружу уходит basePrice = 0.00 без скидки. Покупатель видит 0 ₽
+        // даже при известной себестоимости. Сторож стережёт скидку, а не
+        // основу, и помочь тут не может по устройству.
+        boolean sourceMissing = !manual && (buyerPriceKop == null || buyerPriceKop <= 0);
 
         // Источник пропал — откат на ручную цену, а не на null: решение
         // владельца, зафиксированное в брифе ("при пропавшем источнике держим
