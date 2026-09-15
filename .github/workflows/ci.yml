@@ -256,6 +256,21 @@ jobs:
       - name: Установить Chromium
         run: npx playwright install --with-deps chromium
 
+      # Дев-сервер компилирует страницы по запросу, и на холодном раннере это
+      # и есть главная статья расхода: первый прогон занял шесть минут против
+      # двух с половиной на своей машине с прогретым .next. Кэш переносит
+      # компиляцию между прогонами; ключ включает исходники, поэтому правка
+      # кода его честно обесценивает, а restore-keys оставляет частичную
+      # выгоду.
+      - name: Кэш компиляции Next
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4 (latest)
+        with:
+          path: apps/web/.next/cache
+          key: next-dev-${{ runner.os }}-${{ hashFiles('apps/web/package-lock.json') }}-${{ hashFiles('apps/web/app/**', 'apps/web/components/**', 'apps/web/lib/**') }}
+          restore-keys: |
+            next-dev-${{ runner.os }}-${{ hashFiles('apps/web/package-lock.json') }}-
+            next-dev-${{ runner.os }}-
+
       # Дев-сервер поднимает сам Playwright (webServer в конфиге) и передаёт ему
       # CATALOGUE_SOURCE=fixture. Отдельного шага запуска здесь нет намеренно:
       # два места, поднимающих сервер, однажды разойдутся настройками.
@@ -264,6 +279,10 @@ jobs:
         env:
           PLAYWRIGHT_JSON_OUTPUT_NAME: e2e-report.json
 
+      # Имена молчащих печатаются КАЖДЫЙ РАЗ, а не только при падении порога:
+      # первый же прогон на раннере дал семь вместо пяти, и по одному числу
+      # было не понять, кто добавился. Счёт без имён — заклинание.
+      #
       # ПОЧЕМУ ПРОПУЩЕННЫЕ СЧИТАЮТСЯ ОТДЕЛЬНО. «Зелёный» с пятью молчащими
       # спеками и «зелёный» с нулём — разные утверждения, а выглядят одинаково.
       # Через месяц никто не вспомнит, какой из них перед ним, и отключить
@@ -299,9 +318,20 @@ jobs:
               console.log("::error::отчёта нет — прогон не дошёл до записи результата");
               process.exit(1);
             }
-            const {stats} = JSON.parse(fs.readFileSync(путь, "utf8"));
+            const отчёт = JSON.parse(fs.readFileSync(путь, "utf8"));
+            const stats = отчёт.stats;
             const порог = Number(process.env.E2E_EXPECTED_SKIPPED);
             console.log(`${stats.expected} зелёных · ${stats.skipped} пропущено · ${stats.unexpected} упало · ${stats.flaky} с повтора`);
+            const молчащие = [];
+            const обход = (узел) => {
+              for (const spec of узел.specs || []) {
+                const тихо = (spec.tests || []).every((t) => t.status === "skipped" || (t.results || []).every((r) => r.status === "skipped"));
+                if (тихо) молчащие.push(`${узел.file || ""} → ${spec.title}`);
+              }
+              for (const под of узел.suites || []) обход(под);
+            };
+            for (const корень of отчёт.suites || []) обход(корень);
+            for (const м of молчащие) console.log(`  молчит: ${м}`);
             if (stats.skipped > порог) {
               console.log(`::error::пропущенных стало ${stats.skipped} при пороге ${порог}. Спеку отключили — впишите причину и поднимите E2E_EXPECTED_SKIPPED в .github/workflows/ci.yml`);
               process.exit(1);
