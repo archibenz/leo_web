@@ -62,10 +62,14 @@ const FILES: ReadonlyArray<string> = [
   'app/[locale]/(admin)/admin/inventory/page.tsx',
   'components/admin/AdminLayout.tsx',
   'components/admin/AdminPrimitives.tsx',
+  'components/admin/ProductForm.tsx',
+  'components/admin/CollectionForm.tsx',
+  'components/admin/CareGuideForm.tsx',
   'components/Toaster.tsx',
   ...tsxIn('components/admin/shell'),
   ...tsxIn('components/admin/dashboard'),
   ...tsxIn('components/admin/list'),
+  ...tsxIn('components/admin/form'),
 ];
 
 const FORBIDDEN: ReadonlyArray<{name: string; pattern: RegExp}> = [

@@ -5,6 +5,10 @@ import {useTranslations} from 'next-intl';
 import {usePathname, useRouter} from 'next/navigation';
 import {apiFetch} from '../../lib/api';
 import ImageUpload from './ImageUpload';
+import {Input} from '../ui/input';
+import {Textarea} from '../ui/textarea';
+import {Panel} from './dashboard/panel';
+import {FormActions, FormField} from './form/field';
 
 interface CollectionFormProps {
   collectionId?: string;
@@ -73,63 +77,56 @@ export default function CollectionForm({collectionId, isNew}: CollectionFormProp
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="space-y-1.5">
-        <label className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">{t('name')}</label>
-        <input
-          value={form.name}
-          onChange={e => setForm(prev => ({...prev, name: e.target.value}))}
-          className="admin-input"
-          required
-        />
-      </div>
+    <form className="*:mb-6 last:*:mb-0 pb-20" onSubmit={handleSubmit}>
+      <Panel title={t('name')}>
+        <div className="space-y-6">
+          <FormField id="collection-name" label={t('name')}>
+            <Input
+              className="min-h-11"
+              id="collection-name"
+              onChange={e => setForm(prev => ({...prev, name: e.target.value}))}
+              required
+              value={form.name}
+            />
+          </FormField>
 
-      <div className="space-y-1.5">
-        <label className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">{t('description')}</label>
-        <textarea
-          value={form.description}
-          onChange={e => setForm(prev => ({...prev, description: e.target.value}))}
-          className="admin-input min-h-[80px]"
-        />
-      </div>
+          <FormField id="collection-description" label={t('description')}>
+            <Textarea
+              className="min-h-24"
+              id="collection-description"
+              onChange={e => setForm(prev => ({...prev, description: e.target.value}))}
+              value={form.description}
+            />
+          </FormField>
 
-      <div className="space-y-1.5">
-        <label className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">{t('sortOrder')}</label>
-        <input
-          type="number"
-          value={form.sortOrder}
-          onChange={e => setForm(prev => ({...prev, sortOrder: parseInt(e.target.value) || 0}))}
-          className="admin-input w-24"
-        />
-      </div>
+          <FormField id="collection-sort" label={t('sortOrder')}>
+            <Input
+              className="min-h-11 w-28"
+              id="collection-sort"
+              inputMode="numeric"
+              onChange={e => setForm(prev => ({...prev, sortOrder: parseInt(e.target.value) || 0}))}
+              type="number"
+              value={form.sortOrder}
+            />
+          </FormField>
+        </div>
+      </Panel>
 
-      <div className="space-y-1.5">
-        <label className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">{t('image')}</label>
+      <Panel title={t('image')}>
         <ImageUpload
           images={form.imageUrl ? [{src: form.imageUrl, alt: form.name}] : []}
           onChange={handleImageChange}
         />
-      </div>
+      </Panel>
 
-      <div className="flex items-center gap-4">
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-full bg-[var(--accent)] px-6 py-2.5 text-sm font-medium text-[var(--paper-base)] transition hover:opacity-90 disabled:opacity-50"
-        >
-          {saving ? '...' : t('save')}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push(`/${locale}/admin/collections`)}
-          className="text-sm text-[var(--ink-soft)] hover:text-[var(--ink)] transition"
-        >
-          {t('cancel')}
-        </button>
-        {message && (
-          <span className="text-sm text-[var(--accent)]">{message}</span>
-        )}
-      </div>
+      <FormActions
+        cancelLabel={t('cancel')}
+        message={message}
+        onCancel={() => router.push(`/${locale}/admin/collections`)}
+        saveLabel={t('save')}
+        saving={saving}
+        savingLabel={t('saving')}
+      />
     </form>
   );
 }

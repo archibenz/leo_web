@@ -24,12 +24,19 @@ import {describe, it, expect} from 'vitest';
 const ROOTS = ['app', 'components'] as const;
 const TEMP_RULE = '.admin-input:focus-visible';
 
+// Тесты из обхода исключены, и это не оптимизация. Этот файл САМ содержит
+// строку 'admin-input' — он же её и ищет. Без исключения сторож находил себя,
+// вечно видел «класс ещё жив» и не сработал бы НИКОГДА, даже когда последний
+// экран переедет. Поймано на том, что он насчитал три файла там, где их два.
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {
-    if (name === 'node_modules' || name === '.next') continue;
+    if (name === 'node_modules' || name === '.next' || name === '__tests__') continue;
     const full = join(dir, name);
     if (statSync(full).isDirectory()) walk(full, out);
-    else if (full.endsWith('.tsx') || full.endsWith('.ts')) out.push(full);
+    else if (full.endsWith('.tsx') || full.endsWith('.ts')) {
+      if (full.includes('.test.')) continue;
+      out.push(full);
+    }
   }
   return out;
 }

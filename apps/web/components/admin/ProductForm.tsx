@@ -6,6 +6,19 @@ import {usePathname, useRouter} from 'next/navigation';
 import {apiFetch} from '../../lib/api';
 import ImageUpload from './ImageUpload';
 import {CARE_SYMBOL_KEYS, CareSymbol} from '../CareSymbols';
+import {Input} from '../ui/input';
+import {Textarea} from '../ui/textarea';
+import {Switch} from '../ui/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import {Panel} from './dashboard/panel';
+import {Notice} from './list/notice';
+import {FormActions, FormField} from './form/field';
 
 type Collection = {
   id: string;
@@ -20,6 +33,28 @@ interface ProductFormProps {
 const CATEGORY_OPTIONS = ['dresses', 'outerwear', 'tailoring', 'knitwear', 'blouses', 'skirts', 'trousers'];
 const OCCASION_OPTIONS = ['evening', 'office', 'casual', 'resort', 'ceremony'];
 const SIZE_OPTIONS = ['XS', 'S', 'M', 'L', 'XL'];
+
+// Select из shadcn запрещает пустую строку как значение пункта: пустая строка
+// у него означает «ничего не выбрано» и ломает сам список. Поэтому «не
+// выбрано» получает свою метку, а на границе она превращается обратно в
+// пустую строку — договор сохранения от этого не меняется ни на поле.
+const NONE = '__none__';
+
+// Число из поля ввода. Прежде здесь стояло `parseInt(value) || 5`, и это
+// давало ДВЕ поломки сразу:
+//
+// 1. Ноль был недостижим. `parseInt('0') || 5` возвращает 5 — владелец ставил
+//    порог 0, сохранял, и получал 5, ничего об этом не узнав.
+// 2. Очистить и набрать заново было нельзя. Пустая строка давала 5, поле
+//    показывало 5, и набранная следом тройка приписывалась к нему: выходило 53.
+//
+// Запасное значение — это НАЧАЛЬНОЕ значение, и его место в useState, где оно
+// и стоит (lowStockThreshold: 5). Подставлять его на каждом нажатии значит
+// спорить с тем, что человек набирает.
+function числоИзПоля(значение: string): number {
+  const n = parseInt(значение, 10);
+  return Number.isNaN(n) ? 0 : n;
+}
 
 export default function ProductForm({productId, isNew}: ProductFormProps) {
   const t = useTranslations('admin.product');
@@ -156,7 +191,7 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form className="max-w-4xl *:mb-6 last:*:mb-0 pb-20" onSubmit={handleSubmit}>
       {/* Половина полей этой формы пишется в строку ВАРИАНТА (`products`), а
           витрина берёт имя и описание из МОДЕЛИ (`product_models`) — см.
           StorefrontMapping, где из варианта читаются только price, salePrice,
@@ -166,185 +201,255 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
           Поведение не трогаем (поля нужны боту и оповещениям склада) — говорим
           правду словами. Снять подпись можно будет только вместе с выводом
           полей модели в редактор, не раньше. */}
-      <p className="rounded border border-[var(--ink-soft)]/25 px-3 py-2 text-[11px] leading-relaxed text-[var(--ink-soft)]">
-        {t('scopeNotice')}
-      </p>
+      <Notice>{t('scopeNotice')}</Notice>
 
-      {/* ID (only for new) */}
-      {isNew && (
-        <Field label={t('id')} hint={t('idHint')}>
-          <input
-            value={form.id}
-            onChange={e => setForm(prev => ({...prev, id: e.target.value}))}
-            className="admin-input"
-            required
-            placeholder="e.g. silk-evening-gown"
-          />
-        </Field>
-      )}
+      <Panel title={t('title')}>
+        <div className="space-y-6">
+          {isNew && (
+            <FormField hint={t('idHint')} id="product-id" label={t('id')}>
+              <Input
+                className="min-h-11"
+                id="product-id"
+                onChange={e => setForm(prev => ({...prev, id: e.target.value}))}
+                placeholder="e.g. silk-evening-gown"
+                required
+                value={form.id}
+              />
+            </FormField>
+          )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label={t('title')} hint={t('notOnSite')}>
-          <input value={form.title} onChange={e => setForm(prev => ({...prev, title: e.target.value}))} className="admin-input" required />
-        </Field>
-        <Field label={t('subtitle')} hint={t('notOnSite')}>
-          <input value={form.subtitle} onChange={e => setForm(prev => ({...prev, subtitle: e.target.value}))} className="admin-input" placeholder="e.g. Evening · Silk" />
-        </Field>
-      </div>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <FormField hint={t('notOnSite')} id="product-title" label={t('title')}>
+              <Input
+                className="min-h-11"
+                id="product-title"
+                onChange={e => setForm(prev => ({...prev, title: e.target.value}))}
+                required
+                value={form.title}
+              />
+            </FormField>
+            <FormField hint={t('notOnSite')} id="product-subtitle" label={t('subtitle')}>
+              <Input
+                className="min-h-11"
+                id="product-subtitle"
+                onChange={e => setForm(prev => ({...prev, subtitle: e.target.value}))}
+                placeholder="e.g. Evening · Silk"
+                value={form.subtitle}
+              />
+            </FormField>
+          </div>
 
-      <Field label={t('description')} hint={t('notOnSite')}>
-        <textarea value={form.description} onChange={e => setForm(prev => ({...prev, description: e.target.value}))} className="admin-input min-h-[80px]" />
-      </Field>
-
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Field label={t('price')}>
-          <input type="number" step="0.01" value={form.price} onChange={e => setForm(prev => ({...prev, price: parseFloat(e.target.value) || 0}))} className="admin-input" required />
-        </Field>
-        <Field label={t('stock')}>
-          <input type="number" value={form.stockQuantity} onChange={e => setForm(prev => ({...prev, stockQuantity: parseInt(e.target.value) || 0}))} className="admin-input" />
-        </Field>
-        <Field label={t('threshold')}>
-          <input type="number" value={form.lowStockThreshold} onChange={e => setForm(prev => ({...prev, lowStockThreshold: parseInt(e.target.value) || 5}))} className="admin-input" />
-        </Field>
-        <Field label={t('sku')}>
-          <input value={form.sku} onChange={e => setForm(prev => ({...prev, sku: e.target.value}))} className="admin-input" />
-        </Field>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Field label={t('category')}>
-          <select value={form.category} onChange={e => setForm(prev => ({...prev, category: e.target.value}))} className="admin-input">
-            <option value="">—</option>
-            {CATEGORY_OPTIONS.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </Field>
-        <Field label={t('occasion')}>
-          <select value={form.occasion} onChange={e => setForm(prev => ({...prev, occasion: e.target.value}))} className="admin-input">
-            <option value="">—</option>
-            {OCCASION_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
-          </select>
-        </Field>
-        <Field label={t('color')}>
-          <input value={form.color} onChange={e => setForm(prev => ({...prev, color: e.target.value}))} className="admin-input" />
-        </Field>
-        <Field label={t('material')}>
-          <input value={form.material} onChange={e => setForm(prev => ({...prev, material: e.target.value}))} className="admin-input" />
-        </Field>
-      </div>
-
-      <Field label={t('collection')}>
-        <select value={form.collectionId} onChange={e => setForm(prev => ({...prev, collectionId: e.target.value}))} className="admin-input">
-          <option value="">—</option>
-          {collections.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-      </Field>
-
-      {/* Sizes */}
-      <Field label={t('sizes')}>
-        <div className="flex flex-wrap gap-2">
-          {SIZE_OPTIONS.map(size => (
-            <button
-              key={size}
-              type="button"
-              onClick={() => toggleSize(size)}
-              className={`rounded-full px-4 py-1.5 text-sm transition ${
-                form.sizes.includes(size)
-                  ? 'bg-[var(--accent)] text-[var(--paper-base)]'
-                  : 'bg-[var(--ink)]/5 text-[var(--ink-soft)] hover:bg-[var(--ink)]/10'
-              }`}
-            >
-              {size}
-            </button>
-          ))}
+          <FormField hint={t('notOnSite')} id="product-description" label={t('description')}>
+            <Textarea
+              className="min-h-24"
+              id="product-description"
+              onChange={e => setForm(prev => ({...prev, description: e.target.value}))}
+              value={form.description}
+            />
+          </FormField>
         </div>
-      </Field>
+      </Panel>
 
-      {/* Active toggle */}
-      <label className="flex items-center gap-3 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={form.active}
-          onChange={e => setForm(prev => ({...prev, active: e.target.checked}))}
-          className="accent-[var(--accent)] h-4 w-4"
-        />
-        <span className="text-sm text-[var(--ink)]">{t('active')}</span>
-      </label>
+      <Panel title={t('price')}>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <FormField id="product-price" label={t('price')}>
+            <Input
+              className="min-h-11"
+              id="product-price"
+              inputMode="decimal"
+              onChange={e => setForm(prev => ({...prev, price: parseFloat(e.target.value) || 0}))}
+              required
+              step="0.01"
+              type="number"
+              value={form.price}
+            />
+          </FormField>
+          <FormField id="product-stock" label={t('stock')}>
+            <Input
+              className="min-h-11"
+              id="product-stock"
+              inputMode="numeric"
+              onChange={e => setForm(prev => ({...prev, stockQuantity: parseInt(e.target.value) || 0}))}
+              type="number"
+              value={form.stockQuantity}
+            />
+          </FormField>
+          <FormField id="product-threshold" label={t('threshold')}>
+            <Input
+              className="min-h-11"
+              id="product-threshold"
+              inputMode="numeric"
+              onChange={e => setForm(prev => ({...prev, lowStockThreshold: числоИзПоля(e.target.value)}))}
+              type="number"
+              value={form.lowStockThreshold}
+            />
+          </FormField>
+          <FormField id="product-sku" label={t('sku')}>
+            <Input
+              className="min-h-11"
+              id="product-sku"
+              onChange={e => setForm(prev => ({...prev, sku: e.target.value}))}
+              value={form.sku}
+            />
+          </FormField>
+        </div>
+      </Panel>
 
-      {/* Images */}
-      <Field label={t('images')}>
-        <ImageUpload images={form.images} onChange={images => setForm(prev => ({...prev, images}))} />
-      </Field>
-
-      {/* Care instructions */}
-      <div className="space-y-3 pt-2 border-t border-[var(--ink)]/10">
-        <p className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">
-          {locale === 'ru' ? 'Уход за изделием' : 'Care Instructions'}
-        </p>
-        <div className="grid grid-cols-5 gap-2">
-          {CARE_SYMBOL_KEYS.map(key => {
-            const selected = form.careSymbols.includes(key);
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setForm(prev => ({
-                  ...prev,
-                  careSymbols: prev.careSymbols.includes(key)
-                    ? prev.careSymbols.filter(s => s !== key)
-                    : [...prev.careSymbols, key],
-                }))}
-                className={`flex flex-col items-center gap-1 rounded-lg p-1.5 border transition ${
-                  selected
-                    ? 'border-[var(--accent)] bg-[var(--accent)]/10'
-                    : 'border-[var(--ink)]/10 hover:border-[var(--ink)]/20'
-                }`}
+      <Panel title={t('category')}>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <FormField id="product-category" label={t('category')}>
+              <Select
+                onValueChange={value => setForm(prev => ({...prev, category: value === NONE ? '' : value}))}
+                value={form.category || NONE}
               >
-                <CareSymbol symbolKey={key} locale={locale} size={24} />
-                <span className="text-[8px] text-[var(--ink-soft)] text-center leading-tight">
-                  {key.replace(/_/g, ' ')}
-                </span>
-              </button>
-            );
-          })}
+                <SelectTrigger className="min-h-11" id="product-category">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>{t('notChosen')}</SelectItem>
+                  {CATEGORY_OPTIONS.map(option => (
+                    <SelectItem key={option} value={option}>{t(`categories.${option}`)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+            <FormField id="product-occasion" label={t('occasion')}>
+              <Select
+                onValueChange={value => setForm(prev => ({...prev, occasion: value === NONE ? '' : value}))}
+                value={form.occasion || NONE}
+              >
+                <SelectTrigger className="min-h-11" id="product-occasion">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE}>{t('notChosen')}</SelectItem>
+                  {OCCASION_OPTIONS.map(option => (
+                    <SelectItem key={option} value={option}>{t(`occasions.${option}`)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </FormField>
+            <FormField id="product-color" label={t('color')}>
+              <Input
+                className="min-h-11"
+                id="product-color"
+                onChange={e => setForm(prev => ({...prev, color: e.target.value}))}
+                value={form.color}
+              />
+            </FormField>
+            <FormField id="product-material" label={t('material')}>
+              <Input
+                className="min-h-11"
+                id="product-material"
+                onChange={e => setForm(prev => ({...prev, material: e.target.value}))}
+                value={form.material}
+              />
+            </FormField>
+          </div>
+
+          <FormField id="product-collection" label={t('collection')}>
+            <Select
+              onValueChange={value => setForm(prev => ({...prev, collectionId: value === NONE ? '' : value}))}
+              value={form.collectionId || NONE}
+            >
+              <SelectTrigger className="min-h-11" id="product-collection">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE}>{t('noCollection')}</SelectItem>
+                {collections.map(collection => (
+                  <SelectItem key={collection.id} value={collection.id}>{collection.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+
+          {/* Размеры — переключатели с состоянием, а не кнопки: прежде выбор
+              отличался только цветом, и диктор о нём не сообщал. */}
+          <FormField id="product-sizes" label={t('sizes')}>
+            <div className="flex flex-wrap gap-2" id="product-sizes">
+              {SIZE_OPTIONS.map(size => (
+                <button
+                  aria-pressed={form.sizes.includes(size)}
+                  className={`min-h-11 min-w-11 rounded-md border px-4 text-[13px] transition-colors ${
+                    form.sizes.includes(size)
+                      ? 'border-foreground bg-primary text-primary-foreground'
+                      : 'border-border hover:bg-muted'
+                  }`}
+                  key={size}
+                  onClick={() => toggleSize(size)}
+                  type="button"
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </FormField>
+
+          <div className="flex min-h-11 items-center gap-3">
+            <Switch
+              checked={form.active}
+              id="product-active"
+              onCheckedChange={value => setForm(prev => ({...prev, active: value}))}
+            />
+            <label className="text-[13px]" htmlFor="product-active">{t('active')}</label>
+          </div>
         </div>
-        <textarea
-          className="admin-input min-h-[60px]"
-          value={form.careText}
-          onChange={e => setForm(prev => ({...prev, careText: e.target.value}))}
-          placeholder={locale === 'ru' ? 'Текстовое описание ухода' : 'Care description text'}
-        />
-      </div>
+      </Panel>
 
-      {/* Actions */}
-      <div className="flex items-center gap-4">
-        <button
-          type="submit"
-          disabled={saving}
-          className="rounded-full bg-[var(--accent)] px-6 py-2.5 text-sm font-medium text-[var(--paper-base)] transition hover:opacity-90 disabled:opacity-50"
-        >
-          {saving ? '...' : t('save')}
-        </button>
-        <button
-          type="button"
-          onClick={() => router.push(`/${locale}/admin/products`)}
-          className="text-sm text-[var(--ink-soft)] hover:text-[var(--ink)] transition"
-        >
-          {t('cancel')}
-        </button>
-        {message && (
-          <span className="text-sm text-[var(--accent)]">{message}</span>
-        )}
-      </div>
+      <Panel title={t('images')}>
+        <ImageUpload images={form.images} onChange={images => setForm(prev => ({...prev, images}))} />
+      </Panel>
+
+      <Panel title={locale === 'ru' ? 'Уход за изделием' : 'Care Instructions'}>
+        <div className="space-y-5">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+            {CARE_SYMBOL_KEYS.map(key => {
+              const selected = form.careSymbols.includes(key);
+              return (
+                <button
+                  aria-pressed={selected}
+                  className={`flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-lg border p-2 transition-colors ${
+                    selected ? 'border-foreground bg-muted' : 'border-border hover:bg-muted'
+                  }`}
+                  key={key}
+                  onClick={() => setForm(prev => ({
+                    ...prev,
+                    careSymbols: prev.careSymbols.includes(key)
+                      ? prev.careSymbols.filter(s => s !== key)
+                      : [...prev.careSymbols, key],
+                  }))}
+                  type="button"
+                >
+                  <CareSymbol locale={locale} size={24} symbolKey={key} />
+                  <span className="text-center text-[8px] leading-tight text-muted-foreground">
+                    {key.replace(/_/g, ' ')}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <FormField id="product-care-text" label={locale === 'ru' ? 'Описание ухода' : 'Care description'}>
+            <Textarea
+              className="min-h-20"
+              id="product-care-text"
+              onChange={e => setForm(prev => ({...prev, careText: e.target.value}))}
+              placeholder={locale === 'ru' ? 'Текстовое описание ухода' : 'Care description text'}
+              value={form.careText}
+            />
+          </FormField>
+        </div>
+      </Panel>
+
+      <FormActions
+        cancelLabel={t('cancel')}
+        message={message}
+        onCancel={() => router.push(`/${locale}/admin/products`)}
+        saveLabel={t('save')}
+        saving={saving}
+        savingLabel={t('saving')}
+      />
     </form>
-  );
-}
-
-function Field({label, hint, children}: {label: string; hint?: string; children: React.ReactNode}) {
-  return (
-    <div className="space-y-1.5">
-      <label className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">{label}</label>
-      {hint && <p className="text-[10px] text-[var(--ink-soft)]/60">{hint}</p>}
-      {children}
-    </div>
   );
 }

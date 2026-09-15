@@ -1184,7 +1184,26 @@
       "updateStock": "Update Stock",
       "created": "Product created",
       "updated": "Product updated",
-      "stockShort": "In stock"
+      "stockShort": "In stock",
+      "saving": "Saving…",
+      "notChosen": "Not chosen",
+      "noCollection": "No collection",
+      "categories": {
+        "dresses": "Dresses",
+        "outerwear": "Outerwear",
+        "tailoring": "Tailoring",
+        "knitwear": "Knitwear",
+        "blouses": "Blouses",
+        "skirts": "Skirts",
+        "trousers": "Trousers"
+      },
+      "occasions": {
+        "evening": "Evening",
+        "office": "Office",
+        "casual": "Casual",
+        "resort": "Resort",
+        "ceremony": "Ceremony"
+      }
     },
     "collection": {
       "add": "Add Collection",
@@ -1200,7 +1219,8 @@
       "noCollections": "No collections yet",
       "notOnSiteNotice": "Collections are not shown on the storefront right now — the storefront pages never request them. The section stays useful for the Telegram bot and the older catalogue.",
       "created": "Collection created",
-      "updated": "Collection updated"
+      "updated": "Collection updated",
+      "saving": "Saving…"
     },
     "alert": {
       "lowStock": "Low stock",

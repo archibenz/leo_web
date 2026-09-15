@@ -14,11 +14,12 @@ import ProductForm from '../ProductForm';
 // Проверяется РОВНО ОДНО: какое тело уходит на сервер. Не разметка, не классы,
 // не подписи — они и должны меняться. Тело меняться не должно ничем.
 //
-// Поля выбираются по порядку в разметке, а не по подписи, и это не лень:
-// в нынешней форме подпись НЕ СВЯЗАНА с полем — у <label> нет ни htmlFor, ни
-// вложенного поля. То есть экранный диктор не назовёт ни одного из девятнадцати.
-// Это отдельный дефект, он чинится переездом; но тест, написанный ДО починки,
-// обязан работать с тем, что есть.
+// Поля ищутся ПО ПОДПИСИ — как их ищет человек и как их читает экранный
+// диктор. До переезда так было нельзя: у <label> не было ни htmlFor, ни
+// вложенного поля, и первая редакция этого теста искала по порядку в разметке.
+// Дефект нашёлся именно здесь и починен переездом; ожидаемые тела запросов
+// при этом те же, что были сняты с прежнего кода, — в них не изменилось ни
+// одного поля.
 
 // vi.hoisted обязателен: vi.mock поднимается ВЫШЕ объявлений, и обычный
 // `const apiFetch = vi.fn()` в фабрике оказался бы в мёртвой зоне. Отказ при
@@ -61,15 +62,11 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
-function поля() {
-  const form = document.querySelector('form') as HTMLFormElement;
-  return {
-    form,
-    тексты: Array.from(form.querySelectorAll<HTMLInputElement>('input.admin-input')),
-    области: Array.from(form.querySelectorAll<HTMLTextAreaElement>('textarea.admin-input')),
-    списки: Array.from(form.querySelectorAll<HTMLSelectElement>('select.admin-input')),
-    флажок: form.querySelector<HTMLInputElement>('input[type="checkbox"]')!,
-  };
+// Выпадающие списки теперь Radix, а не родной <select>: выбор делается
+// нажатием на список и затем на пункт.
+async function выбрать(user: ReturnType<typeof userEvent.setup>, подпись: string, пункт: string) {
+  await user.click(screen.getByLabelText(подпись));
+  await user.click(await screen.findByRole('option', {name: пункт}));
 }
 
 describe('форма товара — что уходит на сервер', () => {
@@ -79,39 +76,27 @@ describe('форма товара — что уходит на сервер', ()
 
     await waitFor(() => expect(apiFetch).toHaveBeenCalledWith('/api/admin/collections'));
 
-    const {тексты, области, списки, флажок} = поля();
-    // Порядок в разметке: id, название, подзаголовок, цена, остаток, порог,
-    // артикул, цвет, материал.
-    const [id, title, subtitle, price, stock, threshold, sku, color, material] = тексты;
-    const [description, careText] = области;
-    const [category, occasion, collection] = списки;
-
-    await user.type(id, 'leya-sand');
-    await user.type(title, 'Платье «Лея»');
-    await user.type(subtitle, 'Вечернее · Шёлк');
+    await user.type(screen.getByLabelText('id'), 'leya-sand');
+    await user.type(screen.getByLabelText('title'), 'Платье «Лея»');
+    await user.type(screen.getByLabelText('subtitle'), 'Вечернее · Шёлк');
+    const price = screen.getByLabelText('price');
+    const stock = screen.getByLabelText('stock');
+    const threshold = screen.getByLabelText('threshold');
     await user.clear(price);
     await user.type(price, '28900');
     await user.clear(stock);
     await user.type(stock, '7');
-    // Через fireEvent, а не набором, и причина стоит того, чтобы её записать.
-    // Очистка числового поля вызывает onChange с пустой строкой, а обработчик
-    // подставляет запасное значение (`parseInt(...) || 5`). Поле снова
-    // показывает 5, набранная следом тройка приписывается к нему, и выходит 53.
-    // То есть ОЧИСТИТЬ И НАБРАТЬ ЗАНОВО нельзя — получится не то, что набрал.
-    // Это настоящий дефект ввода, найден этим тестом; чинится вместе с
-    // переездом формы (запасное значение должно применяться при сохранении, а
-    // не на каждом нажатии). Здесь проверяется договор сохранения, а не способ
-    // набора, поэтому значение ставится напрямую.
-    fireEvent.change(threshold, {target: {value: '3'}});
-    await user.type(sku, 'LEYA-S');
-    await user.type(color, 'песок');
-    await user.type(material, 'шёлк');
-    await user.type(description, 'Длинное платье');
-    await user.type(careText, 'Только химчистка');
-    await user.selectOptions(category, 'dresses');
-    await user.selectOptions(occasion, 'evening');
-    await user.selectOptions(collection, 'col-1');
-    await user.click(флажок); // active: true → false
+    await user.clear(threshold);
+    await user.type(threshold, '3');
+    await user.type(screen.getByLabelText('sku'), 'LEYA-S');
+    await user.type(screen.getByLabelText('color'), 'песок');
+    await user.type(screen.getByLabelText('material'), 'шёлк');
+    await user.type(screen.getByLabelText('description'), 'Длинное платье');
+    await user.type(screen.getByLabelText('Описание ухода'), 'Только химчистка');
+    await выбрать(user, 'category', 'categories.dresses');
+    await выбрать(user, 'occasion', 'occasions.evening');
+    await выбрать(user, 'collection', 'Осень');
+    await user.click(screen.getByRole('switch', {name: 'active'})); // true → false
 
     // Размеры — кнопки-чипы, не поля.
     await user.click(screen.getByRole('button', {name: 'M'}));
@@ -119,8 +104,7 @@ describe('форма товара — что уходит на сервер', ()
     apiFetch.mockClear();
     apiFetch.mockResolvedValue({});
 
-    const submit = document.querySelector('button[type="submit"]') as HTMLButtonElement;
-    await user.click(submit);
+    await user.click(screen.getByRole('button', {name: 'save'}));
 
     await waitFor(() => expect(apiFetch).toHaveBeenCalledWith('/api/admin/products', expect.anything()));
 
@@ -155,16 +139,14 @@ describe('форма товара — что уходит на сервер', ()
     render(<ProductForm isNew productId={undefined} />);
     await waitFor(() => expect(apiFetch).toHaveBeenCalledWith('/api/admin/collections'));
 
-    const {тексты} = поля();
-    const [id, title, , price] = тексты;
     // Идентификатор помечен required — без него браузер не даст отправить.
-    await user.type(id, 'min');
-    await user.type(title, 'Минимум');
-    fireEvent.change(price, {target: {value: '100'}});
+    await user.type(screen.getByLabelText('id'), 'min');
+    await user.type(screen.getByLabelText('title'), 'Минимум');
+    fireEvent.change(screen.getByLabelText('price'), {target: {value: '100'}});
 
     apiFetch.mockClear();
     apiFetch.mockResolvedValue({});
-    await user.click(document.querySelector('button[type="submit"]') as HTMLButtonElement);
+    await user.click(screen.getByRole('button', {name: 'save'}));
 
     await waitFor(() => expect(apiFetch).toHaveBeenCalledWith('/api/admin/products', expect.anything()));
     const [, opts] = apiFetch.mock.calls.find(([p]) => p === '/api/admin/products')!;
@@ -178,6 +160,44 @@ describe('форма товара — что уходит на сервер', ()
     }
     // Ухода нет вовсе — не пустой объект, а null.
     expect(body.careInstructions).toBeNull();
+  });
+
+  // Два дефекта ввода, найденные этим файлом при написании договора. Оба про
+  // порог остатка, и оба про одно: запасное значение подставлялось на каждом
+  // нажатии вместо того, чтобы быть начальным.
+  it('порог можно очистить и набрать заново — получается то, что набрал', async () => {
+    const user = userEvent.setup();
+    render(<ProductForm isNew productId={undefined} />);
+    await waitFor(() => expect(apiFetch).toHaveBeenCalledWith('/api/admin/collections'));
+
+    const threshold = screen.getByLabelText('threshold') as HTMLInputElement;
+    await user.clear(threshold);
+    await user.type(threshold, '3');
+
+    // Прежде выходило 53: очистка подставляла 5, и тройка приписывалась к нему.
+    expect(threshold.value).toBe('3');
+  });
+
+  it('порог можно поставить в ноль — прежде ноль молча становился пятёркой', async () => {
+    const user = userEvent.setup();
+    render(<ProductForm isNew productId={undefined} />);
+    await waitFor(() => expect(apiFetch).toHaveBeenCalledWith('/api/admin/collections'));
+
+    await user.type(screen.getByLabelText('id'), 'zero');
+    await user.type(screen.getByLabelText('title'), 'Ноль');
+    const threshold = screen.getByLabelText('threshold');
+    await user.clear(threshold);
+    await user.type(threshold, '0');
+
+    apiFetch.mockClear();
+    apiFetch.mockResolvedValue({});
+    await user.click(screen.getByRole('button', {name: 'save'}));
+
+    await waitFor(() => expect(apiFetch).toHaveBeenCalledWith('/api/admin/products', expect.anything()));
+    const [, opts] = apiFetch.mock.calls.find(([p]) => p === '/api/admin/products')!;
+    // `parseInt('0') || 5` возвращал 5. Владелец ставил ноль, сохранял и
+    // получал пять, ничего об этом не узнав.
+    expect(JSON.parse(opts.body).lowStockThreshold).toBe(0);
   });
 
   it('правка существующего: тот же договор, но PUT по адресу товара', async () => {
@@ -200,7 +220,7 @@ describe('форма товара — что уходит на сервер', ()
 
     apiFetch.mockClear();
     apiFetch.mockResolvedValue({});
-    await user.click(document.querySelector('button[type="submit"]') as HTMLButtonElement);
+    await user.click(screen.getByRole('button', {name: 'save'}));
 
     await waitFor(() =>
       expect(apiFetch).toHaveBeenCalledWith('/api/admin/products/p-1', expect.anything()),

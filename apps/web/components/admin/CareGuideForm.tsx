@@ -4,6 +4,11 @@ import {useState} from 'react';
 import {usePathname, useRouter} from 'next/navigation';
 import AdminLayout from './AdminLayout';
 import {apiFetch} from '../../lib/api';
+import {Input} from '../ui/input';
+import {Textarea} from '../ui/textarea';
+import {Switch} from '../ui/switch';
+import {Panel} from './dashboard/panel';
+import {FormActions, FormField} from './form/field';
 import {CARE_SYMBOL_KEYS, CareSymbol} from '../CareSymbols';
 
 interface CareGuideFormProps {
@@ -24,6 +29,10 @@ export default function CareGuideForm({initial}: CareGuideFormProps) {
   const locale = pathname.split('/')[1] || 'ru';
   const router = useRouter();
   const isEdit = !!initial?.id;
+  // Подписи этого экрана заданы тернарником по локали, а не словарём — так
+  // было и до переезда. Перенос строк в messages это работа про переводы, а
+  // не про вид; смешивать их значило бы раздуть диф там, где смотреть нечего.
+  const ru = locale === 'ru';
 
   const [form, setForm] = useState({
     title: initial?.title ?? '',
@@ -79,127 +88,125 @@ export default function CareGuideForm({initial}: CareGuideFormProps) {
 
   return (
     <AdminLayout>
-      <div className="max-w-2xl space-y-6">
-        <h1 className="text-2xl font-display text-[var(--ink)]">
+      <div className="max-w-3xl *:mb-6 last:*:mb-0 pb-20">
+        <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">
           {isEdit
-            ? (locale === 'ru' ? 'Редактировать' : 'Edit')
-            : (locale === 'ru' ? 'Новая запись по уходу' : 'New Care Guide')}
+            ? (ru ? 'Редактировать' : 'Edit')
+            : (ru ? 'Новая запись по уходу' : 'New Care Guide')}
         </h1>
 
-        <div className="space-y-4">
-          <Field label={locale === 'ru' ? 'Название ткани' : 'Fabric name'}>
-            <input
-              className="admin-input"
-              value={form.title}
-              onChange={e => setForm(prev => ({...prev, title: e.target.value}))}
-              placeholder={locale === 'ru' ? 'Например: Шёлк' : 'e.g. Silk'}
-            />
-          </Field>
-
-          <Field label={locale === 'ru' ? 'Описание' : 'Description'}>
-            <textarea
-              className="admin-input min-h-[100px]"
-              value={form.description}
-              onChange={e => setForm(prev => ({...prev, description: e.target.value}))}
-              placeholder={locale === 'ru' ? 'Общее описание ткани и особенности ухода' : 'General fabric description and care overview'}
-            />
-          </Field>
-
-          <Field label={locale === 'ru' ? 'Советы' : 'Tips'}>
-            <textarea
-              className="admin-input min-h-[80px]"
-              value={form.tips}
-              onChange={e => setForm(prev => ({...prev, tips: e.target.value}))}
-              placeholder={locale === 'ru' ? 'Практические советы по уходу' : 'Practical care tips'}
-            />
-          </Field>
-
-          <Field label={locale === 'ru' ? 'Изображение (URL)' : 'Image URL'}>
-            <input
-              className="admin-input"
-              value={form.image}
-              onChange={e => setForm(prev => ({...prev, image: e.target.value}))}
-              placeholder="https://..."
-            />
-          </Field>
-
-          <Field label={locale === 'ru' ? 'Символы ухода' : 'Care symbols'}>
-            <div className="grid grid-cols-5 gap-3">
-              {CARE_SYMBOL_KEYS.map(key => {
-                const selected = form.careSymbols.includes(key);
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    onClick={() => toggleSymbol(key)}
-                    className={`flex flex-col items-center gap-1 rounded-lg p-2 border transition ${
-                      selected
-                        ? 'border-[var(--accent)] bg-[var(--accent)]/10'
-                        : 'border-[var(--ink)]/10 hover:border-[var(--ink)]/20'
-                    }`}
-                  >
-                    <CareSymbol symbolKey={key} locale={locale} size={28} />
-                    <span className="text-[9px] text-[var(--ink-soft)] text-center leading-tight">
-                      {key.replace(/_/g, ' ')}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </Field>
-
-          <div className="flex gap-4">
-            <Field label={locale === 'ru' ? 'Порядок' : 'Sort order'}>
-              <input
-                type="number"
-                className="admin-input w-24"
-                value={form.sortOrder}
-                onChange={e => setForm(prev => ({...prev, sortOrder: parseInt(e.target.value) || 0}))}
+        <Panel title={ru ? 'Текст' : 'Text'}>
+          <div className="space-y-6">
+            <FormField id="care-title" label={ru ? 'Название ткани' : 'Fabric name'}>
+              <Input
+                className="min-h-11"
+                id="care-title"
+                onChange={e => setForm(prev => ({...prev, title: e.target.value}))}
+                placeholder={ru ? 'Например: Шёлк' : 'e.g. Silk'}
+                value={form.title}
               />
-            </Field>
+            </FormField>
 
-            <Field label={locale === 'ru' ? 'Активно' : 'Active'}>
-              <button
-                type="button"
-                onClick={() => setForm(prev => ({...prev, active: !prev.active}))}
-                className={`mt-1 rounded-full px-4 py-2 text-sm font-medium transition ${
-                  form.active
-                    ? 'bg-green-500/20 text-green-400'
-                    : 'bg-red-500/20 text-red-400'
-                }`}
-              >
-                {form.active ? (locale === 'ru' ? 'Да' : 'Yes') : (locale === 'ru' ? 'Нет' : 'No')}
-              </button>
-            </Field>
+            <FormField id="care-description" label={ru ? 'Описание' : 'Description'}>
+              <Textarea
+                className="min-h-28"
+                id="care-description"
+                onChange={e => setForm(prev => ({...prev, description: e.target.value}))}
+                placeholder={ru ? 'Общее описание ткани и особенности ухода' : 'General fabric description and care overview'}
+                value={form.description}
+              />
+            </FormField>
+
+            <FormField id="care-tips" label={ru ? 'Советы' : 'Tips'}>
+              <Textarea
+                className="min-h-24"
+                id="care-tips"
+                onChange={e => setForm(prev => ({...prev, tips: e.target.value}))}
+                placeholder={ru ? 'Практические советы по уходу' : 'Practical care tips'}
+                value={form.tips}
+              />
+            </FormField>
+
+            <FormField id="care-image" label={ru ? 'Изображение (URL)' : 'Image URL'}>
+              <Input
+                className="min-h-11"
+                id="care-image"
+                inputMode="url"
+                onChange={e => setForm(prev => ({...prev, image: e.target.value}))}
+                placeholder="https://..."
+                value={form.image}
+              />
+            </FormField>
           </div>
-        </div>
+        </Panel>
 
-        <div className="flex items-center gap-4 pt-4">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="rounded-full bg-[var(--accent)] px-8 py-3 text-sm font-medium text-[var(--paper-base)] transition hover:opacity-90 disabled:opacity-50"
-          >
-            {saving
-              ? (locale === 'ru' ? 'Сохранение...' : 'Saving...')
-              : (locale === 'ru' ? 'Сохранить' : 'Save')}
-          </button>
-          {message && (
-            <span className={`text-sm ${message.includes('!') ? 'text-green-400' : 'text-red-400'}`}>
-              {message}
-            </span>
-          )}
-        </div>
+        <Panel title={ru ? 'Символы ухода' : 'Care symbols'}>
+          {/* Значки — не поля ввода, а переключатели с состоянием, и роль у
+              них соответствующая. Прежде это были обычные кнопки, и диктор
+              не сообщал, выбран символ или нет: разница была только в цвете
+              рамки. */}
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+            {CARE_SYMBOL_KEYS.map(key => {
+              const selected = form.careSymbols.includes(key);
+              return (
+                <button
+                  aria-pressed={selected}
+                  className={`flex min-h-20 flex-col items-center justify-center gap-1.5 rounded-lg border p-2 transition-colors ${
+                    selected ? 'border-foreground bg-muted' : 'border-border hover:bg-muted'
+                  }`}
+                  key={key}
+                  onClick={() => toggleSymbol(key)}
+                  type="button"
+                >
+                  <CareSymbol locale={locale} size={28} symbolKey={key} />
+                  <span className="text-center text-[9px] leading-tight text-muted-foreground">
+                    {key.replace(/_/g, ' ')}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </Panel>
+
+        <Panel title={ru ? 'Показ' : 'Visibility'}>
+          <div className="flex flex-wrap items-end gap-8">
+            <FormField id="care-sort" label={ru ? 'Порядок' : 'Sort order'}>
+              <Input
+                className="min-h-11 w-28"
+                id="care-sort"
+                inputMode="numeric"
+                onChange={e => setForm(prev => ({...prev, sortOrder: parseInt(e.target.value) || 0}))}
+                type="number"
+                value={form.sortOrder}
+              />
+            </FormField>
+
+            {/* Было двумя словами «Да»/«Нет» на цветной пилюле — по виду
+                подпись, а не орган управления. Диктор при этом произносил
+                «Да», не сообщая, что это выключатель и что его можно нажать. */}
+            <div className="flex min-h-11 items-center gap-3">
+              <Switch
+                checked={form.active}
+                id="care-active"
+                onCheckedChange={value => setForm(prev => ({...prev, active: value}))}
+              />
+              <label className="text-[13px]" htmlFor="care-active">
+                {ru ? 'Показывать запись' : 'Show this guide'}
+              </label>
+            </div>
+          </div>
+        </Panel>
+
+        <FormActions
+          cancelLabel={ru ? 'Отмена' : 'Cancel'}
+          message={message}
+          onCancel={() => router.push(`/${locale}/admin/care`)}
+          onSave={handleSave}
+          saveLabel={ru ? 'Сохранить' : 'Save'}
+          saving={saving}
+          savingLabel={ru ? 'Сохранение...' : 'Saving...'}
+        />
       </div>
     </AdminLayout>
-  );
-}
-
-function Field({label, children}: {label: string; children: React.ReactNode}) {
-  return (
-    <div className="space-y-1.5">
-      <label className="text-xs font-medium uppercase tracking-wider text-[var(--ink-soft)]">{label}</label>
-      {children}
-    </div>
   );
 }

@@ -36,13 +36,17 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
+// После переезда формы подпись СВЯЗАНА с полем, и поля ищутся по подписи —
+// как их ищет человек и как их читает экранный диктор. До переезда так было
+// нельзя: у <label> не было ни htmlFor, ни вложенного поля, и тест искал по
+// порядку в разметке. Договор при этом не изменился ни на поле: ожидаемые тела
+// запросов ниже те же, что были сняты с прежнего кода.
 function поля() {
-  const form = document.querySelector('form') as HTMLFormElement;
   return {
-    form,
-    тексты: Array.from(form.querySelectorAll<HTMLInputElement>('input.admin-input')),
-    области: Array.from(form.querySelectorAll<HTMLTextAreaElement>('textarea.admin-input')),
-    отправить: form.querySelector<HTMLButtonElement>('button[type="submit"]')!,
+    name: screen.getByLabelText('name'),
+    description: screen.getByLabelText('description'),
+    sortOrder: screen.getByLabelText('sortOrder'),
+    отправить: screen.getByRole('button', {name: 'save'}),
   };
 }
 
@@ -51,9 +55,7 @@ describe('форма коллекции — что уходит на серве�
     const user = userEvent.setup();
     render(<CollectionForm isNew />);
 
-    const {тексты, области, отправить} = поля();
-    const [name, sortOrder] = тексты;
-    const [description] = области;
+    const {name, description, sortOrder, отправить} = поля();
 
     await user.type(name, 'Осень 2026');
     await user.type(description, 'Плотные ткани');
@@ -106,10 +108,9 @@ describe('форма ухода — что уходит на сервер', () =
     const user = userEvent.setup();
     render(<CareGuideForm />);
 
-    // У этой формы нет элемента <form>: сохранение висит на кнопке. Поэтому и
-    // поле, и кнопка ищутся по документу, а не внутри формы.
-    const title = document.querySelector<HTMLInputElement>('input.admin-input')!;
-    await user.type(title, 'Шёлк');
+    // У этой формы нет элемента <form>: сохранение висит на кнопке. Поле
+    // ищется по подписи — после переезда она связана с ним через id.
+    await user.type(screen.getByLabelText('Название ткани'), 'Шёлк');
 
     await user.click(screen.getByRole('button', {name: 'Сохранить'}));
 
