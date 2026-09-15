@@ -23,6 +23,13 @@ type EditorContextValue = {
   // (storefrontForViewer), поэтому проброшены пропом, а не второй ручкой.
   locale: string;
   products: WhiteProduct[];
+  // Сколько точек правки на ЭТОЙ странице. Считается тем, что каждая точка
+  // сама отмечается при появлении: список правится в шести местах на весь
+  // сайт, и число, посчитанное руками, разошлось бы с настоящим в первый же
+  // раз, когда точку добавят или уберут.
+  editableCount: number;
+  registerEditable: (id: string) => void;
+  unregisterEditable: (id: string) => void;
 };
 
 // Витрина без провайдера — обычный магазин. Значение по умолчанию нужно, чтобы
@@ -38,6 +45,9 @@ const CLOSED: EditorContextValue = {
   refresh: () => {},
   locale: defaultLocale,
   products: [],
+  editableCount: 0,
+  registerEditable: () => {},
+  unregisterEditable: () => {},
 };
 
 const EditorContext = createContext<EditorContextValue | null>(null);
@@ -69,6 +79,17 @@ export function EditorProvider({editing, wantsEdit = editing, brokenDrafts = [],
 }) {
   const router = useRouter();
   const [target, setTarget] = useState<EditorTarget | null>(null);
+  // Множество, а не счётчик: React в строгом режиме монтирует дважды, и
+  // счётчик показал бы удвоенное число. Одинаковый идентификатор дважды в
+  // множество не ляжет.
+  const [editableIds, setEditableIds] = useState<readonly string[]>([]);
+
+  const registerEditable = useCallback((id: string) => {
+    setEditableIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  }, []);
+  const unregisterEditable = useCallback((id: string) => {
+    setEditableIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : prev));
+  }, []);
 
   const brokenFor = useCallback(
     (kind: DraftKind, id: string) => brokenDrafts.find((b) => b.kind === kind && (b.id === id || b.key === id)),
@@ -91,8 +112,11 @@ export function EditorProvider({editing, wantsEdit = editing, brokenDrafts = [],
       refresh,
       locale,
       products,
+      editableCount: editableIds.length,
+      registerEditable,
+      unregisterEditable,
     }),
-    [editing, target, brokenDrafts, brokenFor, refresh, locale, products],
+    [editing, target, brokenDrafts, brokenFor, refresh, locale, products, editableIds, registerEditable, unregisterEditable],
   );
 
   // Панель занимает правую колонку на широком экране — содержимое уезжает

@@ -1,7 +1,7 @@
 'use client';
 
-import type {ReactNode} from 'react';
-import {HAIR, INK, SIGNAL} from '../../app/[locale]/wv-palette';
+import {useEffect, useId, type ReactNode} from 'react';
+import {FOOT, HAIR, INK, SIGNAL} from '../../app/[locale]/wv-palette';
 import {useEditor} from './EditorProvider';
 import type {DraftKind, EditorTarget} from './types';
 
@@ -25,14 +25,38 @@ export default function EditableBlock({target, owner, children}: {
   owner: {kind: DraftKind; id: string};
   children: ReactNode;
 }) {
-  const {editing, target: current, open, brokenFor} = useEditor();
+  const {editing, target: current, open, brokenFor, registerEditable, unregisterEditable} = useEditor();
+
+  // Своё имя, а не `${kind}:${id}`: на карточке товара название и короткое
+  // описание — две РАЗНЫЕ точки правки с одинаковой целью (одна модель), и по
+  // цели они слились бы в одну. Счётчик показал бы пять вместо шести, и число
+  // на экране врало бы владельцу ровно про то, ради чего его показывают.
+  const слот = useId();
+
+  // Отмечаемся только в режиме правки: вне его точек нет, и число не нужно.
+  useEffect(() => {
+    if (!editing) return;
+    registerEditable(слот);
+    return () => unregisterEditable(слот);
+  }, [editing, слот, registerEditable, unregisterEditable]);
+
   if (!editing) return <>{children}</>;
 
   const active = current?.kind === target.kind && current.id === target.id;
   const broken = brokenFor(owner.kind, owner.id);
 
   return (
-    <div style={{border: `1px dashed ${active ? SIGNAL : HAIR}`}}>
+    // ПОДСВЕЧЕНО РОВНО ТО, ЧТО ПРАВИТСЯ, и ничего больше. Серого слоя «сюда
+    // нельзя» нет намеренно: на витрине правится шесть областей из всей
+    // страницы, и заливка остального читалась бы как запрет, хотя правда —
+    // «мы пока не сделали». Врать интонацией хуже, чем молчать; про
+    // неподсвеченное говорит словами полоса режима правки.
+    //
+    // Подложка — FOOT, та же, на которой стоит подвал: заметная рядом с белым
+    // и не спорящая с кадрами. Владелец входит в режим правки нарочно, но
+    // снимки экрана он шлёт из него же — подсветка не должна мешать обсуждать
+    // вид.
+    <div data-editable="true" style={{border: `1px dashed ${active ? SIGNAL : HAIR}`, background: FOOT}}>
       <div className="wv-rise flex flex-wrap items-center gap-2 px-3 py-2">
         <button
           type="button"
