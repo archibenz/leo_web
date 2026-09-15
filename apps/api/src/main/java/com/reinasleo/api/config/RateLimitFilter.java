@@ -14,6 +14,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,7 @@ public class RateLimitFilter implements Filter {
     private final Cache<String, Bucket> contactBuckets = buildCache();
     private final Cache<String, Bucket> checkoutBuckets = buildCache();
     private final Cache<String, Bucket> eventsBuckets = buildCache();
+    private final Cache<String, Bucket> integrationsBuckets = buildCache();
 
     private final Counter authHitCounter;
     private final Counter telegramHitCounter;
@@ -42,8 +44,20 @@ public class RateLimitFilter implements Filter {
     private final Counter contactHitCounter;
     private final Counter checkoutHitCounter;
     private final Counter eventsHitCounter;
+    private final Counter integrationsHitCounter;
 
-    public RateLimitFilter(MeterRegistry meters) {
+    // Единственный предел в этом фильтре, вынесенный в настройку. Причина не в
+    // том, что он особенный, а в том, что набор тестов бьёт в ручку 14 раз, и
+    // боевое значение 10/мин честно его срезает. Ослабить боевое ради тестов
+    // значило бы поменять защиту под удобство проверки; вместо этого тестовый
+    // профиль поднимает планку, а отдельный тест с низкой планкой доказывает,
+    // что сторож срабатывает. Заодно число становится правимым на проде без
+    // пересборки — на случай, если отправитель однажды начнёт ходить чаще.
+    private final int integrationsPerMinute;
+
+    public RateLimitFilter(MeterRegistry meters,
+                           @Value("${app.rate-limit.integrations-per-minute:10}") int integrationsPerMinute) {
+        this.integrationsPerMinute = integrationsPerMinute;
         this.authHitCounter = hitCounter(meters, "auth");
         this.telegramHitCounter = hitCounter(meters, "telegram");
         this.deleteChallengeHitCounter = hitCounter(meters, "delete_challenge");
@@ -51,6 +65,7 @@ public class RateLimitFilter implements Filter {
         this.contactHitCounter = hitCounter(meters, "contact");
         this.checkoutHitCounter = hitCounter(meters, "checkout");
         this.eventsHitCounter = hitCounter(meters, "events");
+        this.integrationsHitCounter = hitCounter(meters, "integrations");
     }
 
     private static Counter hitCounter(MeterRegistry meters, String bucket) {
@@ -97,6 +112,8 @@ public class RateLimitFilter implements Filter {
             if (isRateLimited(checkoutBuckets, ip, res, this::createCheckoutBucket, checkoutHitCounter)) return;
         } else if (path.equals("/api/events") && "POST".equalsIgnoreCase(req.getMethod())) {
             if (isRateLimited(eventsBuckets, ip, res, this::createEventsBucket, eventsHitCounter)) return;
+        } else if (path.startsWith("/api/integrations/")) {
+            if (isRateLimited(integrationsBuckets, ip, res, this::createIntegrationsBucket, integrationsHitCounter)) return;
         }
 
         chain.doFilter(request, response);
@@ -146,6 +163,25 @@ public class RateLimitFilter implements Filter {
     private Bucket createBotBucket() {
         return Bucket.builder()
                 .addLimit(Bandwidth.simple(30, Duration.ofMinutes(1)))
+                .build();
+    }
+
+    private Bucket createIntegrationsBucket() {
+        // Приём цен от аналитики ходит РАЗ В СУТКИ одним запросом, поэтому
+        // предел здесь не про легитимную нагрузку — в неё уложится и десяток
+        // повторов при сбое. Он про другое: путь стоит под permitAll (реальная
+        // проверка — секрет в контроллере), nginx уводит на Spring ВСЕ /api/*,
+        // значит ручка достижима снаружи, а тело разбирается раньше, чем
+        // сверяется секрет: @RequestBody резолвится до входа в метод. Без
+        // предела кто угодно, нашедший путь, заставляет нас разбирать пачки до
+        // 500 строк сколько угодно раз. Секрет при этом не утекает и записи не
+        // происходит — это сторож от расхода, а не от доступа.
+        //
+        // Заведён ДО первой выкатки намеренно: ставить предел на работающую
+        // ручку страшнее — каждая правка числа обсуждалась бы с оглядкой «не
+        // оборвём ли живую отправку».
+        return Bucket.builder()
+                .addLimit(Bandwidth.simple(integrationsPerMinute, Duration.ofMinutes(1)))
                 .build();
     }
 
