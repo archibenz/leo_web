@@ -92,6 +92,18 @@ public class Product {
     @Column(name = "sort_order", nullable = false)
     private int sortOrder = 0;
 
+    // manual | ozon (V36). wildberries намеренно не входит — цена WB
+    // непроверена, этап 4 заблокирован. Raw-строка, не enum: список уже
+    // закрыт Bean Validation на StorefrontVariantRequest и CHECK в БД,
+    // третьего места правилу не нужно (тот же приём, что MarketplacePrice.source).
+    @Column(name = "price_source", nullable = false, length = 16)
+    private String priceSource = "manual";
+
+    // 0..90 (V36, CHECK ck_products_discount_pct). Сторож от опечатки, не
+    // деловая граница — см. комментарий в миграции.
+    @Column(name = "discount_pct", nullable = false)
+    private int discountPct = 0;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "care_instructions", columnDefinition = "jsonb")
     private String careInstructions;
@@ -144,6 +156,8 @@ public class Product {
     public Long getNm() { return nm; }
     public BigDecimal getSalePrice() { return salePrice; }
     public int getSortOrder() { return sortOrder; }
+    public String getPriceSource() { return priceSource; }
+    public int getDiscountPct() { return discountPct; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
 
@@ -175,4 +189,6 @@ public class Product {
     public void setNm(Long nm) { this.nm = nm; }
     public void setSalePrice(BigDecimal salePrice) { this.salePrice = salePrice; }
     public void setSortOrder(int sortOrder) { this.sortOrder = sortOrder; }
+    public void setPriceSource(String priceSource) { this.priceSource = priceSource; }
+    public void setDiscountPct(int discountPct) { this.discountPct = discountPct; }
 }
