@@ -1680,7 +1680,8 @@
     },
     "editModeSwitch": {
       "label": "Site edit mode",
-      "adminLink": "Admin Panel"
+      "adminLink": "Admin Panel",
+      "sectionLabel": "Site management"
     },
     "error": {
       "eyebrow": "Error",

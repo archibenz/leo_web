@@ -11,9 +11,20 @@ export type WhiteUser = {
   email: string;
   name: string;
   surname?: string;
+  // `/api/auth/me` отдаёт роль тем же ответом (UserResponse.role) — раньше её
+  // здесь выбрасывали, и режим правки спрашивал ту же ручку ВТОРОЙ раз ради
+  // одного поля. Два запроса на страницу против лимита в десять в минуту:
+  // пять переходов подряд, и владелец получал 429 на ровном месте.
+  role?: string;
 };
 
-type MeApiResponse = {id: number | string; email: string; name: string; surname?: string};
+type MeApiResponse = {
+  id: number | string;
+  email: string;
+  name: string;
+  surname?: string;
+  role?: string;
+};
 type LoginApiResponse = {token: string};
 
 // Letters and digits, 8-128 — the backend's own rule (mirrors the gradient form).
@@ -39,12 +50,24 @@ async function resolveUser(): Promise<void> {
   }
   inflight = apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true})
     .then((me) => {
-      cachedUser = {id: me.id, email: me.email, name: me.name, surname: me.surname};
+      cachedUser = {
+        id: me.id,
+        email: me.email,
+        name: me.name,
+        surname: me.surname,
+        role: me.role,
+      };
     })
-    .catch(() => {
-      // Stale/invalid token — drop it so the UI honestly shows signed-out.
-      clearToken();
+    .catch((err: unknown) => {
       cachedUser = null;
+      // Токен стираем ТОЛЬКО на 401, то есть когда бэкенд сказал «этот токен
+      // недействителен». Раньше стирали на любой неудаче — и тогда всякая
+      // временная беда выкидывала посетителя из аккаунта: 429 от лимитера,
+      // 502 при перезапуске API, оборванная сеть в лифте. apiFetch бросает
+      // на ЛЮБОМ плохом ответе, так что «не получилось спросить» было
+      // неотличимо от «тебе больше нельзя».
+      const status = (err as {status?: number} | null)?.status;
+      if (status === 401) clearToken();
     })
     .finally(() => {
       resolved = true;

@@ -16,7 +16,15 @@ import {readEditCookie, writeEditCookie} from './editCookie';
 // Красится цветом окружающего текста (currentColor), а не палитрой одной из
 // витрин: на аккаунте фон белый, в админке — тёмный, и зашитый под один из
 // них цвет на другом стал бы нечитаемым.
-export default function EditModeSwitch() {
+// `framed` по умолчанию true — ровно то поведение, что было: своя черта
+// сверху и свой отступ. Так компонент выглядит внизу админской панели
+// (app/[locale]/(admin)/admin/page.tsx), где вокруг него ничего нет.
+//
+// На странице аккаунта рамку берёт на себя вызывающий: там переключатель
+// стоит внутри общего блока «Управление сайтом», и вторая черта поверх
+// рамки блока давала бы двойную линию. Отступы страницы принадлежат
+// странице, а не компоненту, который живёт в двух разных местах.
+export default function EditModeSwitch({framed = true}: {framed?: boolean} = {}) {
   const {isAdmin} = useEditorSession();
   const router = useRouter();
   const t = useTranslations('white.editModeSwitch');
@@ -42,13 +50,16 @@ export default function EditModeSwitch() {
   };
 
   return (
-    <div className="mt-10 pt-6" style={{borderTop: '1px solid currentColor'}}>
+    <div
+      className={framed ? 'mt-10 pt-6' : ''}
+      style={framed ? {borderTop: '1px solid currentColor'} : undefined}
+    >
       <button
         type="button"
         role="switch"
         aria-checked={on}
         onClick={toggle}
-        className="flex min-h-11 w-full items-center justify-between gap-3 text-left text-[13px] uppercase tracking-[0.12em]"
+        className="flex min-h-12 w-full items-center justify-between gap-3 text-left text-[13px] uppercase tracking-[0.12em]"
       >
         <span>{t('label')}</span>
         <span

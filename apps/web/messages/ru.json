@@ -1680,7 +1680,8 @@
     },
     "editModeSwitch": {
       "label": "Режим редактирования сайта",
-      "adminLink": "Админ-панель"
+      "adminLink": "Админ-панель",
+      "sectionLabel": "Управление сайтом"
     },
     "error": {
       "eyebrow": "Ошибка",
