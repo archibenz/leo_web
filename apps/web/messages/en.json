@@ -1256,7 +1256,8 @@
     "nothingFound": "Nothing found",
     "saving": "Saving…",
     "foundOf": "Showing {shown} of {total}",
-    "rowActions": "Actions: {name}"
+    "rowActions": "Actions: {name}",
+    "cancel": "Cancel"
   },
   "editor": {
     "ticker": {

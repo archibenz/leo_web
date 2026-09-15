@@ -4,10 +4,31 @@ import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
 import Link from 'next/link';
+import {MoreHorizontalIcon, PencilIcon, PlusIcon, Trash2Icon} from 'lucide-react';
 import AdminLayout from '../../../../../components/admin/AdminLayout';
 import BrandLoader from '../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../lib/api';
 import {CareSymbolsRow} from '../../../../../components/CareSymbols';
+import {Badge} from '../../../../../components/ui/badge';
+import {Button} from '../../../../../components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../../../../../components/ui/dropdown-menu';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../../../../components/ui/table';
+import {Panel, PanelEmpty} from '../../../../../components/admin/dashboard/panel';
+import {ListPage} from '../../../../../components/admin/list/list-page';
+import {Notice} from '../../../../../components/admin/list/notice';
 
 type CareGuide = {
   id: string;
@@ -36,9 +57,7 @@ export default function AdminCarePage() {
     try { return JSON.parse(raw); } catch { return []; }
   };
 
-  const handleDelete = async (e: React.MouseEvent, id: string, title: string) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Удалить "${title}"?`)) return;
     try {
       await apiFetch(`/api/admin/care-guides/${id}`, {method: 'DELETE'});
@@ -48,72 +67,125 @@ export default function AdminCarePage() {
     }
   };
 
+  // Подписи этого экрана заданы тернарником по локали, а не словарём. Так было
+  // и до переезда; перенос строк в messages — работа про переводы, а не про
+  // вид, и мешать её с переодеванием значило бы раздуть диф там, где владельцу
+  // нечего смотреть. Оставлено как есть нарочно.
+  const ru = locale === 'ru';
+
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-display text-[var(--ink)]">
-            {locale === 'ru' ? 'Уход за одеждой' : 'Garment Care'}
-          </h1>
-          <Link
-            href={`/${locale}/admin/care/new`}
-            className="rounded-full bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-[var(--paper-base)] transition hover:opacity-90"
-          >
-            + {locale === 'ru' ? 'Добавить' : 'Add'}
-          </Link>
-        </div>
-
+      <ListPage
+        action={
+          <Button asChild className="min-h-11">
+            <Link href={`/${locale}/admin/care/new`}>
+              <PlusIcon />
+              {ru ? 'Добавить' : 'Add'}
+            </Link>
+          </Button>
+        }
+        title={ru ? 'Уход за одеждой' : 'Garment Care'}
+      >
         {/* Справочники ухода на сайт не попадают. Ручка /api/care-guides их
             отдаёт, но читает её только components/CarePageClient.tsx, который
             подключён лишь из gradient-archive; живая /care берёт текст из
             messages (white.info.care.sections). То есть здесь можно писать
-            час, и на сайте не изменится ничего. Подпись в стиле файла —
-            тернарник по locale, как и заголовок выше. */}
-        <p className="rounded border border-[var(--ink-soft)]/25 px-3 py-2 text-[11px] leading-relaxed text-[var(--ink-soft)]">
-          {locale === 'ru'
+            час, и на сайте не изменится ничего. */}
+        <Notice>
+          {ru
             ? 'Эти справочники на сайте сейчас не показываются: страница «Уход за вещами» берёт текст из перевода, а не отсюда. Пока это так, записи здесь видит только админка.'
             : 'These guides are not shown on the storefront right now: the “Garment care” page takes its text from the translation file, not from here. Until that changes, entries here are visible only inside the admin.'}
-        </p>
+        </Notice>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <BrandLoader size={32} />
           </div>
         ) : guides.length === 0 ? (
-          <p className="text-sm text-[var(--ink-soft)]">
-            {locale === 'ru' ? 'Нет записей об уходе' : 'No care guides yet'}
-          </p>
+          <Panel>
+            <PanelEmpty>{ru ? 'Нет записей об уходе' : 'No care guides yet'}</PanelEmpty>
+          </Panel>
         ) : (
-          <div className="space-y-2">
-            {guides.map(guide => (
-              <div key={guide.id} className="paper-card flex items-center gap-4 p-4 transition hover:bg-[var(--ink)]/3">
-                <Link href={`/${locale}/admin/care/${guide.id}`} className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-[var(--ink)]">{guide.title}</span>
-                    <span className="text-xs text-[var(--ink-soft)]">#{guide.sortOrder}</span>
-                    {!guide.active && (
-                      <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase text-red-400">
-                        {t('inactive')}
-                      </span>
-                    )}
-                  </div>
-                  {parseSymbols(guide.careSymbols).length > 0 && (
-                    <div className="mt-2">
-                      <CareSymbolsRow symbols={parseSymbols(guide.careSymbols)} locale={locale} size={20} />
-                    </div>
-                  )}
-                </Link>
-                <button
-                  onClick={(e) => handleDelete(e, guide.id, guide.title)}
-                  className="shrink-0 rounded-full p-2 text-[var(--ink-soft)] hover:bg-red-500/10 hover:text-red-400 transition"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                </button>
-              </div>
-            ))}
+          <div className="overflow-hidden rounded-lg ring-1 ring-border">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16 pl-4">№</TableHead>
+                    <TableHead>{ru ? 'Название' : 'Title'}</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      {ru ? 'Символы ухода' : 'Care symbols'}
+                    </TableHead>
+                    <TableHead className="w-12 pr-2" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {guides.map(guide => {
+                    const symbols = parseSymbols(guide.careSymbols);
+                    return (
+                      <TableRow key={guide.id}>
+                        <TableCell className="pl-4 text-muted-foreground tabular-nums">
+                          {guide.sortOrder}
+                        </TableCell>
+                        <TableCell>
+                          <Link
+                            className="block min-h-11 py-2 hover:underline"
+                            href={`/${locale}/admin/care/${guide.id}`}
+                          >
+                            <span className="flex flex-wrap items-center gap-2">
+                              <span className="truncate">{guide.title}</span>
+                              {!guide.active && (
+                                <Badge variant="destructive">{t('inactive')}</Badge>
+                              )}
+                            </span>
+                          </Link>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {symbols.length > 0 ? (
+                            <CareSymbolsRow locale={locale} size={20} symbols={symbols} />
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="pr-2">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                aria-label={t('rowActions', {name: guide.title})}
+                                className="size-11"
+                                size="icon"
+                                variant="ghost"
+                              >
+                                <MoreHorizontalIcon />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem asChild>
+                                <Link href={`/${locale}/admin/care/${guide.id}`}>
+                                  <PencilIcon />
+                                  {ru ? 'Редактировать' : 'Edit'}
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onSelect={() => handleDelete(guide.id, guide.title)}
+                                variant="destructive"
+                              >
+                                <Trash2Icon />
+                                {t('deleteBtn')}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
-      </div>
+      </ListPage>
     </AdminLayout>
   );
 }
