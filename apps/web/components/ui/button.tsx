@@ -13,11 +13,19 @@ const buttonVariants = cva(
           "bg-primary text-primary-foreground shadow hover:bg-primary/90",
         destructive:
           "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        // `ui-accent`, а НЕ `accent`: у shadcn `accent` означает поверхность
+        // наведения, у нас ключ `accent` — брендовое золото #D4A574. Из
+        // коробки эти два варианта заливали кнопку золотом под курсором.
+        //
+        // Замерено 17.09 на /ru/admin: тумблер навигации под курсором давал
+        // rgb(212, 165, 116) — то самое золото градиентной темы на экране,
+        // который владелец просил сделать светлым, и на кнопке, которую он
+        // жмёт с телефона.
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+          "border border-input bg-background shadow-sm hover:bg-ui-accent hover:text-ui-accent-foreground",
         secondary:
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        ghost: "hover:bg-ui-accent hover:text-ui-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         // Кнопка витрины. Заведена потому, что `accent` в теме — золото
         // градиентной админки: любой блок Efferd с `ghost`/`outline` из
