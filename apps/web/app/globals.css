@@ -1402,15 +1402,19 @@ h2.font-display:not(.wv-root *),
 }
 
 /* ============================================
-   Error pages — efferd not-found-2 minimal (404 / 500 / 403 / offline)
-   Big bold sans numeral, strong fade-to-transparent, icon buttons.
-   ErrorTag.tsx is the ONLY consumer of these classes.
+   Экран аварии (500) — в языке витрины, а не градиентной эпохи.
+   ErrorTag.tsx — единственный потребитель этих классов.
+
+   БЫЛО ТЁМНЫМ, И ЭТО ВИДЕЛ ВЛАДЕЛЕЦ В ХУДШУЮ МИНУТУ. Замер 17.09: экран
+   заливался `--paper-base` (#1e120d), текст шёл кремовым `--ink` (#f3e9da),
+   кнопка — ржавой. Под белой шапкой витрины это читалось как другой сайт.
+   Рядом public/50x.html — тот же случай с другого слоя — уже был белым:
+   одно событие, два вида.
+
+   Палитра взята оттуда же, чтобы два экрана совпадали: чернила #1c1714,
+   приглушённый #776e64, волосяная линия #e7e2db.
    ============================================ */
 .err2 {
-  --err-gold: #c8a24a;
-  --err-rust: #9a3a2a;
-  --err-ink-muted: #c9bfa9;
-  --err-line-strong: rgba(243, 234, 217, 0.20);
   position: relative;
   min-height: 100vh;
   display: flex;
@@ -1419,20 +1423,15 @@ h2.font-display:not(.wv-root *),
   padding: 96px 24px;
   overflow: hidden;
   font-family: var(--font-body), 'Inter', sans-serif;
-  color: var(--ink);
-  background: var(--paper-base);
+  color: #1c1714;
+  background: #fff;
 }
 
+/* Свечение осталось классом, но больше ничего не рисует: разметку
+   ErrorTag.tsx не трогаем, а сияние принадлежало тёмной теме. */
 .err2-glow {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
+  display: none;
 }
-.err2-default .err2-glow { background: radial-gradient(ellipse 60% 45% at 50% 42%, rgba(107, 32, 32, 0.22), transparent 70%); }
-.err2-warn .err2-glow { background: radial-gradient(ellipse 60% 45% at 50% 42%, rgba(107, 32, 32, 0.30), transparent 70%); }
-.err2-private .err2-glow { background: radial-gradient(ellipse 55% 45% at 50% 42%, rgba(200, 162, 74, 0.12), transparent 70%); }
-.err2-offline .err2-glow { background: radial-gradient(ellipse 55% 45% at 50% 42%, rgba(200, 162, 74, 0.08), transparent 70%); }
 
 .err2-inner {
   position: relative;
@@ -1458,32 +1457,30 @@ h2.font-display:not(.wv-root *),
   .err2-inner > * { animation: none; }
 }
 
-/* offline: clean crossed-out signal icon */
 .err2-signal-icon {
   width: 46px;
   height: 46px;
-  color: var(--err-gold);
+  color: #776e64;
   margin-bottom: 26px;
 }
 
-/* big numeral — bold sans, strong fade to transparent (efferd mask-b) */
+/* Крупное число — тонкое, как цифра на 50x.html, а не жирное из блока
+   Efferd: на витрине нет ни одного тяжёлого начертания. */
 .err2-code {
-  font-family: var(--font-body), 'Inter', sans-serif;
-  font-weight: 800;
-  line-height: 0.86;
-  letter-spacing: -0.045em;
-  font-size: clamp(8rem, 30vw, 18rem);
-  color: var(--ink);
-  -webkit-mask-image: linear-gradient(to bottom, #000 20%, transparent 82%);
-          mask-image: linear-gradient(to bottom, #000 20%, transparent 82%);
+  font-family: var(--font-display), var(--font-body), 'Inter', sans-serif;
+  font-weight: 300;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  font-size: clamp(6rem, 22vw, 11rem);
+  color: #1c1714;
 }
 
 .err2-desc {
-  margin: -0.4em auto 0;
+  margin: 20px auto 0;
   max-width: 34ch;
-  font-size: 16px;
-  line-height: 1.65;
-  color: var(--err-ink-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  color: #776e64;
 }
 
 .err2-actions {
@@ -1493,26 +1490,29 @@ h2.font-display:not(.wv-root *),
   gap: 12px;
   margin-top: 36px;
 }
+/* Прямоугольник, а не пилюля: капсул на витрине нет нигде. Кегль и разрядка
+   — как у кнопки на 50x.html. */
 .err2-btn-primary,
 .err2-btn-ghost {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 9px;
-  font: 500 13px/1 var(--font-body), 'Inter', sans-serif;
-  letter-spacing: 0.04em;
-  padding: 13px 26px;
-  border-radius: 999px;
+  font: 400 12px/1 var(--font-body), 'Inter', sans-serif;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 15px 30px;
+  border-radius: 0;
   cursor: pointer;
-  transition: transform 0.25s ease, background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
   text-decoration: none;
 }
 .err2-btn-ic { display: inline-flex; }
 .err2-btn-ic svg { width: 16px; height: 16px; display: block; }
-.err2-btn-primary { background: var(--err-rust); color: var(--ink); border: 1px solid var(--err-rust); }
-.err2-btn-primary:hover { transform: translateY(-2px); background: #b14534; border-color: #b14534; }
-.err2-btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--err-line-strong); }
-.err2-btn-ghost:hover { border-color: var(--err-gold); color: var(--err-gold); transform: translateY(-2px); }
+.err2-btn-primary { background: #1c1714; color: #fff; border: 1px solid #1c1714; }
+.err2-btn-primary:hover { background: #fff; color: #1c1714; }
+.err2-btn-ghost { background: transparent; color: #1c1714; border: 1px solid #e7e2db; }
+.err2-btn-ghost:hover { border-color: #1c1714; }
 
 @media (max-width: 560px) {
   .err2 { padding: 72px 20px; }

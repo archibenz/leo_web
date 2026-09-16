@@ -16,11 +16,14 @@ type ExchangeResponse = {
   surname?: string;
 };
 
-// The moment between "bot handed us a token" and "exchange answered" — the
-// White DNA has no golden-glow splash of its own (that belongs to LoaderSplash,
-// which stays put for the gradient admin, see components/LoaderSplash.tsx).
-// A plain ring in the vitrine's own ink reads as "working" without borrowing
-// the old brand's loader. animate-spin bows out under prefers-reduced-motion,
+// The moment between "bot handed us a token" and "exchange answered" — a plain
+// ring in the vitrine's own ink reads as "working".
+//
+// Раньше здесь стояла оговорка «золотая вспышка принадлежит LoaderSplash, он
+// остаётся градиентному админу». С 17.09 это неправда дважды: свечения у
+// LoaderSplash нет вовсе, и админ давно не градиентный. Запись поправлена, а
+// не удалена: следующий увидит, что выбор кольца — не про отсутствие вспышки,
+// а про то, что на этих маршрутах свой загрузчик не нужен. animate-spin bows out under prefers-reduced-motion,
 // same as every other spinner on the White routes. #wv-main is the skip-link
 // target WhiteHeader always points at (WhiteHeader.tsx).
 function TgWaitingSign() {
