@@ -110,9 +110,13 @@ describe('форма ухода — что уходит на сервер', () =
 
     // У этой формы нет элемента <form>: сохранение висит на кнопке. Поле
     // ищется по подписи — после переезда она связана с ним через id.
-    await user.type(screen.getByLabelText('Название ткани'), 'Шёлк');
+    //
+    // Подписи здесь — КЛЮЧИ, как у двух форм выше: с 17.09 текст этого экрана
+    // взят из словаря, а мок next-intl в шапке файла отдаёт ключ как есть. Так
+    // тест утверждает, что вызван нужный ключ, а не что совпал русский текст.
+    await user.type(screen.getByLabelText('fabricName'), 'Шёлк');
 
-    await user.click(screen.getByRole('button', {name: 'Сохранить'}));
+    await user.click(screen.getByRole('button', {name: 'save'}));
 
     await waitFor(() =>
       expect(apiFetch).toHaveBeenCalledWith('/api/admin/care-guides', expect.anything()),
@@ -138,12 +142,12 @@ describe('форма ухода — что уходит на сервер', () =
     const user = userEvent.setup();
     render(<CareGuideForm />);
 
-    await user.click(screen.getByRole('button', {name: 'Сохранить'}));
+    await user.click(screen.getByRole('button', {name: 'save'}));
 
     // Проверка на пустое название сделана в самом обработчике, а не атрибутом
     // required: сообщение показывается формой. Значит запрос не должен уйти
     // вообще — иначе бэкенд получит запись без названия.
-    await waitFor(() => expect(screen.getByText('Введите название')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('errTitleRequired')).toBeInTheDocument());
     expect(apiFetch).not.toHaveBeenCalledWith('/api/admin/care-guides', expect.anything());
   });
 });
