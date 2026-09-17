@@ -70,7 +70,10 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
             e.preventDefault();
             window.scrollTo({top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
           }}
-          className="shrink-0"
+          // min-h-11: ссылка обнимала саму картинку и была 114×19 — в неё
+          // попадали мимо. Высота строки шапки от этого не меняется: её и
+          // так задаёт бургер в 44 px, стоящий рядом.
+          className="flex min-h-11 shrink-0 items-center"
           aria-label="REINASLEO"
         >
           {/* The brand mark — the name with the diamond set in the O. */}

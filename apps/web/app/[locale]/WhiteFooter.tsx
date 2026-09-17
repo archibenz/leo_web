@@ -184,13 +184,15 @@ export default function WhiteFooter({locale}: {locale: string}) {
           {columns.map((col, i) => (
             <div key={col.h} className={i === 0 ? 'lg:border-l lg:pl-10' : undefined} style={i === 0 ? {borderColor: HAIR} : undefined}>
               <p className="mb-2 text-[11px] uppercase tracking-[0.2em] sm:mb-4 lg:text-[12px]" style={{color: INK}}>{col.h}</p>
-              {/* min-h keeps the tap height (40px mobile / 44px sm+, project a11y
-                  floor) — the mobile column is compressed via spacing only, the
-                  targets themselves must not shrink. */}
+              {/* min-h-11 — пол 44 px из apps/web/CLAUDE.md, и он один на все
+                  ширины. Прежде здесь стояло min-h-10 с оговоркой «40 на
+                  телефоне», хотя пола в 40 px не существует: телефон как раз
+                  то место, где палец, а не курсор. Колонка ужимается только
+                  отступами, сами цели не уменьшаются. */}
               <ul className="space-y-0.5 text-[13px] sm:space-y-1 lg:space-y-1.5 lg:text-[15px]" style={{color: MUTED}}>
                 {col.items.map((it) => (
                   <li key={it.label}>
-                    <Link href={it.href} className="flex min-h-10 items-center transition-opacity hover:opacity-60 sm:min-h-11">{it.label}</Link>
+                    <Link href={it.href} className="flex min-h-11 items-center transition-opacity hover:opacity-60">{it.label}</Link>
                   </li>
                 ))}
               </ul>
@@ -227,7 +229,13 @@ export default function WhiteFooter({locale}: {locale: string}) {
           <span aria-hidden="true" className="h-px w-full" style={{background: HAIR}} />
         </div>
 
-        <div className="flex flex-col items-center gap-2 pb-7 pt-4 sm:gap-3 sm:pb-10">
+        {/* gap-5, а не gap-2: обе строки ниже растягивают свои зоны нажатия
+            отрицательными полями — правовые ссылки на 12 px вниз, переключатель
+            языка на 8 px вверх. При зазоре в 8 px коробки налезали друг на
+            друга на 12 px, и нижний край «Оферты» переключал язык вместо
+            перехода. Замерено на 390 px: 43×12. Зазор в 20 px разводит их
+            ровно встык. */}
+        <div className="flex flex-col items-center gap-5 pb-7 pt-4 sm:pb-10">
           <div className="flex flex-wrap items-center justify-center gap-x-2 text-[11px] uppercase tracking-[0.14em]" style={{color: MUTED}}>
             {LEGAL.map((key, i) => (
               <span key={key} className="flex items-center gap-x-2">
