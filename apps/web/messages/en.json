@@ -1278,7 +1278,34 @@
     "saving": "Saving…",
     "foundOf": "Showing {shown} of {total}",
     "rowActions": "Actions: {name}",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "careGuides": {
+      "add": "Add",
+      "title": "Garment Care",
+      "empty": "No care guides yet",
+      "colTitle": "Title",
+      "colSymbols": "Care symbols",
+      "edit": "Edit",
+      "formNew": "New Care Guide",
+      "sectionText": "Text",
+      "fabricName": "Fabric name",
+      "fabricNamePlaceholder": "e.g. Silk",
+      "description": "Description",
+      "descriptionPlaceholder": "General fabric description and care overview",
+      "tips": "Tips",
+      "tipsPlaceholder": "Practical care tips",
+      "imageUrl": "Image URL",
+      "sectionVisibility": "Visibility",
+      "sortOrder": "Sort order",
+      "showGuide": "Show this guide",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving...",
+      "notShownNotice": "These guides are not shown on the storefront right now: the “Garment care” page takes its text from the translation file, not from here. Until that changes, entries here are visible only inside the admin.",
+      "errTitleRequired": "Title required",
+      "saved": "Saved!",
+      "errSave": "Save error"
+    }
   },
   "editor": {
     "ticker": {

@@ -40,6 +40,10 @@ type CareGuide = {
 
 export default function AdminCarePage() {
   const t = useTranslations('admin');
+  // Отдельный разбор: у admin уже есть свои `title` и `cancel` (например
+  // admin.title — «Админ-панель»), и положи я подписи этого экрана рядом,
+  // заголовок страницы молча стал бы названием всей админки.
+  const tc = useTranslations('admin.careGuides');
   const pathname = usePathname() || '/';
   const locale = pathname.split('/')[1] || 'ru';
   const [guides, setGuides] = useState<CareGuide[]>([]);
@@ -70,7 +74,6 @@ export default function AdminCarePage() {
   // и до переезда; перенос строк в messages — работа про переводы, а не про
   // вид, и мешать её с переодеванием значило бы раздуть диф там, где владельцу
   // нечего смотреть. Оставлено как есть нарочно.
-  const ru = locale === 'ru';
 
   return (
     <ListPage
@@ -78,11 +81,11 @@ export default function AdminCarePage() {
         <Button asChild className="min-h-11">
           <Link href={`/${locale}/admin/care/new`}>
             <PlusIcon />
-            {ru ? 'Добавить' : 'Add'}
+            {tc('add')}
           </Link>
         </Button>
       }
-      title={ru ? 'Уход за одеждой' : 'Garment Care'}
+      title={tc('title')}
     >
       {/* Справочники ухода на сайт не попадают. Ручка /api/care-guides их
           отдаёт, но читает её только components/CarePageClient.tsx, который
@@ -90,9 +93,7 @@ export default function AdminCarePage() {
           messages (white.info.care.sections). То есть здесь можно писать
           час, и на сайте не изменится ничего. */}
       <Notice>
-        {ru
-          ? 'Эти справочники на сайте сейчас не показываются: страница «Уход за вещами» берёт текст из перевода, а не отсюда. Пока это так, записи здесь видит только админка.'
-          : 'These guides are not shown on the storefront right now: the “Garment care” page takes its text from the translation file, not from here. Until that changes, entries here are visible only inside the admin.'}
+        {tc('notShownNotice')}
       </Notice>
 
       {loading ? (
@@ -101,7 +102,7 @@ export default function AdminCarePage() {
         </div>
       ) : guides.length === 0 ? (
         <Panel>
-          <PanelEmpty>{ru ? 'Нет записей об уходе' : 'No care guides yet'}</PanelEmpty>
+          <PanelEmpty>{tc('empty')}</PanelEmpty>
         </Panel>
       ) : (
         <div className="overflow-hidden rounded-lg ring-1 ring-border">
@@ -110,9 +111,9 @@ export default function AdminCarePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-16 pl-4">№</TableHead>
-                  <TableHead>{ru ? 'Название' : 'Title'}</TableHead>
+                  <TableHead>{tc('colTitle')}</TableHead>
                   <TableHead className="hidden md:table-cell">
-                    {ru ? 'Символы ухода' : 'Care symbols'}
+                    {tc('colSymbols')}
                   </TableHead>
                   <TableHead className="w-12 pr-2" />
                 </TableRow>
@@ -161,7 +162,7 @@ export default function AdminCarePage() {
                             <DropdownMenuItem asChild>
                               <Link href={`/${locale}/admin/care/${guide.id}`}>
                                 <PencilIcon />
-                                {ru ? 'Редактировать' : 'Edit'}
+                                {tc('edit')}
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />

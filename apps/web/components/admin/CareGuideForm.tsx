@@ -1,6 +1,7 @@
 'use client';
 
 import {useState} from 'react';
+import {useTranslations} from 'next-intl';
 import {usePathname, useRouter} from 'next/navigation';
 import {apiFetch} from '../../lib/api';
 import {Input} from '../ui/input';
@@ -31,7 +32,7 @@ export default function CareGuideForm({initial}: CareGuideFormProps) {
   // Подписи этого экрана заданы тернарником по локали, а не словарём — так
   // было и до переезда. Перенос строк в messages это работа про переводы, а
   // не про вид; смешивать их значило бы раздуть диф там, где смотреть нечего.
-  const ru = locale === 'ru';
+  const tc = useTranslations('admin.careGuides');
 
   const [form, setForm] = useState({
     title: initial?.title ?? '',
@@ -56,7 +57,7 @@ export default function CareGuideForm({initial}: CareGuideFormProps) {
 
   const handleSave = async () => {
     if (!form.title.trim()) {
-      setMessage(locale === 'ru' ? 'Введите название' : 'Title required');
+      setMessage(tc('errTitleRequired'));
       return;
     }
     setSaving(true);
@@ -76,10 +77,10 @@ export default function CareGuideForm({initial}: CareGuideFormProps) {
       } else {
         await apiFetch('/api/admin/care-guides', {method: 'POST', body: JSON.stringify(body), headers: {'Content-Type': 'application/json'}});
       }
-      setMessage(locale === 'ru' ? 'Сохранено!' : 'Saved!');
+      setMessage(tc('saved'));
       setTimeout(() => router.push(`/${locale}/admin/care`), 800);
     } catch {
-      setMessage(locale === 'ru' ? 'Ошибка сохранения' : 'Save error');
+      setMessage(tc('errSave'));
     } finally {
       setSaving(false);
     }
@@ -89,43 +90,43 @@ export default function CareGuideForm({initial}: CareGuideFormProps) {
     <div className="max-w-3xl *:mb-6 last:*:mb-0 pb-20">
       <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">
         {isEdit
-          ? (ru ? 'Редактировать' : 'Edit')
-          : (ru ? 'Новая запись по уходу' : 'New Care Guide')}
+          ? (tc('edit'))
+          : (tc('formNew'))}
       </h1>
 
-      <Panel title={ru ? 'Текст' : 'Text'}>
+      <Panel title={tc('sectionText')}>
         <div className="space-y-6">
-          <FormField id="care-title" label={ru ? 'Название ткани' : 'Fabric name'}>
+          <FormField id="care-title" label={tc('fabricName')}>
             <Input
               className="min-h-11"
               id="care-title"
               onChange={e => setForm(prev => ({...prev, title: e.target.value}))}
-              placeholder={ru ? 'Например: Шёлк' : 'e.g. Silk'}
+              placeholder={tc('fabricNamePlaceholder')}
               value={form.title}
             />
           </FormField>
 
-          <FormField id="care-description" label={ru ? 'Описание' : 'Description'}>
+          <FormField id="care-description" label={tc('description')}>
             <Textarea
               className="min-h-28"
               id="care-description"
               onChange={e => setForm(prev => ({...prev, description: e.target.value}))}
-              placeholder={ru ? 'Общее описание ткани и особенности ухода' : 'General fabric description and care overview'}
+              placeholder={tc('descriptionPlaceholder')}
               value={form.description}
             />
           </FormField>
 
-          <FormField id="care-tips" label={ru ? 'Советы' : 'Tips'}>
+          <FormField id="care-tips" label={tc('tips')}>
             <Textarea
               className="min-h-24"
               id="care-tips"
               onChange={e => setForm(prev => ({...prev, tips: e.target.value}))}
-              placeholder={ru ? 'Практические советы по уходу' : 'Practical care tips'}
+              placeholder={tc('tipsPlaceholder')}
               value={form.tips}
             />
           </FormField>
 
-          <FormField id="care-image" label={ru ? 'Изображение (URL)' : 'Image URL'}>
+          <FormField id="care-image" label={tc('imageUrl')}>
             <Input
               className="min-h-11"
               id="care-image"
@@ -138,7 +139,7 @@ export default function CareGuideForm({initial}: CareGuideFormProps) {
         </div>
       </Panel>
 
-      <Panel title={ru ? 'Символы ухода' : 'Care symbols'}>
+      <Panel title={tc('colSymbols')}>
         {/* Значки — не поля ввода, а переключатели с состоянием, и роль у
             них соответствующая. Прежде это были обычные кнопки, и диктор
             не сообщал, выбран символ или нет: разница была только в цвете
@@ -166,9 +167,9 @@ export default function CareGuideForm({initial}: CareGuideFormProps) {
         </div>
       </Panel>
 
-      <Panel title={ru ? 'Показ' : 'Visibility'}>
+      <Panel title={tc('sectionVisibility')}>
         <div className="flex flex-wrap items-end gap-8">
-          <FormField id="care-sort" label={ru ? 'Порядок' : 'Sort order'}>
+          <FormField id="care-sort" label={tc('sortOrder')}>
             <Input
               className="min-h-11 w-28"
               id="care-sort"
@@ -189,20 +190,20 @@ export default function CareGuideForm({initial}: CareGuideFormProps) {
               onCheckedChange={value => setForm(prev => ({...prev, active: value}))}
             />
             <label className="text-[13px]" htmlFor="care-active">
-              {ru ? 'Показывать запись' : 'Show this guide'}
+              {tc('showGuide')}
             </label>
           </div>
         </div>
       </Panel>
 
       <FormActions
-        cancelLabel={ru ? 'Отмена' : 'Cancel'}
+        cancelLabel={tc('cancel')}
         message={message}
         onCancel={() => router.push(`/${locale}/admin/care`)}
         onSave={handleSave}
-        saveLabel={ru ? 'Сохранить' : 'Save'}
+        saveLabel={tc('save')}
         saving={saving}
-        savingLabel={ru ? 'Сохранение...' : 'Saving...'}
+        savingLabel={tc('saving')}
       />
     </div>
   );
