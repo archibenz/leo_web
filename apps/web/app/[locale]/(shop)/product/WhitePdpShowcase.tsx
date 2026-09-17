@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import {useState, useEffect, useRef} from 'react';
+import {CoverTransition} from '../../../../lib/viewTransition';
 import {useTranslations} from 'next-intl';
 import {useFocusTrap} from '../../../../lib/useFocusTrap';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
@@ -345,30 +346,49 @@ export default function WhitePdpShowcase({
               (gap-0). The gutter and the small gap return at sm, where the
               gallery sits inside the two-column layout. */}
           <div ref={galleryRef} className="wv-rise -mx-6 flex scroll-mt-20 flex-col gap-0 sm:mx-0 sm:gap-2">
-            {gallery.map((src, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => {
-                  setActiveImg(i);
-                  setZoomed(true);
-                }}
-                aria-label={`${t('zoomImage')} ${i + 1}`}
-                className="wv-zoom relative block aspect-[2/3] w-full overflow-hidden"
-              >
-                <Image
-                  src={src}
-                  alt={frameAlt(i)}
-                  fill
-                  {...(i === 0 ? {priority: true} : {loading: 'lazy' as const})}
-                  placeholder={WHITE_LQIP[src] ? 'blur' : 'empty'}
-                  blurDataURL={WHITE_LQIP[src]}
-                  quality={90}
-                  sizes="(max-width: 1024px) 100vw, 560px"
-                  className="object-cover"
-                />
-              </button>
-            ))}
+            {gallery.map((src, i) => {
+              const кадр = (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => {
+                    setActiveImg(i);
+                    setZoomed(true);
+                  }}
+                  aria-label={`${t('zoomImage')} ${i + 1}`}
+                  className="wv-zoom relative block aspect-[2/3] w-full overflow-hidden"
+                >
+                  <Image
+                    src={src}
+                    alt={frameAlt(i)}
+                    fill
+                    {...(i === 0 ? {priority: true} : {loading: 'lazy' as const})}
+                    placeholder={WHITE_LQIP[src] ? 'blur' : 'empty'}
+                    blurDataURL={WHITE_LQIP[src]}
+                    quality={90}
+                    sizes="(max-width: 1024px) 100vw, 560px"
+                    className="object-cover"
+                  />
+                </button>
+              );
+              // Имя перехода — ТОЛЬКО первому кадру: он и есть обложка,
+              // которой товар представлен в сетке (WhiteProductCard). Раздать
+              // имя всем кадрам нельзя — имя обязано быть единственным на
+              // экране, иначе браузер гасит переход целиком и молча.
+              //
+              // Оговорка, которую видно только на цветах со своей съёмкой:
+              // первый кадр берёт фотографию активного цвета, а сетка
+              // показывает базовую. Совпадают они почти всегда; когда нет,
+              // перетекание превращается в наплыв одной фотографии на другую —
+              // некрасиво, но не сломано.
+              return i === 0 ? (
+                <CoverTransition key={i} name={`wv-cover-${product.key}`}>
+                  {кадр}
+                </CoverTransition>
+              ) : (
+                кадр
+              );
+            })}
           </div>
 
           {/* Info */}
