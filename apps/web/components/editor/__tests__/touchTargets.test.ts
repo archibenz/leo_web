@@ -2,6 +2,7 @@ import {describe, it, expect} from 'vitest';
 import {readdirSync, readFileSync} from 'node:fs';
 import {join, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {безКомментариев, телоТега} from '../../__tests__/jsx-source';
 
 // Порог зоны нажатия в редакторе на живой странице: 44px по высоте, кегль не
 // мельче 13. Принят в приёмке админки (план 2026-09-13-admin-white.md).
@@ -56,44 +57,10 @@ function строковыеКонстанты(source: string): Map<string, strin
   return out;
 }
 
-/**
- * Тело открывающего тега — от `<tag` до закрывающей `>` ЭТОГО тега.
- *
- * Не регулярным выражением: в атрибутах живут стрелки `=>` и вложенные
- * `{...}`, и `[^>]*` обрывает разбор на первой же стрелке. Обрыв не виден
- * глазом — он даёт «className не найден», то есть проверка молча считает
- * элемент безымянным и пропускает. Ровно тот отказ, ради которого ниже стоит
- * сторож на число найденного.
- */
-function телоТега(source: string, from: number): string | null {
-  let глубина = 0;
-  let кавычка: string | null = null;
-  for (let i = from; i < source.length; i++) {
-    const c = source[i]!;
-    if (кавычка !== null) {
-      if (c === кавычка && source[i - 1] !== '\\') кавычка = null;
-      continue;
-    }
-    if (c === '"' || c === "'" || c === '`') кавычка = c;
-    else if (c === '{') глубина++;
-    else if (c === '}') глубина--;
-    else if (c === '>' && глубина === 0) return source.slice(from, i);
-  }
-  return null;
-}
-
-/**
- * Комментарии — пробелами той же длины, чтобы номера строк не поехали.
- *
- * В шапках здешних файлов `<select>` и `<button>` упоминаются словами, и без
- * этого сторож ловил их как настоящие элементы «без className». Ложная тревога
- * хуже пропуска ровно наполовину: пропуск молчит, а тревога учит не верить.
- */
-function безКомментариев(source: string): string {
-  return source
-    .replace(/\/\*[\s\S]*?\*\//g, (m) => m.replace(/[^\n]/g, ' '))
-    .replace(/^([ \t]*)\/\/.*$/gm, (m, отступ: string) => отступ + ' '.repeat(m.length - отступ.length));
-}
+// телоТега и безКомментариев уехали в components/__tests__/jsx-source.ts:
+// тот же разбор понадобился второму сторожу (no-bare-registry-name), а две
+// копии парсера разъезжаются молча — правят одну, вторая продолжает врать.
+// Почему они написаны именно так, написано там же, у каждой функции.
 
 /** Все className интерактивных тегов, с подставленными константами файла. */
 function зоныНажатия(исходник: string): {tag: string; className: string; line: number}[] {
