@@ -218,7 +218,7 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                       href={l.href}
                       onClick={() => setOpen(false)}
                       aria-current={active ? 'page' : undefined}
-                      className="wv-menu-item wv-menu-link flex min-h-10 items-center font-display text-[26px] sm:min-h-11 font-light tracking-[-0.01em] md:min-h-[44px] md:text-[30px]"
+                      className="wv-menu-item wv-menu-link flex min-h-11 items-center font-display text-[26px] font-light tracking-[-0.01em] md:text-[30px]"
                       style={{color: active ? INK : MUTED, fontWeight: active ? 500 : 300, animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
                     >
                       <span className="wv-menu-label">{l.label}</span>
@@ -239,7 +239,12 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                     href={sc.href}
                     onClick={() => setOpen(false)}
                     aria-current={active ? 'page' : undefined}
-                    className="wv-menu-item wv-link inline-flex min-h-8 items-center self-start text-[11px] uppercase tracking-[0.12em] md:min-h-9 md:text-[12px]"
+                    // Строка во всю ширину панели, а не по ширине слова:
+                    // «FAQ» занимал 24×32, и мимо него промахивались в обе
+                    // стороны. Кегль и вид не трогаем — подчёркивание рисуется
+                    // под буквами, а не под коробкой, поэтому на глаз строка
+                    // осталась той же; шире стала только зона нажатия.
+                    className="wv-menu-item wv-link flex min-h-11 items-center self-stretch text-[11px] uppercase tracking-[0.12em] md:text-[12px]"
                     style={{color: active ? INK : MUTED, fontWeight: active ? 600 : 400, textDecoration: active ? 'underline' : 'none', textUnderlineOffset: '3px', textDecorationThickness: '1px', animationDelay: `${360 + i * 40}ms`}}
                   >
                     <span className="wv-link-ink">{sc.label}</span>
