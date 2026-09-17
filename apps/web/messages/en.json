@@ -1274,6 +1274,7 @@
     "myAccount": "My account",
     "signOut": "Sign out",
     "toggleNav": "Toggle navigation",
+    "breadcrumbs": "Breadcrumb",
     "nothingFound": "Nothing found",
     "saving": "Saving…",
     "foundOf": "Showing {shown} of {total}",

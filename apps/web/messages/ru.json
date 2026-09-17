@@ -1274,6 +1274,7 @@
     "myAccount": "Мой аккаунт",
     "signOut": "Выйти",
     "toggleNav": "Свернуть навигацию",
+    "breadcrumbs": "Путь по разделам",
     "nothingFound": "Ничего не найдено",
     "saving": "Сохраняем…",
     "foundOf": "Показано {shown} из {total}",
