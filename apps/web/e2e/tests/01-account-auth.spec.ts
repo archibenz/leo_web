@@ -1,7 +1,7 @@
 import type {Locator, Page} from '@playwright/test';
 import {test, expect, uniqueEmail} from '../fixtures/auth';
 import {copy, messages} from '../fixtures/messages';
-import {COLD_COMPILE} from '../fixtures/white';
+import {COLD_COMPILE, HYDRATION} from '../fixtures/white';
 
 // Replaces the spec that drove /ru/auth/register — a route that has not existed
 // since the White migration; that URL renders the White 404 now, which the last
@@ -51,7 +51,9 @@ async function openAccount(page: Page, path: string = ACCOUNT): Promise<Locator>
   // Waiting for the tabs means hydration and that decision are both done, so the
   // toHaveCount(0) and apiCalls checks below read a settled page instead of
   // passing against one that has not rendered.
-  await expect(main.getByRole('tab')).toHaveCount(2);
+  // HYDRATION, а не стандартные 5 с: под параллельным прогоном вкладки
+  // появляются за 1,9–7,3 с (замер и разбор — в e2e/fixtures/white.ts).
+  await expect(main.getByRole('tab')).toHaveCount(2, {timeout: HYDRATION});
   return main;
 }
 
