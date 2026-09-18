@@ -373,13 +373,26 @@ export function MediaField({label, value, kind, onChange}: {
       <div className="flex items-start gap-3">
         <MediaThumb src={value ?? ''} kind={kind} alt={label} />
         <div className="flex min-w-0 flex-1 flex-col gap-2">
-          {/* truncate, не break-all: в узкой колонке (MediaPairField — два
-              MediaField рядом на панели в 360px) длинный путь посимвольным
-              переносом растягивал строку на весь экран и утаскивал кнопки
-              вниз — поймано на этой же панели в GalleryField, см. её комментарий.
-              Свой title тут не нужен — он уже есть у обёртки MediaThumb. */}
-          <p className="truncate text-[11px]" style={{color: MUTED}}>
-            {value ?? 'не задано'}
+          {/* Путь режется С НАЧАЛА, а не с конца, и это главное. Многоточие в
+              конце съедает ровно то, что человеку нужно — имя файла: владелец
+              видел «/videos/wh…» и не мог понять, какой ролик стоит. Папка
+              усыхает, имя файла остаётся целым всегда.
+              break-all здесь по-прежнему нельзя: посимвольный перенос длинного
+              пути растягивал строку и утаскивал кнопки вниз (та же беда
+              ловилась в GalleryField, см. её комментарий).
+              Своего title здесь НЕТ, и это не забывчивость: полный путь уже
+              висит на обёртке миниатюры рядом (MediaThumb). Второй такой же
+              сделал бы на одну вещь два одинаковых title — и сразу сломал
+              локатор в 15-admin-media, поймано прогоном. */}
+          <p data-media-path className="flex min-w-0 items-baseline text-[11px]" style={{color: MUTED}}>
+            {value ? (
+              <>
+                <span className="truncate">{value.slice(0, value.lastIndexOf('/') + 1)}</span>
+                <span className="shrink-0">{value.slice(value.lastIndexOf('/') + 1)}</span>
+              </>
+            ) : (
+              'не задано'
+            )}
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <EditorButton onClick={() => input.current?.click()} disabled={busy}>
@@ -423,7 +436,16 @@ export function MediaPairField({label, kind, phone, desktop}: {
   return (
     <div>
       <EditorLabel>{label}</EditorLabel>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      {/* БЕЗ sm:grid-cols-2, и это не упрощение. Точка `sm` спрашивает про
+          ОКНО, а вопрос был про КОНТЕЙНЕР: панель правки на большом экране —
+          рейка в 360 px, и окно шире 640 делает колонку УЖЕ, чем на телефоне.
+          Замерено 18.09 на 1440: колонка под содержимое 66 px, кнопка
+          «Заменить» шириной 113 — торчит за свою колонку на 47 px и наезжает
+          на превью соседней, правая обрезается краем панели на 31 px. Ровно
+          это владелец и сфотографировал: «ЗАМЕНИ» вместо «ЗАМЕНИТЬ».
+          На телефоне правило не срабатывало никогда, то есть не помогало
+          нигде. */}
+      <div className="flex flex-col gap-3">
         <MediaField label="Телефон" kind={kind} value={phone.value} onChange={phone.onChange} />
         <MediaField label="Десктоп" kind={kind} value={desktop.value} onChange={desktop.onChange} />
       </div>

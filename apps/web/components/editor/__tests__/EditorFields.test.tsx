@@ -125,8 +125,19 @@ describe('MediaField', () => {
     render(<MediaField label="Главный снимок" value="/uploads/products/a.jpg" kind="image" onChange={() => {}} />);
 
     expect(screen.getByRole('img', {name: 'Главный снимок'})).toHaveAttribute('src', '/uploads/products/a.jpg');
-    const caption = screen.getByText('/uploads/products/a.jpg');
-    expect(caption.className).toMatch(/text-\[11px\]/);
+
+    // Подпись собрана из двух частей — усыхающей папки и неприкосновенного
+    // имени файла (см. MediaField: многоточие с конца съедало ровно имя, и
+    // владелец не мог понять, какой файл стоит). Поэтому утверждаем ЦЕЛОЕ:
+    // адрес обязан читаться полностью, как бы он ни был разбит на узлы.
+    const caption = document.querySelector('[data-media-path]');
+    expect(caption, 'подписи пути нет вовсе').not.toBeNull();
+    expect(caption!.textContent).toBe('/uploads/products/a.jpg');
+    expect(caption!.className).toMatch(/text-\[11px\]/);
+    // Имя файла не имеет права ужиматься — на длинном имени иначе исчезнет
+    // именно оно. Папке ужиматься можно и нужно.
+    expect(caption!.lastElementChild?.className).toMatch(/shrink-0/);
+    expect(caption!.firstElementChild?.className).toMatch(/truncate/);
   });
 
   it('«Заменить» и «Убрать» — зоны нажатия от 44px', () => {
