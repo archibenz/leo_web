@@ -22,8 +22,12 @@ export function NavGroup({
 }: SidebarNavGroup & {pathname: string; locale: string}) {
   return (
     <SidebarGroup>
+      {/* text-[13px] — пол админки, тот же, что держит сторож зон нажатия
+          (components/editor/__tests__/touchTargets.test.ts). У shadcn здесь
+          text-xs, то есть 12: замерено 18.09, это была самая мелкая строка
+          панели, и владелец читает её с телефона. */}
       {label && (
-        <SidebarGroupLabel className="duration-[calc(var(--sidebar-animation-duration)*0.8)] ease-(--sidebar-animation-ease)">
+        <SidebarGroupLabel className="text-[13px] duration-[calc(var(--sidebar-animation-duration)*0.8)] ease-(--sidebar-animation-ease)">
           {label}
         </SidebarGroupLabel>
       )}
@@ -43,7 +47,10 @@ export function NavGroup({
                   скорости — без него нечего и анимировать. */}
               <Link href={item.path ?? '#'}>
                 {item.icon}
-                <span>{item.title}</span>
+                {/* 15px: у shadcn кнопка идёт text-sm, то есть 14. Замер 18.09
+                    — 14 против 32 у заголовка страницы, список читался как
+                    служебная мелочь. Шаг один, плотность списка сохраняется. */}
+                <span className="text-[15px]">{item.title}</span>
               </Link>
             </CustomMenuButton>
           </SidebarMenuItem>
