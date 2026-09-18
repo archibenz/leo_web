@@ -1,10 +1,7 @@
 'use client';
 
-import {useEffect, useState} from 'react';
-import {useRouter} from 'next/navigation';
 import {useTranslations} from 'next-intl';
-import {useEditorSession} from './useEditorSession';
-import {readEditCookie, writeEditCookie} from './editCookie';
+import {useEditMode} from './useEditMode';
 
 // Персистентный вход в режим правки: страница аккаунта и низ админки, один
 // компонент на оба места (владелец сам назвал оба). Раньше вход жил в шапке
@@ -25,29 +22,12 @@ import {readEditCookie, writeEditCookie} from './editCookie';
 // рамки блока давала бы двойную линию. Отступы страницы принадлежат
 // странице, а не компоненту, который живёт в двух разных местах.
 export default function EditModeSwitch({framed = true}: {framed?: boolean} = {}) {
-  const {isAdmin} = useEditorSession();
-  const router = useRouter();
+  // Кука, право и router.refresh() — в useEditMode: тот же режим включает
+  // пункт боковой панели админки, и две копии этой логики разъехались бы.
+  const {isAdmin, on, toggle} = useEditMode();
   const t = useTranslations('white.editModeSwitch');
-  const [on, setOn] = useState(false);
-
-  // Кука — источник правды для стартового состояния: пришли на страницу уже
-  // включёнными (переход после аккаунта) — выключатель обязан показать это,
-  // а не сброситься в «выключено» до первого клика.
-  useEffect(() => {
-    setOn(readEditCookie());
-  }, []);
 
   if (!isAdmin) return null;
-
-  const toggle = () => {
-    const next = !on;
-    writeEditCookie(next);
-    setOn(next);
-    // Решает сервер заново (lib/catalogue/viewer.ts), не состояние здесь —
-    // refresh() ещё и сбрасывает Router Cache: без этого уже посещённые
-    // страницы отдали бы навигацией старый снимок без черновика.
-    router.refresh();
-  };
 
   return (
     <div

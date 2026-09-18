@@ -1275,6 +1275,8 @@
     "signOut": "Sign out",
     "toggleNav": "Toggle navigation",
     "breadcrumbs": "Breadcrumb",
+    "editModeOn": "Editing is on",
+    "editModeOff": "Turn editing on",
     "nothingFound": "Nothing found",
     "saving": "Saving…",
     "foundOf": "Showing {shown} of {total}",

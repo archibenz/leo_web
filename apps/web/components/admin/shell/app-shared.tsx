@@ -2,7 +2,7 @@
 
 import type {ReactNode} from 'react';
 import {cn} from '@/lib/utils';
-import {SidebarMenuButton} from '@/components/ui/sidebar';
+import {SidebarMenuButton, useSidebar} from '@/components/ui/sidebar';
 import {
   LayoutGridIcon,
   ShirtIcon,
@@ -47,10 +47,33 @@ export type SidebarNavGroup = {
 
 export function CustomMenuButton({
   className,
+  tooltip,
   ...props
 }: React.ComponentProps<typeof SidebarMenuButton>) {
+  // ПОДСКАЗКИ НЕТ НА ТЕЛЕФОНЕ, И ЭТО НЕ ВКУС.
+  //
+  // У примитива подсказка на телефоне СКРЫТА, но смонтирована:
+  // `hidden={state !== 'collapsed' || isMobile}` (sidebar.tsx). Скрытый
+  // Radix-слой продолжает существовать — и, открывшись по фокусу, перехватывает
+  // Escape ПЕРВЫМ. Шторка навигации на телефоне закрывается именно по Escape, и
+  // она переставала закрываться.
+  //
+  // Замерено 18.09: нажатие доходило до документа уже с defaultPrevented=true;
+  // сняли подсказку — шторка закрылась. Спека 16-admin-white-shell это и
+  // поймала, кейс «панель свёрнута и разворачивается по нажатию».
+  //
+  // Дефект спал в оболочке с самого начала и был не виден, пока фокус не
+  // попадал на пункт с подсказкой. Поэтому чиним ЗДЕСЬ, у всех пунктов разом, а
+  // не у того одного, который его разбудил. В components/ui/sidebar.tsx чинить
+  // нельзя — файл перезапишет реестр.
+  //
+  // Смысла подсказка на телефоне и не имела: она объясняет значок в свёрнутой
+  // рейке, а в шторке у каждого пункта есть подпись.
+  const {isMobile} = useSidebar();
+
   return (
     <SidebarMenuButton
+      tooltip={isMobile ? undefined : tooltip}
       className={cn(
         // 44 px на телефоне — тот же порог, что у тумблера и у меню аккаунта.
         // У shadcn размер по умолчанию h-8, то есть 32: мышью попасть легко,
