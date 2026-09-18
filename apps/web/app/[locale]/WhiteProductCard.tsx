@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState, type ReactNode} from 'react';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../hooks/useWhiteFavourites';
@@ -13,6 +13,7 @@ import {trackSiteEvent} from '../../lib/siteEvents';
 import {MUTED, SIGNAL, HAIR} from './wv-palette';
 import {WHITE_LQIP} from './products-lqip';
 import {WhiteFavHeart} from './wv-icons';
+import {CoverTransition} from '../../lib/viewTransition';
 
 // Variant 2 "White" — shared product card for the landing edit, the shop grid
 // and the PDP "related" rail. Single source so the three never drift.
@@ -22,6 +23,24 @@ import {WhiteFavHeart} from './wv-icons';
 // while only navigating. The whole card still links to the PDP; the Quick Add
 // control lives OUTSIDE the anchor (a button nested in <a> is invalid markup
 // and breaks the link). CSS-only reveal, reduced-motion safe (see globals.css).
+
+// Даёт обложке имя перехода — или не делает ничего. Отдельным компонентом, а
+// не тернарником внутри разметки: блок обложки большой, и дублировать его ради
+// одной обёртки значит завести две копии, которые разъедутся.
+function SharedCover({morph, name, children}: {morph: boolean; name: string; children: ReactNode}) {
+  // ПРОБОВАЛ СУЗИТЬ, НЕ ВЫШЛО — записано, чтобы следующий не повторил. Имя
+  // носит каждая карточка сетки, и браузер заводит анимацию на каждую: 105 за
+  // один переход на витрине из тридцати пяти товаров. Попытка оставить только
+  // перетекание (`default="none"`, затем и `default="none" share="auto"`)
+  // гасит переход ЦЕЛИКОМ: замерено дважды на боевой сборке — ноль вызовов
+  // startViewTransition. Число 105 при этом ни с каким наблюдаемым следствием
+  // пока не связано — на плавность замерено отдельно, см. PR.
+  return morph ? (
+    <CoverTransition name={name}>{children}</CoverTransition>
+  ) : (
+    <>{children}</>
+  );
+}
 
 export default function WhiteProductCard({
   locale,
@@ -34,6 +53,15 @@ export default function WhiteProductCard({
   hideFav = false,
   // From the marketplace snapshot on the server: this piece is nowhere to buy.
   soldOut = false,
+  // Участвует ли обложка в перетекании на страницу товара.
+  //
+  // ПО УМОЛЧАНИЮ ВЫКЛЮЧЕНО, и это не осторожность, а устройство: имя перехода
+  // обязано быть ЕДИНСТВЕННЫМ на экране. На странице товара один и тот же
+  // товар попадает и в «вам может понравиться», и в «дополните образ» —
+  // замерено, две карточки с одним адресом, — и React на дубле гасит переход
+  // ЦЕЛИКОМ, не только у виноватой пары. Включаем там, где список товаров на
+  // странице один: витрина магазина, подборка на главной, избранное.
+  morph = false,
 }: {
   locale: string;
   product: WhiteProduct;
@@ -44,6 +72,7 @@ export default function WhiteProductCard({
   bleed?: boolean;
   hideFav?: boolean;
   soldOut?: boolean;
+  morph?: boolean;
 }) {
   const t = useTranslations('white.card');
   const {add} = useWhiteBag();
@@ -130,141 +159,151 @@ export default function WhiteProductCard({
       <span role="status" aria-live="polite" className="sr-only">
         {added ? t('addedToBag', {name}) : ''}
       </span>
-      <div className="wv-ph wv-zoom relative aspect-[2/3] w-full overflow-hidden">
-        {/* Six squares uncovering the photograph — see .wv-tiles. Decorative,
-            and it sits under the link layer, so nothing here is in the way of
-            a tap. */}
-        <span aria-hidden="true" className="wv-tiles">
-          <span /><span /><span /><span /><span /><span />
-        </span>
-        {/* Real photo (gradient asset base). Slow zoom on hover for editorial
-            feel — disabled under reduced-motion. pointer-events-none so the
-            link layer above stays the click target. */}
-        <Image
-          src={product.image}
-          alt={name}
-          fill
-          priority={priority}
-          loading={priority ? 'eager' : 'lazy'}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 460px"
-          placeholder={WHITE_LQIP[product.image] ? 'blur' : 'empty'}
-          blurDataURL={WHITE_LQIP[product.image]}
-          className="pointer-events-none object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-        />
-        {/* Second view crossfades in on hover where the product carries one —
-            the same alternate-angle reveal the big retail grids use. */}
-        {product.gallery?.[0] && (
-          <span className="pointer-events-none absolute inset-0 hidden [@media(hover:hover)]:block">
+      {/* Обложка — единственная вещь, которая ПЕРЕТЕКАЕТ в карточку товара.
+          Имя общее с первым кадром галереи на PDP (WhitePdpShowcase), и оно
+          привязано к ключу товара: в сетке карточек много, а имя перехода
+          обязано быть единственным на экране — одинаковые имена гасят переход
+          целиком, молча.
+      
+          Отключение при prefers-reduced-motion живёт в globals.css одним
+          правилом на все переходы: ViewTransition эту настройку НЕ слышит сам. */}
+      <SharedCover morph={morph} name={`wv-cover-${product.key}`}>
+        <div className="wv-ph wv-zoom relative aspect-[2/3] w-full overflow-hidden">
+          {/* Six squares uncovering the photograph — see .wv-tiles. Decorative,
+              and it sits under the link layer, so nothing here is in the way of
+              a tap. */}
+          <span aria-hidden="true" className="wv-tiles">
+            <span /><span /><span /><span /><span /><span />
+          </span>
+          {/* Real photo (gradient asset base). Slow zoom on hover for editorial
+              feel — disabled under reduced-motion. pointer-events-none so the
+              link layer above stays the click target. */}
           <Image
-            src={product.gallery[0]}
-            alt=""
+            src={product.image}
+            alt={name}
             fill
-            loading="lazy"
-            sizes="(max-width: 1024px) 50vw, 460px"
-            className="pointer-events-none object-cover opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100 motion-reduce:transition-none motion-reduce:group-hover:opacity-0"
+            priority={priority}
+            loading={priority ? 'eager' : 'lazy'}
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 460px"
+            placeholder={WHITE_LQIP[product.image] ? 'blur' : 'empty'}
+            blurDataURL={WHITE_LQIP[product.image]}
+            className="pointer-events-none object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
           />
-          </span>
-        )}
-        {/* Image is its own link so Quick Add can sit outside the anchor. */}
-        <Link href={href} aria-label={name} className="wv-card-link absolute inset-0 z-[1]" />
-
-        {product.sale && (
-          <span className="pointer-events-none absolute left-3 top-3 z-[5] text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>
-            {t('sale')}
-          </span>
-        )}
-
-        {/* Favourite — a sibling of the image link (a button nested in <a> is
-            invalid). Always visible (mobile has no hover); 44px hit area, the
-            heart fills with the signal colour when saved. Persists via the same
-            store as the PDP heart, so the two stay in sync. hideFav drops it on
-            tiny grids (sets' 3-up items) where the 44px target eats the photo. */}
-        {!hideFav && (
-          <button
-            type="button"
-            onClick={() => {
-              // Track only the add, not the remove — mirrors the closed event
-              // list (no "remove_from_favourite" type). Card has no colour UI,
-              // so the primary colourway (the one the photo shows) stands in,
-              // same as Quick Add above.
-              if (!favourited) trackSiteEvent('add_to_favourite', {productId: product.colors[0]!.id});
-              toggle(product.key);
-            }}
-            aria-pressed={favourited}
-            aria-label={favourited ? t('removeFavourite', {name}) : t('addFavourite', {name})}
-            className="absolute right-1 top-1 z-[5] flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-100"
-            style={{opacity: favourited ? 1 : 0.75}}
-          >
-            {/* Subtle plate so the ink heart stays legible over dark editorial
-                photos — same bg-white/backdrop-blur idiom as the quick-add pill.
-                Near-invisible over light imagery, lifts the glyph over dark. */}
-            <span className="flex h-8 w-8 items-center justify-center [filter:drop-shadow(0_1px_6px_rgba(255,255,255,0.9))]">
-              <WhiteFavHeart filled={favourited} size={18} />
+          {/* Second view crossfades in on hover where the product carries one —
+              the same alternate-angle reveal the big retail grids use. */}
+          {product.gallery?.[0] && (
+            <span className="pointer-events-none absolute inset-0 hidden [@media(hover:hover)]:block">
+            <Image
+              src={product.gallery[0]}
+              alt=""
+              fill
+              loading="lazy"
+              sizes="(max-width: 1024px) 50vw, 460px"
+              className="pointer-events-none object-cover opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100 motion-reduce:transition-none motion-reduce:group-hover:opacity-0"
+            />
             </span>
-          </button>
-        )}
+          )}
+          {/* Image is its own link so Quick Add can sit outside the anchor. */}
+          <Link href={href} aria-label={name} className="wv-card-link absolute inset-0 z-[1]" />
 
-        {/* Quick Add only appears for a piece the site can actually sell. While
-            stock is unknown the bag would be taking an order we cannot fill, so
-            the strip says where the garment is bought instead. */}
-        {quickAdd && !open && inStock && (
-          <button
-            ref={triggerRef}
-            type="button"
-            onClick={openPanel}
-            aria-haspopup="true"
-            aria-expanded={open}
-            aria-label={t('quickAddNamed', {name})}
-            className="wv-quickadd absolute inset-x-0 bottom-0 z-[5] flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm"
-          >
-            {added ? t('added') : t('quickAdd')}
-          </button>
-        )}
+          {product.sale && (
+            <span className="pointer-events-none absolute left-3 top-3 z-[5] text-[10px] uppercase tracking-[0.16em]" style={{color: SIGNAL}}>
+              {t('sale')}
+            </span>
+          )}
 
-        {quickAdd && !inStock && (
-          <span className="wv-quickadd pointer-events-none absolute inset-x-0 bottom-0 z-[5] flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm" style={{color: MUTED}}>
-            {preorderOnly ? t('preorder') : availability === 'none' ? t('outOfStock') : onOzon ? t('onlyOnMarketplaces') : t('onlyOnWb')}
-          </span>
-        )}
-
-        {quickAdd && open && (
-          <div
-            ref={panelRef}
-            role="group"
-            aria-label={t('selectSizeFor', {name})}
-            className="absolute inset-0 z-[6] flex flex-col items-center justify-center gap-3 bg-white/95 px-3"
-          >
+          {/* Favourite — a sibling of the image link (a button nested in <a> is
+              invalid). Always visible (mobile has no hover); 44px hit area, the
+              heart fills with the signal colour when saved. Persists via the same
+              store as the PDP heart, so the two stay in sync. hideFav drops it on
+              tiny grids (sets' 3-up items) where the 44px target eats the photo. */}
+          {!hideFav && (
             <button
               type="button"
               onClick={() => {
-                setOpen(false);
-                triggerRef.current?.focus();
+                // Track only the add, not the remove — mirrors the closed event
+                // list (no "remove_from_favourite" type). Card has no colour UI,
+                // so the primary colourway (the one the photo shows) stands in,
+                // same as Quick Add above.
+                if (!favourited) trackSiteEvent('add_to_favourite', {productId: product.colors[0]!.id});
+                toggle(product.key);
               }}
-              aria-label={t('close')}
-              className="absolute right-1 top-1 flex h-11 w-11 items-center justify-center text-[15px] leading-none transition-opacity hover:opacity-60"
-              style={{color: MUTED}}
+              aria-pressed={favourited}
+              aria-label={favourited ? t('removeFavourite', {name}) : t('addFavourite', {name})}
+              className="absolute right-1 top-1 z-[5] flex h-11 w-11 items-center justify-center transition-opacity hover:opacity-100"
+              style={{opacity: favourited ? 1 : 0.75}}
             >
-              ×
+              {/* Subtle plate so the ink heart stays legible over dark editorial
+                  photos — same bg-white/backdrop-blur idiom as the quick-add pill.
+                  Near-invisible over light imagery, lifts the glyph over dark. */}
+              <span className="flex h-8 w-8 items-center justify-center [filter:drop-shadow(0_1px_6px_rgba(255,255,255,0.9))]">
+                <WhiteFavHeart filled={favourited} size={18} />
+              </span>
             </button>
-            <p className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>
-              {t('selectSize')}
-            </p>
-            <div className="flex flex-wrap justify-center gap-1.5">
-              {(product.sizes ?? WHITE_SIZES).map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  data-size={s}
-                  onClick={() => pick(s)}
-                  className="h-11 min-w-11 border border-[#e7e2db] px-2 text-[13px] tracking-wide text-[#1c1714] transition-colors hover:border-[#1c1714] hover:bg-[#1c1714] hover:text-white"
-                >
-                  {s}
-                </button>
-              ))}
+          )}
+
+          {/* Quick Add only appears for a piece the site can actually sell. While
+              stock is unknown the bag would be taking an order we cannot fill, so
+              the strip says where the garment is bought instead. */}
+          {quickAdd && !open && inStock && (
+            <button
+              ref={triggerRef}
+              type="button"
+              onClick={openPanel}
+              aria-haspopup="true"
+              aria-expanded={open}
+              aria-label={t('quickAddNamed', {name})}
+              className="wv-quickadd absolute inset-x-0 bottom-0 z-[5] flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm"
+            >
+              {added ? t('added') : t('quickAdd')}
+            </button>
+          )}
+
+          {quickAdd && !inStock && (
+            <span className="wv-quickadd pointer-events-none absolute inset-x-0 bottom-0 z-[5] flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm" style={{color: MUTED}}>
+              {preorderOnly ? t('preorder') : availability === 'none' ? t('outOfStock') : onOzon ? t('onlyOnMarketplaces') : t('onlyOnWb')}
+            </span>
+          )}
+
+          {quickAdd && open && (
+            <div
+              ref={panelRef}
+              role="group"
+              aria-label={t('selectSizeFor', {name})}
+              className="absolute inset-0 z-[6] flex flex-col items-center justify-center gap-3 bg-white/95 px-3"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  triggerRef.current?.focus();
+                }}
+                aria-label={t('close')}
+                className="absolute right-1 top-1 flex h-11 w-11 items-center justify-center text-[15px] leading-none transition-opacity hover:opacity-60"
+                style={{color: MUTED}}
+              >
+                ×
+              </button>
+              <p className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>
+                {t('selectSize')}
+              </p>
+              <div className="flex flex-wrap justify-center gap-1.5">
+                {(product.sizes ?? WHITE_SIZES).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    data-size={s}
+                    onClick={() => pick(s)}
+                    className="h-11 min-w-11 border border-[#e7e2db] px-2 text-[13px] tracking-wide text-[#1c1714] transition-colors hover:border-[#1c1714] hover:bg-[#1c1714] hover:text-white"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </SharedCover>
 
       {/* Name + price — a second link to the same PDP. px-1 keeps the caption
           off the physical screen edge when the photo grid runs full-bleed. */}

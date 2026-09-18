@@ -299,7 +299,7 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
             two columns it would eat the gutter between them. */}
         <div className="grid grid-cols-2 gap-x-3 gap-y-8 px-6 pt-4 pb-12 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 sm:px-0 sm:pt-10 lg:grid-cols-3 lg:gap-x-8">
           {shown.map((p, i) => (
-            <WhiteProductCard key={p.key} locale={locale} product={p} index={i} priority={i < 4} rise soldOut={soldOutSet.has(p.key)} />
+            <WhiteProductCard key={p.key} locale={locale} product={p} index={i} priority={i < 4} rise soldOut={soldOutSet.has(p.key)} morph />
           ))}
         </div>
 

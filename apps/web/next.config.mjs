@@ -6,6 +6,19 @@ const withNextIntl = createNextIntlPlugin('./i18n.ts');
 const nextConfig = {
   output: 'standalone',
   devIndicators: false,
+  // Переход с перетеканием обложки (lw-1jey). Флаг делает ОДНУ вещь, и о ней
+  // надо знать прямо: Next подменяет весь React приложения своей ВНУТРЕННЕЙ
+  // сборкой экспериментального канала (webpack-config.js:325 —
+  // needsExperimentalReact → алиас на next/dist/compiled/react-experimental).
+  //
+  // Проверено в этой версии, а не взято из документации:
+  //   next/dist/compiled/react              19.2.0-canary        — ViewTransition НЕТ
+  //   next/dist/compiled/react-experimental 19.2.0-experimental  — ViewTransition есть
+  //
+  // Поэтому `react` из node_modules на сборку App Router не влияет вовсе:
+  // поднимать его до 19.3, где ViewTransition стабилен, бесполезно, пока Next
+  // подкладывает свой. Стабильный путь появляется только на Next 16.
+  experimental: {viewTransition: true},
   // Drop X-Powered-By: Next.js — leaks framework + version, gives no benefit.
   poweredByHeader: false,
   eslint: {
