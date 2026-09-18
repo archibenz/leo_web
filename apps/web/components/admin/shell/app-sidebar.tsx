@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/sidebar';
 import {CustomMenuButton, adminNavGroups} from './app-shared';
 import {NavGroup} from './nav-group';
+import {NavEditMode} from './nav-edit-mode';
 import {ExternalLinkIcon} from 'lucide-react';
 
 // Боковая панель по блоку `app-shell-7`. Свёрнутое состояние — до значков
@@ -77,6 +78,11 @@ export function AppSidebar({locale}: {locale: string}) {
         {groups.map((group) => (
           <NavGroup key={group.label} {...group} locale={locale} pathname={pathname} />
         ))}
+        {/* Режим правки — последним в списке и НЕ внутри NavGroup: там данные
+            описывают ссылки, а это переключатель. Втиснуть его в тот же список
+            значило бы завести в данных поле «на самом деле не ссылка», и
+            каждый следующий пункт пришлось бы читать с оглядкой на него. */}
+        <NavEditMode />
       </SidebarContent>
 
       {/* Выход на витрину внизу панели — он же был внизу прежней оболочки.

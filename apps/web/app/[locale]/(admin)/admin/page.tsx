@@ -3,10 +3,7 @@
 import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
-import Link from 'next/link';
-import {HomeIcon} from 'lucide-react';
 import BrandLoader from '../../../../components/BrandLoader';
-import EditModeSwitch from '../../../../components/editor/EditModeSwitch';
 import {apiFetch} from '../../../../lib/api';
 import {Button} from '../../../../components/ui/button';
 import {Panel, PanelEmpty} from '../../../../components/admin/dashboard/panel';
@@ -365,31 +362,17 @@ export default function AdminDashboardPage() {
             />
           </Panel>
 
-          <Link
-            className="flex items-center gap-4 rounded-lg p-4 ring-1 ring-border transition-colors hover:bg-muted md:p-5"
-            href={`/${locale}/admin/homepage`}
-          >
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-md ring-1 ring-border">
-              <HomeIcon className="size-5" />
-            </span>
-            <span>
-              <span className="block text-[13px]">{t('homepageSettings')}</span>
-              <span className="block text-muted-foreground text-[12px]">{t('homepageDesc')}</span>
-            </span>
-          </Link>
         </>
       )}
 
-      {/* Второе место выключателя — владелец назвал оба. Стоит СНАРУЖИ веток
-          загрузки и ошибки нарочно: провал статистики не должен уносить с
-          собой единственный вход в режим правки.
-          framed={false} — рамку даёт Panel. Своя черта выключателя рисуется
-          цветом текста, то есть почти чёрным, и на белом полотне давала
-          тяжёлую линию во всю ширину, тогда как все прочие линии здесь
-          волосяные. */}
-        <Panel title={t('dashboardPage.editModeTitle')}>
-          <EditModeSwitch framed={false} />
-        </Panel>
+      {/* Ни карточки «Настройки главной», ни блока правки здесь больше нет:
+          владелец просил убрать их с дашборда и держать пунктами боковой
+          панели. Настройки главной там уже были — карточка их дублировала;
+          режим правки переехал туда пунктом-переключателем
+          (components/admin/shell/nav-edit-mode.tsx).
+          Важное, что при этом не потерялось: выключатель стоял СНАРУЖИ веток
+          загрузки и ошибки, чтобы провал статистики не уносил с собой вход в
+          режим правки. В боковой панели он тем более не зависит от дашборда. */}
       </div>
     </>
   );
