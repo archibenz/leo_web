@@ -40,6 +40,7 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
   ticker?: StorefrontSection;
 }) {
   const heroVideoRef = useRef<HTMLVideoElement>(null);
+  const setsVideoRef = useRef<HTMLVideoElement>(null);
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const t = useTranslations('white.landing');
@@ -78,6 +79,45 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
     toHash();
     window.addEventListener('hashchange', toHash);
     return () => window.removeEventListener('hashchange', toHash);
+  }, []);
+
+  // РОЛИК СЕТОВ НЕ ЗАБИРАЕТ КАНАЛ У ГЕРОЯ.
+  //
+  // Он лежит ниже сгиба, но стоял с autoPlay — а autoPlay заставляет браузер
+  // качать файл НЕЗАВИСИМО от preload="none": чтобы играть, надо скачать.
+  // Адрес при этом виден сканеру предзагрузки прямо в разметке, тогда как у
+  // героя адреса в разметке нет вовсе (он появляется после гидратации, см.
+  // объяснение ниже). Итог измерен 21.09 на телефонном профиле:
+  //
+  //   sets-static.mp4 (не виден)  @1813 мс
+  //   hero-mark2.mp4  (на экране) @4729 мс
+  //
+  // Ролик, которого человек не видит, начинал грузиться на 2,9 секунды раньше
+  // того, на который он смотрит, и на узком канале это прямо отодвигает первый
+  // кадр героя.
+  //
+  // Лечение: играть, когда подходит к экрану, а не при загрузке страницы.
+  // rootMargin в пол-экрана — чтобы к моменту, когда блок доехал до глаз, файл
+  // уже был. Наблюдателя нет (старый движок) — играем сразу, как раньше: без
+  // ролика блок теряет смысл, а постер у него и так стоит.
+  useEffect(() => {
+    const v = setsVideoRef.current;
+    if (!v) return;
+    const пуск = () => void v.play()?.catch(() => {});
+    if (typeof IntersectionObserver === 'undefined') {
+      пуск();
+      return;
+    }
+    const наблюдатель = new IntersectionObserver(
+      (записи) => {
+        if (!записи.some((з) => з.isIntersecting)) return;
+        пуск();
+        наблюдатель.disconnect();
+      },
+      {rootMargin: '50% 0px'},
+    );
+    наблюдатель.observe(v);
+    return () => наблюдатель.disconnect();
   }, []);
 
   // Two single-source <video> elements (one per breakpoint, toggled by CSS)
@@ -264,8 +304,11 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
               stood 960px tall, and beside something that size the copy next to
               it read as fine print. */}
           <div className="wv-rise wv-scrub relative mx-auto aspect-[3/4] w-full overflow-hidden lg:max-w-[560px]">
+            {/* Без autoPlay: он тянет файл независимо от preload="none" и
+                отодвигал первый кадр героя (эффект выше, там числа).
+                Пуск даёт наблюдатель, когда блок подходит к экрану. */}
             <video
-              autoPlay
+              ref={setsVideoRef}
               muted
               loop
               playsInline
