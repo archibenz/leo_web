@@ -103,7 +103,19 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
   useEffect(() => {
     const v = setsVideoRef.current;
     if (!v) return;
-    const пуск = () => void v.play()?.catch(() => {});
+    // И КАРТИНКА ТОЖЕ, а не только ролик. Атрибут `poster` не слушает
+    // preload="none": браузер тянет его всегда, и 161 КБ блока НИЖЕ СГИБА
+    // стояли в очереди первого экрана рядом с постером героя. Замерено 21.09:
+    // sets-static.jpg стартовал на 370 мс и делил канал с тем, на что человек
+    // в этот момент смотрит.
+    //
+    // Днём мы убрали отсюда autoPlay и решили, что случай закрыт. Он был
+    // закрыт наполовину: ролик перестал грузиться, его картинка — нет.
+    const пуск = () => {
+      const картинка = v.getAttribute('data-poster');
+      if (картинка && !v.getAttribute('poster')) v.setAttribute('poster', картинка);
+      void v.play()?.catch(() => {});
+    };
     if (typeof IntersectionObserver === 'undefined') {
       пуск();
       return;
@@ -197,9 +209,28 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
             project's "raster goes through next/image" rule. */}
         <picture aria-hidden="true">
           <source media="(min-width: 1024px)" srcSet={heroPosterDesktop} />
+          {/* fetchPriority="high" — это самое крупное изображение первого
+              экрана и то единственное, что человек видит, пока ролик едет.
+              Замер 21.09 на телефонном профиле: постер стартует рано (361 мс),
+              но доезжает только к 4000 — потому что делит канал с 17 скриптами
+              на 1065 КБ и семью шрифтами. Подсказка не ускоряет сеть, она
+              меняет ОЧЕРЕДЬ: браузер ставит эту картинку впереди сценариев,
+              которые всё равно понадобятся позже.
+
+              Отдельного выигрыша она сейчас НЕ ДАЛА: 3575 против 3645 мс —
+              это разброс. Оставлена сознательно, и вот разница с `<link
+              rel=preload as="video">`, который мы отсюда выбросили. Тот
+              браузеру НЕИЗВЕСТЕН: он пишет в консоль «unsupported as value»
+              и не делает ничего — запись врала. Эту он понимает и исполняет,
+              просто двигать картинку внутри очереди на мегабайт сценариев
+              почти некуда. Механизм работает, следствие заглушено.
+              Уберём 502 КБ заглушек размытия из products-lqip.ts — и мерить
+              надо будет заново, здесь ожидается прибавка.
+              Стоит ноль байт. */}
           <img
             src={heroPoster}
             alt=""
+            fetchPriority="high"
             className="absolute inset-0 h-full w-full object-cover object-[50%_22%]"
           />
         </picture>
@@ -313,7 +344,7 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
               loop
               playsInline
               preload="none"
-              poster={setsPoster}
+              data-poster={setsPoster}
               aria-label={setsLines[0]}
               className="absolute inset-0 h-full w-full object-cover"
             >
