@@ -12,6 +12,7 @@ import WhiteTicker from './WhiteTicker';
 import {INK, MUTED, HAIR} from './wv-palette';
 import {WhiteArrow} from './wv-icons';
 import EditableSection from '../../components/editor/EditableSection';
+import {safeJsonLd} from '../../lib/jsonLd';
 import type {StorefrontSection, WhiteProduct} from '../../lib/catalogue/types';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
@@ -32,12 +33,14 @@ const HERO_VIDEO_DESKTOP = '/videos/white/hero-desktop.mp4';
 const SETS_POSTER = '/images/white/sets-static.jpg';
 const SETS_VIDEO = '/videos/white/sets-static.mp4';
 
-export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticker}: {
+export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticker, nonce}: {
   locale: string;
   featured: WhiteProduct[];
   hero?: StorefrontSection;
   setsTeaser?: StorefrontSection;
   ticker?: StorefrontSection;
+  /** Тот же поразовый nonce, которым подписаны JSON-LD на этой странице. */
+  nonce?: string;
 }) {
   const heroVideoRef = useRef<HTMLVideoElement>(null);
   const setsVideoRef = useRef<HTMLVideoElement>(null);
@@ -146,8 +149,13 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
     // Reduced motion leaves the poster as the whole banner — no source is
     // ever set, so there is nothing to later pause.
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    v.src = window.matchMedia('(min-width: 1024px)').matches ? heroVideoDesktop : heroVideo;
-    v.load();
+    // Источник мог уже поставить встроенный скрипт при разборе HTML. Тогда
+    // трогать его нельзя: повторное присваивание начинает загрузку заново и
+    // съедает ровно тот выигрыш, ради которого скрипт и добавлен.
+    if (!v.getAttribute('src')) {
+      v.src = window.matchMedia('(min-width: 1024px)').matches ? heroVideoDesktop : heroVideo;
+      v.load();
+    }
     // Optional chaining, not just the catch: jsdom's HTMLMediaElement.play()
     // returns undefined instead of a Promise, and a real browser is not
     // guaranteed to differ in every embedding (e.g. some WebViews).
@@ -206,12 +214,60 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
         {/* No <source>, no autoPlay: the effect above is the only thing that
             ever sets a src, on every engine — see it for why. */}
         <video
+          id="wv-hero-video"
           ref={heroVideoRef}
+          // Скрипт ниже ставит src ДО оживления — значит на сервере атрибута
+          // нет, а в разметке он уже есть. React считает это несовпадением и
+          // пишет «some attributes … didn't match. This won't be patched up»;
+          // в dev это поднимает оверлей ошибок Next, а тот ПЕРЕХВАТЫВАЕТ
+          // КЛИКИ — три спека про интерактив падали именно на этом, а не на
+          // сломанной гидратации (она цела: меню открывается, ошибок в бою
+          // нет).
+          //
+          // Расхождение здесь НАМЕРЕННОЕ и ровно то, для чего этот флаг и
+          // существует. Он гасит предупреждение только про атрибуты самого
+          // элемента, на детей не распространяется. Тем же приёмом и по тому
+          // же поводу подписаны JSON-LD в layout.tsx — там расходится nonce.
+          suppressHydrationWarning
           muted
           loop
           playsInline
           preload="none"
           className="absolute inset-0 h-full w-full object-cover object-[50%_22%]"
+        />
+        {/* ИСТОЧНИК СТАВИТСЯ ПРИ РАЗБОРЕ HTML, А НЕ ПОСЛЕ ГИДРАТАЦИИ.
+            Выбор по-прежнему делает JS — значит ловушка, из-за которой убрали
+            <source>, не возвращается: Safari не вычисляет `media` на <source>,
+            а matchMedia вычисляют все.
+
+            Цена прежнего устройства измерена 21.09 на телефонном профиле
+            (1,5 Мбит/с, процессор ×4): источник появлялся на 4,3 с, первый кадр
+            на 5,7 с. Всё это время канал простаивал, потому что браузер не знал
+            адреса.
+
+            <link rel="preload" as="video"> пробовал первым — НЕ РАБОТАЕТ:
+            Chromium пишет в консоль «uses an unsupported `as` value» и
+            игнорирует подсказку целиком. Замер это и показал: ни одного
+            лишнего запроса, ни одной выигранной миллисекунды.
+
+            Адреса приходят из админки (hero.videoUrl), поэтому экранируются тем
+            же safeJsonLd, что и JSON-LD на этой странице: `</script>` в поле
+            иначе закрыл бы скрипт. nonce — тот же поразовый, что у JSON-LD;
+            без него CSP отобьёт встроенный скрипт, и тогда сработает запасной
+            путь в эффекте ниже. */}
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html:
+              '(function(){var a=' +
+              safeJsonLd([heroVideo, heroVideoDesktop]) +
+              ',v=document.getElementById("wv-hero-video");' +
+              'if(!v||!window.matchMedia)return;' +
+              'if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;' +
+              'v.src=matchMedia("(min-width: 1024px)").matches?a[1]:a[0];' +
+              'v.load();var p=v.play();if(p&&p.catch)p.catch(function(){});})();',
+          }}
         />
         {/* The scrim carries the text contrast on its own so any Higgsfield shot
             (however light in its lower third) keeps the white type AA-legible —
