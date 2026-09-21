@@ -192,6 +192,28 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
               >
                 <span className="wv-link-ink">{t('signOut')}</span>
               </button>
+
+              {/* Права по 152-ФЗ и GDPR (удаление, ст. 17; выгрузка, ст. 20)
+                  на сервере реализованы — DELETE /api/auth/me и
+                  GET /api/auth/me/export. Кнопок для них на витрине нет по
+                  решению владельца, и раз так, человек должен прочитать, КАК
+                  ими воспользоваться. Молчание здесь означало бы, что право
+                  есть только у того, кто догадается написать в поддержку.
+
+                  Ссылка нарочно внутри абзаца, а не отдельной строкой: у
+                  родителя есть собственный текст, и по WCAG 2.5.5 зона
+                  нажатия для такой ссылки не нормируется — иначе пришлось бы
+                  разгонять её до 44px и рвать строку.
+
+                  13px, а не 12: это правовая информация, её надо прочитать, а
+                  не опознать. Тот же кегль, что у «Вы вошли как» выше; 12px
+                  оставлен кнопке выхода, которую узнают по месту. */}
+              <p className="mt-8 max-w-[38ch] text-[13px] leading-relaxed" style={{color: MUTED}}>
+                {t('dataRights')}{' '}
+                <a href={`/${locale}/contact`} className="wv-link">
+                  <span className="wv-link-ink" style={{color: INK}}>{t('dataRightsCta')}</span>
+                </a>
+              </p>
             </div>
           ) : (
             <div className="wv-rise">

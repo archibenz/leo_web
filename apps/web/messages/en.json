@@ -1724,6 +1724,8 @@
       "signInCta": "Sign in",
       "signUpCta": "Create account",
       "signOut": "Sign out",
+      "dataRights": "You can delete your account or get a copy of your data on request. Deletion anonymizes the account: past orders stay in our records for accounting and legal reasons, but are no longer linked to you.",
+      "dataRightsCta": "Write to us",
       "hello": "Hello,",
       "loggedInAs": "Signed in as",
       "links": "Yours",
