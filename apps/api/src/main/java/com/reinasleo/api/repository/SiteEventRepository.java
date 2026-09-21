@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,4 +32,62 @@ public interface SiteEventRepository extends JpaRepository<SiteEvent, UUID> {
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Query("UPDATE SiteEvent e SET e.userId = null WHERE e.userId = :userId")
     int clearUserId(@Param("userId") UUID userId);
+
+    // СУТКИ ЗДЕСЬ НЕ СЧИТАЮТСЯ — И ЭТО НЕ ЛЕНЬ.
+    //
+    // Витрине нужны московские сутки, а группировать по ним в SQL в этом
+    // проекте нельзя проверкой: тесты идут на H2, и он ПРИНИМАЕТ
+    // `AT TIME ZONE 'Europe/Moscow'`, но не сдвигает. Замерено 21.09.2026 на
+    // событии 2026-09-21T23:30:00Z (по Москве это уже 22-е): при
+    // user.timezone=UTC и «по Москве», и «без зоны» дали 21-е. Проверка на
+    // такой связке была бы ЗЕЛЁНОЙ при неверном ответе — хуже, чем отказ.
+    // Соседний findRegistrationsByDayAfter с `DATE(... AT TIME ZONE 'UTC')`
+    // на H2 не исполняется вовсе («Function DATE not found»), и потому не
+    // имеет ни одной проверки. Разбор и решение — в lw-1h34.
+    //
+    // Поэтому запросы отдают величины, от часового пояса НЕ зависящие, а
+    // календарь живёт в SiteStatsService, где проверяется обычным юнит-тестом
+    // без базы. Час выбран зерном сознательно: смещение Москвы — целые часы,
+    // поэтому час однозначно ложится в сутки любой из зон.
+    // bucket_hour, а не hour: `hour` — зарезервированное слово, и запрос с
+    // таким алиасом не готовится вовсе. Компилятор нативный SQL не смотрит,
+    // поймал это AdminSiteStatsControllerTest — тем, что реально сходил в базу.
+    @Query(value = """
+            SELECT date_trunc('hour', occurred_at) AS bucket_hour,
+                   event_type,
+                   COALESCE(device, '') AS device,
+                   COALESCE(locale, '') AS locale,
+                   COALESCE(marketplace, '') AS marketplace,
+                   COUNT(*) AS cnt
+            FROM site_events
+            WHERE occurred_at >= :since
+            GROUP BY 1, 2, 3, 4, 5
+            ORDER BY 1
+            """, nativeQuery = true)
+    List<Object[]> countsByHour(@Param("since") Instant since);
+
+    // Уникальные сессии за сутки НЕЛЬЗЯ сложить из часовых COUNT(DISTINCT):
+    // одна вкладка живёт несколько часов и посчиталась бы в каждом. Поэтому
+    // сессия отдаётся одной строкой с моментом ПЕРВОГО появления, а к суткам
+    // её относит сервис — по тому же московскому календарю, что и всё
+    // остальное.
+    @Query(value = """
+            SELECT session_key, MIN(occurred_at) AS first_seen
+            FROM site_events
+            WHERE occurred_at >= :since AND session_key IS NOT NULL
+            GROUP BY session_key
+            """, nativeQuery = true)
+    List<Object[]> sessionFirstSeen(@Param("since") Instant since);
+
+    // Топ страниц — за весь период, без разреза по суткам: владельцу нужен
+    // ответ «что смотрят», а не «что смотрели во вторник».
+    @Query(value = """
+            SELECT path, COUNT(*) AS cnt
+            FROM site_events
+            WHERE occurred_at >= :since AND event_type = 'page_view' AND path IS NOT NULL
+            GROUP BY path
+            ORDER BY cnt DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Object[]> topPaths(@Param("since") Instant since, @Param("limit") int limit);
 }

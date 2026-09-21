@@ -4,9 +4,12 @@ import com.reinasleo.api.dto.BotVisitStatPoint;
 import com.reinasleo.api.dto.DashboardResponse;
 import com.reinasleo.api.dto.RecentOrderResponse;
 import com.reinasleo.api.dto.RegistrationStatPoint;
+import com.reinasleo.api.dto.SiteDayPoint;
+import com.reinasleo.api.dto.SitePathPoint;
 import com.reinasleo.api.dto.StockAlertResponse;
 import com.reinasleo.api.dto.TopProductPoint;
 import com.reinasleo.api.service.AdminProductService;
+import com.reinasleo.api.service.SiteStatsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,9 +21,11 @@ import java.util.UUID;
 public class AdminDashboardController {
 
     private final AdminProductService adminProductService;
+    private final SiteStatsService siteStatsService;
 
-    public AdminDashboardController(AdminProductService adminProductService) {
+    public AdminDashboardController(AdminProductService adminProductService, SiteStatsService siteStatsService) {
         this.adminProductService = adminProductService;
+        this.siteStatsService = siteStatsService;
     }
 
     @GetMapping("/dashboard")
@@ -48,6 +53,23 @@ public class AdminDashboardController {
     public ResponseEntity<List<BotVisitStatPoint>> botVisitStats(
             @RequestParam(defaultValue = "30") int days) {
         return ResponseEntity.ok(adminProductService.getBotVisitStats(days));
+    }
+
+    // Посещения витрины. Таблица site_events наполнялась с 13.09.2026, а
+    // прочитать её было нечем: ни одной агрегации в репозитории, ни одной
+    // ручки здесь. Сутки режутся ПО МОСКВЕ — почему именно так и чем это
+    // отличается от соседних карточек, написано в SiteStatsService.
+    @GetMapping("/stats/site-daily")
+    public ResponseEntity<List<SiteDayPoint>> siteDaily(
+            @RequestParam(defaultValue = "30") int days) {
+        return ResponseEntity.ok(siteStatsService.getDailyStats(days));
+    }
+
+    @GetMapping("/stats/site-paths")
+    public ResponseEntity<List<SitePathPoint>> sitePaths(
+            @RequestParam(defaultValue = "30") int days,
+            @RequestParam(defaultValue = "10") int limit) {
+        return ResponseEntity.ok(siteStatsService.getTopPaths(days, limit));
     }
 
     @GetMapping("/stats/top-products")
