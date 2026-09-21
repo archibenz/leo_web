@@ -79,7 +79,7 @@ export default async function WhiteVariantPage({params, searchParams}: Props) {
         locale={locale}
         products={products}
       >
-        <WhiteShowcase locale={locale} featured={featured} hero={hero} setsTeaser={setsTeaser} ticker={ticker} />
+        <WhiteShowcase locale={locale} featured={featured} hero={hero} setsTeaser={setsTeaser} ticker={ticker} nonce={nonce} />
       </EditorProvider>
     </>
   );
