@@ -182,3 +182,75 @@ describe('WhiteAccountShowcase — auth-5 contract', () => {
     expect(screen.queryByRole('link', {name: /apple|github|google/i})).toBeNull();
   });
 });
+
+// Право на удаление аккаунта (152-ФЗ, GDPR Art.17) и на выгрузку данных
+// (Art.20) на сервере реализовано — DELETE /api/auth/me и GET /api/auth/me/export.
+// Кнопок для них на витрине нет по решению владельца, и тогда единственное, что
+// отделяет реализованное право от несуществующего, — эта строка. Сторож стоит
+// на ней, а не на модалке: пропадёт строка — право снова станет доступно только
+// тому, кто догадается написать в поддержку (так было с 17.09, lw-wvxu).
+describe('WhiteAccountShowcase — как воспользоваться правами на данные', () => {
+  const signIn = async () => {
+    global.fetch = vi.fn(async (url: RequestInfo | URL) => {
+      const u = String(url);
+      const ok = (body: unknown) => ({ok: true, status: 200, json: async () => body}) as unknown as Response;
+      if (u.includes('/api/auth/login')) return ok({token: 'tok'});
+      if (u.includes('/api/auth/me')) return ok({id: 1, email: 'anna@test.dev', name: 'Anna'});
+      return {ok: false, status: 404, json: async () => ({})} as unknown as Response;
+    }) as unknown as typeof fetch;
+
+    const user = userEvent.setup();
+    renderPage();
+    const main = screen.getByRole('main');
+    await user.type(within(main).getByLabelText(/email/i), 'anna@test.dev');
+    await user.type(within(main).getByLabelText(/password/i), 'Passw0rd123');
+    await user.click(screen.getByRole('button', {name: /^sign in$/i}));
+    await screen.findByRole('button', {name: /sign out/i});
+    return screen.getByRole('main');
+  };
+
+  it('вошедший читает, что удаление и выгрузку делают по запросу, и ссылку, куда писать', async () => {
+    const main = await signIn();
+
+    expect(within(main).getByText(/delete your account or get a copy of your data/i)).toBeInTheDocument();
+    expect(within(main).getByRole('link', {name: /write to us/i})).toHaveAttribute('href', '/en/contact');
+  });
+
+  it('строка остаётся НАХОДИМОЙ: не спрятана, кегль и цвет не хуже соседнего мелкого', async () => {
+    // Владелец попросил «запихать подальше», и это выполнено отступом — но
+    // отступ и исчезновение разные вещи. Проверка стоит на границе между
+    // ними: ниже — уже отмена права, а не оформление.
+    //
+    // ЧТО ЭТА ПРОВЕРКА ВИДИТ И ЧЕГО НЕ ВИДИТ. В jsdom классы Tailwind не
+    // применяются, поэтому вычисленный кегль тут недоступен — читается
+    // ЗАЯВЛЕННЫЙ в разметке. Настоящий контраст на живой странице она не
+    // измеряет; её дело — поймать правку, которая уводит строку из виду:
+    // скрытие, уменьшение кегля, осветление цвета.
+    const main = await signIn();
+    const link = within(main).getByRole('link', {name: /write to us/i});
+    const абзац = link.closest('p')!;
+
+    expect(абзац).not.toHaveAttribute('aria-hidden');
+    expect(абзац).toBeVisible();
+    expect(абзац.closest('[hidden]')).toBeNull();
+
+    // Кегль не ниже 13px — того же, каким набрана строка «Вы вошли как».
+    // На экране есть и 11px, но это надписи-ярлыки, которые опознают, а не
+    // читают; правовой текст к ним не приравнивается.
+    const кегль = Number(абзац.className.match(/text-\[(\d+(?:\.\d+)?)px\]/)?.[1] ?? 0);
+    expect(кегль).toBeGreaterThanOrEqual(13);
+
+    // Цвет — тот же приглушённый, что у соседних строк. Осветлить его
+    // отдельно от остальных значило бы сделать строку менее читаемой, чем
+    // всё вокруг, а это уже не «незаметно», а «не прочесть».
+    const рядом = within(main).getByText(/signed in as/i);
+    expect(абзац.style.color).toBe(рядом.style.color);
+  });
+
+  it('гостю этого не показывают — удалять и выгружать ему нечего', async () => {
+    renderPage();
+    await screen.findByRole('heading', {level: 1, name: /account/i});
+
+    expect(screen.queryByText(/delete your account or get a copy of your data/i)).toBeNull();
+  });
+});
