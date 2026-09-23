@@ -361,7 +361,7 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
       <section className="mx-auto max-w-[1400px] pb-24 sm:px-10">
         <div className="grid grid-cols-1 gap-y-10 sm:grid-cols-2 sm:gap-x-8 sm:gap-y-14 lg:grid-cols-3 lg:gap-x-10 lg:gap-y-16">
           {featured.map((p, i) => (
-            <WhiteProductCard key={p.key} locale={locale} product={p} index={i} rise bleed />
+            <WhiteProductCard key={p.key} locale={locale} product={p} index={i} rise bleed morph />
           ))}
         </div>
       </section>
