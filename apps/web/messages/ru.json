@@ -1150,7 +1150,21 @@
         "cancelled": "Отменён"
       },
       "totalForPeriod": "Всего за период",
-      "editModeTitle": "Правка сайта"
+      "editModeTitle": "Правка сайта",
+      "visitsTitle": "Посещения сайта за 30 дней",
+      "visitsLoadFailed": "Посещения не загрузились. Остальной дашборд от этого не зависит — обновите страницу позже.",
+      "noVisits": "За 30 дней просмотров страниц не было.",
+      "visitsPageViews": "Просмотры страниц",
+      "visitsSessions": "Сессии",
+      "visitsSessionsNote": "только согласившиеся на cookie",
+      "visitsProductViews": "Просмотры товаров",
+      "visitsMarketplaceClicks": "Переходы на маркетплейсы",
+      "visitsAddToCart": "В корзину",
+      "visitsAddToFavourite": "В избранное",
+      "visitsByDevice": "Устройства (по просмотрам)",
+      "visitsTopPages": "Популярные страницы",
+      "devicePhone": "Телефон",
+      "deviceDesktop": "Компьютер"
     },
     "product": {
       "add": "Добавить товар",

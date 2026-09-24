@@ -51,7 +51,28 @@ async function mockDashboardApi(page: Page, overrides: Partial<typeof ZERO_DASHB
     route.fulfill({status: 200, contentType: 'application/json', body: '[]'}));
   await page.route('**/api/admin/stats/top-products**', (route) =>
     route.fulfill({status: 200, contentType: 'application/json', body: '[]'}));
+  // Карточка посещений с данными, а не пустая: иначе проверки палитры и ширины
+  // ниже видели бы только строку ошибки и ничего не говорили о самой карточке.
+  // Семёрки в числах нет нарочно — соседний кейс ищет «7» точным текстом.
+  await page.route('**/api/admin/stats/site-daily**', (route) =>
+    route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify(SITE_DAYS)}));
+  await page.route('**/api/admin/stats/site-paths**', (route) =>
+    route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify(SITE_PATHS)}));
 }
+
+const SITE_DAYS = [
+  {date: '2026-09-22', pageViews: 12, sessions: 5, productViews: 4, marketplaceClicks: 2, addToCart: 1, addToFavourite: 2, signups: 0,
+    byDevice: {phone: 9, desktop: 3}, byLocale: {ru: 12}, byMarketplace: {wildberries: 1, ozon: 1}},
+  {date: '2026-09-23', pageViews: 0, sessions: 0, productViews: 0, marketplaceClicks: 0, addToCart: 0, addToFavourite: 0, signups: 0,
+    byDevice: {}, byLocale: {}, byMarketplace: {}},
+  {date: '2026-09-24', pageViews: 9, sessions: 4, productViews: 2, marketplaceClicks: 1, addToCart: 0, addToFavourite: 1, signups: 0,
+    byDevice: {phone: 6, desktop: 3}, byLocale: {ru: 8, en: 1}, byMarketplace: {wildberries: 1}},
+];
+
+const SITE_PATHS = [
+  {path: '/ru', views: 11},
+  {path: '/ru/products/linen-shirt-with-a-rather-long-slug-for-the-phone-screen', views: 5},
+];
 
 // ПЕРЕПИСАНО 15.09 ПОД НЫНЕШНЮЮ ОБОЛОЧКУ. Прежние кейсы описывали механику,
 // которой больше нет: список разделов «сворачивался» прямо в потоке страницы, и
@@ -216,5 +237,39 @@ test.describe('админка — язык витрины, не градиент
       return null;
     });
     expect(bg).toBe('rgb(255, 255, 255)');
+  });
+});
+
+test.describe('админка — карточка посещений сайта', () => {
+  test('390px: итоги видны, длинный адрес страницы не распирает экран вбок', async ({page}) => {
+    await page.setViewportSize({width: 390, height: 844});
+    await asOwner(page);
+    await mockDashboardApi(page);
+    await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
+
+    const card = page.locator('section', {has: page.getByRole('heading', {name: 'Посещения сайта за 30 дней'})});
+    // 21 стоит дважды — в ячейке итога и в сумме под графиком; обе верны.
+    await expect(card.getByText('21', {exact: true})).toHaveCount(2);
+    await expect(card.getByText('только согласившиеся на cookie')).toBeVisible();
+    await expect(page.getByText('Посещения не загрузились', {exact: false})).toHaveCount(0);
+    const longPath = page.getByText('/ru/products/linen-shirt-with-a-rather-long-slug-for-the-phone-screen');
+    await expect(longPath).toBeVisible();
+
+    // Меряется сама строка, а не прокрутка страницы: панель режет лишнее своим
+    // overflow-hidden, и страница вбок не поедет никогда — зато хвост адреса
+    // вместе с числом просмотров уедет под край карточки. Проверено мутацией:
+    // без truncate в ShareList краснеет эта строка, а прокрутка молчит.
+    const box = await longPath.boundingBox();
+    expect((box?.x ?? 0) + (box?.width ?? Infinity), 'адрес страницы должен помещаться в экран 390px').toBeLessThanOrEqual(390);
+  });
+
+  test('ручка посещений упала — остальной дашборд на месте', async ({page}) => {
+    await asOwner(page);
+    await mockDashboardApi(page);
+    await page.route('**/api/admin/stats/site-daily**', (route) => route.fulfill({status: 500, body: ''}));
+    await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
+
+    await expect(page.getByText('Посещения не загрузились', {exact: false})).toBeVisible();
+    await expect(page.getByText('Заказов пока нет — приём оплаты не включён')).toBeVisible();
   });
 });

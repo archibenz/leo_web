@@ -1150,7 +1150,21 @@
         "cancelled": "Cancelled"
       },
       "totalForPeriod": "Total for the period",
-      "editModeTitle": "Site editing"
+      "editModeTitle": "Site editing",
+      "visitsTitle": "Site visits, last 30 days",
+      "visitsLoadFailed": "Visits failed to load. The rest of the dashboard does not depend on it — refresh later.",
+      "noVisits": "No page views in the last 30 days.",
+      "visitsPageViews": "Page views",
+      "visitsSessions": "Sessions",
+      "visitsSessionsNote": "cookie-consenting visitors only",
+      "visitsProductViews": "Product views",
+      "visitsMarketplaceClicks": "Marketplace clicks",
+      "visitsAddToCart": "Added to cart",
+      "visitsAddToFavourite": "Added to favourites",
+      "visitsByDevice": "Devices (by page views)",
+      "visitsTopPages": "Top pages",
+      "devicePhone": "Phone",
+      "deviceDesktop": "Desktop"
     },
     "product": {
       "add": "Add Product",

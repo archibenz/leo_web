@@ -12,6 +12,7 @@ import {SeriesChart} from '../../../../components/admin/dashboard/series-chart';
 import {ShareList} from '../../../../components/admin/dashboard/share-list';
 import {OrdersTable} from '../../../../components/admin/dashboard/orders-table';
 import {AlertsList} from '../../../../components/admin/dashboard/alerts-list';
+import {SiteVisits} from '../../../../components/admin/dashboard/site-visits';
 
 type Dashboard = {
   totalProducts: number;
@@ -234,6 +235,8 @@ export default function AdminDashboardPage() {
               </StatGrid>
             </Panel>
           )}
+
+          <SiteVisits />
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Panel title={t('dashboardPage.registrationsTitle')}>
