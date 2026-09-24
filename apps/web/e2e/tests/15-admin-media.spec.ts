@@ -137,8 +137,12 @@ test.describe('панель медиа — галерея варианта', () 
     await expect(panel.getByRole('img')).toHaveCount(5, {timeout: 10_000});
   });
 
-  test('перестановка, обложка и удаление — зоны нажатия от 44px на телефоне', async ({page}) => {
-    await page.setViewportSize({width: 390, height: 844});
+  // Правка витрины с 24.09 только на экранах от 1024 px (editor/useIsDesktop.ts),
+  // на телефоне панели нет вовсе. Требование к пальцу при этом живо: планшет
+  // боком — 1024 px и сенсорный. Поэтому меряем на самой узкой ширине, где
+  // правка есть, а не снимаем проверку.
+  test('перестановка, обложка и удаление — зоны нажатия от 44px на сенсорном планшете', async ({page}) => {
+    await page.setViewportSize({width: 1024, height: 768});
     await asOwner(page);
     await mockVariantModel(page);
     await openSettledForOwner(page, `${PDP}?edit=1`);
@@ -239,8 +243,9 @@ test.describe('панель медиа — пара телефон/дескто�
     expect(беда.немыеПодписи, 'имя файла в подписи можно ужать — на длинном имени по ней не узнать, что стоит').toEqual([]);
   });
 
-  test('«Заменить» пары — зона нажатия от 44px на телефоне', async ({page}) => {
-    await page.setViewportSize({width: 390, height: 844});
+  // Ширина — 1024 px, см. комментарий у галереи варианта выше.
+  test('«Заменить» пары — зона нажатия от 44px на сенсорном планшете', async ({page}) => {
+    await page.setViewportSize({width: 1024, height: 768});
     await asOwner(page);
     await openSettledForOwner(page, `${HOME}?edit=1`);
     await page.getByRole('button', {name: 'Герой'}).click();
