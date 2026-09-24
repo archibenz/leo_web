@@ -88,12 +88,20 @@ public interface SiteEventRepository extends JpaRepository<SiteEvent, UUID> {
     // сессия отдаётся одной строкой с моментом ПЕРВОГО появления, а к суткам
     // её относит сервис — по тому же московскому календарю, что и всё
     // остальное.
+    //
+    // ПЕРВОЕ ПОЯВЛЕНИЕ — ПО ВСЕЙ ИСТОРИИ КЛЮЧА, а в окно попадают только те,
+    // чьё первое появление внутри него (HAVING). Прежде MIN брался только по
+    // окну, и вкладка, открытая до окна и живая в его первый день, считалась
+    // там новой: первый день окна становился свалкой. При скользящих 14
+    // сутках отправки в аналитику (SiteDailyPublisher) именно этот день
+    // каждый раз переписывался последним — с прибавкой.
     @Query(value = """
             SELECT session_key, MIN(occurred_at) AS first_seen
             FROM site_events e
-            WHERE occurred_at >= :since AND session_key IS NOT NULL
+            WHERE session_key IS NOT NULL
             """ + CUSTOMERS_ONLY + """
             GROUP BY session_key
+            HAVING MIN(occurred_at) >= :since
             """, nativeQuery = true)
     List<Object[]> sessionFirstSeen(@Param("since") Instant since);
 
