@@ -90,7 +90,7 @@ describe('оболочка админки на телефоне — первым
 
     // Ключи словаря, а не подписи: next-intl здесь подменён на «верни ключ».
     expect(screen.queryByText('products')).toBeNull();
-    expect(screen.queryByText('collections')).toBeNull();
+    expect(screen.queryByText('inventory')).toBeNull();
     expect(screen.queryByText('homepage')).toBeNull();
   });
 
@@ -120,7 +120,9 @@ describe('оболочка админки на мониторе', () => {
     );
 
     expect(screen.getByText('products')).toBeInTheDocument();
-    expect(screen.getByText('collections')).toBeInTheDocument();
+    expect(screen.getByText('inventory')).toBeInTheDocument();
+    // «Коллекций» в меню нет (24.09): сайт их не читает, ими управляет бот.
+    expect(screen.queryByText('collections')).toBeNull();
   });
 });
 

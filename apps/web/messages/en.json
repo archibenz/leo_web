@@ -1220,23 +1220,6 @@
         "ceremony": "Ceremony"
       }
     },
-    "collection": {
-      "add": "Add Collection",
-      "edit": "Edit Collection",
-      "name": "Name",
-      "description": "Description",
-      "image": "Cover Image",
-      "sortOrder": "Sort Order",
-      "save": "Save",
-      "cancel": "Cancel",
-      "delete": "Deactivate",
-      "productCount": "products",
-      "noCollections": "No collections yet",
-      "notOnSiteNotice": "Collections are not shown on the storefront right now — the storefront pages never request them. The section stays useful for the Telegram bot and the older catalogue.",
-      "created": "Collection created",
-      "updated": "Collection updated",
-      "saving": "Saving…"
-    },
     "alert": {
       "lowStock": "Low stock",
       "outOfStock": "Out of stock",
