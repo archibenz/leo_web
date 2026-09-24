@@ -6,6 +6,7 @@ import {STOREFRONT_FIXTURE} from '../../../../lib/catalogue/fixture';
 import type {WhiteProduct} from '../../../../lib/catalogue/types';
 import {NextIntlClientProvider} from 'next-intl';
 import enMessages from '../../../../messages/en.json';
+import ruMessages from '../../../../messages/ru.json';
 
 // The footer's locale switch reads the router — give jsdom a stub.
 vi.mock('next/navigation', () => ({
@@ -170,5 +171,28 @@ describe('WhitePdpShowcase zoom lightbox keyboard navigation', () => {
     // Exactly one album frame — its own zoom trigger and nothing else.
     const zooms = await screen.findAllByRole('button', {name: /zoom image/i});
     expect(zooms).toHaveLength(1);
+  });
+});
+
+// Таблицы размеров нет, пока у модели нет настоящих мерок (решение 24.09).
+// Прежняя была одна на все вещи и выдумана — покупатель выбирал размер по
+// чужим цифрам. Сторож и на саму таблицу, и на тексты, которые её обещали:
+// FAQ говорил «на каждой странице товара есть таблица размеров».
+describe('WhitePdpShowcase — no made-up size guide', () => {
+  it('offers sizes to pick but no size guide or measurement table', () => {
+    renderPdp(PRODUCTS[0]!);
+
+    expect(screen.getAllByRole('button', {pressed: false}).length).toBeGreaterThan(0);
+    expect(screen.queryByRole('button', {name: /size guide/i})).toBeNull();
+    expect(screen.queryByRole('table')).toBeNull();
+  });
+
+  it('no storefront text promises a size guide on the product page', () => {
+    const texts = (m: unknown): string[] =>
+      typeof m === 'string' ? [m] : m && typeof m === 'object' ? Object.values(m).flatMap(texts) : [];
+    for (const white of [enMessages.white, ruMessages.white]) {
+      const promises = texts(white).filter((s) => /size guide|таблиц[аеуы] размеров/i.test(s));
+      expect(promises).toEqual([]);
+    }
   });
 });
