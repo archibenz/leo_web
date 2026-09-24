@@ -1,14 +1,18 @@
 package com.reinasleo.api.service;
 
 import com.reinasleo.api.dto.SiteDayPoint;
+import com.reinasleo.api.repository.SiteEventRepository;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * Сторож на КАЛЕНДАРЬ, а не на запросы. Ради него раскладка по суткам и
@@ -125,5 +129,41 @@ class SiteStatsServiceTest {
         assertThat(d.pageViews()).isZero();
         assertThat(d.productViews()).isZero();
         assertThat(d.addToCart()).isZero();
+    }
+
+    private static Object[] page(String instant, String path, long count) {
+        return new Object[]{Timestamp.from(Instant.parse(instant)), path, count};
+    }
+
+    @Test
+    void pathsLandInTheMoscowDayAndAddUpAcrossHours() {
+        // 21.09 23:30 UTC — уже 22.09 по Москве; 22.09 08:00 UTC — тот же день.
+        Map<LocalDate, Map<String, Long>> days = SiteStatsService.foldPages(
+                List.<Object[]>of(
+                        page("2026-09-21T23:30:00Z", "/ru", 2),
+                        page("2026-09-22T08:00:00Z", "/ru", 3),
+                        page("2026-09-21T20:30:00Z", "/ru", 5)),
+                LocalDate.parse("2026-09-21"), LocalDate.parse("2026-09-22"));
+
+        assertThat(days.get(LocalDate.parse("2026-09-22"))).containsEntry("/ru", 5L);
+        assertThat(days.get(LocalDate.parse("2026-09-21"))).containsEntry("/ru", 5L);
+    }
+
+    // Окно открывается в московскую полночь первых суток. «Сейчас минус N
+    // дней» давал огрызок первого дня, а в аналитике день ЗАМЕЩАЕТСЯ —
+    // огрызок стёр бы там полную версию.
+    @Test
+    void theWindowOpensAtMoscowMidnightOfTheFirstDay() {
+        SiteEventRepository repo = mock(SiteEventRepository.class);
+        SiteStatsService service = new SiteStatsService(repo);
+        LocalDate from = LocalDate.parse("2026-09-22");
+
+        service.getDailyStats(from, from);
+        service.getDailyPages(from, from);
+
+        Instant midnight = Instant.parse("2026-09-21T21:00:00Z");
+        verify(repo).countsByHour(midnight);
+        verify(repo).sessionFirstSeen(midnight);
+        verify(repo).pageViewsByHour(midnight);
     }
 }

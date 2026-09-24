@@ -49,10 +49,49 @@ public class SiteStatsService {
     @Transactional(readOnly = true)
     public List<SiteDayPoint> getDailyStats(int days) {
         int safeDays = Math.max(1, Math.min(days, MAX_DAYS));
-        Instant since = Instant.now().minus(safeDays, ChronoUnit.DAYS);
-        LocalDate from = since.atZone(MOSCOW).toLocalDate();
-        LocalDate to = Instant.now().atZone(MOSCOW).toLocalDate();
+        LocalDate to = today();
+        return getDailyStats(to.minusDays(safeDays), to);
+    }
+
+    /**
+     * Окно открывается в московскую ПОЛНОЧЬ первых суток, а не «сейчас минус
+     * N дней». Прежде так и было, и первые сутки на карточке всегда выходили
+     * огрызком — днём меньше, чем было. Для отправки в аналитику это хуже, чем
+     * некрасиво: там день ЗАМЕЩАЕТСЯ, и огрызок стёр бы полную версию.
+     */
+    @Transactional(readOnly = true)
+    public List<SiteDayPoint> getDailyStats(LocalDate from, LocalDate to) {
+        Instant since = from.atStartOfDay(MOSCOW).toInstant();
         return fold(siteEvents.countsByHour(since), siteEvents.sessionFirstSeen(since), from, to);
+    }
+
+    /** Просмотры по адресам за каждые сутки окна, по тому же календарю. */
+    @Transactional(readOnly = true)
+    public Map<LocalDate, Map<String, Long>> getDailyPages(LocalDate from, LocalDate to) {
+        Instant since = from.atStartOfDay(MOSCOW).toInstant();
+        return foldPages(siteEvents.pageViewsByHour(since), from, to);
+    }
+
+    public static LocalDate today() {
+        return Instant.now().atZone(MOSCOW).toLocalDate();
+    }
+
+    /**
+     * Часы с адресами — в сутки. Сутки без просмотров остаются пустой картой,
+     * а не пропадают: отправитель сам решает, что с ними делать.
+     */
+    static Map<LocalDate, Map<String, Long>> foldPages(List<Object[]> hourly, LocalDate from, LocalDate to) {
+        Map<LocalDate, Map<String, Long>> byDay = new LinkedHashMap<>();
+        for (LocalDate d = from; !d.isAfter(to); d = d.plusDays(1)) {
+            byDay.put(d, new HashMap<>());
+        }
+        for (Object[] row : hourly) {
+            LocalDate day = toInstant(row[0]).atZone(MOSCOW).toLocalDate();
+            Map<String, Long> pages = byDay.get(day);
+            if (pages == null) continue;
+            pages.merge((String) row[1], ((Number) row[2]).longValue(), Long::sum);
+        }
+        return byDay;
     }
 
     @Transactional(readOnly = true)

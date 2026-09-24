@@ -91,6 +91,12 @@ app:
   web:
     revalidate-url: ${WEB_REVALIDATE_URL:}
     revalidate-secret: ${REVALIDATE_SECRET:}
+  # Дневные числа сайта → приём leo_analytics (SiteDailyPublisher). Пустые
+  # фолбэки — то же исключение: не заданы — отправка выключена с
+  # предупреждением в логе, API стартует. URL полный, с /api/v1/ingest.
+  analytics:
+    ingest-url: ${ANALYTICS_INGEST_URL:}
+    ingest-secret: ${ANALYTICS_INGEST_SECRET:}
 # Пустые фолбэки для shop-id/secret-key — осознанное исключение из правила
 # «секреты без :default»: фича выключена по умолчанию и приложение обязано
 # стартовать без YooKassa credentials. При CHECKOUT_ENABLED=true пустые
