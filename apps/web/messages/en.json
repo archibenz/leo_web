@@ -1319,7 +1319,25 @@
       "saveFailed": "Could not save.",
       "loadFailed": "Could not load social links. Refresh the page."
     },
-    "socialsNav": "Social links"
+    "socialsNav": "Social links",
+    "texts": {
+      "title": "Site texts",
+      "intro": "Storefront headings and captions — Russian and English. An empty field keeps the original, shown in grey inside it. Saved texts reach the site within a minute.",
+      "desktopOnly": "Editing works on a computer. On a phone the texts are view-only.",
+      "ru": "Russian",
+      "en": "English",
+      "reset": "Restore original",
+      "email": "Email on the contact page",
+      "emailHint": "The offer, the privacy policy and the Returns section have the address inside their text — it is changed separately there.",
+      "emailProblem": "does not look like an email address",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Saved. The site updates within a minute.",
+      "saveFailed": "Could not save.",
+      "fixFirst": "Fix the marked fields.",
+      "loadFailed": "Could not load texts. Refresh the page."
+    },
+    "textsNav": "Site texts"
   },
   "editor": {
     "ticker": {

@@ -83,6 +83,8 @@ public class SecurityConfig {
                         // Соцсети сайта для подвала и контактов — только чтение.
                         // Пишет администратор через /api/admin/site/socials.
                         .requestMatchers(HttpMethod.GET, "/api/site/socials").permitAll()
+                        // «Тексты сайта» — правки подписей витрины, только чтение.
+                        .requestMatchers(HttpMethod.GET, "/api/site/texts").permitAll()
                         .requestMatchers("/api/care-guides", "/api/care-guides/**").permitAll()
                         // Public POST APIs (rate-limited or secret-protected at controller layer)
                         .requestMatchers("/api/contact").permitAll()

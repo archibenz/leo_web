@@ -64,6 +64,7 @@ const FILES: ReadonlyArray<string> = [
   'app/[locale]/(admin)/admin/care/[id]/page.tsx',
   'app/[locale]/(admin)/admin/care/new/page.tsx',
   'app/[locale]/(admin)/admin/socials/page.tsx',
+  'app/[locale]/(admin)/admin/texts/page.tsx',
   'components/admin/AdminLayout.tsx',
   'components/admin/AdminPrimitives.tsx',
   'components/admin/ProductForm.tsx',
