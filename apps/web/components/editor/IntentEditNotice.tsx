@@ -1,6 +1,7 @@
 import {cookies} from 'next/headers';
 import {EDIT_COOKIE} from '../../lib/catalogue/editMode';
 import {FOOT, HAIR, INK} from '../../app/[locale]/wv-palette';
+import DesktopOnly from './DesktopOnly';
 
 // Полоса для страниц, где править НЕЧЕГО.
 //
@@ -43,21 +44,25 @@ export default async function IntentEditNotice() {
   // data-edit-bar="intent" — метка для правила в globals.css: на главной и в
   // карточке рядом встаёт подробная полоса (data-edit-bar="full"), и две
   // полосы подряд противоречили бы друг другу.
+  // Только на компьютере: на телефоне правки нет (useIsDesktop.ts), и
+  // «правка включена» там было бы неправдой.
   return (
-    <div
-      data-edit-bar="intent"
-      className="flex flex-wrap items-center gap-3 px-4 py-2 text-[11px] uppercase tracking-[0.16em]"
-      style={{background: FOOT, borderBottom: `1px solid ${HAIR}`, color: INK}}
-    >
-      {/* «Правка включена», а НЕ «Режим правки включён», и это не вкус.
-          Подробная полоса на главной начинается словами «Режим правки», и обе
-          строки живут в разметке одновременно — вторая спрятана правилом
-          display: none, но из документа не исчезает. Проверки и чтение по
-          тексту находят спрятанное тоже: прогон в CI упал на strict mode
-          violation, «Режим правки» нашлось дважды.
-          Развели слова, а не подогнали проверку под разметку: два элемента с
-          одинаковым текстом — это беда, а не неудобство локатора. */}
-      <span>Правка включена · на этой странице нечего править</span>
-    </div>
+    <DesktopOnly>
+      <div
+        data-edit-bar="intent"
+        className="flex flex-wrap items-center gap-3 px-4 py-2 text-[11px] uppercase tracking-[0.16em]"
+        style={{background: FOOT, borderBottom: `1px solid ${HAIR}`, color: INK}}
+      >
+        {/* «Правка включена», а НЕ «Режим правки включён», и это не вкус.
+            Подробная полоса на главной начинается словами «Режим правки», и обе
+            строки живут в разметке одновременно — вторая спрятана правилом
+            display: none, но из документа не исчезает. Проверки и чтение по
+            тексту находят спрятанное тоже: прогон в CI упал на strict mode
+            violation, «Режим правки» нашлось дважды.
+            Развели слова, а не подогнали проверку под разметку: два элемента с
+            одинаковым текстом — это беда, а не неудобство локатора. */}
+        <span>Правка включена · на этой странице нечего править</span>
+      </div>
+    </DesktopOnly>
   );
 }

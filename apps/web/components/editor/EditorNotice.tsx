@@ -39,7 +39,15 @@ function областей(n: number): string {
   return 'областей';
 }
 
-export default function EditorNotice({editing, wantsEdit}: {editing: boolean; wantsEdit: boolean}) {
+// readOnly — узкий экран (useIsDesktop.ts): правка там выключена, но сервер
+// ширины не знает и по куке всё равно отдаёт черновик. Молчать нельзя —
+// неопубликованное прочтётся как сайт. Поэтому полоса остаётся, но без числа
+// областей и со словами «править можно с компьютера»; выход — тот же.
+export default function EditorNotice({editing, wantsEdit, readOnly = false}: {
+  editing: boolean;
+  wantsEdit: boolean;
+  readOnly?: boolean;
+}) {
   const {isAdmin} = useEditorSession();
   const {editableCount} = useEditor();
 
@@ -71,6 +79,26 @@ export default function EditorNotice({editing, wantsEdit}: {editing: boolean; wa
     // следующего перехода, потому что сама по себе такая навигация — no-op.
     router.refresh();
   };
+
+  if (editing && readOnly) {
+    return (
+      <div
+        data-edit-bar="full"
+        data-edit-readonly=""
+        className="flex flex-wrap items-center justify-between gap-3 px-4 py-2 text-[11px] uppercase tracking-[0.16em]"
+        style={{background: FOOT, borderBottom: `1px solid ${HAIR}`, color: INK}}
+      >
+        <span>Черновик · править можно с компьютера</span>
+        <Link
+          href={plainHref}
+          onClick={finishEditing}
+          className="inline-flex min-h-11 items-center px-3 text-[13px] underline underline-offset-4"
+        >
+          Закончить правку
+        </Link>
+      </div>
+    );
+  }
 
   if (editing) {
     return (

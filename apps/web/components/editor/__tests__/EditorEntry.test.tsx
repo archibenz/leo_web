@@ -1,6 +1,7 @@
 import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
 import {render, screen, cleanup, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import {setViewport} from './viewport';
 
 const search = {value: ''};
 const path = {value: '/ru'};
@@ -31,6 +32,8 @@ let EditableBlock: typeof import('../EditableBlock').default;
 let EditorProvider: typeof import('../EditorProvider').EditorProvider;
 
 beforeEach(async () => {
+  // Правка работает только на компьютере (useIsDesktop.ts) — эти кейсы про неё.
+  setViewport(1280);
   search.value = '';
   path.value = '/ru';
   token.value = null;

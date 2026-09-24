@@ -1,8 +1,9 @@
-import {describe, it, expect, afterEach, vi} from 'vitest';
+import {describe, it, expect, afterEach, beforeEach, vi} from 'vitest';
 import {render, screen, cleanup} from '@testing-library/react';
 import {readFileSync} from 'node:fs';
 import {join, dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {setViewport} from './viewport';
 
 // Полоса для десяти экранов, где править нечего.
 //
@@ -18,6 +19,9 @@ vi.mock('next/headers', () => ({
     has: (name: string) => (name === 'rl_session' ? jar.session : false),
   }),
 }));
+
+// Полоса — только на компьютере (useIsDesktop.ts); кейсы ниже — про неё.
+beforeEach(() => setViewport(1280));
 
 afterEach(cleanup);
 
@@ -98,5 +102,17 @@ describe('подробная полоса гасит общую', () => {
     expect(подробная).toMatch(/data-edit-bar="full"/);
     expect(общая).toMatch(/data-edit-bar="intent"/);
     expect(css).toMatch(/body:has\(\[data-edit-bar='full'\]\) \[data-edit-bar='intent'\]/);
+  });
+});
+
+describe('полоса только на компьютере', () => {
+  it('390 px: и кука, и сессия есть — полосы нет, на телефоне правки нет', async () => {
+    setViewport(390);
+    jar.edit = '1';
+    jar.session = true;
+
+    await показать();
+
+    expect(screen.queryByText(/правка включена/i)).toBeNull();
   });
 });

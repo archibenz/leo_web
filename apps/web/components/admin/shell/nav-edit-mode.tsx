@@ -5,6 +5,7 @@ import {PencilIcon, PencilOffIcon} from 'lucide-react';
 import {SidebarMenu, SidebarMenuItem} from '@/components/ui/sidebar';
 import {CustomMenuButton} from './app-shared';
 import {useEditMode} from '@/components/editor/useEditMode';
+import {useIsDesktop} from '@/components/editor/useIsDesktop';
 
 // Режим правки пунктом боковой панели — владелец просил убрать его с дашборда
 // и положить в меню.
@@ -28,10 +29,12 @@ import {useEditMode} from '@/components/editor/useEditMode';
 export function NavEditMode() {
   const t = useTranslations('admin');
   const {isAdmin, on, toggle} = useEditMode();
+  const desktop = useIsDesktop();
 
   // Право решает сервер (useEditorSession → /api/auth/me). Не владелец —
   // пункта нет вовсе, как и прежнего блока на дашборде.
-  if (!isAdmin) return null;
+  // Правка витрины — только на компьютере (editor/useIsDesktop.ts).
+  if (!isAdmin || !desktop) return null;
 
   const подпись = on ? t('editModeOn') : t('editModeOff');
 

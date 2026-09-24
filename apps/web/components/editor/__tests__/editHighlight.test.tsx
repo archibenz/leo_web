@@ -1,5 +1,6 @@
 import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
 import {render, screen, cleanup, waitFor, act} from '@testing-library/react';
+import {resizeViewport, setViewport} from './viewport';
 
 // Просьба владельца (lw-hr52): в режиме правки видеть, ЧТО можно править.
 //
@@ -31,6 +32,8 @@ let EditableBlock: typeof import('../EditableBlock').default;
 let EditorProvider: typeof import('../EditorProvider').EditorProvider;
 
 beforeEach(async () => {
+  // Правка работает только на компьютере (useIsDesktop.ts) — эти кейсы про неё.
+  setViewport(1280);
   vi.resetModules();
   ({default: EditableBlock} = await import('../EditableBlock'));
   ({EditorProvider} = await import('../EditorProvider'));
@@ -137,5 +140,67 @@ describe('режим правки показывает, что правится'
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+// Правка — только на компьютере (решение владельца 24.09, useIsDesktop.ts).
+// Сервер ширины не знает и по куке отдаёт черновик (editing=true) и телефону.
+// Тогда инструментов нет, а полоса говорит, что это черновик, — иначе
+// неопубликованное прочтётся как сайт.
+describe('на телефоне правки нет, черновик назван', () => {
+  it('390 px, сервер отдал черновик — ни одной точки правки, полоса «черновик», выход есть', async () => {
+    setViewport(390);
+    const {container} = render(<Страница editing точек={3} />);
+
+    expect(container.querySelectorAll('[data-editable]')).toHaveLength(0);
+    expect(screen.queryAllByRole('button')).toHaveLength(0);
+    expect(screen.getByText('Черновик · править можно с компьютера')).toBeInTheDocument();
+    expect(screen.getByRole('link', {name: 'Закончить правку'})).toBeInTheDocument();
+    expect(screen.queryByText(/Режим правки/)).toBeNull();
+    expect(screen.queryByText(/Сервер не признал сессию/)).toBeNull();
+  });
+
+  it('1280 px — всё как было: точки правки и полоса с числом', async () => {
+    setViewport(1280);
+    const {container} = render(<Страница editing точек={3} />);
+
+    expect(container.querySelectorAll('[data-editable]')).toHaveLength(3);
+    await waitFor(() => expect(screen.getByText(/правится 3 области/)).toBeInTheDocument());
+    expect(screen.queryByText(/править можно с компьютера/)).toBeNull();
+  });
+
+  it('телефон повернули или окно сузили — правка выключается сразу', async () => {
+    setViewport(1280);
+    const {container} = render(<Страница editing точек={3} />);
+    expect(container.querySelectorAll('[data-editable]')).toHaveLength(3);
+
+    resizeViewport(390);
+
+    await waitFor(() => expect(container.querySelectorAll('[data-editable]')).toHaveLength(0));
+    expect(screen.getByText('Черновик · править можно с компьютера')).toBeInTheDocument();
+  });
+
+  it('390 px вне режима — никакой полосы: покупатель получает обычную страницу', () => {
+    setViewport(390);
+    render(<Страница editing={false} точек={3} />);
+
+    expect(screen.queryByText(/Черновик|Режим правки/)).toBeNull();
+  });
+});
+
+// ДО ГИДРАТАЦИИ ширина неизвестна (useIsDesktop.ts): сервер её не знает.
+// Полоса тогда обязана говорить то, что верно на ЛЮБОМ экране, — иначе на
+// компьютере на кадр мелькнуло бы «править можно с компьютера», — и
+// инструментов в разметке быть не должно, иначе на телефоне они встали бы на
+// кадр. Проверка — серверной отрисовкой, а не клиентской: только она видит
+// это состояние.
+describe('до гидратации — ширина неизвестна', () => {
+  it('разметка сервера: нейтральная полоса, ни одной точки правки', async () => {
+    const {renderToString} = await import('react-dom/server');
+    const html = renderToString(<Страница editing точек={3} />);
+
+    expect(html).toContain('Режим правки · страница показывает черновик');
+    expect(html).not.toContain('править можно с компьютера');
+    expect(html).not.toContain('data-editable');
   });
 });
