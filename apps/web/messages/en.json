@@ -1781,6 +1781,7 @@
     "editModeSwitch": {
       "label": "Site edit mode",
       "adminLink": "Admin Panel",
+      "analyticsLink": "Analytics",
       "sectionLabel": "Site management"
     },
     "error": {

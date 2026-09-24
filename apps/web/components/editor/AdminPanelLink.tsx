@@ -34,12 +34,12 @@ export default function AdminPanelLink({locale}: {locale: string}) {
   // Рамка и текст — currentColor, не палитра: компонент по-прежнему не должен
   // знать, тёмный вокруг фон или светлый.
   return (
-    <a
-      href={`/${locale}/admin`}
-      className="mt-3 flex min-h-12 w-full items-center justify-center rounded-[2px] px-4 text-center text-[13px] uppercase tracking-[0.12em] transition-opacity hover:opacity-70"
-      style={{color: 'currentColor', border: '1px solid currentColor'}}
-    >
+    <a href={`/${locale}/admin`} className={OWNER_LINK} style={OWNER_LINK_STYLE}>
       {t('adminLink')}
     </a>
   );
 }
+
+export const OWNER_LINK =
+  'mt-3 flex min-h-12 w-full items-center justify-center rounded-[2px] px-4 text-center text-[13px] uppercase tracking-[0.12em] transition-opacity hover:opacity-70';
+export const OWNER_LINK_STYLE = {color: 'currentColor', border: '1px solid currentColor'} as const;
