@@ -61,4 +61,21 @@ describe('SiteEventsRouteTracker', () => {
     render(<SiteEventsRouteTracker />);
     expect(trackSiteEvent).toHaveBeenCalledWith('page_view', expect.objectContaining({device: 'phone'}));
   });
+
+  // Админка — не посещение покупателя. До 24.09 она писала page_view наравне
+  // с витриной и дала пятую часть всех просмотров на карточке «Посещения».
+  it.each(['/ru/admin', '/en/admin', '/ru/admin/products', '/ru/admin/products/123/edit'])(
+    'does not track admin pages (%s)',
+    (path) => {
+      mockPathname = path;
+      render(<SiteEventsRouteTracker />);
+      expect(trackSiteEvent).not.toHaveBeenCalled();
+    },
+  );
+
+  it('still tracks storefront paths that merely start with the same letters', () => {
+    mockPathname = '/ru/administrator-coat';
+    render(<SiteEventsRouteTracker />);
+    expect(trackSiteEvent).toHaveBeenCalledWith('page_view', expect.objectContaining({path: '/ru/administrator-coat'}));
+  });
 });
