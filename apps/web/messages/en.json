@@ -1558,12 +1558,6 @@
       "colour": "Colour",
       "about": "About",
       "size": "Size",
-      "sizeGuide": "Size guide",
-      "sizeGuideCaption": "Size guide, measurements in cm",
-      "bust": "Bust",
-      "waist": "Waist",
-      "hips": "Hips",
-      "measurementsCm": "Measurements in cm.",
       "added": "Added",
       "addToBag": "Add to bag",
       "selectSize": "Select a size",
@@ -1670,7 +1664,7 @@
         "sections": [
           {
             "h": "How do I find my size?",
-            "b": "Every product page carries a size guide. Send us your measurements and we'll suggest the fit."
+            "b": "Send us your measurements and we'll suggest the size and fit."
           },
           {
             "h": "Can I try before buying?",

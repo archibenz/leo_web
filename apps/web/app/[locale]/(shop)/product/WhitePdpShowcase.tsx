@@ -32,14 +32,6 @@ import EditableBlock from '../../../../components/editor/EditableBlock';
 const SIZES = WHITE_SIZES;
 // Gallery is built per-product below: the product's own photo, plus any extra
 // views it carries — never other products' shots.
-// Demo measurements (cm) for the size-guide disclosure.
-const SIZE_GUIDE = [
-  {size: 'XS', bust: 82, waist: 62, hips: 88},
-  {size: 'S', bust: 86, waist: 66, hips: 92},
-  {size: 'M', bust: 90, waist: 70, hips: 96},
-  {size: 'L', bust: 96, waist: 76, hips: 102},
-  {size: 'XL', bust: 102, waist: 82, hips: 108},
-];
 
 export default function WhitePdpShowcase({
   locale,
@@ -95,7 +87,6 @@ export default function WhitePdpShowcase({
       );
     }
   };
-  const [guideOpen, setGuideOpen] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   // Tap-to-zoom lightbox for the active gallery image.
   const [zoomed, setZoomed] = useState(false);
@@ -454,19 +445,11 @@ export default function WhitePdpShowcase({
 
             {/* Size */}
             <div id="wv-pdp-size" className="mt-8 scroll-mt-24">
-              <div className="mb-3 flex items-baseline justify-between">
-                <p className="text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('size')}</p>
-                <button
-                  type="button"
-                  onClick={() => setGuideOpen((o) => !o)}
-                  aria-expanded={guideOpen}
-                  aria-controls="wv-size-guide"
-                  className="wv-link -my-3.5 py-3.5 text-[11px] uppercase tracking-[0.16em]"
-                  style={{color: MUTED}}
-                >
-                  <span className="wv-link-ink">{t('sizeGuide')}</span>
-                </button>
-              </div>
+              {/* Таблицы размеров здесь нет до настоящих мерок у модели. Прежняя
+                  была одна на все вещи и выдумана («Demo measurements»):
+                  покупатель выбирал размер по чужим цифрам, а это хуже, чем
+                  без таблицы. Решение 24.09; вернётся с мерками модели. */}
+              <p className="mb-3 text-[11px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('size')}</p>
               <div className="flex flex-wrap gap-2.5">
                 {(product.sizes ?? SIZES).map((s) => (
                   <button
@@ -485,31 +468,6 @@ export default function WhitePdpShowcase({
                     {s}
                   </button>
                 ))}
-              </div>
-              {/* Size-guide disclosure — semantic table, square/hairline, reduced-motion safe (hidden toggle). */}
-              <div id="wv-size-guide" hidden={!guideOpen} className="mt-4">
-                <table className="w-full border-collapse text-[12px]">
-                  <caption className="sr-only">{t('sizeGuideCaption')}</caption>
-                  <thead>
-                    <tr style={{color: MUTED}}>
-                      <th scope="col" className="border-b py-2 text-left font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('size')}</th>
-                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('bust')}</th>
-                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('waist')}</th>
-                      <th scope="col" className="border-b py-2 text-right font-normal uppercase tracking-[0.14em]" style={{borderColor: HAIR}}>{t('hips')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {SIZE_GUIDE.map((r) => (
-                      <tr key={r.size}>
-                        <th scope="row" className="border-b py-2 text-left font-medium" style={{borderColor: HAIR, color: INK}}>{r.size}</th>
-                        <td className="border-b py-2 text-right tabular-nums" style={{borderColor: HAIR}}>{r.bust}</td>
-                        <td className="border-b py-2 text-right tabular-nums" style={{borderColor: HAIR}}>{r.waist}</td>
-                        <td className="border-b py-2 text-right tabular-nums" style={{borderColor: HAIR}}>{r.hips}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <p className="mt-2 text-[11px]" style={{color: MUTED}}>{t('measurementsCm')}</p>
               </div>
             </div>
 
