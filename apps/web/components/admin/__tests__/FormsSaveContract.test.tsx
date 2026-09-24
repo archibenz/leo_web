@@ -1,10 +1,10 @@
 import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
 import {render, screen, cleanup, waitFor, fireEvent} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import CollectionForm from '../CollectionForm';
 import CareGuideForm from '../CareGuideForm';
 
-// Договоры сохранения двух оставшихся форм — коллекции и ухода. Тот же смысл,
+// Договор сохранения формы ухода. (Форма коллекции убрана 24.09 вместе с
+// разделом: коллекциями управляет бот, см. BotAdminCollectionsTest.) Тот же смысл,
 // что у ProductFormSave.test.tsx: проверяется ТЕЛО ЗАПРОСА, а не разметка.
 // Сняты с работающего кода ДО переезда форм на блоки Efferd, чтобы «поведение
 // не тронуто» проверялось кодом, а не вниманием.
@@ -15,7 +15,7 @@ vi.mock('../../../lib/api', () => ({apiFetch, getToken: () => 'token', API_BASE:
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({push, refresh: vi.fn()}),
-  usePathname: () => '/ru/admin/collections/new',
+  usePathname: () => '/ru/admin/care/new',
 }));
 
 vi.mock('next-intl', () => ({useTranslations: () => (key: string) => key}));
@@ -35,73 +35,6 @@ beforeEach(() => {
 });
 
 afterEach(cleanup);
-
-// После переезда формы подпись СВЯЗАНА с полем, и поля ищутся по подписи —
-// как их ищет человек и как их читает экранный диктор. До переезда так было
-// нельзя: у <label> не было ни htmlFor, ни вложенного поля, и тест искал по
-// порядку в разметке. Договор при этом не изменился ни на поле: ожидаемые тела
-// запросов ниже те же, что были сняты с прежнего кода.
-function поля() {
-  return {
-    name: screen.getByLabelText('name'),
-    description: screen.getByLabelText('description'),
-    sortOrder: screen.getByLabelText('sortOrder'),
-    отправить: screen.getByRole('button', {name: 'save'}),
-  };
-}
-
-describe('форма коллекции — что уходит на сервер', () => {
-  it('новая коллекция: тело POST — ровно четыре поля', async () => {
-    const user = userEvent.setup();
-    render(<CollectionForm isNew />);
-
-    const {name, description, sortOrder, отправить} = поля();
-
-    await user.type(name, 'Осень 2026');
-    await user.type(description, 'Плотные ткани');
-    fireEvent.change(sortOrder, {target: {value: '3'}});
-
-    await user.click(отправить);
-
-    await waitFor(() =>
-      expect(apiFetch).toHaveBeenCalledWith('/api/admin/collections', expect.anything()),
-    );
-    const [, opts] = apiFetch.mock.calls.find(([p]) => p === '/api/admin/collections')!;
-    expect(opts.method).toBe('POST');
-    // Форма коллекции отправляет СВОЁ СОСТОЯНИЕ ЦЕЛИКОМ (JSON.stringify(form)),
-    // а не собранный вручную объект. Значит любое новое поле состояния уедет на
-    // сервер само, даже если его туда не звали, — и этот кейс покраснеет.
-    expect(JSON.parse(opts.body)).toEqual({
-      name: 'Осень 2026',
-      description: 'Плотные ткани',
-      imageUrl: '',
-      sortOrder: 3,
-    });
-  });
-
-  it('правка: PUT по адресу коллекции, со страницы не уводит', async () => {
-    const user = userEvent.setup();
-    apiFetch.mockImplementation((path: string) =>
-      path === '/api/admin/collections/c-1'
-        ? Promise.resolve({name: 'Осень', description: '', imageUrl: '', sortOrder: 0})
-        : Promise.resolve({}),
-    );
-
-    render(<CollectionForm collectionId="c-1" isNew={false} />);
-    await waitFor(() => expect(apiFetch).toHaveBeenCalledWith('/api/admin/collections/c-1'));
-
-    apiFetch.mockClear();
-    apiFetch.mockResolvedValue({});
-    await user.click(поля().отправить);
-
-    await waitFor(() =>
-      expect(apiFetch).toHaveBeenCalledWith('/api/admin/collections/c-1', expect.anything()),
-    );
-    const [, opts] = apiFetch.mock.calls.find(([p]) => p === '/api/admin/collections/c-1')!;
-    expect(opts.method).toBe('PUT');
-    expect(push).not.toHaveBeenCalled();
-  });
-});
 
 describe('форма ухода — что уходит на сервер', () => {
   it('новая запись: пустые поля уходят как null, символы — строкой JSON', async () => {

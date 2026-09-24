@@ -6,7 +6,6 @@ import {SidebarMenuButton, useSidebar} from '@/components/ui/sidebar';
 import {
   LayoutGridIcon,
   ShirtIcon,
-  LayersIcon,
   BoxesIcon,
   SparklesIcon,
   HomeIcon,
@@ -117,7 +116,6 @@ export function adminNavGroups(locale: string, t: Translate): SidebarNavGroup[] 
       items: [
         {title: t('dashboard'), path: `/${locale}/admin`, icon: <LayoutGridIcon />},
         {title: t('products'), path: `/${locale}/admin/products`, icon: <ShirtIcon />},
-        {title: t('collections'), path: `/${locale}/admin/collections`, icon: <LayersIcon />},
         {title: t('inventory'), path: `/${locale}/admin/inventory`, icon: <BoxesIcon />},
       ],
     },
