@@ -102,11 +102,15 @@ class AdminSiteStatsControllerTest {
     // Событие «только что», с учёткой или без: окно ручек считается от
     // текущего момента, и дата из прошлого в него со временем перестанет попадать.
     private void recentEvent(String path, String session, UUID userId) {
+        eventAt(java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC).minusMinutes(30), path, session, userId);
+    }
+
+    private void eventAt(java.time.OffsetDateTime at, String path, String session, UUID userId) {
         em.createNativeQuery("""
                 INSERT INTO site_events (id, event_type, occurred_at, device, locale, path, session_key, user_id)
                 VALUES (?1, 'page_view', ?2, 'mobile', 'ru', ?3, ?4, ?5)""")
                 .setParameter(1, UUID.randomUUID())
-                .setParameter(2, java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC).minusMinutes(30))
+                .setParameter(2, at)
                 .setParameter(3, path)
                 .setParameter(4, session)
                 .setParameter(5, userId)
@@ -143,7 +147,7 @@ class AdminSiteStatsControllerTest {
         // Без транзакции свои строки надо унести самому, иначе они достанутся
         // соседнему тесту, который считает события.
         tx.executeWithoutResult(status -> {
-            em.createNativeQuery("DELETE FROM site_events WHERE session_key IN ('s-1','s-2','s-3','s-4','s-5','s-6','s-7')").executeUpdate();
+            em.createNativeQuery("DELETE FROM site_events WHERE session_key IN ('s-1','s-2','s-3','s-4','s-5','s-6','s-8','s-9','s-7')").executeUpdate();
             users.findByEmailIgnoreCase("stats-admin@test.dev").ifPresent(users::delete);
             users.findByEmailIgnoreCase("stats-buyer@test.dev").ifPresent(users::delete);
         });
@@ -213,6 +217,26 @@ class AdminSiteStatsControllerTest {
                         Collectors.summingLong(row -> ((Number) row[2]).longValue())));
         assertThat(byPath).containsEntry("/ru/shop-t", 2L).containsEntry("/ru/account", 1L)
                 .doesNotContainKeys("/ru/admin", "/ru/admin/products", "/ru/shop-owner", "/ru/shop-t?cat=x");
+    }
+
+    // «Новая сессия» — впервые увиденная ЗА ВСЮ ИСТОРИЮ, а не внутри окна
+    // запроса. Прежде MIN брался только по окну, и вкладка, открытая за день
+    // до окна и живая в его первый день, считалась там новой: первый день
+    // окна становился свалкой, а при скользящих 14 сутках отправки в
+    // аналитику именно он каждый раз переписывался последним.
+    @Test
+    void aSessionStartedBeforeTheWindowIsNotNewInsideIt() {
+        java.time.OffsetDateTime now = java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC);
+        tx.executeWithoutResult(status -> {
+            eventAt(now.minusHours(26), "/ru", "s-8", null);   // начата за сутки до окна
+            eventAt(now.minusMinutes(30), "/ru", "s-8", null); // и жива внутри него
+            eventAt(now.minusMinutes(30), "/ru", "s-9", null); // начата внутри окна
+        });
+
+        Set<String> fresh = siteEvents.sessionFirstSeen(Instant.now().minus(2, ChronoUnit.HOURS)).stream()
+                .map(row -> (String) row[0]).collect(Collectors.toSet());
+
+        assertThat(fresh).contains("s-9").doesNotContain("s-8");
     }
 
     @Test
