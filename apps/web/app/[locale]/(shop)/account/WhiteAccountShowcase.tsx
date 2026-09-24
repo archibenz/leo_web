@@ -7,6 +7,7 @@ import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import {useWhiteAuth, whiteLogin, whiteSendCode, whiteRegister, whiteLogout, WHITE_PASSWORD_RE} from '../../../../hooks/useWhiteAuth';
 import {trackSiteEvent} from '../../../../lib/siteEvents';
+import {safeNextPath} from '../../../../lib/safeNext';
 import {Button} from '../../../../components/ui/button';
 import OwnerTools from '../../../../components/editor/OwnerTools';
 import WhiteTelegramLogin from '../../WhiteTelegramLogin';
@@ -64,7 +65,19 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
     setBusy(true);
     setError(null);
     const r = await whiteLogin(email, password);
-    if (!r.ok) setError(t('errCredentials'));
+    if (!r.ok) {
+      setError(t('errCredentials'));
+      setBusy(false);
+      return;
+    }
+    // Возврат только после свежего входа, не при заходе уже залогиненного:
+    // иначе покупатель без прав, отбитый дашбордом сюда же, ходил бы по кругу.
+    // assign, а не router.push: /analytics — чужое приложение, не роут Next.
+    const next = safeNextPath(new URLSearchParams(window.location.search).get('next'), window.location.origin);
+    if (next) {
+      window.location.assign(next);
+      return;
+    }
     setBusy(false);
   };
 

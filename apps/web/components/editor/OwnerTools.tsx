@@ -4,6 +4,7 @@ import {useTranslations} from 'next-intl';
 import {useEditorSession} from './useEditorSession';
 import EditModeSwitch from './EditModeSwitch';
 import AdminPanelLink from './AdminPanelLink';
+import AnalyticsLink from './AnalyticsLink';
 
 // Владелец про прежний экран аккаунта: «сделай нормальное расположение кнопок
 // и размерности».
@@ -44,6 +45,7 @@ export default function OwnerTools({locale}: {locale: string}) {
         <EditModeSwitch framed={false} />
       </div>
       <AdminPanelLink locale={locale} />
+      <AnalyticsLink />
     </div>
   );
 }

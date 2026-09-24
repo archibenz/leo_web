@@ -1781,6 +1781,7 @@
     "editModeSwitch": {
       "label": "Режим редактирования сайта",
       "adminLink": "Админ-панель",
+      "analyticsLink": "Аналитика",
       "sectionLabel": "Управление сайтом"
     },
     "error": {
