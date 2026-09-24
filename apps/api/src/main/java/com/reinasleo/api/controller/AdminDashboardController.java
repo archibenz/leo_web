@@ -9,10 +9,12 @@ import com.reinasleo.api.dto.SitePathPoint;
 import com.reinasleo.api.dto.StockAlertResponse;
 import com.reinasleo.api.dto.TopProductPoint;
 import com.reinasleo.api.service.AdminProductService;
+import com.reinasleo.api.service.SiteDailyPublisher;
 import com.reinasleo.api.service.SiteStatsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,10 +24,13 @@ public class AdminDashboardController {
 
     private final AdminProductService adminProductService;
     private final SiteStatsService siteStatsService;
+    private final SiteDailyPublisher siteDailyPublisher;
 
-    public AdminDashboardController(AdminProductService adminProductService, SiteStatsService siteStatsService) {
+    public AdminDashboardController(AdminProductService adminProductService, SiteStatsService siteStatsService,
+                                    SiteDailyPublisher siteDailyPublisher) {
         this.adminProductService = adminProductService;
         this.siteStatsService = siteStatsService;
+        this.siteDailyPublisher = siteDailyPublisher;
     }
 
     @GetMapping("/dashboard")
@@ -70,6 +75,23 @@ public class AdminDashboardController {
             @RequestParam(defaultValue = "30") int days,
             @RequestParam(defaultValue = "10") int limit) {
         return ResponseEntity.ok(siteStatsService.getTopPaths(days, limit));
+    }
+
+    // Доливка дневных чисел в аналитику за последние N суток — для первого
+    // запуска (события копятся с 13.09) и после простоя приёма. По расписанию
+    // отправитель шлёт только вчера и сегодня. Код ответа — исход, а не
+    // «запрос принят»: 503 — отправка не настроена, 502 — часть конвертов
+    // не принята (список в теле).
+    @PostMapping("/stats/site-daily/publish")
+    public ResponseEntity<SiteDailyPublisher.Result> publishSiteDaily(
+            @RequestParam(defaultValue = "2") int days) {
+        int safeDays = Math.max(1, Math.min(days, 90));
+        LocalDate today = SiteStatsService.today();
+        SiteDailyPublisher.Result result = siteDailyPublisher.publish(today.minusDays(safeDays - 1L), today);
+        HttpStatus status = !result.enabled() ? HttpStatus.SERVICE_UNAVAILABLE
+                : result.failed() > 0 ? HttpStatus.BAD_GATEWAY
+                : HttpStatus.OK;
+        return ResponseEntity.status(status).body(result);
     }
 
     @GetMapping("/stats/top-products")

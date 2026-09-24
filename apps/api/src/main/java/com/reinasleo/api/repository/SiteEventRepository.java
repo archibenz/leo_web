@@ -103,10 +103,13 @@ public interface SiteEventRepository extends JpaRepository<SiteEvent, UUID> {
     // /ru/shop?cat=… делил просмотры с /ru/shop. Сейчас трекер оставляет
     // только utm_* — их тоже складываем в адрес. POSITION/SUBSTRING, а не
     // split_part: одинаково исполняются и на PostgreSQL 14, и на H2 тестов.
-    @Query(value = """
-            SELECT CASE WHEN POSITION('?' IN path) > 0
-                        THEN SUBSTRING(path, 1, POSITION('?' IN path) - 1)
-                        ELSE path END AS page,
+    String PAGE = """
+            CASE WHEN POSITION('?' IN path) > 0
+                 THEN SUBSTRING(path, 1, POSITION('?' IN path) - 1)
+                 ELSE path END""";
+
+    @Query(value = "SELECT " + PAGE + """
+             AS page,
                    COUNT(*) AS cnt
             FROM site_events e
             WHERE occurred_at >= :since AND event_type = 'page_view' AND path IS NOT NULL
@@ -116,4 +119,17 @@ public interface SiteEventRepository extends JpaRepository<SiteEvent, UUID> {
             LIMIT :limit
             """, nativeQuery = true)
     List<Object[]> topPaths(@Param("since") Instant since, @Param("limit") int limit);
+
+    // Пути по суткам — для отправки в аналитику (site_daily_pages). Зерно —
+    // час, как у countsByHour, и по той же причине: сутки по Москве режет
+    // SiteStatsService, потому что H2 не сдвигает AT TIME ZONE.
+    @Query(value = "SELECT date_trunc('hour', occurred_at) AS bucket_hour, " + PAGE + """
+             AS page,
+                   COUNT(*) AS cnt
+            FROM site_events e
+            WHERE occurred_at >= :since AND event_type = 'page_view' AND path IS NOT NULL
+            """ + CUSTOMERS_ONLY + """
+            GROUP BY 1, 2
+            """, nativeQuery = true)
+    List<Object[]> pageViewsByHour(@Param("since") Instant since);
 }

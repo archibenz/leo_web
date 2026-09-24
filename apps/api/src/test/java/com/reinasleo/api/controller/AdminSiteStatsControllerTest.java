@@ -21,6 +21,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -197,6 +198,21 @@ class AdminSiteStatsControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.path =~ /\\/ru\\/shop-q.*/)].path", contains("/ru/shop-q")))
                 .andExpect(jsonPath("$[?(@.path == '/ru/shop-q')].views", contains(3)));
+    }
+
+    // Пути по часам для отправки в аналитику: запрос реально исполняется,
+    // складывает адрес без строки запроса и отсекает своих, как и топ.
+    @Test
+    void pageViewsByHourRunAgainstTheDatabase() {
+        seedStaffAndCustomers();
+        tx.executeWithoutResult(status -> recentEvent("/ru/shop-t?cat=x", "s-3", null));
+        Instant since = Instant.now().minus(2, ChronoUnit.HOURS);
+
+        Map<String, Long> byPath = siteEvents.pageViewsByHour(since).stream()
+                .collect(Collectors.groupingBy(row -> (String) row[1],
+                        Collectors.summingLong(row -> ((Number) row[2]).longValue())));
+        assertThat(byPath).containsEntry("/ru/shop-t", 2L).containsEntry("/ru/account", 1L)
+                .doesNotContainKeys("/ru/admin", "/ru/admin/products", "/ru/shop-owner", "/ru/shop-t?cat=x");
     }
 
     @Test
