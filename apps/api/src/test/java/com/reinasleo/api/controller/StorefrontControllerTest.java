@@ -34,7 +34,7 @@ class StorefrontControllerTest {
                 new BigDecimal("25000"), null, "/i/c.jpg", List.of());
         StorefrontProduct p = new StorefrontProduct("m1", 2, "palto", "Coat", "Пальто", "outerwear",
                 new BigDecimal("25000"), null, "d", "о", null, null, "w", "ш", "c", "у",
-                List.of(c), List.of("S", "M"), "/i/m.jpg", List.of(), 1L, "aw26", 2, null);
+                List.of(c), List.of("S", "M"), "/i/m.jpg", List.of(), 1L, "aw26", 2, null, null);
         when(storefrontService.getStorefront()).thenReturn(new StorefrontResponse(List.of(p), List.of(), List.of()));
 
         mockMvc.perform(get("/api/catalog/storefront"))

@@ -40,7 +40,7 @@ class StorefrontDraftMergeTest {
         return new StorefrontModelRequest("Пальто", "Coat", "outerwear", "о", "d", null, null,
                 "шерсть", "wool", "уход", "care", List.of("S", "M"), "/images/white/coat.jpg",
                 List.of("/images/white/coat-2.jpg"), "aw26", 2, null, 0, true,
-                Map.of("wb-1", variant("25000", null), "wb-2", variant("23000", null)));
+                Map.of("wb-1", variant("25000", null), "wb-2", variant("23000", null)), null);
     }
 
     @Test

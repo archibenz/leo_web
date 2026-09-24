@@ -72,7 +72,7 @@ class StorefrontContractTest {
         StorefrontProduct product = new StorefrontProduct("m1", 2, "palto", "Coat", "Пальто", "outerwear",
                 new BigDecimal("25000"), new BigDecimal("12000"), "d", "о", "story", "история",
                 "w", "ш", "c", "у",
-                List.of(colour), List.of("S", "M"), "/i/m.jpg", List.of("/i/m-2.jpg"), 1L, "aw26", 2, 3);
+                List.of(colour), List.of("S", "M"), "/i/m.jpg", List.of("/i/m-2.jpg"), 1L, "aw26", 2, 3, null);
         StorefrontSet set = new StorefrontSet("everyday", "Everyday", "На каждый день", "d", "о", "/i/s.jpg",
                 List.of(new StorefrontSetItem("wb-1", 2, "camel")));
         StorefrontSectionDto section = new StorefrontSectionDto("s1", "aw26-hero", "hero", "active",

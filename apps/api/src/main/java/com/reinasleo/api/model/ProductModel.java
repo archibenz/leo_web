@@ -57,6 +57,11 @@ public class ProductModel {
     @Column(nullable = false, columnDefinition = "TEXT ARRAY")
     private String[] sizes = {"XS", "S", "M", "L", "XL"};
 
+    // Мерки изделия (п. 15) — JSON-массив Measurement; null — мерок нет.
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private String measurements;
+
     @Column(nullable = false, length = 512)
     private String image;
 
@@ -127,6 +132,8 @@ public class ProductModel {
     public String getCareRu() { return careRu; }
     public String getCareEn() { return careEn; }
     public String[] getSizes() { return sizes; }
+    public String getMeasurements() { return measurements; }
+    public void setMeasurements(String measurements) { this.measurements = measurements; }
     public String getImage() { return image; }
     public String getGallery() { return gallery; }
     public String getSeason() { return season; }
