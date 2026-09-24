@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import WhiteContactShowcase from './WhiteContactShowcase';
 import {brandMeta} from '../../../../lib/openGraph';
 import {getSocials} from '../../../../lib/site/socials';
+import {contactEmail, getSiteTexts} from '../../../../lib/site/texts';
 
 // Variant 2 "White" — Contact page (pitch preview at /<locale>/contact).
 // Indexable — the White variant is the site. title.absolute opts out of the root template.
@@ -26,6 +27,6 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 
 export default async function WhiteContactPage({params}: Props) {
   const {locale} = await params;
-  const socials = await getSocials();
-  return <WhiteContactShowcase locale={locale} socials={socials} />;
+  const [socials, texts] = await Promise.all([getSocials(), getSiteTexts()]);
+  return <WhiteContactShowcase locale={locale} email={contactEmail(texts)} socials={socials} />;
 }

@@ -9,6 +9,7 @@ import {
   BoxesIcon,
   SparklesIcon,
   AtSignIcon,
+  TypeIcon,
   HomeIcon,
 } from 'lucide-react';
 
@@ -125,6 +126,7 @@ export function adminNavGroups(locale: string, t: Translate): SidebarNavGroup[] 
       items: [
         {title: t('homepage'), path: `/${locale}/admin/homepage`, icon: <HomeIcon />},
         {title: t('care'), path: `/${locale}/admin/care`, icon: <SparklesIcon />},
+        {title: t('textsNav'), path: `/${locale}/admin/texts`, icon: <TypeIcon />},
         {title: t('socialsNav'), path: `/${locale}/admin/socials`, icon: <AtSignIcon />},
       ],
     },

@@ -15,18 +15,26 @@ import {SOCIAL_LABELS, socialHandle, type SocialLink} from '../../../../lib/site
 // prototype points at real inboxes rather than posting to a stub. CSS-only
 // reveal (wv-rise, reduced-motion-safe).
 
-const EMAIL = {key: 'email', label: 'Email', value: 'reinasleo@gmail.com', href: 'mailto:reinasleo@gmail.com'};
 
 // Соцсети — общий список сайта (lib/site/socials.ts), тот же, что в подвале.
 // До 24.09 здесь были вписаны Telegram и VK, а в подвале Instagram и Telegram.
-function channels(socials: readonly SocialLink[]) {
+// Почта — из «Текстов сайта» (lib/site/texts.ts): владелец меняет её в админке.
+function channels(email: string, socials: readonly SocialLink[]) {
   return [
-    EMAIL,
+    {key: 'email', label: 'Email', value: email, href: `mailto:${email}`},
     ...socials.map((s) => ({key: s.network, label: SOCIAL_LABELS[s.network], value: socialHandle(s), href: s.href})),
   ];
 }
 
-export default function WhiteContactShowcase({locale, socials}: {locale: string; socials: readonly SocialLink[]}) {
+export default function WhiteContactShowcase({
+  locale,
+  email,
+  socials,
+}: {
+  locale: string;
+  email: string;
+  socials: readonly SocialLink[];
+}) {
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const t = useTranslations('white.contact');
@@ -45,7 +53,7 @@ export default function WhiteContactShowcase({locale, socials}: {locale: string;
           </div>
 
           <div className="wv-rise wv-delay-1 border-t" style={{borderColor: HAIR}}>
-            {channels(socials).map((c) => (
+            {channels(email, socials).map((c) => (
               <a
                 key={c.key}
                 href={c.href}
