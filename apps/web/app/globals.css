@@ -1807,6 +1807,12 @@ textarea {
    press so it's always visible what's being tapped — white-on-white states
    were unreadable. */
 .wv-tap {
+  /* Хозяин плашки .wv-tap::after (ниже, 44 px под палец). Без relative
+     плашка позиционируется от дальнего предка: у кнопок размеров в карточке
+     она растягивалась на 548 px и с 18.08 забирала клики у «Предзаказа» на
+     компьютере (найдено 24.09). Крошки и ссылки ставили relative сами —
+     кнопки размеров нет. Теперь это свойство самого класса. */
+  position: relative;
   border-radius: 9999px;
   transition: background-color 0.25s ease;
 }
