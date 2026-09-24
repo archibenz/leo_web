@@ -17,6 +17,8 @@ type StoredModel = {
   compositionEn: string | null;
   careRu: string | null;
   careEn: string | null;
+  // Настоящая ручка отдаёт размеры всегда: в StorefrontModelRequest они @NotEmpty.
+  sizes: string[];
 };
 
 let store: Record<string, StoredModel>;
@@ -34,6 +36,7 @@ function resetStore() {
       compositionEn: 'Wool 100%',
       careRu: 'Химчистка',
       careEn: 'Dry clean only',
+      sizes: ['XS', 'S', 'M', 'L', 'XL'],
     },
   };
 }
@@ -85,7 +88,7 @@ describe('ModelForm — загрузка и раскладка', () => {
     const toggle = screen.getByRole('button', {name: /Английские тексты/i});
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     // getByRole по умолчанию не видит то, что скрыто атрибутом hidden — тот
-    // же приём проверки видимости, что и у guideOpen в WhitePdpShowcase.tsx.
+    // же приём проверки видимости, что и у любого узла под атрибутом hidden.
     expect(screen.queryByRole('textbox', {name: 'Название · en'})).not.toBeInTheDocument();
   });
 
@@ -231,5 +234,86 @@ describe('ModelForm — ошибки сервера', () => {
     await user.click(screen.getByRole('button', {name: /Сохранить в черновик/i}));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(/Failed to fetch/);
+  });
+});
+
+// Размеры модели — кнопки размеров на карточке. Круг через подделанный
+// черновик: изменил → сохранил → открыл заново → видно сохранённое.
+describe('ModelForm — размеры', () => {
+  it('добавил XXL и снял S — уходит набор в каноническом порядке, при повторном открытии он же', async () => {
+    const user = userEvent.setup();
+    const {unmount} = render(<ModelForm modelId="model-1" onSaved={() => {}} />);
+    await screen.findByLabelText('Название · ru');
+
+    await user.click(screen.getByRole('button', {name: 'XXL'}));
+    await user.click(screen.getByRole('button', {name: 'S'}));
+    await user.click(screen.getByRole('button', {name: /сохранить/i}));
+
+    await waitFor(() => expect(saveModelDraft).toHaveBeenCalledTimes(1));
+    expect(saveModelDraft.mock.calls[0]![1]).toEqual({sizes: ['XS', 'M', 'L', 'XL', 'XXL']});
+
+    unmount();
+    render(<ModelForm modelId="model-1" onSaved={() => {}} />);
+    await screen.findByLabelText('Название · ru');
+    expect(screen.getByRole('button', {name: 'XXL'})).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', {name: 'S'})).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('снять все размеры нельзя: предупреждение и кнопка сохранения закрыта', async () => {
+    const user = userEvent.setup();
+    render(<ModelForm modelId="model-1" onSaved={() => {}} />);
+    await screen.findByLabelText('Название · ru');
+
+    for (const size of ['XS', 'S', 'M', 'L', 'XL']) await user.click(screen.getByRole('button', {name: size}));
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Выберите хотя бы один размер.');
+    expect(screen.getByRole('button', {name: /сохранить/i})).toBeDisabled();
+  });
+
+  it('правка текста не трогает размеры — в заплатке их нет', async () => {
+    const user = userEvent.setup();
+    render(<ModelForm modelId="model-1" onSaved={() => {}} />);
+    const name = await screen.findByLabelText('Название · ru');
+
+    await user.clear(name);
+    await user.type(name, 'Пальто-пиджак');
+    await user.click(screen.getByRole('button', {name: /сохранить/i}));
+
+    await waitFor(() => expect(saveModelDraft).toHaveBeenCalledTimes(1));
+    expect(saveModelDraft.mock.calls[0]![1]).toEqual({nameRu: 'Пальто-пиджак'});
+  });
+
+  // Порядок нажатий ≠ порядок показа: S, добавленный к XS и M, обязан встать
+  // между ними, а не в конец.
+  it('добавленный размер встаёт на своё место, а не в конец', async () => {
+    const user = userEvent.setup();
+    store['model-1']!.sizes = ['XS', 'M'];
+    render(<ModelForm modelId="model-1" onSaved={() => {}} />);
+    await screen.findByLabelText('Название · ru');
+
+    await user.click(screen.getByRole('button', {name: 'S'}));
+    await user.click(screen.getByRole('button', {name: /сохранить/i}));
+
+    await waitFor(() => expect(saveModelDraft).toHaveBeenCalledTimes(1));
+    expect(saveModelDraft.mock.calls[0]![1]).toEqual({sizes: ['XS', 'S', 'M']});
+  });
+
+  it('включил размер и выключил обратно — изменений нет, сохранять нечего', async () => {
+    const user = userEvent.setup();
+    render(<ModelForm modelId="model-1" onSaved={() => {}} />);
+    await screen.findByLabelText('Название · ru');
+
+    await user.click(screen.getByRole('button', {name: 'XXL'}));
+    await user.click(screen.getByRole('button', {name: 'XXL'}));
+
+    expect(screen.getByRole('button', {name: /сохранить/i})).toBeDisabled();
+  });
+
+  it('размер вне списка, уже стоящий в базе, не теряется', async () => {
+    store['model-1']!.sizes = ['M', 'ONE'];
+    render(<ModelForm modelId="model-1" onSaved={() => {}} />);
+    await screen.findByLabelText('Название · ru');
+
+    expect(screen.getByRole('button', {name: 'ONE'})).toHaveAttribute('aria-pressed', 'true');
   });
 });

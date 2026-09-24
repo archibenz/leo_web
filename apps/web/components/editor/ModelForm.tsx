@@ -27,7 +27,22 @@ type ModelDto = {
   compositionEn: string | null;
   careRu: string | null;
   careEn: string | null;
+  sizes?: string[] | null;
 };
+
+// Размеры модели — набор кнопок на карточке. Порядок показа — канонический,
+// а не порядок нажатий: иначе владелец, добавив XXL после S, получил бы на
+// сайте «XS S XXL M». Размер вне списка (если такой уже есть в базе) не
+// теряется — он показывается и остаётся, пока его не снимут.
+export const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL'] as const;
+
+function ordered(sizes: readonly string[]): string[] {
+  const rank = (s: string) => {
+    const i = (SIZE_ORDER as readonly string[]).indexOf(s);
+    return i === -1 ? SIZE_ORDER.length : i;
+  };
+  return [...new Set(sizes)].sort((a, b) => rank(a) - rank(b));
+}
 
 type Draft = {
   nameRu: string;
@@ -40,6 +55,7 @@ type Draft = {
   compositionEn: string;
   careRu: string;
   careEn: string;
+  sizes: string[];
 };
 
 function initial(model: ModelDto): Draft {
@@ -54,6 +70,7 @@ function initial(model: ModelDto): Draft {
     compositionEn: model.compositionEn ?? '',
     careRu: model.careRu ?? '',
     careEn: model.careEn ?? '',
+    sizes: ordered(model.sizes ?? []),
   };
 }
 
@@ -67,8 +84,12 @@ const OPTIONAL_FIELDS = new Set<keyof Draft>(['storyRu', 'storyEn']);
 function patchOf(before: Draft, now: Draft): Patch {
   const patch: Patch = {};
   (Object.keys(now) as (keyof Draft)[]).forEach((key) => {
-    if (before[key] === now[key]) return;
     const value = now[key];
+    if (Array.isArray(value)) {
+      if (JSON.stringify(before[key]) !== JSON.stringify(value)) patch[key] = value;
+      return;
+    }
+    if (before[key] === value) return;
     patch[key] = OPTIONAL_FIELDS.has(key) && value === '' ? null : value;
   });
   return patch;
@@ -161,6 +182,12 @@ export default function ModelForm({modelId, onSaved}: {
   const patch = patchOf(before, draft);
   const dirty = Object.keys(patch).length > 0;
   const blank = blankRequiredFields(patch);
+  // Хотя бы один размер: без него сервер отобьёт весь черновик (@NotEmpty), а
+  // карточка останется без кнопок размеров.
+  const noSizes = draft.sizes.length === 0;
+  const toggleSize = (size: string) =>
+    setDraft((d) => (d ? {...d, sizes: ordered(d.sizes.includes(size) ? d.sizes.filter((s) => s !== size) : [...d.sizes, size])} : d));
+  const shownSizes = ordered([...SIZE_ORDER, ...draft.sizes]);
   const blankSet = new Set(blank);
   const set = <K extends keyof Draft>(key: K) => (value: Draft[K]) => setDraft((d) => (d ? {...d, [key]: value} : d));
   // Пустое обязательное поле — своя, живая проверка (пересчитывается на каждый
@@ -231,6 +258,34 @@ export default function ModelForm({modelId, onSaved}: {
       />
       <TextField label="Уход · ru" value={draft.careRu} onChange={set('careRu')} rows={2} error={fieldError('careRu')} />
 
+      <fieldset>
+        <legend className="mb-2 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>
+          Размеры
+        </legend>
+        <div className="flex flex-wrap gap-2">
+          {shownSizes.map((size) => {
+            const on = draft.sizes.includes(size);
+            return (
+              <button
+                key={size}
+                type="button"
+                aria-pressed={on}
+                onClick={() => toggleSize(size)}
+                className="min-h-[44px] min-w-[44px] px-3 text-[13px] transition-colors"
+                style={{border: `1px solid ${on ? INK : HAIR}`, background: on ? INK : 'transparent', color: on ? '#fff' : MUTED}}
+              >
+                {size}
+              </button>
+            );
+          })}
+        </div>
+        {noSizes && (
+          <p role="alert" className="mt-2 text-[12px]" style={{color: SIGNAL}}>
+            Выберите хотя бы один размер.
+          </p>
+        )}
+      </fieldset>
+
       <div>
         {/* Сворачиваемый раздел, не отдельная кнопка-ссылка: зона нажатия и
             кегль — тот же порог 44px/13px, что у EditorButton, только своя
@@ -247,9 +302,8 @@ export default function ModelForm({modelId, onSaved}: {
           <span>Английские тексты</span>
           <span aria-hidden="true">{enOpen ? '−' : '+'}</span>
         </button>
-        {/* hidden, а не условный рендер — тот же приём, что у гида по размерам
-            на этой же странице (WhitePdpShowcase.tsx, #wv-size-guide): узел
-            остаётся в DOM для aria-controls, скрывает его нативный атрибут.
+        {/* hidden, а не условный рендер: узел остаётся в DOM для
+            aria-controls, скрывает его нативный атрибут.
             hidden — ИМЕННО на этом, внешнем div, без своих display-классов:
             [hidden]{display:none} браузера и утилита flex — селекторы одной
             специфичности, и flex на том же узле забил бы hidden. Раскладка
@@ -288,7 +342,7 @@ export default function ModelForm({modelId, onSaved}: {
           {error}
         </p>
       )}
-      <EditorButton tone="solid" onClick={() => void save()} disabled={!dirty || busy || blank.length > 0}>
+      <EditorButton tone="solid" onClick={() => void save()} disabled={!dirty || busy || blank.length > 0 || noSizes}>
         {busy ? 'сохраняю…' : 'Сохранить в черновик'}
       </EditorButton>
     </div>
