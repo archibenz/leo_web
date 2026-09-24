@@ -19,6 +19,7 @@ type StoredModel = {
   careEn: string | null;
   // Настоящая ручка отдаёт размеры всегда: в StorefrontModelRequest они @NotEmpty.
   sizes: string[];
+  measurements?: {kind: string; values: Record<string, number>}[];
 };
 
 let store: Record<string, StoredModel>;
@@ -37,6 +38,7 @@ function resetStore() {
       careRu: 'Химчистка',
       careEn: 'Dry clean only',
       sizes: ['XS', 'S', 'M', 'L', 'XL'],
+      measurements: [],
     },
   };
 }
@@ -328,6 +330,81 @@ describe('ModelForm — ответ без размеров', () => {
     const name = await screen.findByLabelText('Название · ru');
 
     expect(screen.queryByRole('button', {name: 'XS'})).toBeNull();
+    await user.clear(name);
+    await user.type(name, 'Пальто-пиджак');
+    await user.click(screen.getByRole('button', {name: /сохранить/i}));
+
+    await waitFor(() => expect(saveModelDraft).toHaveBeenCalledTimes(1));
+    expect(saveModelDraft.mock.calls[0]![1]).toEqual({nameRu: 'Пальто-пиджак'});
+  });
+});
+
+// Мерки изделия (п. 15). Круг через подделанный черновик.
+describe('ModelForm — замеры изделия', () => {
+  it('добавил «Ширину по груди», заполнил S и M — уходят числа, запятая понята', async () => {
+    const user = userEvent.setup();
+    render(<ModelForm modelId="model-1" onSaved={() => {}} />);
+    await screen.findByLabelText('Название · ru');
+
+    await user.click(screen.getByRole('button', {name: '+ Ширина по груди'}));
+    await user.type(screen.getByLabelText('Ширина по груди · S'), '46');
+    await user.type(screen.getByLabelText('Ширина по груди · M'), '48,5');
+    await user.click(screen.getByRole('button', {name: /сохранить/i}));
+
+    await waitFor(() => expect(saveModelDraft).toHaveBeenCalledTimes(1));
+    expect(saveModelDraft.mock.calls[0]![1]).toEqual({measurements: [{kind: 'chest', values: {S: 46, M: 48.5}}]});
+  });
+
+  it('«убрать» мерку — уходит список без неё', async () => {
+    const user = userEvent.setup();
+    store['model-1']!.measurements = [{kind: 'length', values: {S: 110}}, {kind: 'chest', values: {S: 46}}];
+    render(<ModelForm modelId="model-1" onSaved={() => {}} />);
+    await screen.findByLabelText('Название · ru');
+
+    expect(screen.getByLabelText('Длина изделия · S')).toHaveValue('110');
+    await user.click(screen.getByRole('button', {name: 'Убрать «Длина изделия»'}));
+    await user.click(screen.getByRole('button', {name: /сохранить/i}));
+
+    await waitFor(() => expect(saveModelDraft).toHaveBeenCalledTimes(1));
+    expect(saveModelDraft.mock.calls[0]![1]).toEqual({measurements: [{kind: 'chest', values: {S: 46}}]});
+  });
+
+  it('клетка не с шагом 0,5 — сказано у клетки, сохранение закрыто', async () => {
+    const user = userEvent.setup();
+    render(<ModelForm modelId="model-1" onSaved={() => {}} />);
+    await screen.findByLabelText('Название · ru');
+
+    await user.click(screen.getByRole('button', {name: '+ Длина рукава'}));
+    await user.type(screen.getByLabelText('Длина рукава · M'), '60,3');
+
+    expect(screen.getByText('шаг 0,5 см')).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: /сохранить/i})).toBeDisabled();
+  });
+
+  // Мерка по размеру, которого у вещи нет, не пройдёт сервер — снятый размер
+  // уносит свой столбец сам.
+  it('снял размер M — его мерки уходят вместе с ним', async () => {
+    const user = userEvent.setup();
+    store['model-1']!.measurements = [{kind: 'chest', values: {S: 46, M: 48}}];
+    render(<ModelForm modelId="model-1" onSaved={() => {}} />);
+    await screen.findByLabelText('Название · ru');
+
+    await user.click(screen.getByRole('button', {name: 'M'}));
+    await user.click(screen.getByRole('button', {name: /сохранить/i}));
+
+    await waitFor(() => expect(saveModelDraft).toHaveBeenCalledTimes(1));
+    expect(saveModelDraft.mock.calls[0]![1]).toEqual({
+      sizes: ['XS', 'S', 'L', 'XL'],
+      measurements: [{kind: 'chest', values: {S: 46}}],
+    });
+  });
+
+  it('правка текста не трогает мерки', async () => {
+    const user = userEvent.setup();
+    store['model-1']!.measurements = [{kind: 'chest', values: {S: 46}}];
+    render(<ModelForm modelId="model-1" onSaved={() => {}} />);
+    const name = await screen.findByLabelText('Название · ru');
+
     await user.clear(name);
     await user.type(name, 'Пальто-пиджак');
     await user.click(screen.getByRole('button', {name: /сохранить/i}));

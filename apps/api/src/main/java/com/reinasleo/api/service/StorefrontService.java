@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reinasleo.api.dto.storefront.StorefrontBrokenDraft;
 import com.reinasleo.api.dto.storefront.StorefrontColour;
+import com.reinasleo.api.dto.storefront.Measurement;
 import com.reinasleo.api.dto.storefront.StorefrontProduct;
 import com.reinasleo.api.dto.storefront.StorefrontResponse;
 import com.reinasleo.api.dto.storefront.StorefrontSectionDto;
@@ -281,7 +282,14 @@ public class StorefrontService {
                 m.getDescEn(), m.getDescRu(), m.getStoryEn(), m.getStoryRu(),
                 m.getCompositionEn(), m.getCompositionRu(), m.getCareEn(), m.getCareRu(),
                 colours, Arrays.asList(m.getSizes()), m.getImage(), readStrings(m.getGallery()),
-                modelNm(m, first), m.getSeason(), m.getFeaturedOrder(), m.getLookbookOrder());
+                modelNm(m, first), m.getSeason(), m.getFeaturedOrder(), m.getLookbookOrder(),
+                // Нет мерок — поля нет вовсе (NON_NULL), и таблицы на карточке нет.
+                measurementsOf(m));
+    }
+
+    private List<Measurement> measurementsOf(ProductModel m) {
+        List<Measurement> rows = mapping.readMeasurements(m.getMeasurements());
+        return rows.isEmpty() ? null : rows;
     }
 
     // Артикул модели — свой, если он задан: у модели и у её первого цвета карточки

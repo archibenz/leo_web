@@ -1574,7 +1574,17 @@
       "preorderError": "Could not send. Please try again shortly.",
       "preorderInvalid": "Please check the email address.",
       "outOfStock": "Out of stock for now",
-      "preorderNoPrice": "Pre-order"
+      "preorderNoPrice": "Pre-order",
+      "measurements": "Garment measurements",
+      "measurementsCaption": "Garment measurements, cm",
+      "measurementKinds": {
+        "length": "Length",
+        "chest": "Chest width",
+        "waist": "Waist width",
+        "hips": "Hip width",
+        "sleeve": "Sleeve length",
+        "shoulders": "Shoulder width"
+      }
     },
     "atelier": {
       "back": "Home",

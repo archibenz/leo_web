@@ -35,6 +35,11 @@ export type WhiteColor = {
   gallery?: string[];
 };
 
+// Мерка изделия: что меряется сантиметром на самой вещи, по размерам модели.
+export const MEASUREMENT_KINDS = ['length', 'chest', 'waist', 'hips', 'sleeve', 'shoulders'] as const;
+export type MeasurementKind = (typeof MEASUREMENT_KINDS)[number];
+export type ProductMeasurement = {kind: MeasurementKind; values: Record<string, number>};
+
 export type WhiteProduct = {
   // The model's row in `product_models`. `key` remains what the storefront
   // links and sorts by; this is what the editor (stage 2) writes against.
@@ -69,7 +74,12 @@ export type WhiteProduct = {
   // Which sizes this piece is actually cut in. Absent means the full run; a list
   // narrows it, for the pieces where only part of the run is left. Offering a
   // size the warehouse cannot ship is worse than offering one size honestly.
-  sizes?: readonly WhiteSize[];
+  // Строки, а не WhiteSize: набор правится в форме модели и может выйти за
+  // XS–XL (XXL) — WHITE_SIZES остаётся только полным набором по умолчанию.
+  sizes?: readonly string[];
+  // Мерки ИЗДЕЛИЯ по размерам (п. 15, решение 24.09). Нет — таблицы на
+  // карточке нет.
+  measurements?: readonly ProductMeasurement[];
   // The product's own presentable photo (real WB garment restyled onto the White
   // studio). Same-origin under images/white/products, so CSP img-src 'self' covers it.
   image: string;

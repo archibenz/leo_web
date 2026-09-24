@@ -675,4 +675,90 @@ class StorefrontAdminControllerTest {
                         .header("Authorization", "Bearer " + shopperToken))
                 .andExpect(status().isForbidden());
     }
+
+    // ---------------------------------------------------------------- мерки
+    // Мерки ИЗДЕЛИЯ по размерам модели (п. 15). Модель в setUp — размеры S, M.
+
+    private org.springframework.test.web.servlet.ResultActions draftMeasurements(String json) throws Exception {
+        return mockMvc.perform(put("/api/admin/storefront/models/" + modelId)
+                .header("Authorization", "Bearer " + adminToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"measurements\":" + json + "}"));
+    }
+
+    private void publishModelNow() throws Exception {
+        mockMvc.perform(post("/api/admin/storefront/models/" + modelId + "/publish")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void measurementsAreDraftedInvisiblyAndPublishedToTheStorefront() throws Exception {
+        draftMeasurements("[{\"kind\":\"chest\",\"values\":{\"S\":46,\"M\":48.5}}]")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.measurements[0].values.M").value(48.5));
+
+        clearStorefrontCache();
+        mockMvc.perform(get("/api/catalog/storefront"))
+                .andExpect(jsonPath("$.products[0].measurements").doesNotExist());
+
+        publishModelNow();
+        mockMvc.perform(get("/api/catalog/storefront"))
+                .andExpect(jsonPath("$.products[0].measurements[0].kind").value("chest"))
+                .andExpect(jsonPath("$.products[0].measurements[0].values.S").value(46));
+    }
+
+    // Массив заменяется целиком: снятая мерка не остаётся в черновике с
+    // прошлого раза, как осталась бы при объекте «мерка → …».
+    @Test
+    void aRemovedMeasurementIsReallyGoneAndAnEmptyListRemovesTheTable() throws Exception {
+        draftMeasurements("[{\"kind\":\"chest\",\"values\":{\"S\":46}},{\"kind\":\"length\",\"values\":{\"S\":110}}]")
+                .andExpect(status().isOk());
+        publishModelNow();
+
+        draftMeasurements("[{\"kind\":\"length\",\"values\":{\"S\":111}}]")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.measurements.length()").value(1))
+                .andExpect(jsonPath("$.measurements[0].kind").value("length"));
+        publishModelNow();
+        mockMvc.perform(get("/api/catalog/storefront"))
+                .andExpect(jsonPath("$.products[0].measurements.length()").value(1))
+                .andExpect(jsonPath("$.products[0].measurements[0].values.S").value(111));
+
+        draftMeasurements("[]").andExpect(status().isOk());
+        publishModelNow();
+        mockMvc.perform(get("/api/catalog/storefront"))
+                .andExpect(jsonPath("$.products[0].measurements").doesNotExist());
+        assertThat(models.findById(modelId).orElseThrow().getMeasurements()).isNull();
+    }
+
+    @Test
+    void measurementsThatDoNotFitTheModelAreRefused() throws Exception {
+        // неизвестная мерка
+        draftMeasurements("[{\"kind\":\"collar\",\"values\":{\"S\":40}}]").andExpect(status().isBadRequest());
+        // размера нет в наборе модели
+        draftMeasurements("[{\"kind\":\"chest\",\"values\":{\"XL\":52}}]").andExpect(status().isBadRequest());
+        // за пределами 1–300 см
+        draftMeasurements("[{\"kind\":\"chest\",\"values\":{\"S\":0}}]").andExpect(status().isBadRequest());
+        draftMeasurements("[{\"kind\":\"length\",\"values\":{\"S\":301}}]").andExpect(status().isBadRequest());
+        // шаг не 0,5
+        draftMeasurements("[{\"kind\":\"chest\",\"values\":{\"S\":46.3}}]").andExpect(status().isBadRequest());
+        // одна мерка дважды
+        draftMeasurements("[{\"kind\":\"chest\",\"values\":{\"S\":46}},{\"kind\":\"chest\",\"values\":{\"M\":48}}]")
+                .andExpect(status().isBadRequest());
+        // строка без значений
+        draftMeasurements("[{\"kind\":\"chest\",\"values\":{}}]").andExpect(status().isBadRequest());
+    }
+
+    // Снял размер из набора, а мерка по нему осталась — публикация не пройдёт:
+    // на карточке была бы колонка размера, которого у вещи нет.
+    @Test
+    void droppingASizeThatStillHasAMeasurementIsRefused() throws Exception {
+        draftMeasurements("[{\"kind\":\"chest\",\"values\":{\"S\":46,\"M\":48}}]").andExpect(status().isOk());
+        mockMvc.perform(put("/api/admin/storefront/models/" + modelId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"sizes\":[\"S\"]}"))
+                .andExpect(status().isBadRequest());
+    }
 }

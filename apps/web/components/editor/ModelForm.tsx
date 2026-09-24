@@ -28,7 +28,47 @@ type ModelDto = {
   careRu: string | null;
   careEn: string | null;
   sizes?: string[] | null;
+  measurements?: {kind: string; values: Record<string, number>}[] | null;
 };
+
+// Мерки ИЗДЕЛИЯ (п. 15, решение 24.09). Подписи — русские, как вся форма.
+const MEASUREMENT_LABELS: Record<string, string> = {
+  length: 'Длина изделия',
+  chest: 'Ширина по груди',
+  waist: 'Ширина по талии',
+  hips: 'Ширина по бёдрам',
+  sleeve: 'Длина рукава',
+  shoulders: 'Ширина плеч',
+};
+const MEASUREMENT_ORDER = Object.keys(MEASUREMENT_LABELS);
+
+// В форме значения — строки полей ввода; на сервер — числа, без пустых клеток
+// и без строк, где не заполнено ничего.
+type MeasurementRow = {kind: string; values: Record<string, string>};
+
+function measurementsOut(rows: MeasurementRow[] | null): {kind: string; values: Record<string, number>}[] | null {
+  if (rows === null) return null;
+  return rows
+    .map((r) => ({
+      kind: r.kind,
+      values: Object.fromEntries(
+        Object.entries(r.values)
+          .filter(([, v]) => v.trim() !== '')
+          .map(([size, v]) => [size, Number(v.replace(',', '.'))]),
+      ),
+    }))
+    .filter((r) => Object.keys(r.values).length > 0);
+}
+
+// Что не так с клеткой: пусто — можно; иначе 1–300 см с шагом 0,5 — как на
+// сервере (StorefrontModelRequest.isMeasurementsFitModel).
+function cellProblem(value: string): string | null {
+  if (value.trim() === '') return null;
+  const n = Number(value.replace(',', '.'));
+  if (!Number.isFinite(n) || n < 1 || n > 300) return 'от 1 до 300 см';
+  if (Math.round(n * 2) !== n * 2) return 'шаг 0,5 см';
+  return null;
+}
 
 // Размеры модели — набор кнопок на карточке. Порядок показа — канонический,
 // а не порядок нажатий: иначе владелец, добавив XXL после S, получил бы на
@@ -59,6 +99,8 @@ type Draft = {
   // Пустым набором это считать нельзя — форма закрыла бы сохранение правки
   // названия из-за поля, которого в ответе просто нет.
   sizes: string[] | null;
+  // null — ответ без мерок (как с размерами): не трогаем.
+  measurements: MeasurementRow[] | null;
 };
 
 function initial(model: ModelDto): Draft {
@@ -74,6 +116,12 @@ function initial(model: ModelDto): Draft {
     careRu: model.careRu ?? '',
     careEn: model.careEn ?? '',
     sizes: Array.isArray(model.sizes) ? ordered(model.sizes) : null,
+    measurements:
+      model.measurements === undefined
+        ? null
+        : (model.measurements ?? [])
+            .map((m) => ({kind: m.kind, values: Object.fromEntries(Object.entries(m.values).map(([k, v]) => [k, String(v)]))}))
+            .sort((a, b) => MEASUREMENT_ORDER.indexOf(a.kind) - MEASUREMENT_ORDER.indexOf(b.kind)),
   };
 }
 
@@ -89,6 +137,11 @@ function patchOf(before: Draft, now: Draft): Patch {
   (Object.keys(now) as (keyof Draft)[]).forEach((key) => {
     const value = now[key];
     if (value === null && !OPTIONAL_FIELDS.has(key)) return;
+    if (key === 'measurements') {
+      const out = measurementsOut(value as MeasurementRow[]);
+      if (JSON.stringify(measurementsOut(before.measurements)) !== JSON.stringify(out)) patch.measurements = out;
+      return;
+    }
     if (Array.isArray(value)) {
       if (JSON.stringify(before[key]) !== JSON.stringify(value)) patch[key] = value;
       return;
@@ -190,10 +243,40 @@ export default function ModelForm({modelId, onSaved}: {
   // карточка останется без кнопок размеров.
   const sizes = draft.sizes;
   const noSizes = sizes !== null && sizes.length === 0;
+  // Снятый размер уносит свой столбец мерок: мерка по размеру, которого у
+  // вещи нет, не пройдёт сервер и не нужна на карточке.
   const toggleSize = (size: string) =>
+    setDraft((d) => {
+      if (!d || !d.sizes) return d;
+      const removing = d.sizes.includes(size);
+      const sizesNext = ordered(removing ? d.sizes.filter((s) => s !== size) : [...d.sizes, size]);
+      const measurementsNext =
+        removing && d.measurements
+          ? d.measurements.map((r) => ({...r, values: Object.fromEntries(Object.entries(r.values).filter(([k]) => k !== size))}))
+          : d.measurements;
+      return {...d, sizes: sizesNext, measurements: measurementsNext};
+    });
+  const measurements = draft.measurements;
+  const setCell = (kind: string, size: string, value: string) =>
     setDraft((d) =>
-      d && d.sizes ? {...d, sizes: ordered(d.sizes.includes(size) ? d.sizes.filter((s) => s !== size) : [...d.sizes, size])} : d,
+      d && d.measurements
+        ? {...d, measurements: d.measurements.map((r) => (r.kind === kind ? {...r, values: {...r.values, [size]: value}} : r))}
+        : d,
     );
+  const addKind = (kind: string) =>
+    setDraft((d) =>
+      d && d.measurements
+        ? {
+            ...d,
+            measurements: [...d.measurements, {kind, values: {}}].sort(
+              (a, b) => MEASUREMENT_ORDER.indexOf(a.kind) - MEASUREMENT_ORDER.indexOf(b.kind),
+            ),
+          }
+        : d,
+    );
+  const removeKind = (kind: string) =>
+    setDraft((d) => (d && d.measurements ? {...d, measurements: d.measurements.filter((r) => r.kind !== kind)} : d));
+  const badCells = (measurements ?? []).some((r) => Object.values(r.values).some((v) => cellProblem(v)));
   const shownSizes = sizes ? ordered([...SIZE_ORDER, ...sizes]) : [];
   const blankSet = new Set(blank);
   const set = <K extends keyof Draft>(key: K) => (value: Draft[K]) => setDraft((d) => (d ? {...d, [key]: value} : d));
@@ -295,6 +378,75 @@ export default function ModelForm({modelId, onSaved}: {
       </fieldset>
       )}
 
+      {sizes && measurements && (
+        <fieldset>
+          <legend className="mb-2 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>
+            Замеры изделия, см
+          </legend>
+          {measurements.length === 0 && (
+            <p className="mb-2 text-[12px]" style={{color: MUTED}}>
+              Замеров нет — на карточке таблицы не будет.
+            </p>
+          )}
+          <div className="flex flex-col gap-3">
+            {measurements.map((row) => (
+              <div key={row.kind}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[12px]" style={{color: INK}}>
+                    {MEASUREMENT_LABELS[row.kind] ?? row.kind}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeKind(row.kind)}
+                    aria-label={`Убрать «${MEASUREMENT_LABELS[row.kind] ?? row.kind}»`}
+                    className="min-h-[44px] px-2 text-[13px] underline underline-offset-4"
+                    style={{color: MUTED}}
+                  >
+                    убрать
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {sizes.map((size) => {
+                    const value = row.values[size] ?? '';
+                    const problem = cellProblem(value);
+                    return (
+                      <label key={size} className="flex flex-col text-[11px]" style={{color: MUTED}}>
+                        {size}
+                        <input
+                          inputMode="decimal"
+                          value={value}
+                          aria-label={`${MEASUREMENT_LABELS[row.kind] ?? row.kind} · ${size}`}
+                          aria-invalid={problem ? true : undefined}
+                          onChange={(e) => setCell(row.kind, size, e.target.value)}
+                          className="h-11 w-16 px-2 text-[13px] tabular-nums"
+                          style={{border: `1px solid ${problem ? SIGNAL : HAIR}`, color: INK}}
+                        />
+                        {problem && <span style={{color: SIGNAL}}>{problem}</span>}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+          {MEASUREMENT_ORDER.some((k) => !measurements.some((r) => r.kind === k)) && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {MEASUREMENT_ORDER.filter((k) => !measurements.some((r) => r.kind === k)).map((k) => (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => addKind(k)}
+                  className="min-h-[44px] px-3 text-[13px]"
+                  style={{border: `1px dashed ${HAIR}`, color: MUTED}}
+                >
+                  + {MEASUREMENT_LABELS[k]}
+                </button>
+              ))}
+            </div>
+          )}
+        </fieldset>
+      )}
+
       <div>
         {/* Сворачиваемый раздел, не отдельная кнопка-ссылка: зона нажатия и
             кегль — тот же порог 44px/13px, что у EditorButton, только своя
@@ -351,7 +503,7 @@ export default function ModelForm({modelId, onSaved}: {
           {error}
         </p>
       )}
-      <EditorButton tone="solid" onClick={() => void save()} disabled={!dirty || busy || blank.length > 0 || noSizes}>
+      <EditorButton tone="solid" onClick={() => void save()} disabled={!dirty || busy || blank.length > 0 || noSizes || badCells}>
         {busy ? 'сохраняю…' : 'Сохранить в черновик'}
       </EditorButton>
     </div>

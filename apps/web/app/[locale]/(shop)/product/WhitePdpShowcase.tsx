@@ -12,6 +12,7 @@ import WhiteFooter from '../../WhiteFooter';
 import WhiteProductCard from '../../WhiteProductCard';
 import WildberriesButton from '../../../../components/WildberriesButton';
 import WhitePreorder from './WhitePreorder';
+import PdpMeasurements from './PdpMeasurements';
 import {ozonProductUrl} from '../../../../lib/ozon';
 import {trackSiteEvent} from '../../../../lib/siteEvents';
 import {INK, MUTED, HAIR, SIGNAL} from '../../wv-palette';
@@ -469,6 +470,7 @@ export default function WhitePdpShowcase({
                   </button>
                 ))}
               </div>
+              <PdpMeasurements sizes={product.sizes ?? SIZES} measurements={product.measurements} />
             </div>
 
             {/* Add to bag — or, where there is no bag to add to, whichever route

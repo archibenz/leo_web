@@ -3,6 +3,7 @@ package com.reinasleo.api.service.storefront;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reinasleo.api.dto.admin.storefront.StorefrontModelRequest;
+import com.reinasleo.api.dto.storefront.Measurement;
 import com.reinasleo.api.dto.admin.storefront.StorefrontSectionRequest;
 import com.reinasleo.api.dto.admin.storefront.StorefrontSetItemRequest;
 import com.reinasleo.api.dto.admin.storefront.StorefrontSetRequest;
@@ -84,7 +85,8 @@ public class StorefrontMapping {
         return new StorefrontModelRequest(m.getNameRu(), m.getNameEn(), m.getCategory(), m.getDescRu(), m.getDescEn(),
                 m.getStoryRu(), m.getStoryEn(), m.getCompositionRu(), m.getCompositionEn(), m.getCareRu(), m.getCareEn(),
                 m.getSizes() == null ? List.of() : Arrays.asList(m.getSizes()), m.getImage(), readStrings(m.getGallery()),
-                m.getSeason(), m.getFeaturedOrder(), m.getLookbookOrder(), m.getSortOrder(), m.isActive(), byId);
+                m.getSeason(), m.getFeaturedOrder(), m.getLookbookOrder(), m.getSortOrder(), m.isActive(), byId,
+                readMeasurements(m.getMeasurements()));
     }
 
     /** Вариант без источника с площадки — price_source=manual и так не смотрит в marketplace_prices. */
@@ -165,6 +167,7 @@ public class StorefrontMapping {
         m.setCareRu(r.careRu());
         m.setCareEn(r.careEn());
         m.setSizes(r.sizes().toArray(String[]::new));
+        m.setMeasurements(writeMeasurements(r.measurements()));
         m.setImage(r.image());
         m.setGallery(writeJson(r.gallery()));
         m.setSeason(r.season());
@@ -296,6 +299,28 @@ public class StorefrontMapping {
         } catch (Exception e) {
             log.error("Failed to parse variant images JSON; returning empty gallery", e);
             return List.of();
+        }
+    }
+
+    private static final TypeReference<List<Measurement>> MEASUREMENTS = new TypeReference<>() {};
+
+    /** Мерки изделия; сломанный JSON — «мерок нет» с ошибкой в лог, а не 500 карточки. */
+    public List<Measurement> readMeasurements(String jsonArray) {
+        try {
+            return jsonArray == null || jsonArray.isBlank() ? List.of() : json.readValue(jsonArray, MEASUREMENTS);
+        } catch (Exception e) {
+            log.error("Failed to parse model measurements JSON; showing none", e);
+            return List.of();
+        }
+    }
+
+    // Пусто — null в колонке, а не «[]»: «мерок нет» у модели одно, а не два.
+    private String writeMeasurements(List<Measurement> values) {
+        if (values == null || values.isEmpty()) return null;
+        try {
+            return json.writeValueAsString(values);
+        } catch (Exception e) {
+            throw new BadRequestException("measurements_are_not_serialisable");
         }
     }
 

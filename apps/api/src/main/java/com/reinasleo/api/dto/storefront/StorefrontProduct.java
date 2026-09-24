@@ -11,4 +11,5 @@ public record StorefrontProduct(String id, int key, String slug, String en, Stri
                                 String descEn, String descRu, String storyEn, String storyRu,
                                 String compositionEn, String compositionRu, String careEn, String careRu,
                                 List<StorefrontColour> colors, List<String> sizes, String image, List<String> gallery,
-                                Long nm, String season, Integer featuredOrder, Integer lookbookOrder) {}
+                                Long nm, String season, Integer featuredOrder, Integer lookbookOrder,
+                                List<Measurement> measurements) {}

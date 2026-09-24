@@ -1574,7 +1574,17 @@
       "preorderError": "Не удалось отправить. Попробуйте ещё раз чуть позже.",
       "preorderInvalid": "Проверьте адрес почты.",
       "outOfStock": "Товара пока нет в наличии",
-      "preorderNoPrice": "Предзаказ"
+      "preorderNoPrice": "Предзаказ",
+      "measurements": "Замеры изделия",
+      "measurementsCaption": "Замеры изделия, см",
+      "measurementKinds": {
+        "length": "Длина изделия",
+        "chest": "Ширина по груди",
+        "waist": "Ширина по талии",
+        "hips": "Ширина по бёдрам",
+        "sleeve": "Длина рукава",
+        "shoulders": "Ширина плеч"
+      }
     },
     "atelier": {
       "back": "Главная",
