@@ -4,6 +4,7 @@ import WhiteChrome from '../WhiteChrome';
 import IntentEditNotice from '../../../components/editor/IntentEditNotice';
 import {safeJsonLd} from '../../../lib/jsonLd';
 import {SITE_URL as siteUrl} from '../../../lib/siteUrl';
+import {getSocials} from '../../../lib/site/socials';
 import type {Locale} from '../../../i18n';
 
 export default async function ShopLayout({
@@ -18,6 +19,8 @@ export default async function ShopLayout({
   // Same per-request CSP nonce the parent layout.tsx reads — fetched again
   // here because this is its own Server Component render.
   const requestHeaders = await headers();
+  // Один список соцсетей на подвал и на sameAs ниже — поисковики сверяют пару.
+  const socials = await getSocials();
   const nonce = requestHeaders.get('x-nonce') ?? undefined;
 
   // The storefront is the part of the site search actually sees, so
@@ -33,7 +36,7 @@ export default async function ShopLayout({
       locale === 'ru'
         ? 'REINASLEO — премиальная женская одежда: пальто, костюмы, платья, юбки и трикотаж.'
         : 'REINASLEO — premium womenswear: coats, suits, dresses, skirts and knitwear.',
-    sameAs: ['https://instagram.com/reinasleo', 'https://t.me/reinasleo'],
+    sameAs: socials.map((s) => s.href),
   };
 
   // Declares the on-site search so engines can offer it straight in the result
@@ -71,7 +74,7 @@ export default async function ShopLayout({
           главной и в карточке её гасит правило в globals.css: там страница
           ставит свою, подробную. Держать её здесь, а не в десяти страницах,
           значит не полагаться на то, что следующую страницу не забудут. */}
-      <WhiteChrome locale={locale}>
+      <WhiteChrome locale={locale} socials={socials}>
         <IntentEditNotice />
         {children}
       </WhiteChrome>

@@ -5,6 +5,7 @@ import com.reinasleo.api.security.MetricsAuthFilter;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -79,6 +80,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/health").permitAll()
                         .requestMatchers("/api/lookbook", "/api/lookbook/**").permitAll()
                         .requestMatchers("/api/catalog/**").permitAll()
+                        // Соцсети сайта для подвала и контактов — только чтение.
+                        // Пишет администратор через /api/admin/site/socials.
+                        .requestMatchers(HttpMethod.GET, "/api/site/socials").permitAll()
                         .requestMatchers("/api/care-guides", "/api/care-guides/**").permitAll()
                         // Public POST APIs (rate-limited or secret-protected at controller layer)
                         .requestMatchers("/api/contact").permitAll()

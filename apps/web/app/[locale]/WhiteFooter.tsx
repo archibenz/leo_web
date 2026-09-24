@@ -7,7 +7,8 @@ import {useTranslations} from 'next-intl';
 import {isValidEmail} from '../../lib/validation';
 import {Button} from '../../components/ui/button';
 import {INK, MUTED, HAIR, SIGNAL, FOOT} from './wv-palette';
-import {WhiteInstagramGlyph, WhiteTelegramGlyph} from './wv-icons';
+import {WhiteInstagramGlyph, WhiteTelegramGlyph, WhiteVkGlyph} from './wv-icons';
+import {SOCIAL_LABELS, type SocialLink, type SocialNetwork} from '../../lib/site/socials';
 import WhiteLocaleSwitch from './WhiteLocaleSwitch';
 import WhiteCookieNotice from './WhiteCookieNotice';
 import WhiteBagPopup from './WhiteBagPopup';
@@ -25,16 +26,18 @@ import WhiteBagPopup from './WhiteBagPopup';
 
 type NlStatus = 'idle' | 'loading' | 'success' | 'already' | 'error' | 'invalid';
 
-// Same addresses as the Organization `sameAs` in layout.tsx — search engines
-// compare the pair, so the two lists have to move together.
-const CHANNELS = [
-  {label: 'Instagram', href: 'https://instagram.com/reinasleo', Glyph: WhiteInstagramGlyph},
-  {label: 'Telegram', href: 'https://t.me/reinasleo', Glyph: WhiteTelegramGlyph},
-] as const;
+// Соцсети — один список на весь сайт (lib/site/socials.ts): его же читают
+// страница контактов и `sameAs` разметки в layout.tsx. Какие показывать,
+// владелец отмечает в админке; здесь только значок под каждую сеть.
+const GLYPHS: Record<SocialNetwork, typeof WhiteInstagramGlyph> = {
+  instagram: WhiteInstagramGlyph,
+  telegram: WhiteTelegramGlyph,
+  vk: WhiteVkGlyph,
+};
 
 const LEGAL = ['privacy', 'offer', 'terms'] as const;
 
-export default function WhiteFooter({locale}: {locale: string}) {
+export default function WhiteFooter({locale, socials}: {locale: string; socials: readonly SocialLink[]}) {
   const t = useTranslations('white.footer');
   const tf = useTranslations('footer');
 
@@ -202,12 +205,19 @@ export default function WhiteFooter({locale}: {locale: string}) {
 
         {/* The channels ride the rule that closes the columns — the block's one
             piece of ornament, and the only place the footer is symmetrical. */}
+        {/* Владелец снял все сети — остаётся одна черта, без пустой рамки. */}
+        {socials.length === 0 ? (
+          <span aria-hidden="true" className="block h-px w-full" style={{background: HAIR}} />
+        ) : (
         <div className="flex items-center gap-4">
           <span aria-hidden="true" className="h-px w-full" style={{background: HAIR}} />
           <div className="flex w-max">
-            {CHANNELS.map(({label, href, Glyph}) => (
+            {socials.map(({network, href}) => {
+              const Glyph = GLYPHS[network];
+              const label = SOCIAL_LABELS[network];
+              return (
               <Button
-                key={label}
+                key={network}
                 asChild
                 variant="ghost"
                 size="icon"
@@ -224,10 +234,12 @@ export default function WhiteFooter({locale}: {locale: string}) {
                   <Glyph />
                 </a>
               </Button>
-            ))}
+              );
+            })}
           </div>
           <span aria-hidden="true" className="h-px w-full" style={{background: HAIR}} />
         </div>
+        )}
 
         {/* gap-5, а не gap-2: обе строки ниже растягивают свои зоны нажатия
             отрицательными полями — правовые ссылки на 12 px вниз, переключатель
