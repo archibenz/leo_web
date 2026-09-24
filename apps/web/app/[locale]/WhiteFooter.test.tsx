@@ -1,6 +1,7 @@
 import {afterEach, describe, it, expect, vi} from 'vitest';
 import {render, screen, fireEvent, cleanup} from '@testing-library/react';
 import WhiteFooter from './WhiteFooter';
+import {FIXTURE_SOCIALS} from '../../lib/site/socials';
 
 // The footer's locale switch reads the router — give jsdom a stub.
 vi.mock('next/navigation', () => ({
@@ -29,7 +30,7 @@ describe('WhiteFooter contract', () => {
     const fetchMock = vi.fn(() => new Promise<Response>(() => {}));
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<WhiteFooter locale="ru" />);
+    render(<WhiteFooter locale="ru" socials={FIXTURE_SOCIALS} />);
     const input = screen.getByLabelText('emailLabel') as HTMLInputElement;
 
     expect(input).toHaveAttribute('type', 'email');
@@ -39,7 +40,7 @@ describe('WhiteFooter contract', () => {
   });
 
   it('points the three legal links at their exact addresses', () => {
-    render(<WhiteFooter locale="ru" />);
+    render(<WhiteFooter locale="ru" socials={FIXTURE_SOCIALS} />);
 
     expect(screen.getByRole('link', {name: 'privacy'})).toHaveAttribute('href', '/ru/privacy');
     expect(screen.getByRole('link', {name: 'offer'})).toHaveAttribute('href', '/ru/offer');
@@ -47,7 +48,7 @@ describe('WhiteFooter contract', () => {
   });
 
   it('reads its copy from the dictionaries, not from the markup', () => {
-    render(<WhiteFooter locale="ru" />);
+    render(<WhiteFooter locale="ru" socials={FIXTURE_SOCIALS} />);
 
     // The mocked t() echoes the key, so a hardcoded caption would read as itself.
     for (const key of ['tagline', 'shop', 'brand', 'service', 'newsletter']) {
@@ -59,7 +60,7 @@ describe('WhiteFooter contract', () => {
   });
 
   it('sends the two brand channels where the structured data says they are', () => {
-    render(<WhiteFooter locale="ru" />);
+    render(<WhiteFooter locale="ru" socials={FIXTURE_SOCIALS} />);
 
     const instagram = screen.getByRole('link', {name: 'Instagram'});
     const telegram = screen.getByRole('link', {name: 'Telegram'});
@@ -79,7 +80,7 @@ describe('WhiteFooter newsletter double-submit guard', () => {
     const fetchMock = vi.fn(() => new Promise<Response>(() => {}));
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<WhiteFooter locale="ru" />);
+    render(<WhiteFooter locale="ru" socials={FIXTURE_SOCIALS} />);
 
     const input = screen.getByLabelText('emailLabel') as HTMLInputElement;
     fireEvent.change(input, {target: {value: 'shopper@example.com'}});
@@ -96,11 +97,31 @@ describe('WhiteFooter newsletter double-submit guard', () => {
     const fetchMock = vi.fn(() => new Promise<Response>(() => {}));
     vi.stubGlobal('fetch', fetchMock);
 
-    render(<WhiteFooter locale="ru" />);
+    render(<WhiteFooter locale="ru" socials={FIXTURE_SOCIALS} />);
     const input = screen.getByLabelText('emailLabel') as HTMLInputElement;
     fireEvent.change(input, {target: {value: 'not-an-email'}});
     fireEvent.submit(input.closest('form')!);
 
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
+// Соцсети — один список на весь сайт (lib/site/socials.ts), владелец отмечает
+// галочками. Подвал рисует ровно то, что пришло, — ни больше, ни меньше.
+describe('WhiteFooter socials', () => {
+  it('shows exactly the networks it is given, each linking out', () => {
+    render(<WhiteFooter locale="ru" socials={[{network: 'telegram', href: 'https://t.me/reinasleo'}, {network: 'vk', href: 'https://vk.com/reinasleo'}]} />);
+
+    expect(screen.getByRole('link', {name: 'Telegram'})).toHaveAttribute('href', 'https://t.me/reinasleo');
+    expect(screen.getByRole('link', {name: 'VK'})).toHaveAttribute('href', 'https://vk.com/reinasleo');
+    expect(screen.queryByRole('link', {name: 'Instagram'})).toBeNull();
+  });
+
+  it('with every network turned off there is no empty row of icons', () => {
+    render(<WhiteFooter locale="ru" socials={[]} />);
+
+    for (const name of ['Instagram', 'Telegram', 'VK']) {
+      expect(screen.queryByRole('link', {name})).toBeNull();
+    }
   });
 });

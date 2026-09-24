@@ -110,6 +110,29 @@ export function WhiteTelegramGlyph({size = 17}: {size?: number}) {
   );
 }
 
+// VK — третья сеть, с 24.09 в общем списке соцсетей (lib/site/socials.ts).
+// Та же волосяная линия: рамка-скругление, как у Instagram, и буквы «VK»
+// контуром, а не сплошной знак.
+export function WhiteVkGlyph({size = 17}: {size?: number}) {
+  return (
+    <svg
+      aria-hidden="true"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" />
+      <path d="M6.5 8.5 9 15.5 11.5 8.5" />
+      <path d="M13.5 8.5v7M17.5 8.5l-4 3.5 4 3.5" />
+    </svg>
+  );
+}
+
 // The addon the auth-5 form keeps: Efferd sets an @ inside the e-mail field
 // through its InputGroup primitive. The primitive is not here (a bordered,
 // rounded box is not the White field), the mark is — same hairline as the rest

@@ -7,6 +7,7 @@ import WhiteHeader from '../../WhiteHeader';
 import WhiteHeaderActions from '../../WhiteHeaderActions';
 import WhiteFooter from '../../WhiteFooter';
 import {INK, MUTED, HAIR, SIGNAL} from '../../wv-palette';
+import {SOCIAL_LABELS, socialHandle, type SocialLink} from '../../../../lib/site/socials';
 
 // Variant 2 "White" — Contact. Direct channels (the real ones the gradient
 // /contact uses) in the White DNA: a large statement, a response-time note, and
@@ -14,13 +15,18 @@ import {INK, MUTED, HAIR, SIGNAL} from '../../wv-palette';
 // prototype points at real inboxes rather than posting to a stub. CSS-only
 // reveal (wv-rise, reduced-motion-safe).
 
-const CHANNELS = [
-  {key: 'email', label: 'Email', value: 'reinasleo@gmail.com', href: 'mailto:reinasleo@gmail.com'},
-  {key: 'telegram', label: 'Telegram', value: '@reinasleo', href: 'https://t.me/reinasleo'},
-  {key: 'vk', label: 'VK', value: 'vk.com/reinasleo', href: 'https://vk.com/reinasleo'},
-];
+const EMAIL = {key: 'email', label: 'Email', value: 'reinasleo@gmail.com', href: 'mailto:reinasleo@gmail.com'};
 
-export default function WhiteContactShowcase({locale}: {locale: string}) {
+// Соцсети — общий список сайта (lib/site/socials.ts), тот же, что в подвале.
+// До 24.09 здесь были вписаны Telegram и VK, а в подвале Instagram и Telegram.
+function channels(socials: readonly SocialLink[]) {
+  return [
+    EMAIL,
+    ...socials.map((s) => ({key: s.network, label: SOCIAL_LABELS[s.network], value: socialHandle(s), href: s.href})),
+  ];
+}
+
+export default function WhiteContactShowcase({locale, socials}: {locale: string; socials: readonly SocialLink[]}) {
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const t = useTranslations('white.contact');
@@ -39,7 +45,7 @@ export default function WhiteContactShowcase({locale}: {locale: string}) {
           </div>
 
           <div className="wv-rise wv-delay-1 border-t" style={{borderColor: HAIR}}>
-            {CHANNELS.map((c) => (
+            {channels(socials).map((c) => (
               <a
                 key={c.key}
                 href={c.href}

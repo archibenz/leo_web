@@ -1306,7 +1306,20 @@
       "saved": "Saved!",
       "errSave": "Save error"
     },
-    "homepageNotOnSiteNotice": "These settings are not shown on the site yet: the home page takes its edit from the order set on the products themselves, not from here. What you pick here is saved, but shoppers won't see it until this section is wired to the edit."
+    "homepageNotOnSiteNotice": "These settings are not shown on the site yet: the home page takes its edit from the order set on the products themselves, not from here. What you pick here is saved, but shoppers won't see it until this section is wired to the edit.",
+    "socials": {
+      "title": "Social links",
+      "intro": "One list for the whole site: the footer, the contact page and the markup for search engines. Untick a network and it leaves the site within a minute. The address must lead to that network's own site and start with https://.",
+      "desktopOnly": "Editing works on a computer. On a phone the list is view-only.",
+      "shown": "Show on site",
+      "showOnSite": "Show {network} on the site",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Saved. The site updates within a minute.",
+      "saveFailed": "Could not save.",
+      "loadFailed": "Could not load social links. Refresh the page."
+    },
+    "socialsNav": "Social links"
   },
   "editor": {
     "ticker": {
