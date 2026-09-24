@@ -233,3 +233,72 @@ test('кука стоит, сервер сессию не признал — б�
   await expect(page.locator('#wv-page').getByRole('alert')).toContainText('Сервер не признал сессию');
 });
 
+
+// ПРАВКА — ТОЛЬКО НА КОМПЬЮТЕРЕ (решение владельца 24.09). Проверка по ширине
+// через matchMedia (components/editor/useIsDesktop.ts), и здесь она идёт в
+// настоящем браузере: юнит-тесты гоняют подделку matchMedia, и зелёные они
+// были бы и при подделке, которая врёт так же, как код.
+const READONLY_BAR = 'Черновик · править можно с компьютера';
+
+test.describe('правка только на компьютере', () => {
+  test('390 px: в аккаунте выключателя нет, ссылка на админку есть', async ({page}) => {
+    await page.setViewportSize({width: 390, height: 844});
+    await asOwner(page);
+    await page.context().addCookies([{name: 'rl_edit', value: '1', domain: 'localhost', path: '/'}]);
+    await openSettledForOwner(page, ACCOUNT);
+
+    // Ссылка появляется только после того, как роль проверена, — значит,
+    // эффекты отработали, и отсутствие выключателя рядом уже не «не успел».
+    await expect(page.locator('#wv-page').getByRole('link', {name: ADMIN_LINK_LABEL})).toBeVisible();
+    await expect(page.locator('#wv-page').getByRole('switch')).toHaveCount(0);
+  });
+
+  test('390 px, кука стоит, сервер отдал черновик — полоса «черновик», инструментов нет', async ({page}) => {
+    await page.setViewportSize({width: 390, height: 844});
+    await asOwner(page);
+    await page.context().addCookies([{name: 'rl_edit', value: '1', domain: 'localhost', path: '/'}]);
+    await open(page, HOME);
+
+    await expect(page.getByText(READONLY_BAR)).toBeVisible();
+    await expect(page.getByText(DRAFT_BAR)).toHaveCount(0);
+    await expect(page.getByText(/Режим правки/)).toHaveCount(0);
+    await expect(page.locator('#wv-page [data-editable]')).toHaveCount(0);
+    await expect(page.locator('#wv-page [style*="dashed"]')).toHaveCount(0);
+  });
+
+  test('390 px: «Закончить правку» снимает куку и на телефоне', async ({page}) => {
+    await page.setViewportSize({width: 390, height: 844});
+    await asOwner(page);
+    await page.context().addCookies([{name: 'rl_edit', value: '1', domain: 'localhost', path: '/'}]);
+    await open(page, HOME);
+    await expect(page.getByText(READONLY_BAR)).toBeVisible();
+
+    await page.getByRole('link', {name: 'Закончить правку'}).click();
+
+    await expect.poll(async () => (await page.context().cookies()).find((c) => c.name === 'rl_edit')).toBeUndefined();
+  });
+
+  test('1280 px, та же кука — всё как было: полоса режима и рамки правки', async ({page}) => {
+    await page.setViewportSize({width: 1280, height: 800});
+    await asOwner(page);
+    await page.context().addCookies([{name: 'rl_edit', value: '1', domain: 'localhost', path: '/'}]);
+    await open(page, HOME);
+
+    await expect(page.getByText(/Режим правки · /)).toBeVisible();
+    await expect(page.locator('#wv-page [data-editable]').first()).toBeVisible();
+    await expect(page.getByText(READONLY_BAR)).toHaveCount(0);
+  });
+
+  test('окно сузили с 1280 до 390 px — правка выключилась без перезагрузки', async ({page}) => {
+    await page.setViewportSize({width: 1280, height: 800});
+    await asOwner(page);
+    await page.context().addCookies([{name: 'rl_edit', value: '1', domain: 'localhost', path: '/'}]);
+    await open(page, HOME);
+    await expect(page.locator('#wv-page [data-editable]').first()).toBeVisible();
+
+    await page.setViewportSize({width: 390, height: 844});
+
+    await expect(page.locator('#wv-page [data-editable]')).toHaveCount(0);
+    await expect(page.getByText(READONLY_BAR)).toBeVisible();
+  });
+});

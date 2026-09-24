@@ -2,6 +2,7 @@
 
 import {useTranslations} from 'next-intl';
 import {useEditMode} from './useEditMode';
+import {useIsDesktop} from './useIsDesktop';
 
 // Персистентный вход в режим правки: страница аккаунта и низ админки, один
 // компонент на оба места (владелец сам назвал оба). Раньше вход жил в шапке
@@ -25,9 +26,11 @@ export default function EditModeSwitch({framed = true}: {framed?: boolean} = {})
   // Кука, право и router.refresh() — в useEditMode: тот же режим включает
   // пункт боковой панели админки, и две копии этой логики разъехались бы.
   const {isAdmin, on, toggle} = useEditMode();
+  const desktop = useIsDesktop();
   const t = useTranslations('white.editModeSwitch');
 
-  if (!isAdmin) return null;
+  // Правка — только на компьютере (useIsDesktop.ts): на телефоне выключателя нет.
+  if (!isAdmin || !desktop) return null;
 
   return (
     <div

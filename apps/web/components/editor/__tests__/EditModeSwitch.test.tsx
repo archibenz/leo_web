@@ -3,6 +3,7 @@ import {render, screen, cleanup, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {NextIntlClientProvider} from 'next-intl';
 import ruMessages from '../../../messages/ru.json';
+import {resizeViewport, setViewport} from './viewport';
 
 const refresh = vi.fn();
 vi.mock('next/navigation', () => ({
@@ -36,6 +37,8 @@ function renderSwitch() {
 }
 
 beforeEach(async () => {
+  // Правка работает только на компьютере (useIsDesktop.ts) — эти кейсы про неё.
+  setViewport(1280);
   token.value = null;
   me.mockReset().mockResolvedValue({role: 'admin'});
   refresh.mockReset();
@@ -134,5 +137,34 @@ describe('клик — кука и пересборка страницы', () =>
     expect(control).toHaveAttribute('aria-checked', 'false');
     expect(document.cookie).not.toContain('rl_edit=1');
     expect(refresh).toHaveBeenCalledTimes(2);
+  });
+});
+
+// Правка — только на компьютере (решение владельца 24.09, useIsDesktop.ts).
+describe('только на компьютере', () => {
+  it('390 px: у владельца выключателя нет, даже если кука режима уже стоит', async () => {
+    setViewport(390);
+    token.value = 'admin-token';
+    document.cookie = 'rl_edit=1; Path=/';
+
+    renderSwitch();
+
+    await waitFor(() => expect(me).toHaveBeenCalledWith('/api/auth/me'));
+    expect(screen.queryByRole('switch')).toBeNull();
+  });
+
+  it('окно расширили до 1280 px — выключатель появился без перезагрузки; сузили — пропал', async () => {
+    setViewport(390);
+    token.value = 'admin-token';
+
+    renderSwitch();
+    await waitFor(() => expect(me).toHaveBeenCalledWith('/api/auth/me'));
+    expect(screen.queryByRole('switch')).toBeNull();
+
+    resizeViewport(1280);
+    expect(await screen.findByRole('switch')).toBeInTheDocument();
+
+    resizeViewport(390);
+    await waitFor(() => expect(screen.queryByRole('switch')).toBeNull());
   });
 });

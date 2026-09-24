@@ -6,6 +6,7 @@ import type {StorefrontBrokenDraft, WhiteProduct} from '../../lib/catalogue/type
 import {defaultLocale} from '../../i18n-routing';
 import EditorPanel from './EditorPanel';
 import EditorNotice from './EditorNotice';
+import {useViewport} from './useIsDesktop';
 import type {DraftKind, EditorTarget} from './types';
 
 type EditorContextValue = {
@@ -78,6 +79,12 @@ export function EditorProvider({editing, wantsEdit = editing, brokenDrafts = [],
   children: ReactNode;
 }) {
   const router = useRouter();
+  // Правка — только на компьютере (useIsDesktop.ts). Сервер ширины не знает и
+  // черновик отдаёт по куке; здесь решается, можно ли его ПРАВИТЬ. На узком
+  // экране не работает ни одна точка правки, панель не открывается. Пока
+  // ширина неизвестна (до гидратации) — тоже: инструменты появятся кадром позже.
+  const viewport = useViewport();
+  const canEdit = editing && viewport === 'desktop';
   const [target, setTarget] = useState<EditorTarget | null>(null);
   // Множество, а не счётчик: React в строгом режиме монтирует дважды, и
   // счётчик показал бы удвоенное число. Одинаковый идентификатор дважды в
@@ -103,8 +110,8 @@ export function EditorProvider({editing, wantsEdit = editing, brokenDrafts = [],
 
   const value = useMemo<EditorContextValue>(
     () => ({
-      editing,
-      target: editing ? target : null,
+      editing: canEdit,
+      target: canEdit ? target : null,
       open: setTarget,
       close: () => setTarget(null),
       brokenDrafts,
@@ -116,18 +123,22 @@ export function EditorProvider({editing, wantsEdit = editing, brokenDrafts = [],
       registerEditable,
       unregisterEditable,
     }),
-    [editing, target, brokenDrafts, brokenFor, refresh, locale, products, editableIds, registerEditable, unregisterEditable],
+    [canEdit, target, brokenDrafts, brokenFor, refresh, locale, products, editableIds, registerEditable, unregisterEditable],
   );
 
   // Панель занимает правую колонку на широком экране — содержимое уезжает
   // влево, а не прячется под ней. На телефоне это нижняя полка, и страница
   // получает запас снизу, чтобы её низ оставался достижимым.
-  const shifted = editing && target !== null;
+  const shifted = canEdit && target !== null;
 
   return (
     <EditorContext.Provider value={value}>
       <div className={shifted ? 'transition-[padding] duration-200 motion-reduce:transition-none max-lg:pb-[62vh] lg:pr-[360px]' : ''}>
-        <EditorNotice editing={editing} wantsEdit={wantsEdit} />
+        {/* Полосе — решение СЕРВЕРА (editing), а не canEdit: на телефоне
+            черновик отдан, и полоса обязана это сказать, пусть и без
+            инструментов (readOnly). С canEdit=false она решила бы, что сервер
+            отказал сессии, и сказала бы неправду. */}
+        <EditorNotice editing={editing} wantsEdit={wantsEdit} readOnly={viewport === 'narrow'} />
         {children}
       </div>
       <EditorPanel />

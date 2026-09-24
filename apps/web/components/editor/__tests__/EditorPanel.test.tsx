@@ -23,6 +23,7 @@ vi.mock('../../../lib/api', () => ({
 import SectionForm from '../SectionForm';
 import PublishList from '../PublishList';
 import {EditorProvider} from '../EditorProvider';
+import {setViewport} from './viewport';
 
 const SECTION = {
   id: 'sec-1',
@@ -41,6 +42,8 @@ const SECTION = {
 };
 
 beforeEach(() => {
+  // Правка работает только на компьютере (useIsDesktop.ts) — эти кейсы про неё.
+  setViewport(1280);
   calls.length = 0;
   refresh.mockReset();
   answer.mockReset().mockResolvedValue({});
