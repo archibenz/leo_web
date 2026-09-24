@@ -43,11 +43,35 @@ describe('SiteEventsRouteTracker', () => {
     expect(trackSiteEvent).toHaveBeenCalledWith('page_view', expect.objectContaining({path: '/ru/shop'}));
   });
 
-  it('includes the query string', () => {
-    mockPathname = '/ru/product';
-    mockSearch = new URLSearchParams('p=key5');
+  // Строка запроса в path размазывала топ страниц по вариантам одного адреса
+  // и уносила в таблицу то, чему там не место: токен входа из /auth/tg?token=,
+  // текст поиска из ?q=. Остаются только метки utm_* — пока это единственный
+  // след того, откуда пришёл посетитель.
+  it('drops the query string', () => {
+    mockPathname = '/ru/shop';
+    mockSearch = new URLSearchParams('cat=dresses&sort=price');
     render(<SiteEventsRouteTracker />);
-    expect(trackSiteEvent).toHaveBeenCalledWith('page_view', expect.objectContaining({path: '/ru/product?p=key5'}));
+    expect(trackSiteEvent).toHaveBeenCalledWith('page_view', expect.objectContaining({path: '/ru/shop'}));
+  });
+
+  it.each([
+    ['/ru/auth/tg', 'token=abcdef0123456789abcdef0123456789'],
+    ['/ru/shop', 'q=платье для Анны'],
+  ])('never records what the visitor or the login link carried (%s?%s)', (path, qs) => {
+    mockPathname = path;
+    mockSearch = new URLSearchParams(qs);
+    render(<SiteEventsRouteTracker />);
+    expect(trackSiteEvent).toHaveBeenCalledWith('page_view', expect.objectContaining({path}));
+  });
+
+  it('keeps utm_* labels and only them', () => {
+    mockPathname = '/ru';
+    mockSearch = new URLSearchParams('utm_source=tg&q=secret&utm_campaign=autumn');
+    render(<SiteEventsRouteTracker />);
+    expect(trackSiteEvent).toHaveBeenCalledWith(
+      'page_view',
+      expect.objectContaining({path: '/ru?utm_source=tg&utm_campaign=autumn'}),
+    );
   });
 
   it('derives locale from the first path segment', () => {

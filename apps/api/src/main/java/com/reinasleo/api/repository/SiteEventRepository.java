@@ -99,12 +99,19 @@ public interface SiteEventRepository extends JpaRepository<SiteEvent, UUID> {
 
     // Топ страниц — за весь период, без разреза по суткам: владельцу нужен
     // ответ «что смотрят», а не «что смотрели во вторник».
+    // Адрес берётся без строки запроса: до 24.09 трекер писал её целиком, и
+    // /ru/shop?cat=… делил просмотры с /ru/shop. Сейчас трекер оставляет
+    // только utm_* — их тоже складываем в адрес. POSITION/SUBSTRING, а не
+    // split_part: одинаково исполняются и на PostgreSQL 14, и на H2 тестов.
     @Query(value = """
-            SELECT path, COUNT(*) AS cnt
+            SELECT CASE WHEN POSITION('?' IN path) > 0
+                        THEN SUBSTRING(path, 1, POSITION('?' IN path) - 1)
+                        ELSE path END AS page,
+                   COUNT(*) AS cnt
             FROM site_events e
             WHERE occurred_at >= :since AND event_type = 'page_view' AND path IS NOT NULL
             """ + CUSTOMERS_ONLY + """
-            GROUP BY path
+            GROUP BY 1
             ORDER BY cnt DESC
             LIMIT :limit
             """, nativeQuery = true)
