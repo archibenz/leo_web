@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '../../../../../components/ui/select';
 import {Panel, PanelEmpty} from '../../../../../components/admin/dashboard/panel';
+import {Notice} from '../../../../../components/admin/list/notice';
 
 type Product = {
   id: string;
@@ -146,6 +147,14 @@ export default function AdminHomepagePage() {
       <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">
         {t('homepageSettings')}
       </h1>
+
+      {/* Эти настройки на белую витрину не попадают: их читает только
+          /api/catalog/homepage, а его зовёт лишь архивный код старой темы.
+          «Подборку» на главной белая витрина собирает по порядку у самой
+          модели (featured_order). Человек, который здесь что-то выберет,
+          ждёт этого на сайте — говорим заранее, как у «Коллекций» и «Ухода»,
+          пока раздел не подключён к «Подборке» (решение 24.09, этап 3). */}
+      <Notice>{t('homepageNotOnSiteNotice')}</Notice>
 
       {loading ? (
         <div className="flex items-center justify-center py-20">

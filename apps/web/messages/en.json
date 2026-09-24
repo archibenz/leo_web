@@ -1322,7 +1322,8 @@
       "errTitleRequired": "Title required",
       "saved": "Saved!",
       "errSave": "Save error"
-    }
+    },
+    "homepageNotOnSiteNotice": "These settings are not shown on the site yet: the home page takes its edit from the order set on the products themselves, not from here. What you pick here is saved, but shoppers won't see it until this section is wired to the edit."
   },
   "editor": {
     "ticker": {
