@@ -55,7 +55,10 @@ type Draft = {
   compositionEn: string;
   careRu: string;
   careEn: string;
-  sizes: string[];
+  // null — ответ пришёл без размеров: не знаем, что стоит, и не трогаем.
+  // Пустым набором это считать нельзя — форма закрыла бы сохранение правки
+  // названия из-за поля, которого в ответе просто нет.
+  sizes: string[] | null;
 };
 
 function initial(model: ModelDto): Draft {
@@ -70,7 +73,7 @@ function initial(model: ModelDto): Draft {
     compositionEn: model.compositionEn ?? '',
     careRu: model.careRu ?? '',
     careEn: model.careEn ?? '',
-    sizes: ordered(model.sizes ?? []),
+    sizes: Array.isArray(model.sizes) ? ordered(model.sizes) : null,
   };
 }
 
@@ -85,6 +88,7 @@ function patchOf(before: Draft, now: Draft): Patch {
   const patch: Patch = {};
   (Object.keys(now) as (keyof Draft)[]).forEach((key) => {
     const value = now[key];
+    if (value === null && !OPTIONAL_FIELDS.has(key)) return;
     if (Array.isArray(value)) {
       if (JSON.stringify(before[key]) !== JSON.stringify(value)) patch[key] = value;
       return;
@@ -184,10 +188,13 @@ export default function ModelForm({modelId, onSaved}: {
   const blank = blankRequiredFields(patch);
   // Хотя бы один размер: без него сервер отобьёт весь черновик (@NotEmpty), а
   // карточка останется без кнопок размеров.
-  const noSizes = draft.sizes.length === 0;
+  const sizes = draft.sizes;
+  const noSizes = sizes !== null && sizes.length === 0;
   const toggleSize = (size: string) =>
-    setDraft((d) => (d ? {...d, sizes: ordered(d.sizes.includes(size) ? d.sizes.filter((s) => s !== size) : [...d.sizes, size])} : d));
-  const shownSizes = ordered([...SIZE_ORDER, ...draft.sizes]);
+    setDraft((d) =>
+      d && d.sizes ? {...d, sizes: ordered(d.sizes.includes(size) ? d.sizes.filter((s) => s !== size) : [...d.sizes, size])} : d,
+    );
+  const shownSizes = sizes ? ordered([...SIZE_ORDER, ...sizes]) : [];
   const blankSet = new Set(blank);
   const set = <K extends keyof Draft>(key: K) => (value: Draft[K]) => setDraft((d) => (d ? {...d, [key]: value} : d));
   // Пустое обязательное поле — своя, живая проверка (пересчитывается на каждый
@@ -258,13 +265,14 @@ export default function ModelForm({modelId, onSaved}: {
       />
       <TextField label="Уход · ru" value={draft.careRu} onChange={set('careRu')} rows={2} error={fieldError('careRu')} />
 
+      {sizes && (
       <fieldset>
         <legend className="mb-2 text-[11px] uppercase tracking-[0.16em]" style={{color: MUTED}}>
           Размеры
         </legend>
         <div className="flex flex-wrap gap-2">
           {shownSizes.map((size) => {
-            const on = draft.sizes.includes(size);
+            const on = sizes.includes(size);
             return (
               <button
                 key={size}
@@ -285,6 +293,7 @@ export default function ModelForm({modelId, onSaved}: {
           </p>
         )}
       </fieldset>
+      )}
 
       <div>
         {/* Сворачиваемый раздел, не отдельная кнопка-ссылка: зона нажатия и

@@ -317,3 +317,22 @@ describe('ModelForm — размеры', () => {
     expect(screen.getByRole('button', {name: 'ONE'})).toHaveAttribute('aria-pressed', 'true');
   });
 });
+
+// Ответ без размеров (подделка e2e 18, старый черновик) — не «пустой набор»:
+// правка названия сохраняется, выбора размеров нет, в заплатку они не идут.
+describe('ModelForm — ответ без размеров', () => {
+  it('правка текста сохраняется, размеры не показываются и не уходят', async () => {
+    const user = userEvent.setup();
+    delete (store['model-1'] as Partial<StoredModel>).sizes;
+    render(<ModelForm modelId="model-1" onSaved={() => {}} />);
+    const name = await screen.findByLabelText('Название · ru');
+
+    expect(screen.queryByRole('button', {name: 'XS'})).toBeNull();
+    await user.clear(name);
+    await user.type(name, 'Пальто-пиджак');
+    await user.click(screen.getByRole('button', {name: /сохранить/i}));
+
+    await waitFor(() => expect(saveModelDraft).toHaveBeenCalledTimes(1));
+    expect(saveModelDraft.mock.calls[0]![1]).toEqual({nameRu: 'Пальто-пиджак'});
+  });
+});
