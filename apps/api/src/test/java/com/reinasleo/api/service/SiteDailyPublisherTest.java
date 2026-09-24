@@ -2,6 +2,7 @@ package com.reinasleo.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.reinasleo.api.dto.SiteDayPoint;
+import com.reinasleo.api.repository.SiteEventRepository;
 import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,8 +23,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -185,5 +189,72 @@ class SiteDailyPublisherTest {
         assertThat(noSecret.enabled()).isFalse();
         assertThat(noUrl.enabled()).isFalse();
         assertThat(seen).isEmpty();
+    }
+
+    // --- Прогон по расписанию: скользящие 14 суток ---
+
+    @SuppressWarnings("unchecked")
+    private static List<String> dailyDates(List<Seen> seen) throws IOException {
+        ObjectMapper om = new ObjectMapper();
+        List<String> dates = new ArrayList<>();
+        for (Seen s : seen) {
+            Map<String, Object> ev = ((List<Map<String, Object>>) om.readValue(s.body(), Map.class).get("events")).get(0);
+            if ("site_daily".equals(ev.get("type"))) dates.add((String) ev.get("date"));
+        }
+        return dates;
+    }
+
+    // Настоящий SiteStatsService, подменён только репозиторий: так видно и
+    // окно запросов к базе, и то, что реально ушло по сокету.
+    @Test
+    void theScheduledRunSendsExactlyFourteenDaysFromMoscowMidnight() throws IOException {
+        List<Seen> seen = new CopyOnWriteArrayList<>();
+        String url = startServer(200, seen);
+        SiteEventRepository repo = mock(SiteEventRepository.class);
+        var publisher = new SiteDailyPublisher(new SiteStatsService(repo), new ObjectMapper(), url, "s3cret");
+
+        LocalDate today = SiteStatsService.today();
+        publisher.publishRecent();
+        // Прогон, попавший ровно на полночь, мог увидеть уже следующие сутки —
+        // тогда кейс помечается пропущенным, а не проходит молча.
+        assumeTrue(SiteStatsService.today().equals(today), "сутки сменились во время прогона");
+
+        LocalDate first = today.minusDays(13);
+        Instant midnight = first.atStartOfDay(ZoneId.of("Europe/Moscow")).toInstant();
+        verify(repo).countsByHour(midnight);
+        verify(repo).sessionFirstSeen(midnight);
+        verify(repo).pageViewsByHour(midnight);
+
+        List<String> dates = dailyDates(seen);
+        assertThat(dates).hasSize(SiteDailyPublisher.ROLLING_DAYS).doesNotHaveDuplicates();
+        assertThat(dates.get(0)).isEqualTo(first.toString());
+        assertThat(dates.get(dates.size() - 1)).isEqualTo(today.toString());
+    }
+
+    // ЗАМЕЩЕНИЕ ДНЯ живёт на приёме (test_the_same_day_is_replaced_not_accumulated
+    // в leo_analytics). Со стороны отправителя замещение возможно, только если
+    // повтор дня несёт ту же дату, тот же состав и НОВЫЙ ключ: одинаковый ключ
+    // отбился бы 409, а другая дата легла бы рядом лишним днём.
+    @Test
+    void aRepeatedRunResendsTheSameDaysUnderNewKeys() throws IOException {
+        List<Seen> seen = new CopyOnWriteArrayList<>();
+        String url = startServer(200, seen);
+        var publisher = new SiteDailyPublisher(new SiteStatsService(mock(SiteEventRepository.class)),
+                new ObjectMapper(), url, "s3cret");
+
+        LocalDate today = SiteStatsService.today();
+        publisher.publishRecent();
+        int firstRun = seen.size();
+        publisher.publishRecent();
+        assumeTrue(SiteStatsService.today().equals(today), "сутки сменились между прогонами");
+
+        List<Seen> a = seen.subList(0, firstRun), b = seen.subList(firstRun, seen.size());
+        assertThat(dailyDates(b)).isEqualTo(dailyDates(a));
+        for (int i = 0; i < firstRun; i++) {
+            assertThat(b.get(i).key()).isNotEqualTo(a.get(i).key());
+            // site_daily:<дата>:<штамп> — без штампа ключи совпадают.
+            assertThat(b.get(i).key().replaceAll(":\\d+$", ""))
+                    .isEqualTo(a.get(i).key().replaceAll(":\\d+$", ""));
+        }
     }
 }

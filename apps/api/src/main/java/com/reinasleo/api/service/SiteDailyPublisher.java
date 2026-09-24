@@ -26,9 +26,11 @@ import java.util.Map;
  * site_daily_pages). Наружу уходят только числа: ни session_key, ни user_id
  * приём не примет, и мы их не шлём.
  *
- * ДЕНЬ ШЛЁТСЯ МНОГОКРАТНО: каждый час — вчера и сегодня. Приём замещает день
- * целиком, поэтому к вечеру там полные сутки, а вчерашний последний час
- * доезжает первым прогоном после полуночи.
+ * ДЕНЬ ШЛЁТСЯ МНОГОКРАТНО: каждый час — скользящие 14 суток, по сегодня
+ * включительно. Приём замещает день целиком, поэтому к вечеру там полные
+ * сутки, вчерашний последний час доезжает первым прогоном после полуночи, а
+ * простой приёма короче двух недель лечится сам, без ручной доливки. Глубже —
+ * ручка POST /api/admin/stats/site-daily/publish?days=N.
  *
  * КЛЮЧ ИДЕМПОТЕНТНОСТИ НЕСЁТ ШТАМП ПРОГОНА (site_daily:<дата>:<штамп>). С
  * ключом по одной дате второй конверт за те же сутки получил бы 409, и день
@@ -44,6 +46,7 @@ public class SiteDailyPublisher {
 
     private static final Logger log = LoggerFactory.getLogger(SiteDailyPublisher.class);
 
+    static final int ROLLING_DAYS = 14;
     static final int PAGES_PER_CHUNK = 500;
     // Предел приёма на путь (SitePageRow.path max_length).
     static final int MAX_PATH = 500;
@@ -78,7 +81,7 @@ public class SiteDailyPublisher {
     @Scheduled(cron = "0 7 * * * *", zone = "Europe/Moscow")
     public void publishRecent() {
         LocalDate today = SiteStatsService.today();
-        publish(today.minusDays(1), today);
+        publish(today.minusDays(ROLLING_DAYS - 1L), today);
     }
 
     public Result publish(LocalDate from, LocalDate to) {
