@@ -26,6 +26,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
 
@@ -141,7 +142,7 @@ class AdminSiteStatsControllerTest {
         // Без транзакции свои строки надо унести самому, иначе они достанутся
         // соседнему тесту, который считает события.
         tx.executeWithoutResult(status -> {
-            em.createNativeQuery("DELETE FROM site_events WHERE session_key IN ('s-1','s-2','s-3','s-4','s-5','s-6')").executeUpdate();
+            em.createNativeQuery("DELETE FROM site_events WHERE session_key IN ('s-1','s-2','s-3','s-4','s-5','s-6','s-7')").executeUpdate();
             users.findByEmailIgnoreCase("stats-admin@test.dev").ifPresent(users::delete);
             users.findByEmailIgnoreCase("stats-buyer@test.dev").ifPresent(users::delete);
         });
@@ -179,6 +180,23 @@ class AdminSiteStatsControllerTest {
                 .andExpect(jsonPath("$[*].path", not(hasItem("/ru/admin"))))
                 .andExpect(jsonPath("$[*].path", not(hasItem("/ru/admin/products"))))
                 .andExpect(jsonPath("$[*].path", not(hasItem("/ru/shop-owner"))));
+    }
+
+    // Накопленные до 24.09 строки несут строку запроса целиком. Топ страниц
+    // обязан складывать их в один адрес — иначе /ru/shop?cat=… и /ru/shop
+    // делят просмотры между собой, и ни один не выглядит популярным.
+    @Test
+    void topPathsFoldQueryStringsIntoOneAddress() throws Exception {
+        tx.executeWithoutResult(status -> {
+            recentEvent("/ru/shop-q", "s-7", null);
+            recentEvent("/ru/shop-q?cat=dresses", "s-7", null);
+            recentEvent("/ru/shop-q?utm_source=tg", "s-7", null);
+        });
+        mockMvc.perform(get("/api/admin/stats/site-paths").param("days", "1").param("limit", "50")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.path =~ /\\/ru\\/shop-q.*/)].path", contains("/ru/shop-q")))
+                .andExpect(jsonPath("$[?(@.path == '/ru/shop-q')].views", contains(3)));
     }
 
     @Test
