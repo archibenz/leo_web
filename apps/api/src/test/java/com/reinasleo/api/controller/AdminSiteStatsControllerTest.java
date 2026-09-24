@@ -17,8 +17,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -88,6 +97,36 @@ class AdminSiteStatsControllerTest {
                 .executeUpdate();
     }
 
+    // Событие «только что», с учёткой или без: окно ручек считается от
+    // текущего момента, и дата из прошлого в него со временем перестанет попадать.
+    private void recentEvent(String path, String session, UUID userId) {
+        em.createNativeQuery("""
+                INSERT INTO site_events (id, event_type, occurred_at, device, locale, path, session_key, user_id)
+                VALUES (?1, 'page_view', ?2, 'mobile', 'ru', ?3, ?4, ?5)""")
+                .setParameter(1, UUID.randomUUID())
+                .setParameter(2, java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC).minusMinutes(30))
+                .setParameter(3, path)
+                .setParameter(4, session)
+                .setParameter(5, userId)
+                .executeUpdate();
+    }
+
+    private UUID idOf(String email) {
+        return users.findByEmailIgnoreCase(email).orElseThrow().getId();
+    }
+
+    private void seedStaffAndCustomers() {
+        UUID admin = idOf("stats-admin@test.dev");
+        UUID buyer = idOf("stats-buyer@test.dev");
+        tx.executeWithoutResult(status -> {
+            recentEvent("/ru/shop-t", "s-3", null);            // аноним на витрине — считается
+            recentEvent("/ru/admin", "s-4", null);             // админка без учётки — по пути
+            recentEvent("/ru/admin/products", "s-4", null);
+            recentEvent("/ru/account", "s-5", buyer);          // покупатель в кабинете — считается
+            recentEvent("/ru/shop-owner", "s-6", admin);       // владелец на витрине — по роли
+        });
+    }
+
     private String tokenFor(String email, String role) {
         User user = new User(email, "Имя", "Фамилия", passwordEncoder.encode("Sup3rSecret!"),
                 LocalDate.of(1990, 1, 1), false, true);
@@ -102,7 +141,7 @@ class AdminSiteStatsControllerTest {
         // Без транзакции свои строки надо унести самому, иначе они достанутся
         // соседнему тесту, который считает события.
         tx.executeWithoutResult(status -> {
-            em.createNativeQuery("DELETE FROM site_events WHERE session_key IN ('s-1','s-2')").executeUpdate();
+            em.createNativeQuery("DELETE FROM site_events WHERE session_key IN ('s-1','s-2','s-3','s-4','s-5','s-6')").executeUpdate();
             users.findByEmailIgnoreCase("stats-admin@test.dev").ifPresent(users::delete);
             users.findByEmailIgnoreCase("stats-buyer@test.dev").ifPresent(users::delete);
         });
@@ -124,6 +163,37 @@ class AdminSiteStatsControllerTest {
                         .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    // Посещения — это покупатели. Админка (по пути) и любые события
+    // вошедшего администратора (по роли) не считаются ни в одном из трёх
+    // запросов; покупатель в личном кабинете — считается.
+    @Test
+    void topPathsCountCustomersNotStaff() throws Exception {
+        seedStaffAndCustomers();
+        mockMvc.perform(get("/api/admin/stats/site-paths").param("days", "1").param("limit", "50")
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].path", hasItem("/ru/shop-t")))
+                .andExpect(jsonPath("$[*].path", hasItem("/ru/account")))
+                .andExpect(jsonPath("$[*].path", not(hasItem("/ru/admin"))))
+                .andExpect(jsonPath("$[*].path", not(hasItem("/ru/admin/products"))))
+                .andExpect(jsonPath("$[*].path", not(hasItem("/ru/shop-owner"))));
+    }
+
+    @Test
+    void sessionsAndHourlyCountsSkipStaff() {
+        seedStaffAndCustomers();
+        Instant since = Instant.now().minus(2, ChronoUnit.HOURS);
+
+        Set<String> sessions = siteEvents.sessionFirstSeen(since).stream()
+                .map(row -> (String) row[0]).collect(Collectors.toSet());
+        assertThat(sessions).contains("s-3", "s-5").doesNotContain("s-4", "s-6");
+
+        List<Object[]> hourly = siteEvents.countsByHour(since);
+        long pageViews = hourly.stream().filter(row -> "page_view".equals(row[1]))
+                .mapToLong(row -> ((Number) row[5]).longValue()).sum();
+        assertThat(pageViews).isEqualTo(2);
     }
 
     @Test

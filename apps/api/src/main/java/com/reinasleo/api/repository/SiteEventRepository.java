@@ -33,6 +33,22 @@ public interface SiteEventRepository extends JpaRepository<SiteEvent, UUID> {
     @Query("UPDATE SiteEvent e SET e.userId = null WHERE e.userId = :userId")
     int clearUserId(@Param("userId") UUID userId);
 
+    // Посещения — это покупатели. Из всех трёх запросов ниже убраны свои:
+    //  - страницы админки: по пути, потому что это единственный признак у
+    //    старых строк (с 13.09 по 24.09 админка писала page_view наравне с
+    //    витриной и дала пятую часть всех просмотров). Трекер витрины их
+    //    больше не шлёт, фильтр здесь — ради накопленного;
+    //  - любые события вошедших администраторов, по роли, а не по пути:
+    //    личный кабинет открывают и покупатели, и владелец, и по адресу их не
+    //    различить. Роль отсекает владельца и на витрине.
+    // Не отсекается владелец, не вошедший в учётку: признака у такого
+    // события нет никакого.
+    String CUSTOMERS_ONLY = """
+             AND (e.path IS NULL OR (e.path NOT LIKE '/admin%' AND e.path NOT LIKE '/__/admin'
+                  AND e.path NOT LIKE '/__/admin/%' AND e.path NOT LIKE '/__/admin?%'))
+             AND NOT EXISTS (SELECT 1 FROM users u WHERE u.id = e.user_id AND u.role = 'admin')
+            """;
+
     // СУТКИ ЗДЕСЬ НЕ СЧИТАЮТСЯ — И ЭТО НЕ ЛЕНЬ.
     //
     // Витрине нужны московские сутки, а группировать по ним в SQL в этом
@@ -59,8 +75,9 @@ public interface SiteEventRepository extends JpaRepository<SiteEvent, UUID> {
                    COALESCE(locale, '') AS locale,
                    COALESCE(marketplace, '') AS marketplace,
                    COUNT(*) AS cnt
-            FROM site_events
+            FROM site_events e
             WHERE occurred_at >= :since
+            """ + CUSTOMERS_ONLY + """
             GROUP BY 1, 2, 3, 4, 5
             ORDER BY 1
             """, nativeQuery = true)
@@ -73,8 +90,9 @@ public interface SiteEventRepository extends JpaRepository<SiteEvent, UUID> {
     // остальное.
     @Query(value = """
             SELECT session_key, MIN(occurred_at) AS first_seen
-            FROM site_events
+            FROM site_events e
             WHERE occurred_at >= :since AND session_key IS NOT NULL
+            """ + CUSTOMERS_ONLY + """
             GROUP BY session_key
             """, nativeQuery = true)
     List<Object[]> sessionFirstSeen(@Param("since") Instant since);
@@ -83,8 +101,9 @@ public interface SiteEventRepository extends JpaRepository<SiteEvent, UUID> {
     // ответ «что смотрят», а не «что смотрели во вторник».
     @Query(value = """
             SELECT path, COUNT(*) AS cnt
-            FROM site_events
+            FROM site_events e
             WHERE occurred_at >= :since AND event_type = 'page_view' AND path IS NOT NULL
+            """ + CUSTOMERS_ONLY + """
             GROUP BY path
             ORDER BY cnt DESC
             LIMIT :limit
