@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {cn} from '@/lib/utils';
@@ -57,12 +56,18 @@ export function AppSidebar({locale}: {locale: string}) {
             24×24 и оставляет кнопку тех же 32. */}
         <CustomMenuButton asChild className="group-data-[collapsible=icon]:!p-1">
           <Link href={`/${locale}/admin`}>
-            <Image
-              src="/logos/icon-black.svg"
-              alt="REINASLEO"
-              width={1000}
-              height={1000}
-              className="hidden h-6 w-6 shrink-0 group-data-[collapsible=icon]:block"
+            {/* Маска, а не <Image>: файл чёрный, и на тёмной админке (тема по
+                системной, globals.css) чёрная марка на тёмной панели пропадала
+                бы. Маска берёт форму из файла, а цвет — currentColor, то есть
+                текст панели в любой теме. */}
+            <span
+              role="img"
+              aria-label="REINASLEO"
+              className="hidden h-6 w-6 shrink-0 bg-current group-data-[collapsible=icon]:block"
+              style={{
+                WebkitMask: 'url(/logos/icon-black.svg) center / contain no-repeat',
+                mask: 'url(/logos/icon-black.svg) center / contain no-repeat',
+              }}
             />
             {/* 20px, а не 15. Замер 18.09: имя дома читалось 15 px, а имя страницы
                 рядом — 32 px тем же шрифтом. Дом получался вдвое тише страницы.

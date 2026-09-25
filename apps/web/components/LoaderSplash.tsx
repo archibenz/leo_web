@@ -23,7 +23,11 @@ export default function LoaderSplash({size = 128}: LoaderSplashProps) {
       // видит ЧАЩЕ страницы ошибки — при каждой загрузке админского раздела.
       // Тёмная вспышка между двумя белыми экранами читается как чужая
       // страница, а не как ожидание.
-      className="fixed inset-x-0 top-0 z-[9999] flex items-center justify-center bg-white text-[#1c1714]"
+      //
+      // Цвета — токены, а не hex: на витрине они те же белый, INK, HAIR и
+      // MUTED, а в админке на тёмном устройстве экран загрузки темнеет вместе
+      // с ней (globals.css, data-admin-shell) и не вспыхивает белым.
+      className="fixed inset-x-0 top-0 z-[9999] flex items-center justify-center bg-background text-foreground"
       style={{height: '100dvh', minHeight: '100dvh'}}
     >
       <div className="relative flex flex-col items-center gap-12">
@@ -32,8 +36,8 @@ export default function LoaderSplash({size = 128}: LoaderSplashProps) {
         <div className="flex flex-col items-center gap-3">
           {/* Волосяная линия витрины вместо золотой: золото — цвет прежней
               темы, и здесь оно осталось последним её следом. */}
-          <span aria-hidden className="block h-px w-16" style={{background: '#e7e2db'}} />
-          <span className="font-display uppercase text-sm tracking-[0.55em]" style={{color: '#776e64'}}>
+          <span aria-hidden className="block h-px w-16" style={{background: 'hsl(var(--sh-border))'}} />
+          <span className="font-display uppercase text-sm tracking-[0.55em]" style={{color: 'hsl(var(--sh-muted-foreground))'}}>
             REINASLEO
           </span>
         </div>

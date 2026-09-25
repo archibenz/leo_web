@@ -28,11 +28,19 @@ import AdminLayout from '../../../components/admin/AdminLayout';
 // Здесь она живёт в обёртке, переживает переходы, и анимация из
 // `(admin)/template.tsx` достаётся только содержимому раздела — тому, что и
 // правда сменилось.
+//
+// МЕТКА data-admin-shell включает тёмную тему по системной (globals.css,
+// html:has([data-admin-shell])). Стоит здесь, в серверном layout, а не в
+// клиентской оболочке: так она есть уже в первом HTML, и пока AdminGuard
+// проверяет вход, экран не мигает белым. `contents` — обёртка не рисует
+// своего бокса и раскладку не трогает.
 export default function AdminRouteLayout({children}: {children: ReactNode}) {
   return (
-    <AuthProvider>
-      <AdminLayout>{children}</AdminLayout>
-      <Toaster />
-    </AuthProvider>
+    <div data-admin-shell="" className="contents">
+      <AuthProvider>
+        <AdminLayout>{children}</AdminLayout>
+        <Toaster />
+      </AuthProvider>
+    </div>
   );
 }

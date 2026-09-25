@@ -116,8 +116,8 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#3b1a2e] to-[#6b3a5e]">
-                    <span className="text-[10px] text-white/50">No src</span>
+                  <div className="flex h-full w-full items-center justify-center bg-muted">
+                    <span className="text-[10px] text-muted-foreground">No src</span>
                   </div>
                 )}
               </div>
@@ -127,7 +127,7 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
                 aria-label={t('removeImage')}
                 className="absolute -top-2 -right-2 flex h-11 w-11 items-center justify-center rounded-full transition"
               >
-                <span aria-hidden="true" className="flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                <span aria-hidden="true" className="flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs text-destructive-foreground">
                   &times;
                 </span>
               </button>
@@ -138,7 +138,7 @@ export default function ImageUpload({images, onChange}: ImageUploadProps) {
 
       {/* Validation error */}
       {errorMessage && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-400" role="alert">
+        <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive" role="alert">
           {errorMessage}
         </div>
       )}
