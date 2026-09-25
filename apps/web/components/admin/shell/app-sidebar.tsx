@@ -15,7 +15,7 @@ import {
 import {CustomMenuButton, adminNavGroups} from './app-shared';
 import {NavGroup} from './nav-group';
 import {NavEditMode} from './nav-edit-mode';
-import {ExternalLinkIcon} from 'lucide-react';
+import {ChartLine, ExternalLinkIcon} from 'lucide-react';
 
 // Боковая панель по блоку `app-shell-7`. Свёрнутое состояние — до значков
 // (collapsible="icon"), а не до нуля: владелец правит сайт с телефона, и
@@ -90,9 +90,8 @@ export function AppSidebar({locale}: {locale: string}) {
         <NavEditMode />
       </SidebarContent>
 
-      {/* Выход на витрину внизу панели — он же был внизу прежней оболочки.
-          Это единственная дверь наружу из админки, и она обязана быть видна
-          без раскрытия меню пользователя. */}
+      {/* Выходы наружу внизу панели — на витрину и в аналитику. Они обязаны
+          быть видны без раскрытия меню пользователя. */}
       <SidebarFooter className="gap-0 p-0">
         <SidebarMenu className="border-t p-2">
           <SidebarMenuItem>
@@ -101,6 +100,18 @@ export function AppSidebar({locale}: {locale: string}) {
                 <ExternalLinkIcon />
                 <span>{t('toSite')}</span>
               </Link>
+            </CustomMenuButton>
+          </SidebarMenuItem>
+          {/* Вторая дверь наружу — в дашборд аналитики (/analytics того же
+              домена), пара к его кнопке «← На сайт». Обычная <a>, не Link:
+              это другое приложение, клиентский переход Next туда не ведёт.
+              Без локали — своих языков у дашборда нет. */}
+          <SidebarMenuItem>
+            <CustomMenuButton asChild className="text-muted-foreground" size="sm" tooltip={t('toAnalytics')}>
+              <a href="/analytics">
+                <ChartLine />
+                <span>{t('toAnalytics')}</span>
+              </a>
             </CustomMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
