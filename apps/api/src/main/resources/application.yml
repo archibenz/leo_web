@@ -91,7 +91,8 @@ app:
   web:
     revalidate-url: ${WEB_REVALIDATE_URL:}
     revalidate-secret: ${REVALIDATE_SECRET:}
-  # Дневные числа сайта → приём leo_analytics (SiteDailyPublisher). Пустые
+  # Дневные числа и заказы сайта → приём leo_analytics (SiteDailyPublisher,
+  # SiteOrderPublisher). Пустые
   # фолбэки — то же исключение: не заданы — отправка выключена с
   # предупреждением в логе, API стартует. URL полный, с /api/v1/ingest.
   analytics:

@@ -3,6 +3,7 @@ package com.reinasleo.api.repository;
 import com.reinasleo.api.model.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,4 +21,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
      * для просмотра истории попыток оплаты.
      */
     List<Payment> findByOrderIdOrderByCreatedAtDesc(UUID orderId);
+
+    List<Payment> findByOrderIdIn(Collection<UUID> orderIds);
 }
