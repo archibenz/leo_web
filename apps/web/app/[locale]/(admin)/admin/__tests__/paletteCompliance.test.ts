@@ -66,12 +66,14 @@ const FILES: ReadonlyArray<string> = [
   'app/[locale]/(admin)/admin/socials/page.tsx',
   'app/[locale]/(admin)/admin/texts/page.tsx',
   'components/admin/AdminLayout.tsx',
-  'components/admin/AdminPrimitives.tsx',
   'components/admin/ProductForm.tsx',
   'components/admin/CareGuideForm.tsx',
   'components/admin/AdminGuard.tsx',
   'components/admin/ImageUpload.tsx',
   'components/Toaster.tsx',
+  // Экран загрузки раздела (admin/loading.tsx) — рисуется поверх админки.
+  'app/[locale]/(admin)/admin/loading.tsx',
+  'components/LoaderSplash.tsx',
   ...tsxIn('components/admin/shell'),
   ...tsxIn('components/admin/dashboard'),
   ...tsxIn('components/admin/list'),
@@ -106,6 +108,46 @@ describe('админка не красится старой тёмной тем�
       for (const {name, pattern} of FORBIDDEN) {
         it(`не содержит ${name}`, () => {
           expect(source).not.toMatch(pattern);
+        });
+      }
+    });
+  }
+});
+
+// ─── ЦВЕТ В АДМИНКЕ — ТОЛЬКО ИЗ ТОКЕНОВ (с 25.09) ───
+//
+// Админка темнеет по системной теме устройства: globals.css подменяет --sh-*
+// на <html>, у которого внутри есть data-admin-shell. Всё, что красится
+// токеном (bg-background, text-muted-foreground, hsl(var(--sh-border))),
+// темнеет само. Всё, что красится hex, rgb() или цветом палитры Tailwind
+// (bg-white, text-red-400), остаётся светлым пятном посреди тёмного экрана —
+// так до 25.09 выглядели плашка ошибки загрузки фото и экран ожидания.
+//
+// Комментарии вырезаются: они законно поминают прежние hex, объясняя, что
+// было. Сторожим разметку, а не историю.
+const RAW_COLOUR: ReadonlyArray<{name: string; pattern: RegExp}> = [
+  {name: 'сырой hex', pattern: /#[0-9a-fA-F]{3,8}\b/},
+  {name: 'rgb()/rgba()', pattern: /\brgba?\(/},
+  {
+    name: 'цвет палитры Tailwind',
+    pattern:
+      /\b(?:bg|text|border|from|to|via|ring|fill|stroke|outline|divide)-(?:white|black|(?:red|green|blue|gray|zinc|neutral|slate|stone|amber|yellow|emerald|rose|orange|lime|teal|cyan|sky|indigo|violet|purple|fuchsia|pink)-\d{2,3})\b/,
+  },
+];
+
+function withoutComments(source: string): string {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:'"])\/\/[^\n]*/g, '$1');
+}
+
+describe('в админке цвет только из токенов — иначе не темнеет', () => {
+  for (const file of FILES) {
+    describe(file, () => {
+      const code = withoutComments(read(file));
+      for (const {name, pattern} of RAW_COLOUR) {
+        it(`не содержит: ${name}`, () => {
+          expect(code).not.toMatch(pattern);
         });
       }
     });

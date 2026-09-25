@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
 import {cn} from '@/lib/utils';
@@ -16,7 +15,7 @@ import {
 import {CustomMenuButton, adminNavGroups} from './app-shared';
 import {NavGroup} from './nav-group';
 import {NavEditMode} from './nav-edit-mode';
-import {ExternalLinkIcon} from 'lucide-react';
+import {ChartLine, ExternalLinkIcon} from 'lucide-react';
 
 // Боковая панель по блоку `app-shell-7`. Свёрнутое состояние — до значков
 // (collapsible="icon"), а не до нуля: владелец правит сайт с телефона, и
@@ -57,12 +56,18 @@ export function AppSidebar({locale}: {locale: string}) {
             24×24 и оставляет кнопку тех же 32. */}
         <CustomMenuButton asChild className="group-data-[collapsible=icon]:!p-1">
           <Link href={`/${locale}/admin`}>
-            <Image
-              src="/logos/icon-black.svg"
-              alt="REINASLEO"
-              width={1000}
-              height={1000}
-              className="hidden h-6 w-6 shrink-0 group-data-[collapsible=icon]:block"
+            {/* Маска, а не <Image>: файл чёрный, и на тёмной админке (тема по
+                системной, globals.css) чёрная марка на тёмной панели пропадала
+                бы. Маска берёт форму из файла, а цвет — currentColor, то есть
+                текст панели в любой теме. */}
+            <span
+              role="img"
+              aria-label="REINASLEO"
+              className="hidden h-6 w-6 shrink-0 bg-current group-data-[collapsible=icon]:block"
+              style={{
+                WebkitMask: 'url(/logos/icon-black.svg) center / contain no-repeat',
+                mask: 'url(/logos/icon-black.svg) center / contain no-repeat',
+              }}
             />
             {/* 20px, а не 15. Замер 18.09: имя дома читалось 15 px, а имя страницы
                 рядом — 32 px тем же шрифтом. Дом получался вдвое тише страницы.
@@ -85,9 +90,8 @@ export function AppSidebar({locale}: {locale: string}) {
         <NavEditMode />
       </SidebarContent>
 
-      {/* Выход на витрину внизу панели — он же был внизу прежней оболочки.
-          Это единственная дверь наружу из админки, и она обязана быть видна
-          без раскрытия меню пользователя. */}
+      {/* Выходы наружу внизу панели — на витрину и в аналитику. Они обязаны
+          быть видны без раскрытия меню пользователя. */}
       <SidebarFooter className="gap-0 p-0">
         <SidebarMenu className="border-t p-2">
           <SidebarMenuItem>
@@ -96,6 +100,18 @@ export function AppSidebar({locale}: {locale: string}) {
                 <ExternalLinkIcon />
                 <span>{t('toSite')}</span>
               </Link>
+            </CustomMenuButton>
+          </SidebarMenuItem>
+          {/* Вторая дверь наружу — в дашборд аналитики (/analytics того же
+              домена), пара к его кнопке «← На сайт». Обычная <a>, не Link:
+              это другое приложение, клиентский переход Next туда не ведёт.
+              Без локали — своих языков у дашборда нет. */}
+          <SidebarMenuItem>
+            <CustomMenuButton asChild className="text-muted-foreground" size="sm" tooltip={t('toAnalytics')}>
+              <a href="/analytics">
+                <ChartLine />
+                <span>{t('toAnalytics')}</span>
+              </a>
             </CustomMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

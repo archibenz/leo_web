@@ -15,7 +15,8 @@ import {AppSidebar} from './app-sidebar';
 // гасит зерно и виньетку прежней тёмной темы. Админка рендерится ВНЕ
 // `.wv-root`, поэтому без собственного фона она встала бы на старую подложку,
 // и владелец в третий раз сказал бы «почему всё ещё тёмное». Отсюда
-// `bg-background` на корне: он читает --sh-background, то есть белый.
+// `bg-background` на корне: он читает --sh-background — белый, а на тёмном
+// устройстве тёмный (globals.css, data-admin-shell).
 export function AppShell({children, locale}: {children: React.ReactNode; locale: string}) {
   return (
     <div className="bg-background text-foreground overflow-hidden">

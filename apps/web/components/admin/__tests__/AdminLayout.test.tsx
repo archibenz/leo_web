@@ -153,3 +153,19 @@ describe('телефон владельца — кнопка навигации'
     expect(trigger.className).not.toMatch(/\bh-7\b/);
   });
 });
+
+// Пара к кнопке «← На сайт» в дашборде аналитики: из админки туда — внизу
+// панели, рядом с «На сайт», без раскрытия меню пользователя.
+describe('выходы наружу внизу панели', () => {
+  it('рядом с «На сайт» стоит «Аналитика», и ведёт она на /analytics', () => {
+    setViewport(DESKTOP);
+    render(
+      <AdminLayout>
+        <h1>содержимое раздела</h1>
+      </AdminLayout>,
+    );
+
+    expect(screen.getByRole('link', {name: 'toSite'})).toHaveAttribute('href', '/ru');
+    expect(screen.getByRole('link', {name: 'toAnalytics'})).toHaveAttribute('href', '/analytics');
+  });
+});
