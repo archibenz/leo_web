@@ -15,6 +15,7 @@ import com.reinasleo.api.repository.CartItemRepository;
 import com.reinasleo.api.repository.CartRepository;
 import com.reinasleo.api.repository.MarketplacePriceRepository;
 import com.reinasleo.api.repository.ProductRepository;
+import com.reinasleo.api.service.storefront.ShopperPrices;
 import com.reinasleo.api.service.storefront.VariantPriceCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +54,7 @@ class CartServiceTest {
     @BeforeEach
     void setUp() {
         cartService = new CartService(cartRepository, cartItemRepository, productRepository, analyticsService,
-                marketplacePrices, new VariantPriceCalculator(), null);
+                new ShopperPrices(marketplacePrices, new VariantPriceCalculator()), null);
         // Wire the self-reference the same way the Spring @Lazy proxy would in prod;
         // direct invocation is fine here because the unit test doesn't need a fresh
         // JPA session — it exercises orchestrator-vs-attempt split only.

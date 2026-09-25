@@ -1,5 +1,8 @@
 package com.reinasleo.api.service;
 
+import com.reinasleo.api.service.storefront.VariantPriceCalculator;
+import com.reinasleo.api.service.storefront.ShopperPrices;
+import com.reinasleo.api.repository.MarketplacePriceRepository;
 import com.reinasleo.api.dto.DeleteAccountRequest;
 import com.reinasleo.api.exception.BadRequestException;
 import com.reinasleo.api.exception.ConflictException;
@@ -56,7 +59,8 @@ class AuthServiceDeleteTest {
                 verificationService, deleteChallengeService,
                 cartItemRepository, cartRepository, favoriteRepository,
                 orderRepository, verificationCodeRepository, productInterestEventRepository,
-                siteEventRepository);
+                siteEventRepository,
+                new ShopperPrices(org.mockito.Mockito.mock(MarketplacePriceRepository.class), new VariantPriceCalculator()));
     }
 
     private static User emailUser() {

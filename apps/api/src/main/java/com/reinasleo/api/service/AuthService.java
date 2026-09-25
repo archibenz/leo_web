@@ -20,6 +20,7 @@ import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.EmailAlreadyExistsException;
 import com.reinasleo.api.exception.InvalidCredentialsException;
 import com.reinasleo.api.model.Cart;
+import com.reinasleo.api.model.Favorite;
 import com.reinasleo.api.model.User;
 import com.reinasleo.api.repository.CartItemRepository;
 import com.reinasleo.api.repository.CartRepository;
@@ -27,6 +28,7 @@ import com.reinasleo.api.repository.FavoriteRepository;
 import com.reinasleo.api.repository.OrderRepository;
 import com.reinasleo.api.repository.ProductInterestEventRepository;
 import com.reinasleo.api.repository.SiteEventRepository;
+import com.reinasleo.api.service.storefront.ShopperPrices;
 import com.reinasleo.api.repository.UserRepository;
 import com.reinasleo.api.repository.VerificationCodeRepository;
 import com.reinasleo.api.security.JwtService;
@@ -36,6 +38,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -43,6 +46,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AuthService {
@@ -68,6 +72,7 @@ public class AuthService {
     private final VerificationCodeRepository verificationCodeRepository;
     private final ProductInterestEventRepository productInterestEventRepository;
     private final SiteEventRepository siteEventRepository;
+    private final ShopperPrices shopperPrices;
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
                        JwtService jwtService, VerificationService verificationService,
@@ -78,7 +83,8 @@ public class AuthService {
                        OrderRepository orderRepository,
                        VerificationCodeRepository verificationCodeRepository,
                        ProductInterestEventRepository productInterestEventRepository,
-                       SiteEventRepository siteEventRepository) {
+                       SiteEventRepository siteEventRepository,
+                       ShopperPrices shopperPrices) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -91,6 +97,7 @@ public class AuthService {
         this.verificationCodeRepository = verificationCodeRepository;
         this.productInterestEventRepository = productInterestEventRepository;
         this.siteEventRepository = siteEventRepository;
+        this.shopperPrices = shopperPrices;
     }
 
     @Transactional
@@ -344,11 +351,16 @@ public class AuthService {
         if (cart == null) {
             cartDto = new CartExportDto(Collections.emptyList(), null, null);
         } else {
+            // Цена — та, что покупатель видит в корзине и на витрине, а не сырое
+            // products.price: увидев в выгрузке другую, он решил бы, что его
+            // обсчитали. У заказов выше — историческая, списанная цена.
+            Map<String, BigDecimal> shown = shopperPrices.shown(
+                    cart.getItems().stream().map(ci -> ci.getProduct()).toList());
             List<CartItemExportDto> cartItems = cart.getItems().stream()
                     .map(ci -> new CartItemExportDto(
                             ci.getProduct().getId(),
                             ci.getProduct().getTitle(),
-                            ci.getProduct().getPrice(),
+                            shown.get(ci.getProduct().getId()),
                             ci.getSize(),
                             ci.getQuantity(),
                             ci.getCreatedAt()))
@@ -356,11 +368,14 @@ public class AuthService {
             cartDto = new CartExportDto(cartItems, cart.getCreatedAt(), cart.getUpdatedAt());
         }
 
-        List<FavoriteExportDto> favorites = favoriteRepository.findByUserId(user.getId()).stream()
+        List<Favorite> favoriteRows = favoriteRepository.findByUserId(user.getId());
+        Map<String, BigDecimal> favoritePrices = shopperPrices.shown(
+                favoriteRows.stream().map(Favorite::getProduct).toList());
+        List<FavoriteExportDto> favorites = favoriteRows.stream()
                 .map(fav -> new FavoriteExportDto(
                         fav.getProduct().getId(),
                         fav.getProduct().getTitle(),
-                        fav.getProduct().getPrice(),
+                        favoritePrices.get(fav.getProduct().getId()),
                         fav.getCreatedAt()))
                 .toList();
 
