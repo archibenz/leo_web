@@ -57,7 +57,10 @@ class SecurityConfigTest {
 
     @Test
     void catalogEndpoint_isAccessibleWithoutAuth() throws Exception {
-        int status = mockMvc.perform(get("/api/catalog/products"))
+        // Живая ручка каталога, а не удалённая /api/catalog/products (25.09):
+        // на несуществующем пути 404 тоже «не 401 и не 403», и проверка
+        // зеленела бы, ничего не проверяя.
+        int status = mockMvc.perform(get("/api/catalog/storefront"))
                 .andReturn().getResponse().getStatus();
         assertNotEquals(401, status, "catalog must not be 401");
         assertNotEquals(403, status, "catalog must not be 403");
