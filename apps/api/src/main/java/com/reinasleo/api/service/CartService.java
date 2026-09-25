@@ -11,14 +11,19 @@ import com.reinasleo.api.exception.OutOfStockException;
 import com.reinasleo.api.model.*;
 import com.reinasleo.api.repository.CartItemRepository;
 import com.reinasleo.api.repository.CartRepository;
+import com.reinasleo.api.repository.MarketplacePriceRepository;
 import com.reinasleo.api.repository.ProductRepository;
+import com.reinasleo.api.service.storefront.MarketplacePriceLookup;
+import com.reinasleo.api.service.storefront.VariantPriceCalculator;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -28,6 +33,11 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
     private final AnalyticsService analyticsService;
+    // Цена строки — та же, что на витрине и в кассе (VariantPriceCalculator по
+    // marketplace_prices), а не сырое products.price. До 25.09 корзина
+    // показывала сырое (lw-8i33).
+    private final MarketplacePriceRepository marketplacePrices;
+    private final VariantPriceCalculator priceCalculator;
     // Proxy reference so addItem can invoke the @Transactional addItemAttempt via
     // the Spring proxy (direct this.addItemAttempt would bypass the interceptor).
     // Non-final so unit tests can substitute the same instance via reflection.
@@ -37,11 +47,15 @@ public class CartService {
                        CartItemRepository cartItemRepository,
                        ProductRepository productRepository,
                        AnalyticsService analyticsService,
+                       MarketplacePriceRepository marketplacePrices,
+                       VariantPriceCalculator priceCalculator,
                        @Lazy CartService self) {
         this.cartRepository = cartRepository;
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
         this.analyticsService = analyticsService;
+        this.marketplacePrices = marketplacePrices;
+        this.priceCalculator = priceCalculator;
         this.self = self;
     }
 
@@ -92,7 +106,7 @@ public class CartService {
         // не продаётся. Отказ стоит здесь, на входе в корзину, потому что
         // AdminProductService.updateStock может поднять остаток варианту без
         // цены — и строка корзины с price == null дошла бы до умножения.
-        if (product.getPrice() == null) {
+        if (shownPrices(List.of(product)).get(product.getId()) == null) {
             throw new BadRequestException("product_not_for_sale");
         }
 
@@ -157,13 +171,28 @@ public class CartService {
         });
     }
 
+    // Что покупатель видит за вариант на витрине: sale, иначе base. null —
+    // цены нет (предзаказ). Один срез marketplace_prices на все товары разом.
+    private Map<String, BigDecimal> shownPrices(List<Product> products) {
+        MarketplacePriceLookup prices = products.isEmpty()
+                ? MarketplacePriceLookup.empty()
+                : MarketplacePriceLookup.from(marketplacePrices.findByProductIdIn(
+                        products.stream().map(Product::getId).distinct().toList()));
+        Map<String, BigDecimal> out = new HashMap<>();
+        for (Product p : products) {
+            out.put(p.getId(), priceCalculator.compute(p, prices).shownPrice());
+        }
+        return out;
+    }
+
     private CartResponse toCartResponse(Cart cart) {
+        Map<String, BigDecimal> shown = shownPrices(cart.getItems().stream().map(CartItem::getProduct).toList());
         List<CartItemResponse> items = cart.getItems().stream()
                 .map(i -> new CartItemResponse(
                         i.getId(),
                         i.getProduct().getId(),
                         i.getProduct().getTitle(),
-                        i.getProduct().getPrice(),
+                        shown.get(i.getProduct().getId()),
                         i.getProduct().getImage(),
                         i.getSize(),
                         i.getQuantity()))
