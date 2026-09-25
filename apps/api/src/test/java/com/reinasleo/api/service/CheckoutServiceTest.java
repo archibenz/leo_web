@@ -20,10 +20,12 @@ import com.reinasleo.api.model.OrderState;
 import com.reinasleo.api.model.Payment;
 import com.reinasleo.api.model.Product;
 import com.reinasleo.api.model.User;
+import com.reinasleo.api.repository.MarketplacePriceRepository;
 import com.reinasleo.api.repository.OrderRepository;
 import com.reinasleo.api.repository.PaymentRepository;
 import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.UserRepository;
+import com.reinasleo.api.service.storefront.VariantPriceCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,6 +57,7 @@ class CheckoutServiceTest {
     @Mock private OrderRepository orderRepository;
     @Mock private PaymentRepository paymentRepository;
     @Mock private UserRepository userRepository;
+    @Mock private MarketplacePriceRepository marketplacePrices;
     @Mock private OrderStateService orderStateService;
     @Mock private YooKassaClient yooKassaClient;
 
@@ -98,7 +101,8 @@ class CheckoutServiceTest {
 
     private CheckoutService newService(YooKassaProperties props) {
         return new CheckoutService(productRepository, orderRepository, paymentRepository,
-                userRepository, orderStateService, yooKassaClient, props);
+                userRepository, marketplacePrices, new VariantPriceCalculator(), orderStateService,
+                yooKassaClient, props);
     }
 
     private static YooKassaPaymentResponse paymentResponse(String status) {

@@ -24,10 +24,13 @@ import com.reinasleo.api.model.OrderState;
 import com.reinasleo.api.model.Payment;
 import com.reinasleo.api.model.Product;
 import com.reinasleo.api.model.User;
+import com.reinasleo.api.repository.MarketplacePriceRepository;
 import com.reinasleo.api.repository.OrderRepository;
 import com.reinasleo.api.repository.PaymentRepository;
 import com.reinasleo.api.repository.ProductRepository;
 import com.reinasleo.api.repository.UserRepository;
+import com.reinasleo.api.service.storefront.MarketplacePriceLookup;
+import com.reinasleo.api.service.storefront.VariantPriceCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -47,6 +50,12 @@ import java.util.UUID;
  * On-site checkout (Phase 2): валидация корзины против products (цена
  * ТОЛЬКО из БД), создание Order через state machine, создание платежа в
  * YooKassa с фискальным чеком 54-ФЗ.
+ *
+ * ЦЕНА — ТА ЖЕ, ЧТО НА ВИТРИНЕ: VariantPriceCalculator по тем же
+ * marketplace_prices, что у StorefrontService (скидка discount_pct, цена
+ * площадки при price_source, порог себестоимости). До 25.09 здесь стояло
+ * сырое products.price — покупатель видел цену со скидкой, а ЮKassa выставила
+ * бы полную (lw-95wh, найдено до включения оплаты).
  *
  * При ошибке YooKassa вся транзакция откатывается (order + stock decrement),
  * а не остаётся в PAYMENT_FAILED: payments.external_payment_id NOT NULL — без
@@ -68,6 +77,8 @@ public class CheckoutService {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
+    private final MarketplacePriceRepository marketplacePrices;
+    private final VariantPriceCalculator priceCalculator;
     private final OrderStateService orderStateService;
     private final YooKassaClient yooKassaClient;
     private final YooKassaProperties properties;
@@ -76,6 +87,8 @@ public class CheckoutService {
                            OrderRepository orderRepository,
                            PaymentRepository paymentRepository,
                            UserRepository userRepository,
+                           MarketplacePriceRepository marketplacePrices,
+                           VariantPriceCalculator priceCalculator,
                            OrderStateService orderStateService,
                            YooKassaClient yooKassaClient,
                            YooKassaProperties properties) {
@@ -83,6 +96,8 @@ public class CheckoutService {
         this.orderRepository = orderRepository;
         this.paymentRepository = paymentRepository;
         this.userRepository = userRepository;
+        this.marketplacePrices = marketplacePrices;
+        this.priceCalculator = priceCalculator;
         this.orderStateService = orderStateService;
         this.yooKassaClient = yooKassaClient;
         this.properties = properties;
@@ -103,8 +118,13 @@ public class CheckoutService {
                 .sorted(Comparator.comparing(CheckoutItemRequest::productId))
                 .toList();
 
+        // Один срез цен площадок на всю корзину — как у витрины на всё построение.
+        MarketplacePriceLookup prices = MarketplacePriceLookup.from(marketplacePrices.findByProductIdIn(
+                sorted.stream().map(CheckoutItemRequest::productId).distinct().toList()));
+
         BigDecimal total = BigDecimal.ZERO;
         List<Product> lockedProducts = new ArrayList<>(sorted.size());
+        List<BigDecimal> unitPrices = new ArrayList<>(sorted.size());
         for (CheckoutItemRequest item : sorted) {
             Product product = productRepository.findByIdForUpdate(item.productId())
                     .filter(Product::isActive)
@@ -112,9 +132,11 @@ public class CheckoutService {
 
             validateSize(product, item.size());
 
-            // Товар без цены — предзаказ: витрина его не продаёт, и чекаут обязан
-            // отказать сам, а не упасть на умножении null.
-            if (product.getPrice() == null) {
+            // Цена покупателя — ровно то, что показывает витрина (sale, иначе
+            // base). Нет цены — предзаказ: витрина его не продаёт, и чекаут
+            // обязан отказать сам, а не упасть на умножении null.
+            BigDecimal unitPrice = priceCalculator.compute(product, prices).shownPrice();
+            if (unitPrice == null) {
                 throw new BadRequestException("product_not_for_sale");
             }
 
@@ -124,17 +146,18 @@ public class CheckoutService {
             product.setStockQuantity(product.getStockQuantity() - item.qty());
             productRepository.save(product);
             lockedProducts.add(product);
+            unitPrices.add(unitPrice);
 
-            // Цена ТОЛЬКО из products — клиентская цена не принимается вообще
+            // Цена ТОЛЬКО с сервера — клиентская цена не принимается вообще
             // (её нет в DTO) и не может быть подменена.
-            total = total.add(product.getPrice().multiply(BigDecimal.valueOf(item.qty())));
+            total = total.add(unitPrice.multiply(BigDecimal.valueOf(item.qty())));
         }
 
         Order order = buildOrder(request, user, total);
         for (int i = 0; i < sorted.size(); i++) {
             CheckoutItemRequest item = sorted.get(i);
             Product product = lockedProducts.get(i);
-            order.getItems().add(new OrderItem(order, product, item.size(), item.qty(), product.getPrice()));
+            order.getItems().add(new OrderItem(order, product, item.size(), item.qty(), unitPrices.get(i)));
         }
         orderRepository.save(order);
         orderStateService.transition(order, OrderState.AWAITING_PAYMENT);
