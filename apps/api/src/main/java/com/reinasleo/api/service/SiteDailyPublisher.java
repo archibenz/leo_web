@@ -8,11 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -52,26 +47,15 @@ public class SiteDailyPublisher {
     static final int MAX_PATH = 500;
     private static final String SOURCE = "site";
 
-    // HTTP/1.1 явно — см. NextRevalidator: HttpClient по умолчанию просит
-    // апгрейд до h2c, и не всякий сервер его переносит.
-    private final HttpClient http = HttpClient.newBuilder()
-            .version(HttpClient.Version.HTTP_1_1)
-            .connectTimeout(Duration.ofSeconds(5))
-            .build();
-
     private final SiteStatsService stats;
-    private final ObjectMapper json;
-    private final String url;
-    private final String secret;
+    private final AnalyticsIngestClient ingest;
 
     public SiteDailyPublisher(SiteStatsService stats,
                               ObjectMapper json,
                               @Value("${app.analytics.ingest-url}") String url,
                               @Value("${app.analytics.ingest-secret}") String secret) {
         this.stats = stats;
-        this.json = json;
-        this.url = url;
-        this.secret = secret;
+        this.ingest = new AnalyticsIngestClient(json, url, secret);
     }
 
     public record Envelope(String key, Map<String, Object> body) {}
@@ -85,7 +69,7 @@ public class SiteDailyPublisher {
     }
 
     public Result publish(LocalDate from, LocalDate to) {
-        if (url == null || url.isBlank() || secret == null || secret.isBlank()) {
+        if (!ingest.enabled()) {
             log.warn("ANALYTICS_INGEST_URL/ANALYTICS_INGEST_SECRET are not set: site daily numbers are not sent to analytics");
             return new Result(false, 0, 0, List.of());
         }
@@ -95,7 +79,7 @@ public class SiteDailyPublisher {
         int sent = 0;
         List<String> failures = new ArrayList<>();
         for (Envelope envelope : envelopes) {
-            String failure = send(envelope);
+            String failure = ingest.send(envelope.key(), envelope.body());
             if (failure == null) sent++;
             else failures.add(envelope.key() + ": " + failure);
         }
@@ -104,27 +88,6 @@ public class SiteDailyPublisher {
                     failures.size(), envelopes.size(), failures);
         }
         return new Result(true, sent, failures.size(), failures);
-    }
-
-    private String send(Envelope envelope) {
-        try {
-            HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-                    .timeout(Duration.ofSeconds(15))
-                    .header("Content-Type", "application/json")
-                    .header("X-Ingest-Secret", secret)
-                    .header("Idempotency-Key", envelope.key())
-                    .POST(HttpRequest.BodyPublishers.ofString(json.writeValueAsString(envelope.body())))
-                    .build();
-            HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() / 100 == 2) return null;
-            String body = response.body() == null ? "" : response.body();
-            return "HTTP " + response.statusCode() + " " + body.substring(0, Math.min(body.length(), 300));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return "interrupted";
-        } catch (Exception e) {
-            return e.toString();
-        }
     }
 
     /**

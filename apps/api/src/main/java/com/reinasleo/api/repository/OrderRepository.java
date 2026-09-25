@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,4 +32,12 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     @EntityGraph(attributePaths = {"user", "items"})
     List<Order> findTop10ByOrderByCreatedAtDesc();
+
+    // Снимки заказов для приёма аналитики (SiteOrderPublisher): позиции и
+    // товары тянутся сразу, чтобы снимок собирался без ленивых догрузок.
+    @EntityGraph(attributePaths = {"items", "items.product"})
+    List<Order> findByIdIn(Collection<UUID> ids);
+
+    @EntityGraph(attributePaths = {"items", "items.product"})
+    List<Order> findByUpdatedAtGreaterThanEqual(Instant since);
 }
