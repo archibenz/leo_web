@@ -97,6 +97,8 @@ public class SecurityConfig {
                         // (Bearer ИЛИ rl_session cookie) в SiteEventController.
                         // Лимитируется в RateLimitFilter.
                         .requestMatchers("/api/events").permitAll()
+                        // Ошибки веба → аналитика (ClientErrorController): sendBeacon без входа, лимит внутри ручки.
+                        .requestMatchers(HttpMethod.POST, "/api/client-errors").permitAll()
                         // YooKassa webhook: без auth — тело не trusted, статус
                         // перепроверяется verify-by-fetch в PaymentWebhookService.
                         .requestMatchers("/api/payments/yookassa/webhook").permitAll()

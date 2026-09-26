@@ -1,16 +1,25 @@
 'use client';
 
+import {useEffect} from 'react';
 import {useTranslations} from 'next-intl';
 import Link from 'next/link';
 import {useParams} from 'next/navigation';
 import {MUTED} from '../wv-palette';
 import WhiteErrorFigure from '../WhiteErrorFigure';
+import {reportClientError} from '../../../lib/clientErrors';
 
 // Render errors inside the storefront keep the chrome and answer in the same
 // voice as the 404 — the diamond figure, one line, two ways out.
 
-export default function WhiteError({reset}: {error: Error & {digest?: string}; reset: () => void}) {
+export default function WhiteError({error, reset}: {error: Error & {digest?: string}; reset: () => void}) {
   const t = useTranslations('white.error');
+
+  // Ошибка рендера у покупателя → аналитика. С digest — это серверная ошибка:
+  // её уже прислал instrumentation.ts (onRequestError), а браузер видит лишь
+  // обезличенное сообщение Next — второй раз её не шлём.
+  useEffect(() => {
+    if (!error.digest) reportClientError('render', error);
+  }, [error]);
   const params = useParams<{locale: string}>();
   const locale = params?.locale ?? 'ru';
 

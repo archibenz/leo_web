@@ -3,6 +3,7 @@
 import {NextIntlClientProvider, type AbstractIntlMessages} from 'next-intl';
 import {useEffect, useState} from 'react';
 import ServerErrorTag from '../components/error/ServerErrorTag';
+import {reportClientError} from '../lib/clientErrors';
 import {defaultLocale} from '../i18n-routing';
 
 interface GlobalErrorProps {
@@ -23,6 +24,8 @@ export default function GlobalError({error, reset}: GlobalErrorProps) {
     if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
       console.error('[GlobalError]', error);
     }
+    // Ошибка → аналитика; серверную (с digest) уже прислал onRequestError.
+    if (!error.digest) reportClientError('render', error);
   }, [error]);
 
   if (!messages) {

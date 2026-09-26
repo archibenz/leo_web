@@ -4,6 +4,7 @@ import {Cormorant_Garamond, Jost, Cormorant} from 'next/font/google';
 import {defaultLocale, locales, type Locale} from '../i18n';
 import {SITE_URL as siteUrl} from '../lib/siteUrl';
 import './globals.css';
+import ClientErrorReporter from '../components/ClientErrorReporter';
 
 const display = Cormorant_Garamond({
   subsets: ['latin', 'cyrillic'],
@@ -120,6 +121,8 @@ export default async function RootLayout({children}: {children: React.ReactNode}
           sets it, so these two utility classes would just fight that default
           and win on every route that isn't (shop) — admin included. */}
       <body className={`${display.variable} ${body.variable} ${accent.variable} font-sans`}>
+        {/* Ошибки браузера → аналитика (lib/clientErrors.ts). */}
+        <ClientErrorReporter />
         {children}
       </body>
     </html>

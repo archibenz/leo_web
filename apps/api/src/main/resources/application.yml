@@ -98,6 +98,13 @@ app:
   analytics:
     ingest-url: ${ANALYTICS_INGEST_URL:}
     ingest-secret: ${ANALYTICS_INGEST_SECRET:}
+  # Ошибки сайта → аналитика (AppErrorCollector, тип app_error). release —
+  # метка сборки (sha), env — prod только на бою: всё прочее аналитика прячет
+  # сразу, тревог от стенда не будет. Не секреты, поэтому с умолчаниями.
+  errors:
+    release: ${APP_RELEASE:unknown}
+    env: ${APP_ENV:dev}
+    flush-ms: ${APP_ERRORS_FLUSH_MS:60000}
 # Пустые фолбэки для shop-id/secret-key — осознанное исключение из правила
 # «секреты без :default»: фича выключена по умолчанию и приложение обязано
 # стартовать без YooKassa credentials. При CHECKOUT_ENABLED=true пустые
