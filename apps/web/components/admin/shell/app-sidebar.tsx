@@ -2,20 +2,11 @@
 
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
-import {useTranslations} from 'next-intl';
 import {cn} from '@/lib/utils';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar';
-import {CustomMenuButton, adminNavGroups} from './app-shared';
+import {Sidebar, SidebarContent, SidebarHeader} from '@/components/ui/sidebar';
+import {MENU} from '@/lib/nav/menu';
+import {CustomMenuButton} from './app-shared';
 import {NavGroup} from './nav-group';
-import {NavEditMode} from './nav-edit-mode';
-import {ChartLine, ExternalLinkIcon} from 'lucide-react';
 
 // Боковая панель по блоку `app-shell-7`. Свёрнутое состояние — до значков
 // (collapsible="icon"), а не до нуля: владелец правит сайт с телефона, и
@@ -24,10 +15,14 @@ import {ChartLine, ExternalLinkIcon} from 'lucide-react';
 // Шапкой стоит наше слово, а не значок Efferd: их логотип из блока удалён
 // вместе с файлом. Ведёт на дашборд — то место, куда владелец возвращается
 // чаще всего.
+//
+// ПУНКТЫ — ИЗ ОБЩЕГО МЕНЮ С АНАЛИТИКОЙ (lib/nav/menu.json, решение владельца
+// 26.09): Свод, WB, Ozon, Сайт, Служебное — одно и то же в админке и в
+// дашборде. Всё прежнее меню админки — раздел «Сайт»; «Правка» — его пункт,
+// «На сайт» — пункт «Служебного». Отдельного подвала с выходами больше нет:
+// обе двери наружу теперь в самом меню.
 export function AppSidebar({locale}: {locale: string}) {
-  const t = useTranslations('admin');
   const pathname = usePathname() || `/${locale}/admin`;
-  const groups = adminNavGroups(locale, t);
 
   return (
     <Sidebar
@@ -80,42 +75,10 @@ export function AppSidebar({locale}: {locale: string}) {
       </SidebarHeader>
 
       <SidebarContent>
-        {groups.map((group) => (
-          <NavGroup key={group.label} {...group} locale={locale} pathname={pathname} />
+        {MENU.map((section) => (
+          <NavGroup key={section.id} section={section} locale={locale} pathname={pathname} />
         ))}
-        {/* Режим правки — последним в списке и НЕ внутри NavGroup: там данные
-            описывают ссылки, а это переключатель. Втиснуть его в тот же список
-            значило бы завести в данных поле «на самом деле не ссылка», и
-            каждый следующий пункт пришлось бы читать с оглядкой на него. */}
-        <NavEditMode />
       </SidebarContent>
-
-      {/* Выходы наружу внизу панели — на витрину и в аналитику. Они обязаны
-          быть видны без раскрытия меню пользователя. */}
-      <SidebarFooter className="gap-0 p-0">
-        <SidebarMenu className="border-t p-2">
-          <SidebarMenuItem>
-            <CustomMenuButton asChild className="text-muted-foreground" size="sm" tooltip={t('toSite')}>
-              <Link href={`/${locale}`}>
-                <ExternalLinkIcon />
-                <span>{t('toSite')}</span>
-              </Link>
-            </CustomMenuButton>
-          </SidebarMenuItem>
-          {/* Вторая дверь наружу — в дашборд аналитики (/analytics того же
-              домена), пара к его кнопке «← На сайт». Обычная <a>, не Link:
-              это другое приложение, клиентский переход Next туда не ведёт.
-              Без локали — своих языков у дашборда нет. */}
-          <SidebarMenuItem>
-            <CustomMenuButton asChild className="text-muted-foreground" size="sm" tooltip={t('toAnalytics')}>
-              <a href="/analytics">
-                <ChartLine />
-                <span>{t('toAnalytics')}</span>
-              </a>
-            </CustomMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
     </Sidebar>
   );
 }

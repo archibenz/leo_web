@@ -89,6 +89,9 @@ const SITE_PATHS = [
 // кнопка не пряталась за узостью проверки.
 test.describe('админка — мобильная навигация сворачивается (task-admin-white-brief.md, п.1)', () => {
   const ТУМБЛЕР = 'Свернуть навигацию';
+  // С 26.09 меню общее с аналитикой: «Товары» есть и у WB, и у сайта. Товары
+  // сайта — по адресу, иначе строгий режим Playwright не знает, какую взять.
+  const SITE_PRODUCTS = 'a[href="/ru/admin/products"]';
 
   test('390px: заголовок дашборда виден без прокрутки, панель свёрнута и разворачивается по нажатию', async ({page}) => {
     await page.setViewportSize({width: 390, height: 844});
@@ -102,14 +105,14 @@ test.describe('админка — мобильная навигация свор
     expect(box?.y ?? Infinity, 'заголовок дашборда должен попадать в первый экран 390×844').toBeLessThan(844);
 
     // Панель свёрнута — пункт «Товары» на экране не найти.
-    await expect(page.getByRole('link', {name: 'Товары', exact: true})).toHaveCount(0);
+    await expect(page.locator(SITE_PRODUCTS)).toHaveCount(0);
 
     await page.getByRole('button', {name: ТУМБЛЕР, exact: true}).click();
-    await expect(page.getByRole('link', {name: 'Товары', exact: true})).toBeVisible();
+    await expect(page.locator(SITE_PRODUCTS)).toBeVisible();
 
     // И убирается обратно: панель выдвижная, закрывается Esc.
     await page.keyboard.press('Escape');
-    await expect(page.getByRole('link', {name: 'Товары', exact: true})).toBeHidden();
+    await expect(page.locator(SITE_PRODUCTS)).toBeHidden();
   });
 
   test('зоны нажатия в оболочке — не меньше 44px, и это про ВСЕ её кнопки', async ({page}) => {
@@ -143,7 +146,7 @@ test.describe('админка — мобильная навигация свор
 
     // Потом сама навигация.
     await page.getByRole('button', {name: ТУМБЛЕР, exact: true}).click();
-    const productsLink = page.getByRole('link', {name: 'Товары', exact: true});
+    const productsLink = page.locator(SITE_PRODUCTS);
     await expect(productsLink).toBeVisible();
     const linkBox = await productsLink.boundingBox();
     expect(linkBox?.height ?? 0).toBeGreaterThanOrEqual(44);
@@ -158,7 +161,7 @@ test.describe('админка — мобильная навигация свор
     await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
 
     await page.getByRole('button', {name: ТУМБЛЕР, exact: true}).click();
-    await page.getByRole('link', {name: 'Товары', exact: true}).click();
+    await page.locator(SITE_PRODUCTS).click();
     await expect(page).toHaveURL(/\/ru\/admin\/products/);
   });
 
@@ -171,7 +174,7 @@ test.describe('админка — мобильная навигация свор
     // Пункт навигации виден сразу, без клика. Утверждения «тумблера нет» тут
     // больше нет: в нынешней оболочке он остаётся и на десктопе — сворачивает
     // колонку до значков. Это её устройство, а не недосмотр.
-    await expect(page.getByRole('link', {name: 'Товары', exact: true})).toBeVisible();
+    await expect(page.locator(SITE_PRODUCTS)).toBeVisible();
   });
 });
 
