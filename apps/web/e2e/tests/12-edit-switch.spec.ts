@@ -193,8 +193,10 @@ test('«Закончить правку» снимает куку — следу
 
   await page.getByRole('link', {name: 'Закончить правку'}).click();
 
-  const cookiesAfter = await page.context().cookies();
-  expect(cookiesAfter.find((c) => c.name === 'rl_edit')).toBeUndefined();
+  // Ожиданием, как в случае на 390 px ниже: кука снимается переходом по
+  // ссылке, а разовый снимок сразу после клика иногда опережал его — тест
+  // падал примерно раз на пять холодных прогонов (26.09).
+  await expect.poll(async () => (await page.context().cookies()).find((c) => c.name === 'rl_edit')).toBeUndefined();
 
   await open(page, HOME);
   await assertNoEditSurface(page);

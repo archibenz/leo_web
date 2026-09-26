@@ -76,8 +76,12 @@ export default function WhiteHeader({locale, left, right, activeCat}: {locale: s
           className="flex min-h-11 shrink-0 items-center"
           aria-label="REINASLEO"
         >
-          {/* The brand mark — the name with the diamond set in the O. */}
-          <Image src="/logos/name-mark-black.svg" alt="REINASLEO" width={1038} height={174} priority className="h-[19px] w-auto sm:h-[23px]" />
+          {/* The brand mark — the name with the diamond set in the O.
+              eager, не priority: priority ставит preload на каждой странице,
+              и на части из них браузер ругался «preloaded but not used»
+              (вычистка 26.09). Знак — крошечный SVG, не LCP; грузится сразу
+              и без предзагрузки. */}
+          <Image src="/logos/name-mark-black.svg" alt="REINASLEO" width={1038} height={174} loading="eager" className="h-[19px] w-auto sm:h-[23px]" />
         </Link>
         <div className="flex flex-1 items-center justify-end">{right}</div>
       </div>

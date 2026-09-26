@@ -101,12 +101,40 @@ export function SiteVisits() {
   }
 
   if (!days || !totals) {
+    // Заглушка ТОЙ ЖЕ ФОРМЫ, что готовая карточка: шесть показателей, строка
+    // итога, место под график с тем же соотношением сторон и две панели снизу.
+    // Прежде здесь стоял лоадер в маленькой панели; карточка грузится отдельно
+    // от дашборда и, вырастая до ~900 px, толкала всё ниже — CLS 0,145 на
+    // каждой ширине (вычистка 26.09).
     return (
-      <Panel title={title}>
-        <div className="flex items-center justify-center py-10">
-          <BrandLoader size={24} />
+      <div aria-busy="true" className="*:mb-6 last:*:mb-0">
+        <Panel title={title}>
+          <div className="space-y-6">
+            <StatGrid>
+              <Stat label={t('dashboardPage.visitsPageViews')} value="—" />
+              <Stat delta={t('dashboardPage.visitsSessionsNote')} label={t('dashboardPage.visitsSessions')} value="—" />
+              <Stat label={t('dashboardPage.visitsProductViews')} value="—" />
+              <Stat label={t('dashboardPage.visitsMarketplaceClicks')} value="—" />
+              <Stat label={t('dashboardPage.visitsAddToCart')} value="—" />
+              <Stat label={t('dashboardPage.visitsAddToFavourite')} value="—" />
+            </StatGrid>
+            <div className="space-y-3">
+              <div className="flex h-[18px] items-center justify-center">
+                <BrandLoader size={16} />
+              </div>
+              <div className="aspect-[16/7] w-full" />
+            </div>
+          </div>
+        </Panel>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Panel title={t('dashboardPage.visitsByDevice')}>
+            <div className="h-9" />
+          </Panel>
+          <Panel title={t('dashboardPage.visitsTopPages')}>
+            <div className="h-9" />
+          </Panel>
         </div>
-      </Panel>
+      </div>
     );
   }
 

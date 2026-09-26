@@ -5,7 +5,7 @@ import {useTranslations} from 'next-intl';
 import {usePathname, useRouter} from 'next/navigation';
 import {apiFetch} from '../../lib/api';
 import ImageUpload from './ImageUpload';
-import {CARE_SYMBOL_KEYS, CareSymbol} from '../CareSymbols';
+import {CARE_SYMBOL_KEYS, CareSymbol, getSymbolLabel} from '../CareSymbols';
 import {Input} from '../ui/input';
 import {Textarea} from '../ui/textarea';
 import {Switch} from '../ui/switch';
@@ -211,7 +211,7 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
                 className="min-h-11"
                 id="product-id"
                 onChange={e => setForm(prev => ({...prev, id: e.target.value}))}
-                placeholder="e.g. silk-evening-gown"
+                placeholder={t('idPlaceholder')}
                 required
                 value={form.id}
               />
@@ -239,7 +239,7 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
                 className="min-h-11"
                 id="product-subtitle"
                 onChange={e => setForm(prev => ({...prev, subtitle: e.target.value}))}
-                placeholder="e.g. Evening · Silk"
+                placeholder={t('subtitlePlaceholder')}
                 value={form.subtitle}
               />
             </FormField>
@@ -430,7 +430,7 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
                 >
                   <CareSymbol locale={locale} size={24} symbolKey={key} />
                   <span className="text-center text-[8px] leading-tight text-muted-foreground">
-                    {key.replace(/_/g, ' ')}
+                    {getSymbolLabel(key, locale)}
                   </span>
                 </button>
               );

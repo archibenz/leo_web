@@ -71,6 +71,8 @@ const FILES: ReadonlyArray<string> = [
   'components/admin/AdminGuard.tsx',
   'components/admin/ImageUpload.tsx',
   'components/admin/DesktopOnlyStub.tsx',
+  // Знаки ухода рисуются в форме ухода и товара и в списке ухода.
+  'components/CareSymbols.tsx',
   'components/Toaster.tsx',
   // Экран загрузки раздела (admin/loading.tsx) — рисуется поверх админки.
   'app/[locale]/(admin)/admin/loading.tsx',
@@ -127,6 +129,10 @@ describe('админка не красится старой тёмной тем�
 // Комментарии вырезаются: они законно поминают прежние hex, объясняя, что
 // было. Сторожим разметку, а не историю.
 const RAW_COLOUR: ReadonlyArray<{name: string; pattern: RegExp}> = [
+  // Классы старой палитры Tailwind (ink/paper/accent заданы жёстким hex в
+  // tailwind.config.ts): text-ink/60 красил знаки ухода кремовым, и в светлой
+  // админке их было почти не видно — сторож на var(--ink) этого не ловил.
+  {name: 'класс старой палитры (ink/paper)', pattern: /\b(?:text|bg|border|fill|stroke|ring|from|to|via|divide)-(?:ink|paper)(?:-[a-z]+)?(?:\/\d+)?\b/},
   {name: 'сырой hex', pattern: /#[0-9a-fA-F]{3,8}\b/},
   {name: 'rgb()/rgba()', pattern: /\brgba?\(/},
   {

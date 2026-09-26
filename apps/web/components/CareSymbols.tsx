@@ -165,11 +165,13 @@ export function CareSymbol({ symbolKey, locale = 'ru', size = 32, showLabel = fa
   if (!sym) return null;
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="text-ink/60" style={{ width: size, height: size }}>
+      {/* Цвет — токены, не text-ink (кремовые «чернила» старой тёмной темы):
+          в светлой админке знаки было почти не видно (вычистка 26.09). */}
+      <div className="text-foreground/70" style={{ width: size, height: size }}>
         {sym.icon}
       </div>
       {showLabel && (
-        <span className="text-[10px] text-ink/55 text-center leading-tight max-w-[80px]">
+        <span className="text-[10px] text-muted-foreground text-center leading-tight max-w-[80px]">
           {locale === 'ru' ? sym.label.ru : sym.label.en}
         </span>
       )}

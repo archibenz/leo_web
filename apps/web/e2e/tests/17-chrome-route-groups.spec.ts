@@ -107,7 +107,7 @@ test.describe('оболочки по группам маршрутов — пе�
     await mockDashboardApi(page);
 
     await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
-    await expect(page.getByRole('heading', {level: 1, name: 'Дашборд'})).toBeVisible();
+    await expect(page.getByRole('heading', {level: 1, name: 'Посещения'})).toBeVisible();
 
     // Клиентский переход — предмет проверки, не page.goto.
     //
@@ -175,7 +175,7 @@ test.describe('оболочки по группам маршрутов — пе�
     // brief.md про AdminPanelLink.tsx не говорит), см. отчёт.
     await page.locator('a[href="/ru/admin"]').click();
     await page.waitForURL(/\/ru\/admin$/);
-    await expect(page.getByRole('heading', {level: 1, name: 'Дашборд'})).toBeVisible();
+    await expect(page.getByRole('heading', {level: 1, name: 'Посещения'})).toBeVisible();
 
     // Оболочки витрины на экране нет — это и есть предмет проверки.
     await expect(page.locator('.wv-root')).toHaveCount(0);

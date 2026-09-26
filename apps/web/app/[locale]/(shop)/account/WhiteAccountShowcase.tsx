@@ -167,7 +167,11 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
         <div className="relative mx-auto w-full max-w-[420px]">
           <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('eyebrow')}</p>
 
-          {!ready ? null : user ? (
+          {/* Пока вход не выяснен — место под форму, а не пустота. Прежде тут
+              стоял null: форма появлялась через долю секунды и дважды
+              сдвигала подвал — CLS 1,16 на телефоне (вычистка 26.09). 600 px —
+              замеренная высота формы входа на 390/768/1440 (596–607). */}
+          {!ready ? <div aria-hidden="true" className="min-h-[600px]" /> : user ? (
             <div className="wv-rise">
               <h1 className="font-display text-[clamp(38px,calc(3vw_+_26px),56px)] font-light leading-[1] tracking-[-0.01em]">
                 {t('hello')} {user.name}
