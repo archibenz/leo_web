@@ -70,6 +70,7 @@ const FILES: ReadonlyArray<string> = [
   'components/admin/CareGuideForm.tsx',
   'components/admin/AdminGuard.tsx',
   'components/admin/ImageUpload.tsx',
+  'components/admin/DesktopOnlyStub.tsx',
   'components/Toaster.tsx',
   // Экран загрузки раздела (admin/loading.tsx) — рисуется поверх админки.
   'app/[locale]/(admin)/admin/loading.tsx',

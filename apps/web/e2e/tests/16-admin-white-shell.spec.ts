@@ -87,83 +87,15 @@ const SITE_PATHS = [
 // Поэтому ниже ДВА разных утверждения: про сам тумблер — точечное, про порог
 // 44 px — по ВСЕМ видимым управляющим элементам оболочки, чтобы третья такая
 // кнопка не пряталась за узостью проверки.
-test.describe('админка — мобильная навигация сворачивается (task-admin-white-brief.md, п.1)', () => {
-  const ТУМБЛЕР = 'Свернуть навигацию';
+test.describe('админка — навигация (task-admin-white-brief.md, п.1)', () => {
   // С 26.09 меню общее с аналитикой: «Товары» есть и у WB, и у сайта. Товары
   // сайта — по адресу, иначе строгий режим Playwright не знает, какую взять.
   const SITE_PRODUCTS = 'a[href="/ru/admin/products"]';
 
-  test('390px: заголовок дашборда виден без прокрутки, панель свёрнута и разворачивается по нажатию', async ({page}) => {
-    await page.setViewportSize({width: 390, height: 844});
-    await asOwner(page);
-    await mockDashboardApi(page);
-    await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
-
-    const heading = page.getByRole('heading', {level: 1, name: 'Дашборд'});
-    await expect(heading).toBeVisible();
-    const box = await heading.boundingBox();
-    expect(box?.y ?? Infinity, 'заголовок дашборда должен попадать в первый экран 390×844').toBeLessThan(844);
-
-    // Панель свёрнута — пункт «Товары» на экране не найти.
-    await expect(page.locator(SITE_PRODUCTS)).toHaveCount(0);
-
-    await page.getByRole('button', {name: ТУМБЛЕР, exact: true}).click();
-    await expect(page.locator(SITE_PRODUCTS)).toBeVisible();
-
-    // И убирается обратно: панель выдвижная, закрывается Esc.
-    await page.keyboard.press('Escape');
-    await expect(page.locator(SITE_PRODUCTS)).toBeHidden();
-  });
-
-  test('зоны нажатия в оболочке — не меньше 44px, и это про ВСЕ её кнопки', async ({page}) => {
-    await page.setViewportSize({width: 390, height: 844});
-    await asOwner(page);
-    await mockDashboardApi(page);
-    await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
-
-    // Ждём ПОСЛЕДСТВИЯ, а не времени: оболочка админки монтируется на клиенте
-    // после того, как AuthProvider сходит за ролью, и обход по <header> до
-    // этого момента находит пустоту. Первая же попытка так и сделала — и
-    // сообщила «шапки нет вовсе» вместо тихого зелёного: ради этого в обходе
-    // и стоит отдельная ветка на отсутствие шапки.
-    await expect(page.getByRole('button', {name: ТУМБЛЕР, exact: true})).toBeVisible();
-
-    // Сначала шапка: тумблер и всё, что рядом с ним. Проверка по всем видимым
-    // кнопкам, а не по одной названной — кнопка в 32 px приехала сюда именно
-    // потому, что её никто не называл поимённо.
-    const мелкие = await page.evaluate(() => {
-      const header = document.querySelector('header');
-      if (!header) return ['шапки нет вовсе'];
-      return Array.from(header.querySelectorAll('button, a[href]')).flatMap((el) => {
-        const r = el.getBoundingClientRect();
-        if (r.width === 0 || r.height === 0) return [];
-        if (r.height >= 44) return [];
-        const имя = (el.getAttribute('aria-label') || (el as HTMLElement).innerText || '').trim().slice(0, 40);
-        return [`${имя || el.tagName.toLowerCase()} — ${Math.round(r.height)}px`];
-      });
-    });
-    expect(мелкие, 'владелец правит с телефона: промах по кнопке он читает как «не работает»').toEqual([]);
-
-    // Потом сама навигация.
-    await page.getByRole('button', {name: ТУМБЛЕР, exact: true}).click();
-    const productsLink = page.locator(SITE_PRODUCTS);
-    await expect(productsLink).toBeVisible();
-    const linkBox = await productsLink.boundingBox();
-    expect(linkBox?.height ?? 0).toBeGreaterThanOrEqual(44);
-  });
-
-  test('навигация по разделу действительно переходит — клик по "Товары" меняет адрес', async ({page}) => {
-    await page.setViewportSize({width: 390, height: 844});
-    await asOwner(page);
-    await mockDashboardApi(page);
-    await page.route('**/api/admin/products', (route) =>
-      route.fulfill({status: 200, contentType: 'application/json', body: '[]'}));
-    await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
-
-    await page.getByRole('button', {name: ТУМБЛЕР, exact: true}).click();
-    await page.locator(SITE_PRODUCTS).click();
-    await expect(page).toHaveURL(/\/ru\/admin\/products/);
-  });
+  // Три случая про шторку на телефоне (390px) сняты 26.09: админка теперь
+  // только для ПК, уже 1024 px вместо неё заглушка — её сторожит
+  // 24-admin-desktop-only.spec.ts. Проверять навигацию, которой владелец на
+  // телефоне больше не увидит, — значит держать зелёным то, чего нет.
 
   test('на десктопе список разделов открыт постоянной колонкой', async ({page}) => {
     await page.setViewportSize({width: 1440, height: 900});
@@ -244,8 +176,10 @@ test.describe('админка — язык витрины, не градиент
 });
 
 test.describe('админка — карточка посещений сайта', () => {
-  test('390px: итоги видны, длинный адрес страницы не распирает экран вбок', async ({page}) => {
-    await page.setViewportSize({width: 390, height: 844});
+  // Была 390px; с 26.09 админка только для ПК, и самая узкая её ширина —
+  // 1024. Сторож тот же: длинный адрес не уезжает за край карточки.
+  test('1024px: итоги видны, длинный адрес страницы не вылезает за карточку', async ({page}) => {
+    await page.setViewportSize({width: 1024, height: 768});
     await asOwner(page);
     await mockDashboardApi(page);
     await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
@@ -263,7 +197,9 @@ test.describe('админка — карточка посещений сайта
     // вместе с числом просмотров уедет под край карточки. Проверено мутацией:
     // без truncate в ShareList краснеет эта строка, а прокрутка молчит.
     const box = await longPath.boundingBox();
-    expect((box?.x ?? 0) + (box?.width ?? Infinity), 'адрес страницы должен помещаться в экран 390px').toBeLessThanOrEqual(390);
+    const cardBox = await card.boundingBox();
+    expect((box?.x ?? 0) + (box?.width ?? Infinity), 'адрес страницы должен помещаться в карточку')
+      .toBeLessThanOrEqual((cardBox?.x ?? 0) + (cardBox?.width ?? 0));
   });
 
   test('ручка посещений упала — остальной дашборд на месте', async ({page}) => {

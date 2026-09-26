@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 import {AuthProvider} from '../../../contexts';
 import Toaster from '../../../components/Toaster';
 import AdminLayout from '../../../components/admin/AdminLayout';
+import DesktopOnlyStub from '../../../components/admin/DesktopOnlyStub';
 
 // Админке нужны ровно два общих механизма: кто вошёл (AuthProvider) и куда
 // показывать сообщения (Toaster, им пользуется тот же AuthProvider, когда
@@ -34,13 +35,20 @@ import AdminLayout from '../../../components/admin/AdminLayout';
 // клиентской оболочке: так она есть уже в первом HTML, и пока AdminGuard
 // проверяет вход, экран не мигает белым. `contents` — обёртка не рисует
 // своего бокса и раскладку не трогает.
+//
+// ТОЛЬКО ПК (владелец 26.09): уже 1024 px вместо панели — заглушка с выходами
+// на сайт и в бота (DesktopOnlyStub), панель скрыта CSS до lg. Скрыта, но
+// смонтирована: так нет вспышки и не нужен JS, решающий ширину.
 export default function AdminRouteLayout({children}: {children: ReactNode}) {
   return (
     <div data-admin-shell="" className="contents">
-      <AuthProvider>
-        <AdminLayout>{children}</AdminLayout>
-        <Toaster />
-      </AuthProvider>
+      <DesktopOnlyStub />
+      <div data-admin-desktop="" className="hidden lg:contents">
+        <AuthProvider>
+          <AdminLayout>{children}</AdminLayout>
+          <Toaster />
+        </AuthProvider>
+      </div>
     </div>
   );
 }
