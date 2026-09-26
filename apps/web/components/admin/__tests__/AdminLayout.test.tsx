@@ -64,6 +64,11 @@ function setViewport(width: number) {
 const PHONE = 390;
 const DESKTOP = 1440;
 
+// Пункты — из общего меню с аналитикой (lib/nav/menu.json), подписи там
+// русские, а «Товары» есть и у WB, и у сайта. Поэтому ищем пункт по АДРЕСУ,
+// а не по подписи: адрес у каждого свой.
+const link = (href: string) => document.querySelector(`a[href="${href}"]`);
+
 beforeEach(() => {
   document.cookie = 'sidebar:state=; Path=/; Max-Age=0';
 });
@@ -88,10 +93,9 @@ describe('оболочка админки на телефоне — первым
       </AdminLayout>,
     );
 
-    // Ключи словаря, а не подписи: next-intl здесь подменён на «верни ключ».
-    expect(screen.queryByText('products')).toBeNull();
-    expect(screen.queryByText('inventory')).toBeNull();
-    expect(screen.queryByText('homepage')).toBeNull();
+    expect(link('/ru/admin/products')).toBeNull();
+    expect(link('/ru/admin/inventory')).toBeNull();
+    expect(screen.queryByText('Витрина')).toBeNull();
   });
 
   it('нажатие на кнопку выводит разделы', async () => {
@@ -105,8 +109,8 @@ describe('оболочка админки на телефоне — первым
 
     await user.click(screen.getByRole('button', {name: 'toggleNav'}));
 
-    expect(await screen.findByText('products')).toBeInTheDocument();
-    expect(screen.getByText('homepage')).toBeInTheDocument();
+    expect(await screen.findByText('Витрина')).toBeInTheDocument();
+    expect(link('/ru/admin/products')).not.toBeNull();
   });
 });
 
@@ -119,10 +123,10 @@ describe('оболочка админки на мониторе', () => {
       </AdminLayout>,
     );
 
-    expect(screen.getByText('products')).toBeInTheDocument();
-    expect(screen.getByText('inventory')).toBeInTheDocument();
+    expect(link('/ru/admin/products')).not.toBeNull();
+    expect(link('/ru/admin/inventory')).not.toBeNull();
     // «Коллекций» в меню нет (24.09): сайт их не читает, ими управляет бот.
-    expect(screen.queryByText('collections')).toBeNull();
+    expect(link('/ru/admin/collections')).toBeNull();
   });
 });
 
@@ -154,10 +158,11 @@ describe('телефон владельца — кнопка навигации'
   });
 });
 
-// Пара к кнопке «← На сайт» в дашборде аналитики: из админки туда — внизу
-// панели, рядом с «На сайт», без раскрытия меню пользователя.
-describe('выходы наружу внизу панели', () => {
-  it('рядом с «На сайт» стоит «Аналитика», и ведёт она на /analytics', () => {
+// Общее меню с аналитикой (решение владельца 26.09, «А»): админка — раздел
+// «Сайт», рядом разделы аналитики. Прежние двери в подвале («На сайт»,
+// «Аналитика») ушли в само меню.
+describe('общее меню с аналитикой', () => {
+  it('разделы аналитики ведут в /analytics, а «На сайт» — на витрину своей локали', () => {
     setViewport(DESKTOP);
     render(
       <AdminLayout>
@@ -165,7 +170,24 @@ describe('выходы наружу внизу панели', () => {
       </AdminLayout>,
     );
 
-    expect(screen.getByRole('link', {name: 'toSite'})).toHaveAttribute('href', '/ru');
-    expect(screen.getByRole('link', {name: 'toAnalytics'})).toHaveAttribute('href', '/analytics');
+    expect(screen.getByRole('link', {name: 'Свод'})).toHaveAttribute('href', '/analytics');
+    expect(screen.getByRole('link', {name: 'На сайт'})).toHaveAttribute('href', '/ru');
+    expect(screen.queryByRole('link', {name: 'toAnalytics'})).toBeNull();
+  });
+
+  it('текущим отмечен только свой пункт: «Посещения» на /ru/admin, «Свод» — нет', () => {
+    setViewport(DESKTOP);
+    render(
+      <AdminLayout>
+        <h1>содержимое раздела</h1>
+      </AdminLayout>,
+    );
+
+    // По имени, а не по адресу: на /ru/admin ведёт ещё и марка в шапке панели.
+    // Ищем среди настоящих <a>: хлебная крошка в шапке тоже «ссылка» с этим
+    // именем (span role=link), а отметку несёт пункт панели.
+    const visits = screen.getAllByRole('link', {name: 'Посещения'}).find((el) => el.tagName === 'A');
+    expect(visits).toHaveAttribute('data-active', 'true');
+    expect(screen.getByRole('link', {name: 'Свод'})).not.toHaveAttribute('data-active', 'true');
   });
 });

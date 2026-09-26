@@ -1,0 +1,692 @@
+{
+  "$comment": "Общее боковое меню админки сайта и аналитики (решение владельца 26.09.2026, «А»: «общий свод по продажам, а потом в боковом меню будет озон, вб и сайт»). Источник — здесь (leo_analytics), у leo_web копия и тест «копия == источник». Адреса абсолютные: аналитика — /analytics/…, сайт — шаблон /{locale}/… (приложение подставляет свою локаль; из аналитики — ru). app — в каком приложении живёт пункт: своё приложение ведёт роутером, чужое — обычной ссылкой. kind=action — не ссылка (переключатель правки витрины), рисует только сайт. roles: section:<код> — раздел прав аналитики; admin — админ сайта.",
+  "sections": [
+    {
+      "id": "summary",
+      "title": {
+        "ru": ""
+      },
+      "items": [
+        {
+          "id": "summary-home",
+          "title": {
+            "ru": "Свод"
+          },
+          "icon": "layout-dashboard",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics",
+          "match": "exact",
+          "roles": [
+            "section:dashboard"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wb",
+      "title": {
+        "ru": "WB"
+      },
+      "items": [
+        {
+          "id": "wb-dashboard",
+          "title": {
+            "ru": "Дашборд WB"
+          },
+          "icon": "layout-dashboard",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/wb",
+          "match": "exact",
+          "roles": [
+            "section:dashboard"
+          ]
+        },
+        {
+          "id": "wb-finance",
+          "title": {
+            "ru": "Финансы"
+          },
+          "icon": "wallet",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/finance",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ],
+          "children": [
+            {
+              "id": "wb-finance-summary",
+              "title": {
+                "ru": "Сводка / P&L"
+              },
+              "icon": "wallet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/finance",
+              "match": "exact",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "wb-finance-cashflow",
+              "title": {
+                "ru": "ДДС"
+              },
+              "icon": "wallet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/finance/cashflow",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "wb-finance-ads",
+              "title": {
+                "ru": "Реклама"
+              },
+              "icon": "wallet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/finance/ads",
+              "match": "prefix",
+              "roles": [
+                "section:ads"
+              ]
+            },
+            {
+              "id": "wb-finance-unit",
+              "title": {
+                "ru": "Юнит-экономика"
+              },
+              "icon": "wallet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/finance/unit",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "wb-finance-returns",
+              "title": {
+                "ru": "Невыкуп"
+              },
+              "icon": "wallet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/finance/returns",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "wb-finance-expenses",
+              "title": {
+                "ru": "Расходы"
+              },
+              "icon": "wallet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/finance/expenses",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "wb-finance-funnel",
+              "title": {
+                "ru": "Воронка (финблок)"
+              },
+              "icon": "wallet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/finance/funnel",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "wb-products",
+          "title": {
+            "ru": "Товары"
+          },
+          "icon": "package",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/products",
+          "match": "prefix",
+          "roles": [
+            "section:products"
+          ]
+        },
+        {
+          "id": "wb-funnel",
+          "title": {
+            "ru": "Воронка"
+          },
+          "icon": "filter",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/funnel",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ]
+        },
+        {
+          "id": "wb-sizes",
+          "title": {
+            "ru": "Размеры"
+          },
+          "icon": "ruler",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/sizes",
+          "match": "prefix",
+          "roles": [
+            "section:products"
+          ]
+        },
+        {
+          "id": "wb-season",
+          "title": {
+            "ru": "Поставки к сезону"
+          },
+          "icon": "calendar-range",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/finance/season",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ]
+        },
+        {
+          "id": "wb-checklist",
+          "title": {
+            "ru": "Чек-лист"
+          },
+          "icon": "list-checks",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/finance/checklist",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ]
+        },
+        {
+          "id": "wb-experiments",
+          "title": {
+            "ru": "Эксперименты с фото"
+          },
+          "icon": "flask-conical",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/finance/experiments",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ]
+        },
+        {
+          "id": "wb-competitors",
+          "title": {
+            "ru": "Конкуренты"
+          },
+          "icon": "flag",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/competitors",
+          "match": "prefix",
+          "roles": [
+            "section:competitors"
+          ]
+        },
+        {
+          "id": "wb-books",
+          "title": {
+            "ru": "Книги WB"
+          },
+          "icon": "sheet",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/books/rnp",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ],
+          "children": [
+            {
+              "id": "wb-book-rnp",
+              "title": {
+                "ru": "РНП WB"
+              },
+              "icon": "sheet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/books/rnp",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "wb-book-losses",
+              "title": {
+                "ru": "Потери со складов"
+              },
+              "icon": "sheet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/books/losses",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "wb-book-unitka",
+              "title": {
+                "ru": "Юнитка WB"
+              },
+              "icon": "sheet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/books/wb-control/unitka",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "wb-book-unitka-manager",
+              "title": {
+                "ru": "Юнитка WB · менеджер"
+              },
+              "icon": "sheet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/books/wb-unitka",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "wb-book-cd",
+              "title": {
+                "ru": "P&L и ДДС · C&D"
+              },
+              "icon": "sheet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/books/wb-control-fin",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "wb-book-warehouses",
+              "title": {
+                "ru": "Склады WB"
+              },
+              "icon": "sheet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/books/wb-sklady",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "wb-book-health",
+              "title": {
+                "ru": "Data Health WB"
+              },
+              "icon": "sheet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/books/wb-dannye",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ozon",
+      "title": {
+        "ru": "Ozon"
+      },
+      "items": [
+        {
+          "id": "ozon-books",
+          "title": {
+            "ru": "Книги Ozon"
+          },
+          "icon": "sheet",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/books/ozon-dannye",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ],
+          "children": [
+            {
+              "id": "ozon-book-data",
+              "title": {
+                "ru": "OZON — Данные"
+              },
+              "icon": "sheet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/books/ozon-dannye",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "ozon-book-unitka",
+              "title": {
+                "ru": "Юнитка OZON"
+              },
+              "icon": "sheet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/books/ozon-unitka",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "ozon-book-warehouses",
+              "title": {
+                "ru": "Склады OZON"
+              },
+              "icon": "sheet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/books/ozon-sklady",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "ozon-book-rnp",
+              "title": {
+                "ru": "РНП OZON"
+              },
+              "icon": "sheet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/books/ozon-rnp",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "site",
+      "title": {
+        "ru": "Сайт"
+      },
+      "items": [
+        {
+          "id": "site-visits",
+          "title": {
+            "ru": "Посещения"
+          },
+          "icon": "chart-line",
+          "app": "site",
+          "kind": "link",
+          "path": "/{locale}/admin",
+          "match": "exact",
+          "roles": [
+            "admin"
+          ]
+        },
+        {
+          "id": "site-products",
+          "title": {
+            "ru": "Товары"
+          },
+          "icon": "package",
+          "app": "site",
+          "kind": "link",
+          "path": "/{locale}/admin/products",
+          "match": "prefix",
+          "roles": [
+            "admin"
+          ]
+        },
+        {
+          "id": "site-inventory",
+          "title": {
+            "ru": "Склад"
+          },
+          "icon": "warehouse",
+          "app": "site",
+          "kind": "link",
+          "path": "/{locale}/admin/inventory",
+          "match": "prefix",
+          "roles": [
+            "admin"
+          ]
+        },
+        {
+          "id": "site-storefront",
+          "title": {
+            "ru": "Витрина"
+          },
+          "icon": "store",
+          "app": "site",
+          "kind": "link",
+          "path": "/{locale}/admin/homepage",
+          "match": "prefix",
+          "roles": [
+            "admin"
+          ],
+          "children": [
+            {
+              "id": "site-homepage",
+              "title": {
+                "ru": "Главная"
+              },
+              "icon": "store",
+              "app": "site",
+              "kind": "link",
+              "path": "/{locale}/admin/homepage",
+              "match": "prefix",
+              "roles": [
+                "admin"
+              ]
+            },
+            {
+              "id": "site-care",
+              "title": {
+                "ru": "Уход"
+              },
+              "icon": "store",
+              "app": "site",
+              "kind": "link",
+              "path": "/{locale}/admin/care",
+              "match": "prefix",
+              "roles": [
+                "admin"
+              ]
+            },
+            {
+              "id": "site-texts",
+              "title": {
+                "ru": "Тексты"
+              },
+              "icon": "store",
+              "app": "site",
+              "kind": "link",
+              "path": "/{locale}/admin/texts",
+              "match": "prefix",
+              "roles": [
+                "admin"
+              ]
+            },
+            {
+              "id": "site-socials",
+              "title": {
+                "ru": "Соцсети"
+              },
+              "icon": "store",
+              "app": "site",
+              "kind": "link",
+              "path": "/{locale}/admin/socials",
+              "match": "prefix",
+              "roles": [
+                "admin"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "site-edit",
+          "title": {
+            "ru": "Правка"
+          },
+          "icon": "pencil",
+          "app": "site",
+          "kind": "action",
+          "roles": [
+            "admin"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "service",
+      "title": {
+        "ru": "Служебное"
+      },
+      "items": [
+        {
+          "id": "service-frozen",
+          "title": {
+            "ru": "Замороженные"
+          },
+          "icon": "snowflake",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/frozen",
+          "match": "prefix",
+          "roles": [
+            "section:products"
+          ]
+        },
+        {
+          "id": "service-books",
+          "title": {
+            "ru": "Все книги"
+          },
+          "icon": "library",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/books",
+          "match": "exact",
+          "roles": [
+            "section:finance"
+          ]
+        },
+        {
+          "id": "service-digests",
+          "title": {
+            "ru": "Дайджесты"
+          },
+          "icon": "bell",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/finance/digests",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ]
+        },
+        {
+          "id": "service-metrics",
+          "title": {
+            "ru": "Метрики"
+          },
+          "icon": "book-open",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/metrics",
+          "match": "prefix",
+          "roles": [
+            "section:sources"
+          ]
+        },
+        {
+          "id": "service-sources",
+          "title": {
+            "ru": "Источники"
+          },
+          "icon": "database",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/sources",
+          "match": "prefix",
+          "roles": [
+            "section:sources"
+          ]
+        },
+        {
+          "id": "service-access",
+          "title": {
+            "ru": "Доступы"
+          },
+          "icon": "shield",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/admin/users",
+          "match": "prefix",
+          "roles": [
+            "section:users_admin"
+          ]
+        },
+        {
+          "id": "service-storefront",
+          "title": {
+            "ru": "На сайт"
+          },
+          "icon": "globe",
+          "app": "site",
+          "kind": "link",
+          "path": "/{locale}",
+          "match": "exact"
+        }
+      ]
+    }
+  ]
+}

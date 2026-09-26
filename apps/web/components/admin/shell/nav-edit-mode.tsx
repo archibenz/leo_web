@@ -26,7 +26,10 @@ import {useIsDesktop} from '@/components/editor/useIsDesktop';
 // Отметка «включено» рисуется тем же приёмом, что «текущий раздел» —
 // isActive: черта слева и жирнее шрифт. Своего вида не заводим, чтобы в одной
 // панели не было двух разных способов сказать «вот это сейчас действует».
-export function NavEditMode() {
+// Отдельно от NavEditMode: в общем меню (menu.json, kind "action") пункт
+// встаёт внутрь списка раздела «Сайт», и собственный SidebarMenu вокруг него
+// дал бы список в списке.
+export function EditModeMenuItem() {
   const t = useTranslations('admin');
   const {isAdmin, on, toggle} = useEditMode();
   const desktop = useIsDesktop();
@@ -39,19 +42,25 @@ export function NavEditMode() {
   const подпись = on ? t('editModeOn') : t('editModeOff');
 
   return (
+    <SidebarMenuItem>
+      <CustomMenuButton
+        isActive={on}
+        tooltip={подпись}
+        onClick={toggle}
+        role="switch"
+        aria-checked={on}
+      >
+        {on ? <PencilIcon /> : <PencilOffIcon />}
+        <span className="text-[15px]">{подпись}</span>
+      </CustomMenuButton>
+    </SidebarMenuItem>
+  );
+}
+
+export function NavEditMode() {
+  return (
     <SidebarMenu>
-      <SidebarMenuItem>
-        <CustomMenuButton
-          isActive={on}
-          tooltip={подпись}
-          onClick={toggle}
-          role="switch"
-          aria-checked={on}
-        >
-          {on ? <PencilIcon /> : <PencilOffIcon />}
-          <span className="text-[15px]">{подпись}</span>
-        </CustomMenuButton>
-      </SidebarMenuItem>
+      <EditModeMenuItem />
     </SidebarMenu>
   );
 }
