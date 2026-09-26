@@ -94,7 +94,8 @@ test.describe('account is the auth surface', () => {
     const apiCalls = await blockApi(page);
     const main = await openAccount(page, '/ru/admin');
 
-    await expect(page).toHaveURL(/\/ru\/account\/?$/);
+    // С 26.09 сторож несёт адрес возврата: после входа — обратно в раздел.
+    await expect(page).toHaveURL(/\/ru\/account\/?\?next=%2Fru%2Fadmin$/);
     await expect(main.getByRole('tab', {name: t('signIn'), exact: true})).toBeVisible();
     expect(apiCalls).toEqual([]);
   });
