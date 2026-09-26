@@ -53,9 +53,15 @@ test.describe('quiet link underlines hug their text', () => {
         await page.setViewportSize(viewport);
         await page.goto(path);
         await page.waitForLoadState('networkidle');
+        // networkidle в CI наступал, пока карточка товара ещё стояла заглушкой
+        // (shop)/loading.tsx; тест мерил подвал под ней, а с 26.09 подвал под
+        // заглушкой скрыт — и кейс молча уходил в пропуск (7 вместо 5).
+        // Ссылки с чертой есть на каждой из этих страниц: ждём страницу, а не
+        // пропускаем её.
+        await expect(page.locator('[data-shop-loading]')).toHaveCount(0);
 
         const measured = await measureInk(page);
-        test.skip(measured.length === 0, `no .wv-link-ink rendered on ${path}`);
+        expect(measured.length, `no .wv-link-ink rendered on ${path}`).toBeGreaterThan(0);
 
         for (const link of measured) {
           expect(link.gap, `"${link.text}" underline is ${link.gap.toFixed(1)}px from its text`).toBeGreaterThanOrEqual(MIN_GAP);
