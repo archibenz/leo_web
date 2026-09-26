@@ -8,7 +8,7 @@
       },
       "items": [
         {
-          "id": "summary",
+          "id": "summary-home",
           "title": {
             "ru": "Свод"
           },
@@ -29,6 +29,20 @@
         "ru": "WB"
       },
       "items": [
+        {
+          "id": "wb-dashboard",
+          "title": {
+            "ru": "Дашборд WB"
+          },
+          "icon": "layout-dashboard",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/wb",
+          "match": "exact",
+          "roles": [
+            "section:dashboard"
+          ]
+        },
         {
           "id": "wb-finance",
           "title": {
