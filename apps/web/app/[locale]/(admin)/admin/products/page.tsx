@@ -10,6 +10,7 @@ import {apiFetch} from '../../../../../lib/api';
 import {formatPrice} from '../../../../../lib/formatPrice';
 import {Badge} from '../../../../../components/ui/badge';
 import {Button} from '../../../../../components/ui/button';
+import {Switch} from '../../../../../components/ui/switch';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,6 +47,10 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
+  // Тестовые (демо) товары скрыты по умолчанию (вычистка 26.09): на проде их
+  // 13, все неактивны, английскими названиями стояли первыми и отодвигали 87
+  // настоящих. Не удаляем — на них могут быть ссылки; показываются по кнопке.
+  const [showTest, setShowTest] = useState(false);
 
   useEffect(() => {
     apiFetch<Product[]>('/api/admin/products')
@@ -68,15 +73,20 @@ export default function AdminProductsPage() {
   // Ищем не только по названию: владелец помнит вещь то по имени, то по
   // коллекции, то по разделу, и поиск, знающий одно название, отказал бы ему
   // ровно тогда, когда нужен.
+  const categoryLabel = (c: string | null) =>
+    c && t.has(`product.categories.${c}`) ? t(`product.categories.${c}`) : c;
+  const testCount = products.filter(p => p.isTest).length;
+  const visible = useMemo(() => (showTest ? products : products.filter(p => !p.isTest)), [products, showTest]);
+
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    if (!needle) return products;
-    return products.filter(p =>
-      [p.title, p.category, p.collectionName]
+    if (!needle) return visible;
+    return visible.filter(p =>
+      [p.title, p.category, categoryLabel(p.category), p.collectionName]
         .filter(Boolean)
         .some(field => (field as string).toLowerCase().includes(needle)),
     );
-  }, [products, query]);
+  }, [visible, query]);
 
   return (
     <ListPage
@@ -95,8 +105,16 @@ export default function AdminProductsPage() {
         // Восемьдесят семь цветовых вариантов перебором глазами — это
         // неработоспособность, а не неудобство. Счётчик говорит, сколько из
         // скольких видно, чтобы отфильтрованный список не путали с коротким.
-        hint: query.trim() ? t('foundOf', {shown: filtered.length, total: products.length}) : undefined,
+        hint: query.trim() ? t('foundOf', {shown: filtered.length, total: visible.length}) : undefined,
       }}
+      toolbar={
+        testCount > 0 ? (
+          <label className="flex w-fit items-center gap-2 text-[13px] text-muted-foreground">
+            <Switch checked={showTest} onCheckedChange={setShowTest} />
+            {t('showTestProducts', {n: testCount})}
+          </label>
+        ) : undefined
+      }
       title={t('products')}
     >
       {loading ? (
@@ -144,7 +162,7 @@ export default function AdminProductsPage() {
                       </Link>
                     </TableCell>
                     <TableCell className="hidden text-muted-foreground md:table-cell">
-                      {product.category ?? '—'}
+                      {categoryLabel(product.category) ?? '—'}
                     </TableCell>
                     <TableCell className="hidden text-muted-foreground lg:table-cell">
                       {product.collectionName ?? '—'}

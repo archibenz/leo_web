@@ -137,7 +137,7 @@ test.describe('админка — язык витрины, не градиент
     await asOwner(page);
     await mockDashboardApi(page);
     await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
-    await expect(page.getByRole('heading', {level: 1, name: 'Дашборд'})).toBeVisible();
+    await expect(page.getByRole('heading', {level: 1, name: 'Посещения'})).toBeVisible();
 
     const GOLD = 'rgb(212, 165, 116)'; // #D4A574 — var(--accent) градиентной темы
     const paintedGold = await page.evaluate((gold) => {
@@ -159,7 +159,7 @@ test.describe('админка — язык витрины, не градиент
     await asOwner(page);
     await mockDashboardApi(page);
     await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
-    const heading = page.getByRole('heading', {level: 1, name: 'Дашборд'});
+    const heading = page.getByRole('heading', {level: 1, name: 'Посещения'});
     await expect(heading).toBeVisible();
 
     const bg = await heading.evaluate((el) => {

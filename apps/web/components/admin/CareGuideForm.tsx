@@ -9,7 +9,7 @@ import {Textarea} from '../ui/textarea';
 import {Switch} from '../ui/switch';
 import {Panel} from './dashboard/panel';
 import {FormActions, FormField} from './form/field';
-import {CARE_SYMBOL_KEYS, CareSymbol} from '../CareSymbols';
+import {CARE_SYMBOL_KEYS, CareSymbol, getSymbolLabel} from '../CareSymbols';
 
 interface CareGuideFormProps {
   initial?: {
@@ -159,7 +159,7 @@ export default function CareGuideForm({initial}: CareGuideFormProps) {
               >
                 <CareSymbol locale={locale} size={28} symbolKey={key} />
                 <span className="text-center text-[9px] leading-tight text-muted-foreground">
-                  {key.replace(/_/g, ' ')}
+                  {getSymbolLabel(key, locale)}
                 </span>
               </button>
             );

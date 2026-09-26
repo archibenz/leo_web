@@ -16,11 +16,14 @@ export function ListPage({
   title,
   action,
   search,
+  toolbar,
   children,
 }: {
   title: string;
   action?: ReactNode;
   search?: {value: string; onChange: (value: string) => void; placeholder: string; hint?: string};
+  /** Переключатели списка под строкой поиска (например, «показывать тестовые»). */
+  toolbar?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -48,6 +51,8 @@ export function ListPage({
           {search.hint && <p className="text-muted-foreground text-[12px]">{search.hint}</p>}
         </div>
       )}
+
+      {toolbar}
 
       {children}
     </div>
