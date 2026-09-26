@@ -1,6 +1,8 @@
 import {test, expect, type Page} from '@playwright/test';
 import {STOREFRONT_FIXTURE} from '../../lib/catalogue/fixture';
 import {skipUnlessFixtureCatalogue} from '../fixtures/catalogue';
+import {copy} from '../fixtures/messages';
+import {gotoRealPage} from '../fixtures/white';
 
 // Вычистка 26.09: сдвиги раскладки (CLS), найденные проходом по витрине и
 // админке, и плашка cookie поверх низа страницы. Каждая проверка — на то,
@@ -22,16 +24,31 @@ async function watchLayoutShift(page: Page): Promise<void> {
 
 const cls = (page: Page) => page.evaluate(() => (window as unknown as {__cls: number}).__cls);
 
-for (const [path, width] of [['/ru/account', 390], ['/ru/bag', 1440], ['/ru/info', 390]] as const) {
+// Раньше здесь стоял /ru/info — раздела с таким адресом нет, и кейс мерил
+// страницу 404. Теперь текстовая страница настоящая (gotoRealPage это
+// утверждает), а 404 — отдельный кейс, названный прямо: сдвиг подвала на ней
+// тоже был находкой вычистки.
+for (const [path, width] of [['/ru/account', 390], ['/ru/bag', 1440], ['/ru/delivery', 390]] as const) {
   test(`${path} @${width}: подвал и форма не прыгают (CLS < ${CLS_LIMIT})`, async ({page}) => {
     await page.setViewportSize({width, height: width < 800 ? 844 : 900});
     await watchLayoutShift(page);
-    await page.goto(path, {waitUntil: 'networkidle'});
+    await gotoRealPage(page, path);
+    await page.waitForLoadState('networkidle');
     await expect(page.locator('footer')).toBeVisible();
     await page.waitForTimeout(800);
     expect(await cls(page)).toBeLessThan(CLS_LIMIT);
   });
 }
+
+test(`страница 404 @390: подвал не прыгает (CLS < ${CLS_LIMIT})`, async ({page}) => {
+  await page.setViewportSize({width: 390, height: 844});
+  await watchLayoutShift(page);
+  await page.goto('/ru/net-takoy-stranitsy', {waitUntil: 'networkidle'});
+  await expect(page.getByRole('heading', {level: 1, name: copy('notFound', 'title')})).toBeVisible();
+  await expect(page.locator('footer')).toBeVisible();
+  await page.waitForTimeout(800);
+  expect(await cls(page)).toBeLessThan(CLS_LIMIT);
+});
 
 test('дашборд админки не прыгает, когда карточка посещений догружается', async ({page}) => {
   await page.setViewportSize({width: 1440, height: 900});
@@ -72,7 +89,8 @@ test('дашборд админки не прыгает, когда карточ
 
 test('на телефоне плашка cookie не закрывает низ страницы', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
-  await page.goto('/ru/info', {waitUntil: 'networkidle'});
+  await gotoRealPage(page, '/ru/delivery');
+  await page.waitForLoadState('networkidle');
   const notice = page.getByRole('region', {name: /cookie/i});
   await expect(notice).toBeVisible();
 

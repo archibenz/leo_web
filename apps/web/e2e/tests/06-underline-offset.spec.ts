@@ -1,4 +1,6 @@
 import {test, expect} from '@playwright/test';
+import {STOREFRONT_FIXTURE} from '../../lib/catalogue/fixture';
+import {gotoRealPage} from '../fixtures/white';
 
 // The quiet text-link underline used to be drawn by an ::after on the anchor
 // itself. Most of those anchors are 44px tap targets around 11-12px text, so
@@ -7,7 +9,12 @@ import {test, expect} from '@playwright/test';
 // These tests measure the rendered geometry rather than the CSS source, and
 // guard the pattern so a new call site cannot silently reintroduce the gap.
 
-const PAGES = ['/ru/product/lnyanoy-kostyum-s-yubkoy-maksi', '/ru/bag', '/ru/account', '/ru/privacy', '/ru/shop'];
+// Товар — из фикстуры, которую отдаёт стенд. Слаг с прода (lnyanoy-kostyum-…)
+// в фикстуре не живёт, и кейс «карточки товара» мерил страницу 404.
+const PRODUCT = STOREFRONT_FIXTURE.products[0]!;
+const PRODUCT_PATH = `/ru/product/${PRODUCT.slug}`;
+const PAGES = [PRODUCT_PATH, '/ru/bag', '/ru/account', '/ru/privacy', '/ru/shop'];
+const heading = (path: string) => (path === PRODUCT_PATH ? PRODUCT.ru : undefined);
 const VIEWPORTS = [
   {width: 1440, height: 900},
   {width: 390, height: 844},
@@ -51,11 +58,12 @@ test.describe('quiet link underlines hug their text', () => {
     for (const path of PAGES) {
       test(`${path} @ ${viewport.width}px`, async ({page}) => {
         await page.setViewportSize(viewport);
-        await page.goto(path);
+        await gotoRealPage(page, path, heading(path));
         await page.waitForLoadState('networkidle');
-        // networkidle в CI наступал, пока карточка товара ещё стояла заглушкой
-        // (shop)/loading.tsx; тест мерил подвал под ней, а с 26.09 подвал под
-        // заглушкой скрыт — и кейс молча уходил в пропуск (7 вместо 5).
+        // networkidle в CI наступал, пока страница ещё стояла заглушкой
+        // (shop)/loading.tsx (это была 404 под видом карточки — см. PRODUCT);
+        // тест мерил подвал под ней, а с 26.09 подвал под заглушкой скрыт — и
+        // кейс молча уходил в пропуск (7 вместо 5).
         // Ссылки с чертой есть на каждой из этих страниц: ждём страницу, а не
         // пропускаем её.
         await expect(page.locator('[data-shop-loading]')).toHaveCount(0);
@@ -79,7 +87,7 @@ test.describe('quiet link underlines hug their text', () => {
 
   test('every .wv-link carries an ink span, so the rule can never anchor to the padded box', async ({page}) => {
     for (const path of PAGES) {
-      await page.goto(path);
+      await gotoRealPage(page, path, heading(path));
       await page.waitForLoadState('networkidle');
       const orphans = await page.evaluate(() =>
         [...document.querySelectorAll<HTMLElement>('.wv-link')]
@@ -91,7 +99,7 @@ test.describe('quiet link underlines hug their text', () => {
   });
 
   test('padded links keep their 44px tap target while the rule moves up', async ({page}) => {
-    await page.goto('/ru/product/lnyanoy-kostyum-s-yubkoy-maksi');
+    await gotoRealPage(page, PRODUCT_PATH, PRODUCT.ru);
     await page.waitForLoadState('networkidle');
 
     const padded = page.locator('.wv-link.min-h-11').first();
@@ -100,7 +108,7 @@ test.describe('quiet link underlines hug their text', () => {
   });
 
   test('the wipe reveals on hover and is neutralised for reduced motion', async ({page}) => {
-    await page.goto('/ru/product/lnyanoy-kostyum-s-yubkoy-maksi');
+    await gotoRealPage(page, PRODUCT_PATH, PRODUCT.ru);
     await page.waitForLoadState('networkidle');
 
     const link = page.locator('.wv-link:has(.wv-link-ink)').first();

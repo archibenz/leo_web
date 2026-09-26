@@ -165,3 +165,19 @@ export async function openSettledForOwner(page: Page, path: string): Promise<voi
 export function instantScrollTo(page: Page, top: number) {
   return page.evaluate((y) => window.scrollTo({top: y, behavior: 'instant'}), top);
 }
+
+// Переход, который утверждает, что пришла НАЗВАННАЯ страница, а не 404.
+// Выдуманный или устаревший адрес на дев-стенде отвечает 200 и рисует «Такой
+// страницы нет» (07-soft-404-status: настоящий 404 — только на сборке), и
+// спек молча мерит не то: 06-underline месяцами мерил 404 под видом карточки
+// товара (слага с прода нет в фикстуре), 25-layout-shift — под видом /ru/info
+// (такого раздела нет вовсе). Ждём видимый h1 — на заглушке загрузки его нет,
+// так что проверка не проходит впустую раньше страницы.
+export async function gotoRealPage(page: Page, path: string, heading?: string): Promise<void> {
+  const response = await page.goto(path);
+  expect(response?.status(), `${path} answered ${response?.status()}`).toBe(200);
+  const h1 = page.getByRole('heading', {level: 1}).first();
+  await expect(h1, `${path} rendered no heading`).toBeVisible({timeout: HYDRATION});
+  await expect(h1, `${path} is the not-found page`).not.toHaveText(copy('notFound', 'title'));
+  if (heading) await expect(h1).toHaveText(heading);
+}
