@@ -1,4 +1,6 @@
 import {test, expect, type Page} from '@playwright/test';
+import {STOREFRONT_FIXTURE} from '../../lib/catalogue/fixture';
+import {skipUnlessFixtureCatalogue} from '../fixtures/catalogue';
 
 // Вычистка 26.09: сдвиги раскладки (CLS), найденные проходом по витрине и
 // админке, и плашка cookie поверх низа страницы. Каждая проверка — на то,
@@ -81,4 +83,47 @@ test('на телефоне плашка cookie не закрывает низ �
   const box = await last.boundingBox();
   const noticeBox = await notice.boundingBox();
   expect(box!.y + box!.height, 'реквизиты в самом низу подвала — над плашкой').toBeLessThanOrEqual(noticeBox!.y);
+});
+
+// S3: липкая панель карточки на телефоне. Плашка cookie сообщает свою высоту
+// только после монтирования, а на карточке, где кнопка «в корзину» ниже
+// первого экрана, панель к этому времени уже поднята — и подпрыгивала на
+// высоту плашки (CLS до 0,087; на фикстуре — 0,012–0,027 в 10 прогонах из
+// 12). Порог CLS_LIMIT такую беду не видит, а при загрузке она ещё и
+// вероятностная, поэтому проверяем механизм, детерминированно: панель поднята,
+// высота плашки меняется НЕ вводом (сдвиги после ввода браузер прощает) — и
+// ни один сдвиг раскладки не задевает панель. Подъём — transform, не bottom.
+test('липкая панель карточки не сдвигает раскладку, когда меняется высота плашки cookie', async ({page, request}) => {
+  await skipUnlessFixtureCatalogue(request);
+  // Низкое окно: кнопка «в корзину» ниже первого экрана, панель поднята сразу.
+  await page.setViewportSize({width: 390, height: 640});
+  await page.addInitScript(() => {
+    const w = window as unknown as {__barShifts: number};
+    w.__barShifts = 0;
+    new PerformanceObserver((list) => {
+      const bar = document.querySelector('#wv-main ~ div:has(button.wv-btn)');
+      for (const e of list.getEntries() as Array<PerformanceEntry & {hadRecentInput: boolean; sources?: Array<{node?: Node | null}>}>) {
+        if (e.hadRecentInput || !bar) continue;
+        if ((e.sources ?? []).some((s) => s.node && bar.contains(s.node))) w.__barShifts += 1;
+      }
+    }).observe({type: 'layout-shift', buffered: true});
+  });
+  await page.goto(`/ru/product/${STOREFRONT_FIXTURE.products[0]!.slug}`);
+
+  const notice = page.getByRole('region', {name: /cookie/i});
+  const bar = page.locator('#wv-main ~ div:has(button.wv-btn)');
+  await expect(notice).toBeVisible();
+  await expect(bar).toHaveAttribute('aria-hidden', 'false');
+  await expect.poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--wv-cookie-h').trim())).not.toBe('');
+
+  // Плашка уходит программно: высота обнуляется, панель опускается к низу окна.
+  await page.evaluate(() => (window as unknown as {__barShifts: number}).__barShifts = 0);
+  await notice.getByRole('button').evaluate((b) => (b as HTMLButtonElement).click());
+  await expect(notice).toBeHidden();
+  await expect.poll(async () => {
+    const box = await bar.boundingBox();
+    return box ? Math.round(box.y + box.height) : null;
+  }).toBe(640);
+
+  expect(await page.evaluate(() => (window as unknown as {__barShifts: number}).__barShifts)).toBe(0);
 });

@@ -675,15 +675,24 @@ export default function WhitePdpShowcase({
       <div ref={pageEndRef} aria-hidden="true" />
 
       {/* Mobile sticky add-to-bag — slides up once the inline CTA scrolls away,
-          keeping the action within thumb reach on a long PDP. `bottom` reserves
+          keeping the action within thumb reach on a long PDP. It lifts itself by
           whatever the cookie notice is currently reporting (0 once it's gone),
-          so the two stack instead of the notice hiding this bar outright. */}
+          so the two stack instead of the notice hiding this bar outright.
+          The lift is a transform, not `bottom`: the notice reports its height
+          only after mount, and on a PDP whose inline CTA starts below the fold
+          the bar is already up by then — moving its `bottom` jumped it ~70px
+          and measured as a layout shift (CLS 0,087 on a phone, 26.09). As a
+          transform it glides with the same 300ms as the slide-in. */}
       <div
         aria-hidden={!showSticky}
-        className={`fixed inset-x-0 z-[60] border-t bg-white/95 px-6 pt-3 backdrop-blur-sm transition-transform duration-300 ease-out lg:hidden motion-reduce:transition-none ${
-          showSticky ? 'translate-y-0' : 'pointer-events-none translate-y-full'
+        className={`fixed inset-x-0 bottom-0 z-[60] border-t bg-white/95 px-6 pt-3 backdrop-blur-sm transition-transform duration-300 ease-out lg:hidden motion-reduce:transition-none ${
+          showSticky ? '' : 'pointer-events-none'
         }`}
-        style={{borderColor: HAIR, bottom: 'var(--wv-cookie-h, 0px)', paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))'}}
+        style={{
+          borderColor: HAIR,
+          transform: showSticky ? 'translateY(calc(-1 * var(--wv-cookie-h, 0px)))' : 'translateY(100%)',
+          paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
+        }}
       >
         <div className="flex items-center gap-4">
           <span className="shrink-0 text-[15px]" style={{color: INK}}>{stickyPrice}</span>
