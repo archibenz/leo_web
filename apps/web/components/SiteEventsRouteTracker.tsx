@@ -41,6 +41,11 @@ export default function SiteEventsRouteTracker() {
       locale,
       device,
     });
+    // «Просмотр уже в очереди» — для e2e (14-site-events). Трекер стоит в
+    // своей границе Suspense и гидрируется отдельно от остальной страницы;
+    // никакой другой признак на странице не говорит, что его эффект прошёл,
+    // и тесты скрывали вкладку раньше, чем было что отправлять.
+    document.documentElement.dataset.siteEvents = 'ready';
   }, [pathname, searchParams]);
 
   return null;
