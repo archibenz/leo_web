@@ -10,6 +10,8 @@
 // входа); ни кук, ни localStorage, ни полного User-Agent — только семейство
 // браузера и мажорная версия. Текст ещё раз маскирует сервер (SecretMask).
 
+import {takeEarlyErrors} from './earlyErrors';
+
 const ENDPOINT = '/api/client-errors';
 // Зеркало пределов ClientErrorBatchRequest: пачка ≤20, тело ≤16 КБ.
 const MAX_BATCH = 20;
@@ -173,4 +175,7 @@ export function installClientErrorReporting(): void {
     if (document.visibilityState === 'hidden') flush();
   });
   window.addEventListener('pagehide', flush);
+  // Пойманное до гидрации инлайном из <head> (lib/earlyErrors.ts). Забрав
+  // буфер, выключаем инлайн — иначе на скрытии вкладки ушёл бы дубль.
+  for (const {kind, error} of takeEarlyErrors()) reportClientError(kind, error);
 }

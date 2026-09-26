@@ -1,10 +1,13 @@
 import type {Metadata, Viewport} from 'next';
-import {cookies} from 'next/headers';
+import {cookies, headers} from 'next/headers';
 import {Cormorant_Garamond, Jost, Cormorant} from 'next/font/google';
 import {defaultLocale, locales, type Locale} from '../i18n';
 import {SITE_URL as siteUrl} from '../lib/siteUrl';
+import {earlyErrorsScript} from '../lib/earlyErrors';
 import './globals.css';
 import ClientErrorReporter from '../components/ClientErrorReporter';
+
+const EARLY_ERRORS = earlyErrorsScript(process.env.NEXT_PUBLIC_RELEASE);
 
 const display = Cormorant_Garamond({
   subsets: ['latin', 'cyrillic'],
@@ -108,9 +111,17 @@ export default async function RootLayout({children}: {children: React.ReactNode}
   const cookieStore = await cookies();
   const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value as Locale | undefined;
   const lang = (cookieLocale && locales.includes(cookieLocale)) ? cookieLocale : defaultLocale;
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   return (
     <html lang={lang}>
+      <head>
+        {/* Первым: ловит ошибки до гидрации, в том числе упавший чанк, после
+            которого сборщик не появится вовсе (lib/earlyErrors.ts). Nonce —
+            тот же, что у Метрики; браузер прячет его из DOM, отсюда
+            suppressHydrationWarning. */}
+        <script nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{__html: EARLY_ERRORS}} />
+      </head>
       {/* bg-paper/text-ink used to sit here unconditionally — a hardcoded
           #1E120D/#F3E9DA pair from tailwind.config.ts, wholly separate from
           the --paper/--ink custom properties and higher-specificity than the
