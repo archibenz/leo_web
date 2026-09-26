@@ -1,7 +1,6 @@
 import {test, expect, type Page} from '@playwright/test';
 import {skipUnlessFixtureCatalogue} from '../fixtures/catalogue';
 import {openWhite} from '../fixtures/white';
-import {copy} from '../fixtures/messages';
 
 // Собственный сбор поведения витрины (lib/siteEvents.ts). Сеть проверяется
 // перехватом запросов, а не чтением кода — так требует приёмка задачи:
@@ -13,12 +12,16 @@ test.beforeEach(async ({request}) => {
 });
 
 // domcontentloaded fires on the server HTML; the page_view effect only runs
-// once React hydrates. WhiteCookieNotice mounts from an effect and nothing
-// else (see hydrateViaCookieNotice in fixtures/white.ts) — its appearance is
-// the same "effects have run" proof reused here, without clicking it away
-// (accepting cookies is not what this spec is about).
+// once React hydrates. The cookie notice used to stand in as the proof, but
+// SiteEventsRouteTracker sits in its own Suspense boundary and hydrates on its
+// own schedule: under a slow CPU the notice was up while page_view was not yet
+// queued, the hide flushed an empty queue, and the "request goes out" case
+// failed (7 of 16 at 6× CPU throttling, the long-running flake on main). The
+// same window made the doNotTrack case green for nothing. The tracker now
+// marks <html data-site-events="ready"> right after its effect runs — with
+// doNotTrack too, where it queues nothing — and that is what we wait for.
 async function waitForHydration(page: Page): Promise<void> {
-  await expect(page.getByRole('region', {name: copy('footer', 'cookieText')})).toBeVisible();
+  await expect(page.locator('html[data-site-events="ready"]')).toHaveCount(1);
 }
 
 // A real visibilitychange cannot be staged in Playwright (no API to back a
