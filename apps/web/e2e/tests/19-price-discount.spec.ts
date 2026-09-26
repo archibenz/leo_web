@@ -124,8 +124,14 @@ test.describe('скидка процентом на странице товар�
     const panel = await openVariantPanel(page);
 
     const select = panel.getByRole('combobox', {name: 'Источник цены', exact: true});
-    const values = await select.locator('option').evaluateAll((opts) => opts.map((o) => (o as HTMLOptionElement).value));
-    expect(values).toEqual(['manual', 'ozon']);
+    // ОЖИДАНИЕМ, а не разовым снимком. Панель видна раньше, чем приходит ответ
+    // с данными варианта, и поля в ней дорисовываются после. evaluateAll не
+    // ждёт: пустой набор <option> он читает как [] и сразу отдаёт — тест
+    // падал «[] вместо manual, ozon» примерно раз на прогон всей сюиты
+    // (26.09). С задержкой ответа в 1,5 с прежнее чтение падало 3 из 3.
+    await expect
+      .poll(() => select.locator('option').evaluateAll((opts) => opts.map((o) => (o as HTMLOptionElement).value)))
+      .toEqual(['manual', 'ozon']);
   });
 
   test('источник не получен — своя подпись, отличная от порога по себестоимости', async ({page}) => {

@@ -252,8 +252,10 @@ test.describe('панель медиа — пара телефон/дескто�
     const panel = page.getByRole('complementary', {name: 'Правка витрины'});
 
     const replaceButtons = panel.getByRole('button', {name: 'Заменить'});
+    // Ожиданием, а не разовым .count(): поля панели дорисовываются после того,
+    // как она стала видна, — та же гонка, что роняла 19-price-discount (26.09).
+    await expect.poll(() => replaceButtons.count()).toBeGreaterThanOrEqual(4); // ролик×2 + кадр×2
     const count = await replaceButtons.count();
-    expect(count).toBeGreaterThanOrEqual(4); // ролик×2 + кадр×2
     for (let i = 0; i < count; i++) {
       const box = await replaceButtons.nth(i).boundingBox();
       expect(box?.height, `«Заменить» #${i}`).toBeGreaterThanOrEqual(44);
