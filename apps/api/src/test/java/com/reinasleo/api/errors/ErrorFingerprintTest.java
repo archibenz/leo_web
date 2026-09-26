@@ -28,4 +28,12 @@ class ErrorFingerprintTest {
         assertThat(ErrorFingerprint.of("site-api", "exception", "E", "boom", "OrderService.get:40"))
                 .isEqualTo(ErrorFingerprint.of("site-api", "exception", "E", "boom", "OrderService.get:57"));
     }
+
+    // Контрольный вектор от аналитики (26.09): тот же хеш из её реализации на
+    // Python. Разойдутся — одна и та же ошибка у нас и у неё станет двумя.
+    @Test
+    void matchesTheAnalyticsReferenceVector() {
+        assertThat(ErrorFingerprint.of("x", "exception", "E", "товар 12 нет", "a.py:3 f"))
+                .isEqualTo("e842158d6ee26c58ff382a3023f96083a811f04cb3c1b21fffc264a59457a4b7");
+    }
 }

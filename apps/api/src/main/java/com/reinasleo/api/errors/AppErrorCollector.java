@@ -47,6 +47,7 @@ public class AppErrorCollector {
     static final int MAX_FRAME = 200;
     static final int MAX_FRAMES = 10;
     static final int MAX_CLASS = 200;
+    static final long MAX_COUNT = 1_000_000;
     private static final String OUR_PACKAGE = "com.reinasleo.";
 
     /** Готовая к отправке ошибка. Строки уже замаскированы и обрезаны. */
@@ -226,7 +227,8 @@ public class AppErrorCollector {
         ev.put("route", s.route());
         ev.put("method", s.method());
         ev.put("status", s.status());
-        ev.put("count", g.count);
+        // Предел приёма — 1 000 000 на событие; буря сверх него всё равно видна.
+        ev.put("count", Math.min(g.count, MAX_COUNT));
         ev.put("first_seen", g.firstSeen.toString());
         ev.put("last_seen", g.lastSeen.toString());
         ev.put("release", s.release() == null ? release : s.release());
