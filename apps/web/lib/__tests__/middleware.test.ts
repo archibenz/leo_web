@@ -100,3 +100,33 @@ describe('middleware dead ends', () => {
     expect(edgeStatus('/ru/shop')).toBe(200);
   });
 });
+
+// Сторож админки без куки уводит на вход С АДРЕСОМ ВОЗВРАТА (26.09, общее
+// меню с аналитикой): иначе после входа владелец оставался в аккаунте, а не в
+// разделе, куда шёл по ссылке из меню.
+describe('admin guard keeps the way back', () => {
+  const guard = (path: string, cookie?: string) => {
+    const req = new NextRequest(new URL(`https://reinasleo.com${path}`));
+    if (cookie) req.cookies.set('rl_session', cookie);
+    return middleware(req);
+  };
+
+  it('sends a signed-out visitor to the sign-in page with next= the section and its query', () => {
+    const res = guard('/ru/admin/inventory?filter=low');
+    expect(res.status).toBe(307);
+    const to = new URL(res.headers.get('location')!);
+    expect(to.pathname).toBe('/ru/account');
+    expect(to.searchParams.get('next')).toBe('/ru/admin/inventory?filter=low');
+  });
+
+  it('keeps the locale of the section', () => {
+    const to = new URL(guard('/en/admin').headers.get('location')!);
+    expect(to.pathname).toBe('/en/account');
+    expect(to.searchParams.get('next')).toBe('/en/admin');
+  });
+
+  it('lets a visitor with a session through', () => {
+    const res = guard('/ru/admin/products', 'session');
+    expect(res.headers.get('location') ?? '').not.toContain('/account');
+  });
+});

@@ -215,9 +215,15 @@ export default function middleware(request: NextRequest) {
   // page instead of receiving the admin RSC payload. Authenticated non-admin
   // users still reach the page but the backend rejects every /api/admin/*
   // call with 403, and AdminGuard.tsx hides the UI client-side.
+  //
+  // ?next= — вернуть в тот же раздел после входа (страница входа уводит туда
+  // сама, пропуская только пути своего сайта: lib/safeNext.ts). Без него
+  // владелец, пришедший из общего меню аналитики с истёкшей кукой, после входа
+  // оставался в аккаунте, а не в разделе, куда шёл.
   if (ADMIN_PATH.test(pathname) && !request.cookies.has(SESSION_COOKIE)) {
     const locale = pathname.split('/')[1] || defaultLocale;
     const redirectUrl = new URL(`/${locale}/account`, request.url);
+    redirectUrl.searchParams.set('next', pathname + request.nextUrl.search);
     return NextResponse.redirect(redirectUrl);
   }
 
