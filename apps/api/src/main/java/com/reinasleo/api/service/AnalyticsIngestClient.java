@@ -16,7 +16,7 @@ import java.util.Map;
  * Успех — только 2xx. 409 — провал, а не «уже принято»: ключи у отправителей
  * несут штамп прогона, и повтор ключа значит поломку (см. SiteDailyPublisher).
  */
-final class AnalyticsIngestClient {
+public final class AnalyticsIngestClient {
 
     // HTTP/1.1 явно — см. NextRevalidator: HttpClient по умолчанию просит
     // апгрейд до h2c, и не всякий сервер его переносит.
@@ -29,18 +29,18 @@ final class AnalyticsIngestClient {
     private final String url;
     private final String secret;
 
-    AnalyticsIngestClient(ObjectMapper json, String url, String secret) {
+    public AnalyticsIngestClient(ObjectMapper json, String url, String secret) {
         this.json = json;
         this.url = url;
         this.secret = secret;
     }
 
-    boolean enabled() {
+    public boolean enabled() {
         return url != null && !url.isBlank() && secret != null && !secret.isBlank();
     }
 
     /** @return null при успехе, иначе причина провала для лога */
-    String send(String key, Map<String, Object> body) {
+    public String send(String key, Map<String, Object> body) {
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create(url))
                     .timeout(Duration.ofSeconds(15))

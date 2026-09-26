@@ -14,7 +14,9 @@ import com.reinasleo.api.exception.NotFoundException;
 import com.reinasleo.api.exception.OutOfStockException;
 import com.reinasleo.api.exception.TokenAlreadyConsumedException;
 import com.reinasleo.api.exception.UnauthorizedException;
+import com.reinasleo.api.errors.AppErrorCollector;
 import com.reinasleo.api.util.UploadMessages;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import org.slf4j.Logger;
@@ -40,6 +43,25 @@ import java.util.Map;
 public class RestExceptionHandler {
 
     private static final Logger log = LoggerFactory.getLogger(RestExceptionHandler.class);
+
+    // Ошибки 5xx уходят ещё и в аналитику (app_error): тревоги владельцу шлёт
+    // её бот, до Telegram сервер сайта из RU не достаёт.
+    private final AppErrorCollector errors;
+
+    public RestExceptionHandler(AppErrorCollector errors) {
+        this.errors = errors;
+    }
+
+    // Шаблон маршрута (/api/admin/products/{id}), а не сырой адрес: в сыром
+    // бывают id и query, а группа ошибки не должна дробиться по ним.
+    private static String route(HttpServletRequest request) {
+        Object pattern = request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE);
+        return pattern != null ? pattern.toString() : null;
+    }
+
+    private void report(String kind, Throwable ex, HttpServletRequest request, int status) {
+        errors.recordThrowable(kind, ex, request.getMethod(), route(request), status);
+    }
 
     @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class})
     public ResponseEntity<Map<String, Object>> handleValidation(Exception ex) {
@@ -103,8 +125,9 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler(EmailDeliveryException.class)
-    public ResponseEntity<Map<String, Object>> handleEmailDelivery(EmailDeliveryException ex) {
+    public ResponseEntity<Map<String, Object>> handleEmailDelivery(EmailDeliveryException ex, HttpServletRequest request) {
         log.error("Email delivery failed: {}", ex.getMessage());
+        report("http_5xx", ex, request, 503);
         Map<String, Object> body = Map.of(
                 "message", "Unable to send verification email, please try again shortly",
                 "error", "email_delivery_failed"
@@ -125,7 +148,10 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException ex) {
+    public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException ex, HttpServletRequest request) {
+        if (ex.getStatusCode().is5xxServerError()) {
+            report("http_5xx", ex, request, ex.getStatusCode().value());
+        }
         Map<String, Object> body = Map.of("message", ex.getReason() != null ? ex.getReason() : "Error");
         return ResponseEntity.status(ex.getStatusCode()).body(body);
     }
@@ -226,7 +252,8 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler(YooKassaApiException.class)
-    public ResponseEntity<Map<String, Object>> handleYooKassaApi(YooKassaApiException ex) {
+    public ResponseEntity<Map<String, Object>> handleYooKassaApi(YooKassaApiException ex, HttpServletRequest request) {
+        report("http_5xx", ex, request, 502);
         // Детали (статус провайдера) уходят в лог; клиенту — только generic
         // сообщение. 502: наш запрос корректен, upstream провайдер недоступен.
         log.error("YooKassa API error (status {}): {}", ex.getStatus(), ex.getMessage());
@@ -324,8 +351,9 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
+    public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex, HttpServletRequest request) {
         log.error("Unhandled exception", ex);
+        report("exception", ex, request, 500);
         Map<String, Object> body = Map.of("message", "Unexpected error");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
