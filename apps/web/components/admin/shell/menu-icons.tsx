@@ -2,6 +2,7 @@ import type {LucideIcon} from 'lucide-react';
 import {
   Bell,
   BookOpen,
+  Bug,
   CalendarRange,
   ChartLine,
   Database,
@@ -30,6 +31,7 @@ import {
 export const MENU_ICONS: Readonly<Record<string, LucideIcon>> = {
   bell: Bell,
   'book-open': BookOpen,
+  bug: Bug,
   'calendar-range': CalendarRange,
   'chart-line': ChartLine,
   database: Database,

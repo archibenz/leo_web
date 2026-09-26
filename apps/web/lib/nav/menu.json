@@ -676,6 +676,20 @@
           ]
         },
         {
+          "id": "service-errors",
+          "title": {
+            "ru": "Ошибки"
+          },
+          "icon": "bug",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/errors",
+          "match": "prefix",
+          "roles": [
+            "section:users_admin"
+          ]
+        },
+        {
           "id": "service-storefront",
           "title": {
             "ru": "На сайт"
