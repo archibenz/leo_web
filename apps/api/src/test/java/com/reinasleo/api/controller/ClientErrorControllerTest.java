@@ -78,6 +78,30 @@ class ClientErrorControllerTest {
         assertThat(sent.getValue().app()).isEqualTo("site-web-server");
     }
 
+    private static final String HEADLESS_BING = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) HeadlessChrome/146.0.0.0 Safari/537.36";
+    private static final String CHROME = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+            + "(KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36";
+
+    private ResultActions sendAs(String userAgent, String realIp) throws Exception {
+        return mockMvc.perform(post("/api/client-errors").contentType(MediaType.APPLICATION_JSON).content(ONE)
+                .header("X-Real-IP", realIp).header("User-Agent", userAgent));
+    }
+
+    // 27.09: рендер-бот Bing прислал 11 групп ChunkLoadError с /en/contact.
+    // Робот получает тот же 202, но в сборщик не попадает ничего.
+    @Test
+    void aRobotGetsAcceptedButRecordsNothing() throws Exception {
+        sendAs(HEADLESS_BING, "40.77.189.19").andExpect(status().isAccepted());
+        verify(collector, never()).record(any());
+    }
+
+    @Test
+    void aPlainChromeStillRecords() throws Exception {
+        sendAs(CHROME, "203.0.113.21").andExpect(status().isAccepted());
+        verify(collector).record(any());
+    }
+
     @Test
     void theServerCannotSendBrowserKinds() throws Exception {
         send(ONE, null).andExpect(status().isAccepted());
