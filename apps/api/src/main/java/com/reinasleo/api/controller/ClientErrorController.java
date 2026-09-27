@@ -3,6 +3,7 @@ package com.reinasleo.api.controller;
 import com.reinasleo.api.dto.ClientErrorBatchRequest;
 import com.reinasleo.api.errors.AppErrorCollector;
 import com.reinasleo.api.errors.ClientErrorLimiter;
+import com.reinasleo.api.errors.RobotUserAgents;
 import com.reinasleo.api.errors.SecretMask;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -41,10 +42,12 @@ public class ClientErrorController {
 
     private final AppErrorCollector errors;
     private final ClientErrorLimiter limiter;
+    private final RobotUserAgents robots;
 
-    public ClientErrorController(AppErrorCollector errors, ClientErrorLimiter limiter) {
+    public ClientErrorController(AppErrorCollector errors, ClientErrorLimiter limiter, RobotUserAgents robots) {
         this.errors = errors;
         this.limiter = limiter;
+        this.robots = robots;
     }
 
     @PostMapping
@@ -55,6 +58,12 @@ public class ClientErrorController {
         boolean fromNextServer = isLoopback(request.getRemoteAddr())
                 && request.getHeader("X-Real-IP") == null
                 && request.getHeader("X-Forwarded-For") == null;
+        // Робот получает тот же 202, что и браузер: отказ он всё равно не
+        // прочтёт, а отличимый ответ подсказал бы, как фильтр обойти.
+        if (!fromNextServer && RobotUserAgents.isRobot(request.getHeader("User-Agent"))) {
+            robots.drop();
+            return ResponseEntity.accepted().cacheControl(CacheControl.noStore()).build();
+        }
         String ip = fromNextServer ? "next-server" : clientIp(request);
         if (!limiter.tryAcquire(ip)) {
             return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).build();
