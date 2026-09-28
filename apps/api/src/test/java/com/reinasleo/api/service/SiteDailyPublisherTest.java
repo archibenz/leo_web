@@ -343,4 +343,24 @@ class SiteDailyPublisherTest {
         }
         assertThat(actual).isEqualTo(java.nio.file.Files.readString(fixture));
     }
+
+    // Эталонный site_daily с preorders (контракт с приёмом #217: поля строго
+    // «ни больше ни меньше», лишнее — 422 на весь день). Фикстуру прогоняет
+    // валидатор аналитики; поменялась выгрузка — обновите её (UPDATE_CONTRACT=1).
+    @Test
+    void theDailyEnvelopeMatchesTheContractFixture() throws IOException {
+        SiteDayPoint day = new SiteDayPoint(LocalDate.of(2026, 9, 24), 120, 40, 60, 7, 0, 3, 1, 2,
+                Map.of("phone", 90L, "desktop", 30L), Map.of("ru", 118L, "en", 2L), Map.of("wildberries", 6L, "ozon", 1L));
+        var envelope = SiteDailyPublisher.envelopes(List.of(day), Map.of(), Instant.parse("2026-09-28T09:07:00Z")).get(0);
+        ObjectMapper om = new ObjectMapper().enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT)
+                .enable(com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+        String actual = om.writeValueAsString(envelope.body()) + "\n";
+
+        java.nio.file.Path fixture = java.nio.file.Path.of("src/test/resources/contract/site_daily.json");
+        if ("1".equals(System.getenv("UPDATE_CONTRACT"))) {
+            java.nio.file.Files.createDirectories(fixture.getParent());
+            java.nio.file.Files.writeString(fixture, actual);
+        }
+        assertThat(actual).isEqualTo(java.nio.file.Files.readString(fixture));
+    }
 }

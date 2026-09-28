@@ -1,0 +1,28 @@
+{
+  "captured_at" : "2026-09-28T09:07:00Z",
+  "events" : [ {
+    "add_to_cart" : 0,
+    "add_to_favourite" : 3,
+    "by_device" : {
+      "desktop" : 30,
+      "phone" : 90
+    },
+    "by_locale" : {
+      "en" : 2,
+      "ru" : 118
+    },
+    "by_marketplace" : {
+      "ozon" : 1,
+      "wildberries" : 6
+    },
+    "date" : "2026-09-24",
+    "marketplace_clicks" : 7,
+    "page_views" : 120,
+    "preorders" : 2,
+    "product_views" : 60,
+    "sessions" : 40,
+    "signups" : 1,
+    "type" : "site_daily"
+  } ],
+  "source" : "site"
+}
