@@ -53,6 +53,9 @@ test('ошибка сразу после load уходит пачкой: пут�
   expect(boom).toHaveLength(1);
   expect(boom[0]).toMatchObject({kind: 'window_error', errorClass: 'Error', route: '/ru', count: 3});
   expect(String(boom[0]!.browser)).toMatch(/^Chrome \d+$/);
+  // Релиз — sha12 коммита сборки (scripts/release.mjs), а не пусто: 28.09 #418
+  // пришёл с release=unknown, и не понять было, какая сборка упала.
+  expect(String(boom[0]!.release)).toMatch(/^[0-9a-f]{12}$/);
   expect(JSON.stringify(sent)).not.toContain('secret-login-token');
 });
 
@@ -111,6 +114,7 @@ test('упал чанк — гидрации нет, а поломка всё р
       message: 'Loading script failed: /_next/static/chunks/main-app.js',
       route: '/ru',
       browser: null,
+      release: expect.stringMatching(/^[0-9a-f]{12}$/),
       count: 1,
     }),
   ]);
@@ -125,4 +129,13 @@ test('ошибок нет — отправки нет', async ({page}) => {
   await hideTab(page);
   await page.waitForTimeout(300);
   expect(sent).toEqual([]);
+});
+
+// Safari на iPhone превращает похожее на телефон, дату или адрес в ссылки ещё
+// до гидратации — React видит не ту разметку (#418). ИНН и ОГРНИП в подвале —
+// не телефон. Почта остаётся нажимаемой.
+test('страница просит Safari не превращать цифры и даты в ссылки', async ({page}) => {
+  await page.goto('/ru');
+  const content = await page.locator('meta[name="format-detection"]').getAttribute('content');
+  expect(content?.split(/,\s*/).sort()).toEqual(['address=no', 'date=no', 'telephone=no']);
 });

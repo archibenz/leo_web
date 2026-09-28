@@ -1,10 +1,13 @@
 import createNextIntlPlugin from 'next-intl/plugin';
+import {buildRelease} from './scripts/release.mjs';
 
 const withNextIntl = createNextIntlPlugin('./i18n.ts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // Релиз в отчётах об ошибках — sha коммита сборки (scripts/release.mjs).
+  env: {NEXT_PUBLIC_RELEASE: buildRelease()},
   devIndicators: false,
   // Drop X-Powered-By: Next.js — leaks framework + version, gives no benefit.
   poweredByHeader: false,
