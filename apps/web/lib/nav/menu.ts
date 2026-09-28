@@ -32,9 +32,18 @@ export interface MenuSection {
   id: string;
   title: {ru: string; en?: string};
   items: MenuNode[];
+  /** Раздел раскрыт, только если в нём текущая страница (28.09). */
+  fold?: boolean;
+  /** Выделенный раздел — «Главное · Свод». */
+  emphasis?: boolean;
 }
 
-export const MENU: ReadonlyArray<MenuSection> = (menu as unknown as {sections: MenuSection[]}).sections;
+const MENU_DOC = menu as unknown as {sections: MenuSection[]; footer?: MenuNode[]};
+
+export const MENU: ReadonlyArray<MenuSection> = MENU_DOC.sections;
+
+/** Кнопки внизу панели («На сайт») — не пункты списка (28.09). */
+export const MENU_FOOTER: ReadonlyArray<MenuNode> = MENU_DOC.footer ?? [];
 
 export function menuTitle(title: {ru: string; en?: string}, locale: string): string {
   return (locale === 'en' && title.en) || title.ru;

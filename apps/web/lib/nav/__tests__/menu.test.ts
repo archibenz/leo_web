@@ -1,7 +1,7 @@
 import {existsSync, readdirSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {describe, it, expect} from 'vitest';
-import {MENU, type MenuNode} from '../menu';
+import {MENU, MENU_FOOTER, type MenuNode} from '../menu';
 import {MENU_ICONS} from '../../../components/admin/shell/menu-icons';
 
 // Копия общего меню (источник — leo_analytics packages/brand-tokens/menu.json)
@@ -16,6 +16,7 @@ function all(): MenuNode[] {
   const out: MenuNode[] = [];
   const walk = (nodes: MenuNode[]) => nodes.forEach((n) => (out.push(n), n.children && walk(n.children)));
   MENU.forEach((s) => walk(s.items));
+  walk([...MENU_FOOTER]);
   return out;
 }
 
@@ -52,6 +53,13 @@ describe('общее меню годно для сайта', () => {
       .filter((n) => !n.path || !sitePage(n.path))
       .map((n) => `${n.id}: ${n.path}`);
     expect(broken).toEqual([]);
+  });
+
+  // 28.09 «На сайт» переехала из «Служебного» в footer: админка, не умеющая
+  // рисовать footer, потеряла бы единственный выход на витрину.
+  it('внизу панели есть «На сайт» — ссылка сайта на витрину', () => {
+    const toSite = MENU_FOOTER.find((n) => n.app === 'site' && n.kind === 'link' && n.path === '/{locale}');
+    expect(toSite?.title.ru).toBe('На сайт');
   });
 
   it('ссылки аналитики — под /analytics, без локали', () => {
