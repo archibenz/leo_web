@@ -340,6 +340,36 @@
       },
       "items": [
         {
+          "id": "ozon-goods",
+          "title": {
+            "ru": "Товары"
+          },
+          "icon": "package",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/ozon/funnel",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ],
+          "children": [
+            {
+              "id": "ozon-funnel",
+              "title": {
+                "ru": "Воронка"
+              },
+              "icon": "filter",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/ozon/funnel",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            }
+          ]
+        },
+        {
           "id": "ozon-books",
           "title": {
             "ru": "Книги"
