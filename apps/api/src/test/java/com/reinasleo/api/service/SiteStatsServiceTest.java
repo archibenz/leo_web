@@ -216,4 +216,28 @@ class SiteStatsServiceTest {
         var byDay = SiteStatsService.foldSources(List.of(), day, day.plusDays(2));
         assertThat(byDay).hasSize(3).allSatisfy((d, rows) -> assertThat(rows).isEmpty());
     }
+
+    // Приём (leo_analytics #217) отбивает повтор тройки меток в одном дне.
+    // «Yandex» и «yandex» — одна тройка после нижнего регистра: строка одна,
+    // просмотры сложены, а не две строки с отказом всего дня.
+    @Test
+    void labelsDifferingOnlyInCaseFoldIntoOneRow() {
+        LocalDate day = LocalDate.of(2026, 9, 24);
+        var byDay = SiteStatsService.foldSources(List.of(
+                utm("2026-09-24T10:00:00Z", "utm_source=Yandex&utm_medium=CPC", 2),
+                utm("2026-09-24T11:00:00Z", "utm_source=yandex&utm_medium=cpc", 3)), day, day);
+        assertThat(byDay.get(day)).containsExactly(new SiteStatsService.UtmRow("yandex", "cpc", null, 5));
+    }
+
+    // Предел приёма — 100 символов (кодовых точек). Эмодзи на границе не
+    // рвётся пополам.
+    @Test
+    void clippingCountsCharactersNotUtf16Units() {
+        String campaign = "a".repeat(99) + "😀😀";
+        String clipped = SiteStatsService.parseUtm("utm_campaign=" + java.net.URLEncoder.encode(campaign, java.nio.charset.StandardCharsets.UTF_8))
+                .get("utm_campaign");
+        assertThat(clipped.codePointCount(0, clipped.length())).isEqualTo(100);
+        assertThat(clipped).endsWith("😀");
+        assertThat(Character.isHighSurrogate(clipped.charAt(clipped.length() - 1))).isFalse();
+    }
 }

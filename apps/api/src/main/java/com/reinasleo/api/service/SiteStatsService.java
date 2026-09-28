@@ -133,9 +133,17 @@ public class SiteStatsService {
             if (!UTM_KEYS.contains(key)) continue;
             String value = decode(pair.substring(eq + 1)).trim().toLowerCase(Locale.ROOT);
             if (value.isEmpty()) continue;
-            out.putIfAbsent(key, value.length() > MAX_UTM_VALUE ? value.substring(0, MAX_UTM_VALUE) : value);
+            out.putIfAbsent(key, clip(value));
         }
         return out;
+    }
+
+    // Предел приёма — 100 СИМВОЛОВ, а substring считает UTF-16: эмодзи на
+    // границе рвался бы пополам, и одинокий суррогат отбил бы конверт (422).
+    private static String clip(String value) {
+        return value.codePointCount(0, value.length()) <= MAX_UTM_VALUE
+                ? value
+                : value.substring(0, value.offsetByCodePoints(0, MAX_UTM_VALUE));
     }
 
     private static String decode(String s) {

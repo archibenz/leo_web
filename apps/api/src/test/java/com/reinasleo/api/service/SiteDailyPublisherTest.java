@@ -310,4 +310,35 @@ class SiteDailyPublisherTest {
         Map<String, Object> event = ((List<Map<String, Object>>) envelopes.get(0).body().get("events")).get(0);
         assertThat((List<?>) event.get("utm")).hasSize(SiteDailyPublisher.MAX_SOURCE_ROWS);
     }
+
+    // ---- контракт с приёмом аналитики (leo_analytics #217): эталонный конверт.
+    //
+    // Фикстура contract/site_daily_sources.json — то, что РЕАЛЬНО уходит из
+    // выгрузки, собранное настоящим кодом из заковыристых сырых меток: регистр,
+    // кириллица в %-кодировке, пустые метки, эмодзи на границе 100 символов,
+    // одна метка в разном регистре. Приём строгий (422 на весь день): её же
+    // прогоняет валидатор аналитики. Поменялась выгрузка — тест красный:
+    // обновите фикстуру (UPDATE_CONTRACT=1) и копию у аналитики.
+    @Test
+    void theSourcesEnvelopeMatchesTheContractFixture() throws IOException {
+        LocalDate day = LocalDate.of(2026, 9, 24);
+        String emoji = java.net.URLEncoder.encode("a".repeat(99) + "😀😀", StandardCharsets.UTF_8);
+        var utm = SiteStatsService.foldSources(List.of(
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T07:00:00Z")), "utm_source=Yandex&utm_medium=CPC&utm_campaign=Осень", 2L},
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T08:00:00Z")), "utm_source=yandex&utm_medium=cpc&utm_campaign=%D0%BE%D1%81%D0%B5%D0%BD%D1%8C", 3L},
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T09:00:00Z")), "utm_source=tg&utm_medium=&utm_campaign=+", 4L},
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T10:00:00Z")), "utm_campaign=" + emoji, 1L},
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T11:00:00Z")), "cat=dresses", 9L}),
+                day, day.plusDays(1));
+        var envelopes = SiteDailyPublisher.sourceEnvelopes(utm, Instant.parse("2026-09-28T09:07:00Z"));
+        ObjectMapper om = new ObjectMapper().enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT);
+        String actual = om.writeValueAsString(envelopes.stream().map(SiteDailyPublisher.Envelope::body).toList()) + "\n";
+
+        java.nio.file.Path fixture = java.nio.file.Path.of("src/test/resources/contract/site_daily_sources.json");
+        if ("1".equals(System.getenv("UPDATE_CONTRACT"))) {
+            java.nio.file.Files.createDirectories(fixture.getParent());
+            java.nio.file.Files.writeString(fixture, actual);
+        }
+        assertThat(actual).isEqualTo(java.nio.file.Files.readString(fixture));
+    }
 }
