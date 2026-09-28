@@ -251,7 +251,8 @@ class SiteEventControllerTest {
                   {"eventType":"page_view","path":"/ru","referrerHost":" WWW.Yandex.RU "},
                   {"eventType":"page_view","path":"/ru/shop","referrerHost":"direct"},
                   {"eventType":"page_view","path":"/ru/bag","referrerHost":"https://t.me/some/post?x=1"},
-                  {"eventType":"product_view","productId":"wb-1","referrerHost":"t.me"}
+                  {"eventType":"product_view","productId":"wb-1","referrerHost":"t.me"},
+                  {"eventType":"page_view","path":"/ru/long","referrerHost":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.example.com"}
                 ]}
                 """)
                 .andExpect(status().isAccepted());
@@ -262,6 +263,9 @@ class SiteEventControllerTest {
                 .containsEntry("page_view /ru/shop", "direct")
                 .containsEntry("page_view /ru/bag", null)
                 .containsEntry("product_view null", null)
-                .hasSize(4);
+                // 108 символов из меток ≤63 — годный вид хоста, но длиннее предела
+                // приёма (100): обнуляется. Метка длиннее 63 проверяла бы шаблон, а не предел.
+                .containsEntry("page_view /ru/long", null)
+                .hasSize(5);
     }
 }

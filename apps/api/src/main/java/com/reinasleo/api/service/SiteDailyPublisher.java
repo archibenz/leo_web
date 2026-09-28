@@ -164,7 +164,14 @@ public class SiteDailyPublisher {
             event.put("date", day.toString());
             event.put("utm", utm);
             event.put("referrers", referrers.getOrDefault(day, List.of()).stream().limit(MAX_SOURCE_ROWS)
-                    .map(r -> Map.<String, Object>of("host", r.host(), "sessions", r.sessions()))
+                    .map(r -> {
+                        // LinkedHashMap, а не Map.of: порядок полей постоянный,
+                        // и эталонный конверт (contract/) не плывёт между запусками.
+                        Map<String, Object> row = new LinkedHashMap<>();
+                        row.put("host", r.host());
+                        row.put("sessions", r.sessions());
+                        return row;
+                    })
                     .toList());
             out.add(new Envelope("site_daily_sources:" + day + ":" + run, body(capturedAt, event)));
         });

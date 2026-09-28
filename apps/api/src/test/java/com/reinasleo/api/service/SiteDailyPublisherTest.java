@@ -333,7 +333,13 @@ class SiteDailyPublisherTest {
                 new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T10:00:00Z")), "utm_campaign=" + emoji, 1L},
                 new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T11:00:00Z")), "cat=dresses", 9L}),
                 day, day.plusDays(1));
-        var envelopes = SiteDailyPublisher.sourceEnvelopes(utm, Instant.parse("2026-09-28T09:07:00Z"));
+        var referrers = SiteStatsService.foldReferrers(List.of(
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T07:00:00Z")), "t.me", 3L},
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T12:00:00Z")), "t.me", 2L},
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T09:00:00Z")), "direct", 4L},
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T10:00:00Z")), "yandex.ru", 1L}),
+                day, day.plusDays(1));
+        var envelopes = SiteDailyPublisher.sourceEnvelopes(utm, referrers, Instant.parse("2026-09-28T09:07:00Z"));
         ObjectMapper om = new ObjectMapper().enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT);
         String actual = om.writeValueAsString(envelopes.stream().map(SiteDailyPublisher.Envelope::body).toList()) + "\n";
 

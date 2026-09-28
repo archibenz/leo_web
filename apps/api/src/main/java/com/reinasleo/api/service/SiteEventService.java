@@ -51,11 +51,16 @@ public class SiteEventService {
     private static final Pattern HOST = Pattern.compile(
             "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$");
 
+    // Предел приёма аналитики (leo_analytics #217: host ≤100, иначе 422 на весь
+    // день). Длиннее — почти наверняка мусор; обнуляется, а не обрезается:
+    // обрезанный хост — уже чужой хост.
+    static final int MAX_HOST = 100;
+
     static String normalizeReferrerHost(String raw) {
         if (raw == null) return null;
         String host = raw.trim().toLowerCase(Locale.ROOT);
         if (host.equals("direct")) return host;
         if (host.startsWith("www.")) host = host.substring(4);
-        return host.length() <= 253 && HOST.matcher(host).matches() ? host : null;
+        return host.length() <= MAX_HOST && HOST.matcher(host).matches() ? host : null;
     }
 }
