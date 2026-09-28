@@ -50,6 +50,11 @@ export const metadata: Metadata = {
   applicationName: 'REINASLEO',
   manifest: '/manifest.json',
   metadataBase: new URL(siteUrl),
+  // Safari на iPhone сам превращает похожее на телефон, дату или адрес в
+  // ссылки — правит DOM до гидратации, и React видит не ту разметку (#418).
+  // ИНН и ОГРНИП в подвале — не телефон, «Осень / Зима 2026» — не дата.
+  // Почту оставляем: адрес в политике и реквизитах удобно нажать.
+  formatDetection: {telephone: false, date: false, address: false},
   // Ownership proof for Yandex.Webmaster and Google Search Console. Both are
   // read-only meta tags, but without them nobody can see how the site indexes
   // or ask for a recrawl. Set the codes in the web env and redeploy; absent,
