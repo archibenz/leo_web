@@ -8,6 +8,10 @@ import java.util.Set;
 // эта — от него самого), как category/WHITE_CATS в V32.
 public final class SiteEventTypes {
 
+    // checkout_start — в запасе ДО СВОЕЙ ОПЛАТЫ (решение 28.09): оформления
+    // заказа на сайте нет, продажи идут на маркетплейсах, и слать его сейчас
+    // нечему. Из контракта не убран, чтобы не переделывать CHECK и приём, когда
+    // оплата появится.
     public static final String EVENT_TYPE_PATTERN =
             "^(page_view|product_view|marketplace_click|add_to_cart|add_to_favourite|checkout_start|signup)$";
 

@@ -43,6 +43,7 @@ public class SiteDailyPublisher {
 
     static final int ROLLING_DAYS = 14;
     static final int PAGES_PER_CHUNK = 500;
+    static final int MAX_SOURCE_ROWS = 500;
     // Предел приёма на путь (SitePageRow.path max_length).
     static final int MAX_PATH = 500;
     private static final String SOURCE = "site";
@@ -73,8 +74,10 @@ public class SiteDailyPublisher {
             log.warn("ANALYTICS_INGEST_URL/ANALYTICS_INGEST_SECRET are not set: site daily numbers are not sent to analytics");
             return new Result(false, 0, 0, List.of());
         }
-        List<Envelope> envelopes = envelopes(
-                stats.getDailyStats(from, to), stats.getDailyPages(from, to), Instant.now());
+        Instant stamp = Instant.now();
+        List<Envelope> envelopes = new ArrayList<>(envelopes(
+                stats.getDailyStats(from, to), stats.getDailyPages(from, to), stamp));
+        envelopes.addAll(sourceEnvelopes(stats.getDailySources(from, to), stamp));
 
         int sent = 0;
         List<String> failures = new ArrayList<>();
@@ -130,6 +133,36 @@ public class SiteDailyPublisher {
                 out.add(new Envelope("site_daily_pages:" + day.date() + ":" + run + ":" + chunk, body(capturedAt, part)));
             }
         }
+        return out;
+    }
+
+    /**
+     * Источники по суткам (site_daily_sources): метки utm_* и — позже —
+     * хосты рефереров. ОДИН конверт на сутки, без кусков: приём замещает день
+     * целиком, и куски стирали бы друг друга; строк за день единицы-десятки,
+     * предел MAX_SOURCE_ROWS по убыванию просмотров — на случай мусорных меток.
+     * Сутки без меток шлются с пустыми списками: замещение стирает прежнее.
+     */
+    static List<Envelope> sourceEnvelopes(Map<LocalDate, List<SiteStatsService.UtmRow>> sources, Instant stamp) {
+        String capturedAt = stamp.toString();
+        long run = stamp.toEpochMilli();
+        List<Envelope> out = new ArrayList<>();
+        sources.forEach((day, rows) -> {
+            List<Map<String, Object>> utm = rows.stream().limit(MAX_SOURCE_ROWS).map(r -> {
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("source", r.source());
+                row.put("medium", r.medium());
+                row.put("campaign", r.campaign());
+                row.put("views", r.views());
+                return row;
+            }).toList();
+            Map<String, Object> event = new LinkedHashMap<>();
+            event.put("type", "site_daily_sources");
+            event.put("date", day.toString());
+            event.put("utm", utm);
+            event.put("referrers", List.of());
+            out.add(new Envelope("site_daily_sources:" + day + ":" + run, body(capturedAt, event)));
+        });
         return out;
     }
 

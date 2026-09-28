@@ -195,11 +195,16 @@ class SiteDailyPublisherTest {
 
     @SuppressWarnings("unchecked")
     private static List<String> dailyDates(List<Seen> seen) throws IOException {
+        return datesOf(seen, "site_daily");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<String> datesOf(List<Seen> seen, String type) throws IOException {
         ObjectMapper om = new ObjectMapper();
         List<String> dates = new ArrayList<>();
         for (Seen s : seen) {
             Map<String, Object> ev = ((List<Map<String, Object>>) om.readValue(s.body(), Map.class).get("events")).get(0);
-            if ("site_daily".equals(ev.get("type"))) dates.add((String) ev.get("date"));
+            if (type.equals(ev.get("type"))) dates.add((String) ev.get("date"));
         }
         return dates;
     }
@@ -224,11 +229,16 @@ class SiteDailyPublisherTest {
         verify(repo).countsByHour(midnight);
         verify(repo).sessionFirstSeen(midnight);
         verify(repo).pageViewsByHour(midnight);
+        verify(repo).utmQueriesByHour(midnight);
 
         List<String> dates = dailyDates(seen);
         assertThat(dates).hasSize(SiteDailyPublisher.ROLLING_DAYS).doesNotHaveDuplicates();
         assertThat(dates.get(0)).isEqualTo(first.toString());
         assertThat(dates.get(dates.size() - 1)).isEqualTo(today.toString());
+        // Источники — те же сутки, по конверту на день, даже пустые: приём
+        // замещает день, и пустой список стирает прежние метки.
+        assertThat(datesOf(seen, "site_daily_sources")).isEqualTo(dates);
+        assertThat(seen).extracting(Seen::key).allMatch(k -> INGEST_KEY.matcher(k).matches());
     }
 
     // ЗАМЕЩЕНИЕ ДНЯ живёт на приёме (test_the_same_day_is_replaced_not_accumulated
@@ -256,5 +266,48 @@ class SiteDailyPublisherTest {
             assertThat(b.get(i).key().replaceAll(":\\d+$", ""))
                     .isEqualTo(a.get(i).key().replaceAll(":\\d+$", ""));
         }
+    }
+
+    // ---- site_daily_sources
+
+    @Test
+    void sourcesGoOneEnvelopePerDayWithUtmRowsAndEmptyReferrers() {
+        LocalDate d1 = LocalDate.of(2026, 9, 24);
+        LocalDate d2 = d1.plusDays(1);
+        Map<LocalDate, List<SiteStatsService.UtmRow>> sources = new java.util.LinkedHashMap<>();
+        sources.put(d1, List.of(new SiteStatsService.UtmRow("tg", "post", null, 5)));
+        sources.put(d2, List.of());
+        Instant stamp = Instant.parse("2026-09-28T09:07:00Z");
+
+        var envelopes = SiteDailyPublisher.sourceEnvelopes(sources, stamp);
+
+        assertThat(envelopes).extracting(SiteDailyPublisher.Envelope::key).containsExactly(
+                "site_daily_sources:2026-09-24:" + stamp.toEpochMilli(),
+                "site_daily_sources:2026-09-25:" + stamp.toEpochMilli());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> first = ((List<Map<String, Object>>) envelopes.get(0).body().get("events")).get(0);
+        assertThat(first).containsEntry("type", "site_daily_sources").containsEntry("date", "2026-09-24")
+                .containsEntry("referrers", List.of());
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> utm = (List<Map<String, Object>>) first.get("utm");
+        assertThat(utm).hasSize(1);
+        // Пустая метка уходит как null, а не пропадает: у приёма это «не задано».
+        assertThat(utm.get(0)).containsEntry("source", "tg").containsEntry("medium", "post")
+                .containsEntry("campaign", null).containsEntry("views", 5L);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> second = ((List<Map<String, Object>>) envelopes.get(1).body().get("events")).get(0);
+        assertThat(second).containsEntry("utm", List.of());
+    }
+
+    @Test
+    void aDayOfJunkLabelsIsCappedNotSplit() {
+        LocalDate day = LocalDate.of(2026, 9, 24);
+        List<SiteStatsService.UtmRow> rows = java.util.stream.IntStream.range(0, SiteDailyPublisher.MAX_SOURCE_ROWS + 50)
+                .mapToObj(i -> new SiteStatsService.UtmRow("s" + i, null, null, 1)).toList();
+        var envelopes = SiteDailyPublisher.sourceEnvelopes(Map.of(day, rows), Instant.now());
+        assertThat(envelopes).hasSize(1);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> event = ((List<Map<String, Object>>) envelopes.get(0).body().get("events")).get(0);
+        assertThat((List<?>) event.get("utm")).hasSize(SiteDailyPublisher.MAX_SOURCE_ROWS);
     }
 }

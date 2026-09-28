@@ -166,4 +166,54 @@ class SiteStatsServiceTest {
         verify(repo).sessionFirstSeen(midnight);
         verify(repo).pageViewsByHour(midnight);
     }
+
+    // ---- метки utm_* для site_daily_sources
+
+    private static Object[] utm(String instant, String query, long count) {
+        return new Object[]{Timestamp.from(Instant.parse(instant)), query, count};
+    }
+
+    @Test
+    void parseUtmKeepsOnlyTheThreeLabelsDecodedLowercasedAndClipped() {
+        String longCampaign = "a".repeat(150);
+        Map<String, String> utm = SiteStatsService.parseUtm(
+                "utm_source=%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81&UTM_Medium=+CPC+&utm_campaign=" + longCampaign
+                        + "&utm_term=x&gclid=1&utm_source=second");
+        assertThat(utm).containsEntry("utm_source", "яндекс")
+                .containsEntry("utm_medium", "cpc")
+                .containsEntry("utm_campaign", "a".repeat(SiteStatsService.MAX_UTM_VALUE))
+                .hasSize(3);
+    }
+
+    @Test
+    void parseUtmSkipsEmptyValuesAndSurvivesBrokenEncoding() {
+        assertThat(SiteStatsService.parseUtm("utm_source=&utm_medium=%E0%A4%A&cat=x"))
+                .containsExactly(Map.entry("utm_medium", "%e0%a4%a"));
+        assertThat(SiteStatsService.parseUtm(null)).isEmpty();
+    }
+
+    @Test
+    void foldSourcesGroupsByTripleAcrossHoursOnTheMoscowCalendar() {
+        LocalDate from = LocalDate.of(2026, 9, 21);
+        LocalDate to = LocalDate.of(2026, 9, 22);
+        var byDay = SiteStatsService.foldSources(List.of(
+                utm("2026-09-21T10:00:00Z", "utm_source=tg&utm_medium=post", 3),
+                utm("2026-09-21T15:00:00Z", "utm_medium=post&utm_source=tg", 2),
+                utm("2026-09-21T15:00:00Z", "utm_source=yandex", 7),
+                // 21:30Z — это уже 00:30 22.09 по Москве.
+                utm("2026-09-21T21:30:00Z", "utm_source=tg&utm_medium=post", 1),
+                utm("2026-09-21T11:00:00Z", "cat=dresses", 9)), from, to);
+
+        assertThat(byDay.get(from)).containsExactly(
+                new SiteStatsService.UtmRow("yandex", null, null, 7),
+                new SiteStatsService.UtmRow("tg", "post", null, 5));
+        assertThat(byDay.get(to)).containsExactly(new SiteStatsService.UtmRow("tg", "post", null, 1));
+    }
+
+    @Test
+    void foldSourcesKeepsDaysWithoutLabelsAsEmptyLists() {
+        LocalDate day = LocalDate.of(2026, 9, 21);
+        var byDay = SiteStatsService.foldSources(List.of(), day, day.plusDays(2));
+        assertThat(byDay).hasSize(3).allSatisfy((d, rows) -> assertThat(rows).isEmpty());
+    }
 }
