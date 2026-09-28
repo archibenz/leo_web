@@ -8,6 +8,9 @@ server:
 spring:
   application:
     name: reinasleo-api
+  # Коммит сборки для app.errors.release — пишет Gradle (generateBuildRelease).
+  config:
+    import: optional:classpath:build-release.properties
   lifecycle:
     timeout-per-shutdown-phase: 25s
   jackson:
@@ -102,7 +105,8 @@ app:
   # метка сборки (sha), env — prod только на бою: всё прочее аналитика прячет
   # сразу, тревог от стенда не будет. Не секреты, поэтому с умолчаниями.
   errors:
-    release: ${APP_RELEASE:unknown}
+    # APP_RELEASE, иначе sha12 коммита сборки (зашит в jar), иначе unknown.
+    release: ${APP_RELEASE:${app.build.commit:unknown}}
     env: ${APP_ENV:dev}
     flush-ms: ${APP_ERRORS_FLUSH_MS:60000}
 # Пустые фолбэки для shop-id/secret-key — осознанное исключение из правила
