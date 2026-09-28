@@ -1,10 +1,10 @@
 {
-  "$comment": "Общее боковое меню админки сайта и аналитики (решение владельца 26.09.2026, «А»: «общий свод по продажам, а потом в боковом меню будет озон, вб и сайт»). Источник — здесь (leo_analytics), у leo_web копия и тест «копия == источник». Адреса абсолютные: аналитика — /analytics/…, сайт — шаблон /{locale}/… (приложение подставляет свою локаль; из аналитики — ru). app — в каком приложении живёт пункт: своё приложение ведёт роутером, чужое — обычной ссылкой. kind=action — не ссылка (переключатель правки витрины), рисует только сайт. roles: section:<код> — раздел прав аналитики; admin — админ сайта.",
+  "$comment": "Общее боковое меню админки сайта и аналитики (решение владельца 26.09.2026, «А»: «общий свод по продажам, а потом в боковом меню будет озон, вб и сайт»). Источник — здесь (leo_analytics), у leo_web копия и тест «копия == источник». Адреса абсолютные: аналитика — /analytics/…, сайт — шаблон /{locale}/… (приложение подставляет свою локаль; из аналитики — ru). app — в каком приложении живёт пункт: своё приложение ведёт роутером, чужое — обычной ссылкой. kind=action — не ссылка (переключатель правки витрины), рисует только сайт. roles: section:<код> — раздел прав аналитики; admin — админ сайта. 28.09.2026: каркас WB = каркас Ozon пункт в пункт (Дашборд · Финансы · Товары · Поставки · Книги), id — шаблоном «<площадка>-<пункт>»; пункт без экрана не показывается. fold — раздел раскрыт, только если в нём текущая страница; emphasis — выделенный раздел; footer — кнопки внизу меню (не пункты списка).",
   "sections": [
     {
       "id": "summary",
       "title": {
-        "ru": ""
+        "ru": "Главное"
       },
       "items": [
         {
@@ -21,7 +21,8 @@
             "section:dashboard"
           ]
         }
-      ]
+      ],
+      "emphasis": true
     },
     {
       "id": "wb",
@@ -32,7 +33,7 @@
         {
           "id": "wb-dashboard",
           "title": {
-            "ru": "Дашборд WB"
+            "ru": "Дашборд"
           },
           "icon": "layout-dashboard",
           "app": "analytics",
@@ -52,7 +53,7 @@
           "app": "analytics",
           "kind": "link",
           "path": "/analytics/finance",
-          "match": "prefix",
+          "match": "exact",
           "roles": [
             "section:finance"
           ],
@@ -60,7 +61,7 @@
             {
               "id": "wb-finance-summary",
               "title": {
-                "ru": "Сводка / P&L"
+                "ru": "P&L"
               },
               "icon": "wallet",
               "app": "analytics",
@@ -140,25 +141,11 @@
               "roles": [
                 "section:finance"
               ]
-            },
-            {
-              "id": "wb-finance-funnel",
-              "title": {
-                "ru": "Воронка (финблок)"
-              },
-              "icon": "wallet",
-              "app": "analytics",
-              "kind": "link",
-              "path": "/analytics/finance/funnel",
-              "match": "prefix",
-              "roles": [
-                "section:finance"
-              ]
             }
           ]
         },
         {
-          "id": "wb-products",
+          "id": "wb-goods",
           "title": {
             "ru": "Товары"
           },
@@ -166,43 +153,59 @@
           "app": "analytics",
           "kind": "link",
           "path": "/analytics/products",
-          "match": "prefix",
+          "match": "exact",
           "roles": [
             "section:products"
+          ],
+          "children": [
+            {
+              "id": "wb-products",
+              "title": {
+                "ru": "Товары"
+              },
+              "icon": "package",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/products",
+              "match": "prefix",
+              "roles": [
+                "section:products"
+              ]
+            },
+            {
+              "id": "wb-funnel",
+              "title": {
+                "ru": "Воронка"
+              },
+              "icon": "filter",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/funnel",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            },
+            {
+              "id": "wb-sizes",
+              "title": {
+                "ru": "Размеры и остатки"
+              },
+              "icon": "ruler",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/sizes",
+              "match": "prefix",
+              "roles": [
+                "section:products"
+              ]
+            }
           ]
         },
         {
-          "id": "wb-funnel",
+          "id": "wb-supplies",
           "title": {
-            "ru": "Воронка"
-          },
-          "icon": "filter",
-          "app": "analytics",
-          "kind": "link",
-          "path": "/analytics/funnel",
-          "match": "prefix",
-          "roles": [
-            "section:finance"
-          ]
-        },
-        {
-          "id": "wb-sizes",
-          "title": {
-            "ru": "Размеры"
-          },
-          "icon": "ruler",
-          "app": "analytics",
-          "kind": "link",
-          "path": "/analytics/sizes",
-          "match": "prefix",
-          "roles": [
-            "section:products"
-          ]
-        },
-        {
-          "id": "wb-season",
-          "title": {
-            "ru": "Поставки к сезону"
+            "ru": "Поставки"
           },
           "icon": "calendar-range",
           "app": "analytics",
@@ -214,51 +217,9 @@
           ]
         },
         {
-          "id": "wb-checklist",
-          "title": {
-            "ru": "Чек-лист"
-          },
-          "icon": "list-checks",
-          "app": "analytics",
-          "kind": "link",
-          "path": "/analytics/finance/checklist",
-          "match": "prefix",
-          "roles": [
-            "section:finance"
-          ]
-        },
-        {
-          "id": "wb-experiments",
-          "title": {
-            "ru": "Эксперименты с фото"
-          },
-          "icon": "flask-conical",
-          "app": "analytics",
-          "kind": "link",
-          "path": "/analytics/finance/experiments",
-          "match": "prefix",
-          "roles": [
-            "section:finance"
-          ]
-        },
-        {
-          "id": "wb-competitors",
-          "title": {
-            "ru": "Конкуренты"
-          },
-          "icon": "flag",
-          "app": "analytics",
-          "kind": "link",
-          "path": "/analytics/competitors",
-          "match": "prefix",
-          "roles": [
-            "section:competitors"
-          ]
-        },
-        {
           "id": "wb-books",
           "title": {
-            "ru": "Книги WB"
+            "ru": "Книги"
           },
           "icon": "sheet",
           "app": "analytics",
@@ -369,7 +330,8 @@
             }
           ]
         }
-      ]
+      ],
+      "fold": true
     },
     {
       "id": "ozon",
@@ -380,7 +342,7 @@
         {
           "id": "ozon-books",
           "title": {
-            "ru": "Книги Ozon"
+            "ru": "Книги"
           },
           "icon": "sheet",
           "app": "analytics",
@@ -449,7 +411,8 @@
             }
           ]
         }
-      ]
+      ],
+      "fold": true
     },
     {
       "id": "site",
@@ -583,7 +546,8 @@
             "admin"
           ]
         }
-      ]
+      ],
+      "fold": true
     },
     {
       "id": "service",
@@ -591,6 +555,34 @@
         "ru": "Служебное"
       },
       "items": [
+        {
+          "id": "service-checklist",
+          "title": {
+            "ru": "Чек-лист"
+          },
+          "icon": "list-checks",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/finance/checklist",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ]
+        },
+        {
+          "id": "service-experiments",
+          "title": {
+            "ru": "Эксперименты с фото"
+          },
+          "icon": "flask-conical",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/finance/experiments",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ]
+        },
         {
           "id": "service-frozen",
           "title": {
@@ -688,19 +680,22 @@
           "roles": [
             "section:users_admin"
           ]
-        },
-        {
-          "id": "service-storefront",
-          "title": {
-            "ru": "На сайт"
-          },
-          "icon": "globe",
-          "app": "site",
-          "kind": "link",
-          "path": "/{locale}",
-          "match": "exact"
         }
-      ]
+      ],
+      "fold": true
+    }
+  ],
+  "footer": [
+    {
+      "id": "footer-to-site",
+      "title": {
+        "ru": "На сайт"
+      },
+      "icon": "globe",
+      "app": "site",
+      "kind": "link",
+      "path": "/{locale}",
+      "match": "exact"
     }
   ]
 }

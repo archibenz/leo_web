@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {cn} from '@/lib/utils';
-import {Sidebar, SidebarContent, SidebarHeader} from '@/components/ui/sidebar';
+import {Sidebar, SidebarContent, SidebarFooter, SidebarHeader} from '@/components/ui/sidebar';
 import {MENU} from '@/lib/nav/menu';
 import {CustomMenuButton} from './app-shared';
-import {NavGroup} from './nav-group';
+import {NavFooter, NavGroup} from './nav-group';
 import Wordmark from './Wordmark';
 
 // Боковая панель по блоку `app-shell-7`. Свёрнутое состояние — до значков
@@ -79,6 +79,9 @@ export function AppSidebar({locale}: {locale: string}) {
           <NavGroup key={section.id} section={section} locale={locale} pathname={pathname} />
         ))}
       </SidebarContent>
+      <SidebarFooter className="border-t">
+        <NavFooter locale={locale} />
+      </SidebarFooter>
     </Sidebar>
   );
 }
