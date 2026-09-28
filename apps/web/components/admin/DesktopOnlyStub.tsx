@@ -1,4 +1,5 @@
 import desktopOnly from '../../lib/nav/desktop-only.json';
+import Wordmark from './shell/Wordmark';
 
 // «Панель работает на компьютере» — админка при ширине окна меньше 1024 px
 // (задача владельца 26.09, общая с дашбордом аналитики: текст и ссылки —
@@ -17,7 +18,7 @@ export default function DesktopOnlyStub() {
       data-desktop-only-stub=""
       className="flex min-h-svh flex-col items-center justify-center bg-background px-6 py-16 text-center text-foreground lg:hidden"
     >
-      <p className="font-display text-[20px] tracking-[0.12em]">REINASLEO</p>
+      <Wordmark className="h-[23px]" />
       <h1 className="mt-10 font-display text-[clamp(26px,7vw,34px)] leading-[1.1]">{desktopOnly.title}</h1>
       <p className="mt-4 max-w-xs text-[15px] leading-relaxed text-muted-foreground">{desktopOnly.body}</p>
       <div className="mt-10 flex w-full max-w-xs flex-col gap-3">

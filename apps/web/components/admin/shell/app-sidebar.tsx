@@ -7,6 +7,7 @@ import {Sidebar, SidebarContent, SidebarHeader} from '@/components/ui/sidebar';
 import {MENU} from '@/lib/nav/menu';
 import {CustomMenuButton} from './app-shared';
 import {NavGroup} from './nav-group';
+import Wordmark from './Wordmark';
 
 // Боковая панель по блоку `app-shell-7`. Свёрнутое состояние — до значков
 // (collapsible="icon"), а не до нуля: владелец правит сайт с телефона, и
@@ -64,12 +65,11 @@ export function AppSidebar({locale}: {locale: string}) {
                 mask: 'url(/logos/icon-black.svg) center / contain no-repeat',
               }}
             />
-            {/* 20px, а не 15. Замер 18.09: имя дома читалось 15 px, а имя страницы
-                рядом — 32 px тем же шрифтом. Дом получался вдвое тише страницы.
-                20 ставит его между подписями панели и заголовком, не споря с
-                ним: витрина держит своё слово картинкой высотой 23 px, и здесь
-                та же величина голоса. */}
-            <span className="font-display text-[20px] tracking-[0.12em] group-data-[collapsible=icon]:hidden">REINASLEO</span>
+            {/* Марка — картинкой, как в шапке витрины, и той же высоты 23 px (там
+                это та же величина голоса, что у слова 20 px, выбранного 18.09:
+                между подписями панели и заголовком страницы, не споря с ним).
+                С 28.09 админка на Jost, а марке нужен свой рисунок. */}
+            <Wordmark className="h-[23px] group-data-[collapsible=icon]:hidden" />
           </Link>
         </CustomMenuButton>
       </SidebarHeader>
