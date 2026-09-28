@@ -16,6 +16,7 @@ public record SiteDayPoint(
         long addToCart,
         long addToFavourite,
         long signups,
+        long preorders,
         Map<String, Long> byDevice,
         Map<String, Long> byLocale,
         Map<String, Long> byMarketplace

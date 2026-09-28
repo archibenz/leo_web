@@ -114,6 +114,7 @@ public class SiteDailyPublisher {
             event.put("add_to_cart", day.addToCart());
             event.put("add_to_favourite", day.addToFavourite());
             event.put("signups", day.signups());
+            event.put("preorders", day.preorders());
             event.put("by_device", day.byDevice());
             event.put("by_locale", day.byLocale());
             event.put("by_marketplace", day.byMarketplace());

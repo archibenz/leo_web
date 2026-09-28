@@ -486,7 +486,7 @@ export default function WhitePdpShowcase({
                   {product.price != null && (
                     <p className="mb-3 text-[12px] uppercase tracking-[0.2em]" style={{color: MUTED}}>{t('outOfStock')}</p>
                   )}
-                  <WhitePreorder product={name} size={size} />
+                  <WhitePreorder product={name} productId={selectedColor.id} size={size} />
                 </div>
               ) : (
                 <button ref={inlineAddRef} type="button" disabled={!inStock || !size} onClick={handleAdd} aria-live="polite" className="wv-btn flex-1 px-8 py-3 text-[11px] uppercase tracking-[0.2em] sm:py-4 sm:text-[12px]">

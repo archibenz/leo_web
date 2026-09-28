@@ -44,10 +44,12 @@ class SiteDailyPublisherTest {
     private static final LocalDate DAY = LocalDate.parse("2026-09-23");
     // Тот же шаблон, что _IDEMPOTENCY_KEY_RE в leo_analytics routers/ingest.py.
     private static final Pattern INGEST_KEY = Pattern.compile("^[A-Za-z0-9_\\-:.]{1,255}$");
-    // Поля SiteDailyEvent в leo_analytics — ни больше ни меньше.
+    // Поля SiteDailyEvent в leo_analytics — ни больше ни меньше. preorders
+    // добавлен 28.09 парой с приёмом: приём строгий, и лишнее поле отбило бы
+    // весь день, поэтому приём выкатывается первым.
     private static final Set<String> SITE_DAILY_FIELDS = Set.of(
             "type", "date", "page_views", "sessions", "product_views", "marketplace_clicks",
-            "add_to_cart", "add_to_favourite", "signups", "by_device", "by_locale", "by_marketplace");
+            "add_to_cart", "add_to_favourite", "signups", "preorders", "by_device", "by_locale", "by_marketplace");
 
     private HttpServer server;
 
@@ -57,7 +59,7 @@ class SiteDailyPublisherTest {
     }
 
     private static SiteDayPoint day(LocalDate date, long views) {
-        return new SiteDayPoint(date, views, 3, 2, 1, 0, 0, 0,
+        return new SiteDayPoint(date, views, 3, 2, 1, 0, 0, 0, 0,
                 Map.of("phone", views), Map.of("ru", views), Map.of("wildberries", 1L));
     }
 
@@ -335,6 +337,26 @@ class SiteDailyPublisherTest {
         String actual = om.writeValueAsString(envelopes.stream().map(SiteDailyPublisher.Envelope::body).toList()) + "\n";
 
         java.nio.file.Path fixture = java.nio.file.Path.of("src/test/resources/contract/site_daily_sources.json");
+        if ("1".equals(System.getenv("UPDATE_CONTRACT"))) {
+            java.nio.file.Files.createDirectories(fixture.getParent());
+            java.nio.file.Files.writeString(fixture, actual);
+        }
+        assertThat(actual).isEqualTo(java.nio.file.Files.readString(fixture));
+    }
+
+    // Эталонный site_daily с preorders (контракт с приёмом #217: поля строго
+    // «ни больше ни меньше», лишнее — 422 на весь день). Фикстуру прогоняет
+    // валидатор аналитики; поменялась выгрузка — обновите её (UPDATE_CONTRACT=1).
+    @Test
+    void theDailyEnvelopeMatchesTheContractFixture() throws IOException {
+        SiteDayPoint day = new SiteDayPoint(LocalDate.of(2026, 9, 24), 120, 40, 60, 7, 0, 3, 1, 2,
+                Map.of("phone", 90L, "desktop", 30L), Map.of("ru", 118L, "en", 2L), Map.of("wildberries", 6L, "ozon", 1L));
+        var envelope = SiteDailyPublisher.envelopes(List.of(day), Map.of(), Instant.parse("2026-09-28T09:07:00Z")).get(0);
+        ObjectMapper om = new ObjectMapper().enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT)
+                .enable(com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
+        String actual = om.writeValueAsString(envelope.body()) + "\n";
+
+        java.nio.file.Path fixture = java.nio.file.Path.of("src/test/resources/contract/site_daily.json");
         if ("1".equals(System.getenv("UPDATE_CONTRACT"))) {
             java.nio.file.Files.createDirectories(fixture.getParent());
             java.nio.file.Files.writeString(fixture, actual);

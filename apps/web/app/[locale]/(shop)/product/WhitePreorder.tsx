@@ -4,6 +4,7 @@ import {useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {useFocusTrap} from '../../../../lib/useFocusTrap';
 import {INK, MUTED, HAIR} from '../../wv-palette';
+import {trackSiteEvent} from '../../../../lib/siteEvents';
 
 // Pre-order: the garment is nowhere to be bought — not here, not on a
 // marketplace — so instead of a dead button the page takes a name and tells the
@@ -11,7 +12,10 @@ import {INK, MUTED, HAIR} from '../../wv-palette';
 // already chosen, and a line if they want to say something. Anything longer and
 // people abandon it, and the shop only needs enough to write back.
 
-export default function WhitePreorder({product, size}: {product: string; size: string | null}) {
+// Принятая заявка — событие сайта preorder (28.09): это единственная заявка,
+// которую сайт принимает сам, и без него воронка его не видела вовсе. Только на
+// успех: отказ (400/500) заявкой не стал.
+export default function WhitePreorder({product, productId, size}: {product: string; productId: string; size: string | null}) {
   const t = useTranslations('white.pdp');
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
@@ -47,6 +51,7 @@ export default function WhitePreorder({product, size}: {product: string; size: s
       });
       if (res.ok) {
         setState('sent');
+        trackSiteEvent('preorder', {productId});
         return;
       }
       // 400 is the reader's problem to fix (a malformed address); everything

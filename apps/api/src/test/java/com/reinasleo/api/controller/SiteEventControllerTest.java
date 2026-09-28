@@ -6,6 +6,7 @@ import com.reinasleo.api.repository.SiteEventRepository;
 import com.reinasleo.api.repository.UserRepository;
 import com.reinasleo.api.security.AuthCookies;
 import com.reinasleo.api.security.JwtService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,16 @@ class SiteEventControllerTest {
 
     @BeforeEach
     void setUp() {
+        siteEventRepository.deleteAll();
+        userRepository.deleteAll();
+    }
+
+    // И после кейса тоже: база H2 одна на весь прогон, и строки последнего
+    // кейса иначе доставались соседним классам. 28.09 так упал
+    // AdminSiteStatsControllerTest.sessionsAndHourlyCountsSkipStaff (ждал 2
+    // просмотра, увидел 3), когда новый кейс сменил порядок методов здесь.
+    @AfterEach
+    void tearDown() {
         siteEventRepository.deleteAll();
         userRepository.deleteAll();
     }
@@ -202,6 +213,21 @@ class SiteEventControllerTest {
                 .andExpect(status().isAccepted());
 
         SiteEvent saved = siteEventRepository.findAll().get(0);
+        assertThat(saved.getUserId()).isNull();
+    }
+
+    // Предзаказ (28.09) — заявка без входа: принимается, как любое событие, и
+    // не цепляет учётку — ему вход не нужен.
+    @Test
+    void submit_preorderAnonymous_isAcceptedWithoutUser() throws Exception {
+        postEvents("10.2.0.10", """
+                {"events":[{"eventType":"preorder","productId":"wb-7"}]}
+                """)
+                .andExpect(status().isAccepted());
+
+        SiteEvent saved = siteEventRepository.findAll().get(0);
+        assertThat(saved.getEventType()).isEqualTo("preorder");
+        assertThat(saved.getProductId()).isEqualTo("wb-7");
         assertThat(saved.getUserId()).isNull();
     }
 

@@ -230,7 +230,8 @@ public class SiteStatsService {
                 case "add_to_cart" -> bucket.addToCart += count;
                 case "add_to_favourite" -> bucket.addToFavourite += count;
                 case "signup" -> bucket.signups += count;
-                default -> { /* checkout_start объявлен, но витриной не шлётся */ }
+                case "preorder" -> bucket.preorders += count;
+                default -> { /* checkout_start — в запасе до своей оплаты, витриной не шлётся */ }
             }
         }
 
@@ -243,7 +244,7 @@ public class SiteStatsService {
         List<SiteDayPoint> out = new ArrayList<>(byDay.size());
         byDay.forEach((day, bucket) -> out.add(new SiteDayPoint(
                 day, bucket.pageViews, bucket.sessions, bucket.productViews, bucket.marketplaceClicks,
-                bucket.addToCart, bucket.addToFavourite, bucket.signups,
+                bucket.addToCart, bucket.addToFavourite, bucket.signups, bucket.preorders,
                 bucket.byDevice, bucket.byLocale, bucket.byMarketplace)));
         return out;
     }
@@ -268,6 +269,7 @@ public class SiteStatsService {
         long addToCart;
         long addToFavourite;
         long signups;
+        long preorders;
         final Map<String, Long> byDevice = new HashMap<>();
         final Map<String, Long> byLocale = new HashMap<>();
         final Map<String, Long> byMarketplace = new HashMap<>();

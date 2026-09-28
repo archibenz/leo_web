@@ -117,6 +117,21 @@ class SiteStatsServiceTest {
     }
 
     @Test
+    void preordersAreCountedOnTheirOwnAndNotAsViews() {
+        List<SiteDayPoint> days = SiteStatsService.fold(
+                List.<Object[]>of(
+                        hour("2026-09-21T10:00:00Z", "page_view", "mobile", "ru", "", 7),
+                        hour("2026-09-21T10:00:00Z", "preorder", "mobile", "ru", "", 2)),
+                List.<Object[]>of(),
+                LocalDate.parse("2026-09-21"), LocalDate.parse("2026-09-21"));
+
+        SiteDayPoint d = day(days, "2026-09-21");
+        assertThat(d.preorders()).isEqualTo(2);
+        assertThat(d.pageViews()).isEqualTo(7);
+        assertThat(d.addToCart()).isZero();
+    }
+
+    @Test
     void unknownEventTypeIsIgnoredRatherThanCounted() {
         // checkout_start объявлен в SiteEventTypes, но витрина его не шлёт.
         // Когда начнёт — он не должен молча попасть в просмотры страниц.
