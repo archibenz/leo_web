@@ -195,11 +195,16 @@ class SiteDailyPublisherTest {
 
     @SuppressWarnings("unchecked")
     private static List<String> dailyDates(List<Seen> seen) throws IOException {
+        return datesOf(seen, "site_daily");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<String> datesOf(List<Seen> seen, String type) throws IOException {
         ObjectMapper om = new ObjectMapper();
         List<String> dates = new ArrayList<>();
         for (Seen s : seen) {
             Map<String, Object> ev = ((List<Map<String, Object>>) om.readValue(s.body(), Map.class).get("events")).get(0);
-            if ("site_daily".equals(ev.get("type"))) dates.add((String) ev.get("date"));
+            if (type.equals(ev.get("type"))) dates.add((String) ev.get("date"));
         }
         return dates;
     }
@@ -224,11 +229,16 @@ class SiteDailyPublisherTest {
         verify(repo).countsByHour(midnight);
         verify(repo).sessionFirstSeen(midnight);
         verify(repo).pageViewsByHour(midnight);
+        verify(repo).utmQueriesByHour(midnight);
 
         List<String> dates = dailyDates(seen);
         assertThat(dates).hasSize(SiteDailyPublisher.ROLLING_DAYS).doesNotHaveDuplicates();
         assertThat(dates.get(0)).isEqualTo(first.toString());
         assertThat(dates.get(dates.size() - 1)).isEqualTo(today.toString());
+        // Источники — те же сутки, по конверту на день, даже пустые: приём
+        // замещает день, и пустой список стирает прежние метки.
+        assertThat(datesOf(seen, "site_daily_sources")).isEqualTo(dates);
+        assertThat(seen).extracting(Seen::key).allMatch(k -> INGEST_KEY.matcher(k).matches());
     }
 
     // ЗАМЕЩЕНИЕ ДНЯ живёт на приёме (test_the_same_day_is_replaced_not_accumulated
@@ -256,5 +266,79 @@ class SiteDailyPublisherTest {
             assertThat(b.get(i).key().replaceAll(":\\d+$", ""))
                     .isEqualTo(a.get(i).key().replaceAll(":\\d+$", ""));
         }
+    }
+
+    // ---- site_daily_sources
+
+    @Test
+    void sourcesGoOneEnvelopePerDayWithUtmRowsAndEmptyReferrers() {
+        LocalDate d1 = LocalDate.of(2026, 9, 24);
+        LocalDate d2 = d1.plusDays(1);
+        Map<LocalDate, List<SiteStatsService.UtmRow>> sources = new java.util.LinkedHashMap<>();
+        sources.put(d1, List.of(new SiteStatsService.UtmRow("tg", "post", null, 5)));
+        sources.put(d2, List.of());
+        Instant stamp = Instant.parse("2026-09-28T09:07:00Z");
+
+        var envelopes = SiteDailyPublisher.sourceEnvelopes(sources, stamp);
+
+        assertThat(envelopes).extracting(SiteDailyPublisher.Envelope::key).containsExactly(
+                "site_daily_sources:2026-09-24:" + stamp.toEpochMilli(),
+                "site_daily_sources:2026-09-25:" + stamp.toEpochMilli());
+        @SuppressWarnings("unchecked")
+        Map<String, Object> first = ((List<Map<String, Object>>) envelopes.get(0).body().get("events")).get(0);
+        assertThat(first).containsEntry("type", "site_daily_sources").containsEntry("date", "2026-09-24")
+                .containsEntry("referrers", List.of());
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> utm = (List<Map<String, Object>>) first.get("utm");
+        assertThat(utm).hasSize(1);
+        // Пустая метка уходит как null, а не пропадает: у приёма это «не задано».
+        assertThat(utm.get(0)).containsEntry("source", "tg").containsEntry("medium", "post")
+                .containsEntry("campaign", null).containsEntry("views", 5L);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> second = ((List<Map<String, Object>>) envelopes.get(1).body().get("events")).get(0);
+        assertThat(second).containsEntry("utm", List.of());
+    }
+
+    @Test
+    void aDayOfJunkLabelsIsCappedNotSplit() {
+        LocalDate day = LocalDate.of(2026, 9, 24);
+        List<SiteStatsService.UtmRow> rows = java.util.stream.IntStream.range(0, SiteDailyPublisher.MAX_SOURCE_ROWS + 50)
+                .mapToObj(i -> new SiteStatsService.UtmRow("s" + i, null, null, 1)).toList();
+        var envelopes = SiteDailyPublisher.sourceEnvelopes(Map.of(day, rows), Instant.now());
+        assertThat(envelopes).hasSize(1);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> event = ((List<Map<String, Object>>) envelopes.get(0).body().get("events")).get(0);
+        assertThat((List<?>) event.get("utm")).hasSize(SiteDailyPublisher.MAX_SOURCE_ROWS);
+    }
+
+    // ---- контракт с приёмом аналитики (leo_analytics #217): эталонный конверт.
+    //
+    // Фикстура contract/site_daily_sources.json — то, что РЕАЛЬНО уходит из
+    // выгрузки, собранное настоящим кодом из заковыристых сырых меток: регистр,
+    // кириллица в %-кодировке, пустые метки, эмодзи на границе 100 символов,
+    // одна метка в разном регистре. Приём строгий (422 на весь день): её же
+    // прогоняет валидатор аналитики. Поменялась выгрузка — тест красный:
+    // обновите фикстуру (UPDATE_CONTRACT=1) и копию у аналитики.
+    @Test
+    void theSourcesEnvelopeMatchesTheContractFixture() throws IOException {
+        LocalDate day = LocalDate.of(2026, 9, 24);
+        String emoji = java.net.URLEncoder.encode("a".repeat(99) + "😀😀", StandardCharsets.UTF_8);
+        var utm = SiteStatsService.foldSources(List.of(
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T07:00:00Z")), "utm_source=Yandex&utm_medium=CPC&utm_campaign=Осень", 2L},
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T08:00:00Z")), "utm_source=yandex&utm_medium=cpc&utm_campaign=%D0%BE%D1%81%D0%B5%D0%BD%D1%8C", 3L},
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T09:00:00Z")), "utm_source=tg&utm_medium=&utm_campaign=+", 4L},
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T10:00:00Z")), "utm_campaign=" + emoji, 1L},
+                new Object[]{java.sql.Timestamp.from(Instant.parse("2026-09-24T11:00:00Z")), "cat=dresses", 9L}),
+                day, day.plusDays(1));
+        var envelopes = SiteDailyPublisher.sourceEnvelopes(utm, Instant.parse("2026-09-28T09:07:00Z"));
+        ObjectMapper om = new ObjectMapper().enable(com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT);
+        String actual = om.writeValueAsString(envelopes.stream().map(SiteDailyPublisher.Envelope::body).toList()) + "\n";
+
+        java.nio.file.Path fixture = java.nio.file.Path.of("src/test/resources/contract/site_daily_sources.json");
+        if ("1".equals(System.getenv("UPDATE_CONTRACT"))) {
+            java.nio.file.Files.createDirectories(fixture.getParent());
+            java.nio.file.Files.writeString(fixture, actual);
+        }
+        assertThat(actual).isEqualTo(java.nio.file.Files.readString(fixture));
     }
 }

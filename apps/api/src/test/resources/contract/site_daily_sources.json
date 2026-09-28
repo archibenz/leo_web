@@ -1,0 +1,34 @@
+[ {
+  "source" : "site",
+  "captured_at" : "2026-09-28T09:07:00Z",
+  "events" : [ {
+    "type" : "site_daily_sources",
+    "date" : "2026-09-24",
+    "utm" : [ {
+      "source" : "yandex",
+      "medium" : "cpc",
+      "campaign" : "осень",
+      "views" : 5
+    }, {
+      "source" : "tg",
+      "medium" : null,
+      "campaign" : null,
+      "views" : 4
+    }, {
+      "source" : null,
+      "medium" : null,
+      "campaign" : "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa😀",
+      "views" : 1
+    } ],
+    "referrers" : [ ]
+  } ]
+}, {
+  "source" : "site",
+  "captured_at" : "2026-09-28T09:07:00Z",
+  "events" : [ {
+    "type" : "site_daily_sources",
+    "date" : "2026-09-25",
+    "utm" : [ ],
+    "referrers" : [ ]
+  } ]
+} ]

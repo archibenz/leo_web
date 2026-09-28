@@ -219,6 +219,30 @@ class AdminSiteStatsControllerTest {
                 .doesNotContainKeys("/ru/admin", "/ru/admin/products", "/ru/shop-owner", "/ru/shop-t?cat=x");
     }
 
+    // Метки utm_* для site_daily_sources: запрос реально исполняется (строка
+    // запроса отдаётся целиком, после «?»), считает покупателей и отсекает
+    // своих — как топ страниц; адрес без меток в выборку не попадает.
+    @Test
+    void utmQueriesByHourRunAgainstTheDatabase() {
+        seedStaffAndCustomers();
+        UUID admin = idOf("stats-admin@test.dev");
+        tx.executeWithoutResult(status -> {
+            recentEvent("/ru/shop-t?utm_source=tg&utm_medium=post", "s-8", null);
+            recentEvent("/ru?utm_source=tg&utm_medium=post", "s-8", null);
+            recentEvent("/ru/admin?utm_source=tg", "s-9", null);
+            recentEvent("/ru/shop-owner?utm_source=owner", "s-6", admin);
+            recentEvent("/ru/shop-t?cat=x", "s-3", null);
+        });
+        Instant since = Instant.now().minus(2, ChronoUnit.HOURS);
+
+        Map<String, Long> byQuery = siteEvents.utmQueriesByHour(since).stream()
+                .collect(Collectors.groupingBy(row -> (String) row[1],
+                        Collectors.summingLong(row -> ((Number) row[2]).longValue())));
+        assertThat(byQuery).containsEntry("utm_source=tg&utm_medium=post", 2L)
+                .doesNotContainKeys("utm_source=owner", "cat=x")
+                .hasSize(1);
+    }
+
     // «Новая сессия» — впервые увиденная ЗА ВСЮ ИСТОРИЮ, а не внутри окна
     // запроса. Прежде MIN брался только по окну, и вкладка, открытая за день
     // до окна и живая в его первый день, считалась там новой: первый день

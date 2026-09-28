@@ -20,6 +20,7 @@ export type SiteEventType =
   | 'marketplace_click'
   | 'add_to_cart'
   | 'add_to_favourite'
+  // В запасе до своей оплаты (28.09): оформления на сайте нет, не шлётся.
   | 'checkout_start'
   | 'signup';
 

@@ -140,4 +140,20 @@ public interface SiteEventRepository extends JpaRepository<SiteEvent, UUID> {
             GROUP BY 1, 2
             """, nativeQuery = true)
     List<Object[]> pageViewsByHour(@Param("since") Instant since);
+
+    // Строки запроса с метками utm_* по часам — для site_daily_sources. С 24.09
+    // трекер оставляет в адресе только utm_*, но выгрузка страниц (PAGE выше)
+    // строку запроса отрезает, и метки наружу не уходили. Разбор меток — в
+    // SiteStatsService, на Java: одинаково на PostgreSQL 14 и H2 тестов.
+    @Query(value = """
+            SELECT date_trunc('hour', occurred_at) AS bucket_hour,
+                   SUBSTRING(path, POSITION('?' IN path) + 1) AS qs,
+                   COUNT(*) AS cnt
+            FROM site_events e
+            WHERE occurred_at >= :since AND event_type = 'page_view'
+              AND POSITION('?' IN path) > 0 AND path LIKE '%utm%'
+            """ + CUSTOMERS_ONLY + """
+            GROUP BY 1, 2
+            """, nativeQuery = true)
+    List<Object[]> utmQueriesByHour(@Param("since") Instant since);
 }

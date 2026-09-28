@@ -166,4 +166,78 @@ class SiteStatsServiceTest {
         verify(repo).sessionFirstSeen(midnight);
         verify(repo).pageViewsByHour(midnight);
     }
+
+    // ---- метки utm_* для site_daily_sources
+
+    private static Object[] utm(String instant, String query, long count) {
+        return new Object[]{Timestamp.from(Instant.parse(instant)), query, count};
+    }
+
+    @Test
+    void parseUtmKeepsOnlyTheThreeLabelsDecodedLowercasedAndClipped() {
+        String longCampaign = "a".repeat(150);
+        Map<String, String> utm = SiteStatsService.parseUtm(
+                "utm_source=%D0%AF%D0%BD%D0%B4%D0%B5%D0%BA%D1%81&UTM_Medium=+CPC+&utm_campaign=" + longCampaign
+                        + "&utm_term=x&gclid=1&utm_source=second");
+        assertThat(utm).containsEntry("utm_source", "яндекс")
+                .containsEntry("utm_medium", "cpc")
+                .containsEntry("utm_campaign", "a".repeat(SiteStatsService.MAX_UTM_VALUE))
+                .hasSize(3);
+    }
+
+    @Test
+    void parseUtmSkipsEmptyValuesAndSurvivesBrokenEncoding() {
+        assertThat(SiteStatsService.parseUtm("utm_source=&utm_medium=%E0%A4%A&cat=x"))
+                .containsExactly(Map.entry("utm_medium", "%e0%a4%a"));
+        assertThat(SiteStatsService.parseUtm(null)).isEmpty();
+    }
+
+    @Test
+    void foldSourcesGroupsByTripleAcrossHoursOnTheMoscowCalendar() {
+        LocalDate from = LocalDate.of(2026, 9, 21);
+        LocalDate to = LocalDate.of(2026, 9, 22);
+        var byDay = SiteStatsService.foldSources(List.of(
+                utm("2026-09-21T10:00:00Z", "utm_source=tg&utm_medium=post", 3),
+                utm("2026-09-21T15:00:00Z", "utm_medium=post&utm_source=tg", 2),
+                utm("2026-09-21T15:00:00Z", "utm_source=yandex", 7),
+                // 21:30Z — это уже 00:30 22.09 по Москве.
+                utm("2026-09-21T21:30:00Z", "utm_source=tg&utm_medium=post", 1),
+                utm("2026-09-21T11:00:00Z", "cat=dresses", 9)), from, to);
+
+        assertThat(byDay.get(from)).containsExactly(
+                new SiteStatsService.UtmRow("yandex", null, null, 7),
+                new SiteStatsService.UtmRow("tg", "post", null, 5));
+        assertThat(byDay.get(to)).containsExactly(new SiteStatsService.UtmRow("tg", "post", null, 1));
+    }
+
+    @Test
+    void foldSourcesKeepsDaysWithoutLabelsAsEmptyLists() {
+        LocalDate day = LocalDate.of(2026, 9, 21);
+        var byDay = SiteStatsService.foldSources(List.of(), day, day.plusDays(2));
+        assertThat(byDay).hasSize(3).allSatisfy((d, rows) -> assertThat(rows).isEmpty());
+    }
+
+    // Приём (leo_analytics #217) отбивает повтор тройки меток в одном дне.
+    // «Yandex» и «yandex» — одна тройка после нижнего регистра: строка одна,
+    // просмотры сложены, а не две строки с отказом всего дня.
+    @Test
+    void labelsDifferingOnlyInCaseFoldIntoOneRow() {
+        LocalDate day = LocalDate.of(2026, 9, 24);
+        var byDay = SiteStatsService.foldSources(List.of(
+                utm("2026-09-24T10:00:00Z", "utm_source=Yandex&utm_medium=CPC", 2),
+                utm("2026-09-24T11:00:00Z", "utm_source=yandex&utm_medium=cpc", 3)), day, day);
+        assertThat(byDay.get(day)).containsExactly(new SiteStatsService.UtmRow("yandex", "cpc", null, 5));
+    }
+
+    // Предел приёма — 100 символов (кодовых точек). Эмодзи на границе не
+    // рвётся пополам.
+    @Test
+    void clippingCountsCharactersNotUtf16Units() {
+        String campaign = "a".repeat(99) + "😀😀";
+        String clipped = SiteStatsService.parseUtm("utm_campaign=" + java.net.URLEncoder.encode(campaign, java.nio.charset.StandardCharsets.UTF_8))
+                .get("utm_campaign");
+        assertThat(clipped.codePointCount(0, clipped.length())).isEqualTo(100);
+        assertThat(clipped).endsWith("😀");
+        assertThat(Character.isHighSurrogate(clipped.charAt(clipped.length() - 1))).isFalse();
+    }
 }
