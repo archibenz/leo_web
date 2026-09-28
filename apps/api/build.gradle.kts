@@ -53,3 +53,30 @@ tasks.withType<Test> {
     // явного предела именно этот тест первым кладёт задачу test.
     maxHeapSize = "1g"
 }
+
+// Релиз API в отчётах об ошибках (app_error): sha12 коммита сборки. До 28.09
+// там стояло unknown — APP_RELEASE на проде не задан, и по отчёту было не
+// понять, какая сборка упала. Коммит зашивается в jar при сборке
+// (build-release.properties → app.build.commit), выкатку менять не нужно;
+// явный APP_RELEASE по-прежнему побеждает (application.yml). Вне git — файл
+// пустой, и остаётся unknown, а не выдумка.
+val generateBuildRelease by tasks.registering {
+    val out = layout.buildDirectory.dir("generated-resources/release")
+    val commit = providers.exec {
+        commandLine("git", "rev-parse", "--short=12", "HEAD")
+        isIgnoreExitValue = true
+    }.standardOutput.asText
+    outputs.dir(out)
+    // Коммит меняется без правки файлов проекта — кэшу задачи верить нельзя.
+    outputs.upToDateWhen { false }
+    doLast {
+        val sha = runCatching { commit.get().trim() }.getOrDefault("")
+        val file = out.get().file("build-release.properties").asFile
+        file.parentFile.mkdirs()
+        file.writeText(if (Regex("^[0-9a-f]{12}$").matches(sha)) "app.build.commit=$sha\n" else "")
+    }
+}
+
+sourceSets.main {
+    resources.srcDir(generateBuildRelease)
+}
