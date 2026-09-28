@@ -44,10 +44,12 @@ class SiteDailyPublisherTest {
     private static final LocalDate DAY = LocalDate.parse("2026-09-23");
     // Тот же шаблон, что _IDEMPOTENCY_KEY_RE в leo_analytics routers/ingest.py.
     private static final Pattern INGEST_KEY = Pattern.compile("^[A-Za-z0-9_\\-:.]{1,255}$");
-    // Поля SiteDailyEvent в leo_analytics — ни больше ни меньше.
+    // Поля SiteDailyEvent в leo_analytics — ни больше ни меньше. preorders
+    // добавлен 28.09 парой с приёмом: приём строгий, и лишнее поле отбило бы
+    // весь день, поэтому приём выкатывается первым.
     private static final Set<String> SITE_DAILY_FIELDS = Set.of(
             "type", "date", "page_views", "sessions", "product_views", "marketplace_clicks",
-            "add_to_cart", "add_to_favourite", "signups", "by_device", "by_locale", "by_marketplace");
+            "add_to_cart", "add_to_favourite", "signups", "preorders", "by_device", "by_locale", "by_marketplace");
 
     private HttpServer server;
 
@@ -57,7 +59,7 @@ class SiteDailyPublisherTest {
     }
 
     private static SiteDayPoint day(LocalDate date, long views) {
-        return new SiteDayPoint(date, views, 3, 2, 1, 0, 0, 0,
+        return new SiteDayPoint(date, views, 3, 2, 1, 0, 0, 0, 0,
                 Map.of("phone", views), Map.of("ru", views), Map.of("wildberries", 1L));
     }
 

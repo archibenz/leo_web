@@ -22,7 +22,8 @@ export type SiteEventType =
   | 'add_to_favourite'
   // В запасе до своей оплаты (28.09): оформления на сайте нет, не шлётся.
   | 'checkout_start'
-  | 'signup';
+  | 'signup'
+  | 'preorder';
 
 export interface SiteEventFields {
   productId?: string;

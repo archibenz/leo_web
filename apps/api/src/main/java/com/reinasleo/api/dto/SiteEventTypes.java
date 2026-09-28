@@ -13,7 +13,7 @@ public final class SiteEventTypes {
     // нечему. Из контракта не убран, чтобы не переделывать CHECK и приём, когда
     // оплата появится.
     public static final String EVENT_TYPE_PATTERN =
-            "^(page_view|product_view|marketplace_click|add_to_cart|add_to_favourite|checkout_start|signup)$";
+            "^(page_view|product_view|marketplace_click|add_to_cart|add_to_favourite|checkout_start|signup|preorder)$";
 
     // user_id пишем только для событий, которые и так требуют входа — для
     // просмотров и клика на маркетплейс никогда, даже если запрос пришёл от
