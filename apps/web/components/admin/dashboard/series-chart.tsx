@@ -31,6 +31,9 @@ import {
 
 export type SeriesPoint = {date: string; count: number};
 
+const Y_TICK_MARGIN = 8;
+const Y_TICK_DIGIT_PX = 8; // цифра 12 px, tabular-nums — с запасом
+
 // Рисование линии у recharts — анимация на JS, и запрос «поменьше движения»
 // она не слышит: этот запрос читает CSS, а не скрипт. Сайт же его уважает в
 // пяти местах globals.css, и график обязан вести себя так же, иначе правило
@@ -82,6 +85,15 @@ export function SeriesChart({
 
   const first = data[0]?.date;
   const last = data[data.length - 1]?.date;
+  // Ширина оси — по самой длинной подписи. Было 28 px на любые числа:
+  // трёхзначная «240» 12-м кеглем с отступом 8 px в них не влезала и
+  // обрезалась слева (28.09). Recharts округляет верх шкалы вверх (999 → 1000),
+  // поэтому цифры считаются с запасом.
+  const yAxisWidth = useMemo(() => {
+    const max = data.reduce((m, p) => Math.max(m, p.count), 0);
+    const digits = String(Math.ceil(max * 1.2) || 1).length;
+    return Y_TICK_MARGIN + digits * Y_TICK_DIGIT_PX + 4;
+  }, [data]);
 
   return (
     <div className="space-y-3">
@@ -117,8 +129,8 @@ export function SeriesChart({
             allowDecimals={false}
             axisLine={false}
             tickLine={false}
-            tickMargin={8}
-            width={28}
+            tickMargin={Y_TICK_MARGIN}
+            width={yAxisWidth}
           />
           <ChartTooltip
             content={<ChartTooltipContent labelFormatter={(value) => formatDay(String(value))} />}

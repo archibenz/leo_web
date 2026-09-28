@@ -15,7 +15,7 @@ const family = (page: Page, selector: string) =>
 const bodyVar = (page: Page, name: string) =>
   page.evaluate((n) => getComputedStyle(document.body).getPropertyValue(n), name);
 
-async function openAdminDashboard(page: Page): Promise<void> {
+async function openAdminDashboard(page: Page, dailyViews: number[] = []): Promise<void> {
   await page.setViewportSize({width: 1440, height: 900});
   await page.route('**/api/auth/me', (route) =>
     route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify({id: 'owner', role: 'admin'})}),
@@ -29,7 +29,13 @@ async function openAdminDashboard(page: Page): Promise<void> {
   };
   await page.route('**/api/admin/**', (route) => {
     const url = route.request().url();
-    const body = url.includes('/api/admin/dashboard') ? JSON.stringify(dashboard) : '[]';
+    const daily = dailyViews.map((v, i) => ({
+      date: `2026-09-${String(10 + i).padStart(2, '0')}`, pageViews: v, sessions: 1, productViews: 1,
+      marketplaceClicks: 0, addToCart: 0, addToFavourite: 0, signups: 0,
+      byDevice: {desktop: v}, byLocale: {ru: v}, byMarketplace: {},
+    }));
+    const body = url.includes('/api/admin/dashboard') ? JSON.stringify(dashboard)
+      : url.includes('/stats/site-daily') ? JSON.stringify(daily) : '[]';
     return route.fulfill({status: 200, contentType: 'application/json', body});
   });
   await page.goto('/ru/admin');
@@ -56,3 +62,21 @@ test('витрину правило админки не задевает: её -
   expect(await bodyVar(page, '--font-display')).toMatch(/Cormorant/);
   expect(await family(page, 'h1')).toMatch(/^['"]?Jost/);
 });
+
+// Ось графика посещений: ширина была 28 px на любые числа, и «240» резалась
+// слева на первой цифре (28.09). Подпись целиком внутри графика — и на
+// трёхзначных, и на пятизначных значениях.
+for (const [label, views] of [['трёхзначные', [120, 180, 240]], ['пятизначные', [9000, 15000, 24000]]] as const) {
+  test(`подписи оси графика не обрезаны (${label})`, async ({page}) => {
+    await openAdminDashboard(page, [...views]);
+    const chart = page.locator('main .recharts-wrapper:visible').first();
+    await expect(chart.locator('.recharts-yAxis .recharts-cartesian-axis-tick-value').first()).toBeVisible();
+    const clipped = await chart.evaluate((wrapper) => {
+      const left = wrapper.getBoundingClientRect().left;
+      return [...wrapper.querySelectorAll('.recharts-yAxis .recharts-cartesian-axis-tick-value')]
+        .map((t) => ({text: t.textContent, over: left - t.getBoundingClientRect().left}))
+        .filter((t) => t.over > 0.5);
+    });
+    expect(clipped).toEqual([]);
+  });
+}
