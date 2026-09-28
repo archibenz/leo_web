@@ -241,4 +241,31 @@ class SiteEventControllerTest {
 
         assertThat(siteEventRepository.findAll()).isEmpty();
     }
+
+    // ---- хост реферера (28.09): только у page_view, нормализуется сервером,
+    // мусор обнуляется и НЕ отбивает пачку вместе с просмотрами.
+    @Test
+    void submit_referrerHost_isNormalisedOnPageViewAndDroppedElsewhere() throws Exception {
+        postEvents("10.2.0.11", """
+                {"events":[
+                  {"eventType":"page_view","path":"/ru","referrerHost":" WWW.Yandex.RU "},
+                  {"eventType":"page_view","path":"/ru/shop","referrerHost":"direct"},
+                  {"eventType":"page_view","path":"/ru/bag","referrerHost":"https://t.me/some/post?x=1"},
+                  {"eventType":"product_view","productId":"wb-1","referrerHost":"t.me"},
+                  {"eventType":"page_view","path":"/ru/long","referrerHost":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.example.com"}
+                ]}
+                """)
+                .andExpect(status().isAccepted());
+
+        var byPath = new java.util.HashMap<String, String>();
+        siteEventRepository.findAll().forEach(e -> byPath.put(e.getEventType() + " " + e.getPath(), e.getReferrerHost()));
+        assertThat(byPath).containsEntry("page_view /ru", "yandex.ru")
+                .containsEntry("page_view /ru/shop", "direct")
+                .containsEntry("page_view /ru/bag", null)
+                .containsEntry("product_view null", null)
+                // 108 символов из меток ≤63 — годный вид хоста, но длиннее предела
+                // приёма (100): обнуляется. Метка длиннее 63 проверяла бы шаблон, а не предел.
+                .containsEntry("page_view /ru/long", null)
+                .hasSize(5);
+    }
 }

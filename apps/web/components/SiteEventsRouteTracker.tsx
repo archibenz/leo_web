@@ -3,6 +3,7 @@
 import {useEffect} from 'react';
 import {usePathname, useSearchParams} from 'next/navigation';
 import {trackSiteEvent} from '../lib/siteEvents';
+import {takeReferrerHost} from '../lib/referrerHost';
 
 // Unlike MetrikaRouteTracker, there is no separate init hit that already
 // counted the landing page — page_view fires on every mount, first one
@@ -32,6 +33,9 @@ export default function SiteEventsRouteTracker() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    // Хост забирается ДО отсева админки: иначе первый переход из админки на
+    // витрину унёс бы реферер исходной загрузки как новый заход.
+    const referrerHost = takeReferrerHost();
     if (pathname && ADMIN_PATH.test(pathname)) return;
     const qs = utmOnly(searchParams ? new URLSearchParams(searchParams.toString()) : null);
     const locale = pathname?.split('/')[1];
@@ -40,6 +44,7 @@ export default function SiteEventsRouteTracker() {
       path: pathname + (qs ? `?${qs}` : ''),
       locale,
       device,
+      referrerHost,
     });
     // «Просмотр уже в очереди» — для e2e (14-site-events). Трекер стоит в
     // своей границе Suspense и гидрируется отдельно от остальной страницы;

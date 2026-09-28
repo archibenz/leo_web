@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 @Service
 public class SiteEventService {
@@ -31,6 +33,7 @@ public class SiteEventService {
             event.setLocale(req.locale());
             event.setDevice(req.device());
             event.setMarketplace(req.marketplace());
+            event.setReferrerHost("page_view".equals(req.eventType()) ? normalizeReferrerHost(req.referrerHost()) : null);
             // user_id is server-resolved from the authenticated principal, never
             // from the request body (the endpoint is public — trusting a
             // client-sent id would let anyone attribute events to any account).
@@ -40,5 +43,24 @@ public class SiteEventService {
             event.setUserId(eligible && requester != null ? requester.getId() : null);
             siteEventRepository.save(event);
         }
+    }
+
+    // Хост в виде a.b(.c…), строчными, без «www.»; 'direct' — как есть. Всё
+    // прочее (пусто, схема, путь, порт, мусор) — NULL: источник неизвестен, но
+    // просмотр засчитан.
+    private static final Pattern HOST = Pattern.compile(
+            "^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$");
+
+    // Предел приёма аналитики (leo_analytics #217: host ≤100, иначе 422 на весь
+    // день). Длиннее — почти наверняка мусор; обнуляется, а не обрезается:
+    // обрезанный хост — уже чужой хост.
+    static final int MAX_HOST = 100;
+
+    static String normalizeReferrerHost(String raw) {
+        if (raw == null) return null;
+        String host = raw.trim().toLowerCase(Locale.ROOT);
+        if (host.equals("direct")) return host;
+        if (host.startsWith("www.")) host = host.substring(4);
+        return host.length() <= MAX_HOST && HOST.matcher(host).matches() ? host : null;
     }
 }

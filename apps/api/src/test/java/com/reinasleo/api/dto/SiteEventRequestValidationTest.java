@@ -31,7 +31,7 @@ class SiteEventRequestValidationTest {
     }
 
     private static SiteEventRequest event(String eventType) {
-        return new SiteEventRequest(eventType, "sess-key-1", null, null, null, null, null, null);
+        return new SiteEventRequest(eventType, "sess-key-1", null, null, null, null, null, null, null);
     }
 
     private static <T> boolean hasFieldError(Set<ConstraintViolation<T>> violations, String field) {
@@ -63,7 +63,7 @@ class SiteEventRequestValidationTest {
 
     @Test
     void malformedSessionKey_failsValidation() {
-        SiteEventRequest req = new SiteEventRequest("page_view", "has spaces!", null, null, null, null, null, null);
+        SiteEventRequest req = new SiteEventRequest("page_view", "has spaces!", null, null, null, null, null, null, null);
 
         Set<ConstraintViolation<SiteEventRequest>> violations = validator.validate(req);
 
@@ -72,14 +72,14 @@ class SiteEventRequestValidationTest {
 
     @Test
     void nullOptionalFields_pass() {
-        SiteEventRequest req = new SiteEventRequest("page_view", null, null, null, null, null, null, null);
+        SiteEventRequest req = new SiteEventRequest("page_view", null, null, null, null, null, null, null, null);
 
         assertThat(validator.validate(req)).isEmpty();
     }
 
     @Test
     void unknownDevice_failsValidation() {
-        SiteEventRequest req = new SiteEventRequest("page_view", null, null, null, null, null, "tablet", null);
+        SiteEventRequest req = new SiteEventRequest("page_view", null, null, null, null, null, "tablet", null, null);
 
         Set<ConstraintViolation<SiteEventRequest>> violations = validator.validate(req);
 
@@ -88,7 +88,7 @@ class SiteEventRequestValidationTest {
 
     @Test
     void unknownMarketplace_failsValidation() {
-        SiteEventRequest req = new SiteEventRequest("marketplace_click", null, "wb-1", null, null, null, null, "amazon");
+        SiteEventRequest req = new SiteEventRequest("marketplace_click", null, "wb-1", null, null, null, null, "amazon", null);
 
         Set<ConstraintViolation<SiteEventRequest>> violations = validator.validate(req);
 
@@ -97,7 +97,7 @@ class SiteEventRequestValidationTest {
 
     @Test
     void validModelId_passes() {
-        SiteEventRequest req = new SiteEventRequest("product_view", "sess", "wb-1", UUID.randomUUID(), "/ru/product/x", "ru", "phone", null);
+        SiteEventRequest req = new SiteEventRequest("product_view", "sess", "wb-1", UUID.randomUUID(), "/ru/product/x", "ru", "phone", null, null);
 
         assertThat(validator.validate(req)).isEmpty();
     }

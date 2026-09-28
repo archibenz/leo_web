@@ -20,7 +20,16 @@
       "campaign" : "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa😀",
       "views" : 1
     } ],
-    "referrers" : [ ]
+    "referrers" : [ {
+      "host" : "t.me",
+      "sessions" : 5
+    }, {
+      "host" : "direct",
+      "sessions" : 4
+    }, {
+      "host" : "yandex.ru",
+      "sessions" : 1
+    } ]
   } ]
 }, {
   "source" : "site",

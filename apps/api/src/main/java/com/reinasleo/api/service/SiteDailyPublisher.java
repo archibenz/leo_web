@@ -77,7 +77,7 @@ public class SiteDailyPublisher {
         Instant stamp = Instant.now();
         List<Envelope> envelopes = new ArrayList<>(envelopes(
                 stats.getDailyStats(from, to), stats.getDailyPages(from, to), stamp));
-        envelopes.addAll(sourceEnvelopes(stats.getDailySources(from, to), stamp));
+        envelopes.addAll(sourceEnvelopes(stats.getDailySources(from, to), stats.getDailyReferrers(from, to), stamp));
 
         int sent = 0;
         List<String> failures = new ArrayList<>();
@@ -138,13 +138,15 @@ public class SiteDailyPublisher {
     }
 
     /**
-     * Источники по суткам (site_daily_sources): метки utm_* и — позже —
-     * хосты рефереров. ОДИН конверт на сутки, без кусков: приём замещает день
+     * Источники по суткам (site_daily_sources): метки utm_* и хосты
+     * рефереров первых просмотров (direct — свой домен или пусто). ОДИН конверт на сутки, без кусков: приём замещает день
      * целиком, и куски стирали бы друг друга; строк за день единицы-десятки,
      * предел MAX_SOURCE_ROWS по убыванию просмотров — на случай мусорных меток.
      * Сутки без меток шлются с пустыми списками: замещение стирает прежнее.
      */
-    static List<Envelope> sourceEnvelopes(Map<LocalDate, List<SiteStatsService.UtmRow>> sources, Instant stamp) {
+    static List<Envelope> sourceEnvelopes(Map<LocalDate, List<SiteStatsService.UtmRow>> sources,
+                                          Map<LocalDate, List<SiteStatsService.ReferrerRow>> referrers,
+                                          Instant stamp) {
         String capturedAt = stamp.toString();
         long run = stamp.toEpochMilli();
         List<Envelope> out = new ArrayList<>();
@@ -161,7 +163,16 @@ public class SiteDailyPublisher {
             event.put("type", "site_daily_sources");
             event.put("date", day.toString());
             event.put("utm", utm);
-            event.put("referrers", List.of());
+            event.put("referrers", referrers.getOrDefault(day, List.of()).stream().limit(MAX_SOURCE_ROWS)
+                    .map(r -> {
+                        // LinkedHashMap, а не Map.of: порядок полей постоянный,
+                        // и эталонный конверт (contract/) не плывёт между запусками.
+                        Map<String, Object> row = new LinkedHashMap<>();
+                        row.put("host", r.host());
+                        row.put("sessions", r.sessions());
+                        return row;
+                    })
+                    .toList());
             out.add(new Envelope("site_daily_sources:" + day + ":" + run, body(capturedAt, event)));
         });
         return out;

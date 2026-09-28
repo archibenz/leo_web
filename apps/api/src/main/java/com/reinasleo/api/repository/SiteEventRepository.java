@@ -156,4 +156,18 @@ public interface SiteEventRepository extends JpaRepository<SiteEvent, UUID> {
             GROUP BY 1, 2
             """, nativeQuery = true)
     List<Object[]> utmQueriesByHour(@Param("since") Instant since);
+
+    // Хосты рефереров первых просмотров по часам — referrers в
+    // site_daily_sources. Хост пишет только первый page_view загрузки
+    // страницы, так что строка здесь — один заход. Только покупатели.
+    @Query(value = """
+            SELECT date_trunc('hour', occurred_at) AS bucket_hour,
+                   referrer_host AS host,
+                   COUNT(*) AS cnt
+            FROM site_events e
+            WHERE occurred_at >= :since AND event_type = 'page_view' AND referrer_host IS NOT NULL
+            """ + CUSTOMERS_ONLY + """
+            GROUP BY 1, 2
+            """, nativeQuery = true)
+    List<Object[]> referrersByHour(@Param("since") Instant since);
 }

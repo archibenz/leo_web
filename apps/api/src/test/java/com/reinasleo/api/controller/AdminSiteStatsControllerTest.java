@@ -243,6 +243,37 @@ class AdminSiteStatsControllerTest {
                 .hasSize(1);
     }
 
+    // Рефереры для site_daily_sources: запрос реально исполняется, считает
+    // только строки с хостом и отсекает своих (путь админки).
+    @Test
+    void referrersByHourRunAgainstTheDatabase() {
+        tx.executeWithoutResult(status -> {
+            referred("/ru", "s-8", "t.me");
+            referred("/ru/shop-t", "s-8", "t.me");
+            referred("/ru", "s-9", "direct");
+            referred("/ru/admin", "s-9", "t.me");
+            recentEvent("/ru/bag-t", "s-8", null);
+        });
+        Instant since = Instant.now().minus(2, ChronoUnit.HOURS);
+
+        Map<String, Long> byHost = siteEvents.referrersByHour(since).stream()
+                .collect(Collectors.groupingBy(row -> (String) row[1],
+                        Collectors.summingLong(row -> ((Number) row[2]).longValue())));
+        assertThat(byHost).containsEntry("t.me", 2L).containsEntry("direct", 1L).hasSize(2);
+    }
+
+    private void referred(String path, String session, String host) {
+        em.createNativeQuery("""
+                INSERT INTO site_events (id, event_type, occurred_at, device, locale, path, session_key, referrer_host)
+                VALUES (?1, 'page_view', ?2, 'mobile', 'ru', ?3, ?4, ?5)""")
+                .setParameter(1, UUID.randomUUID())
+                .setParameter(2, java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC).minusMinutes(30))
+                .setParameter(3, path)
+                .setParameter(4, session)
+                .setParameter(5, host)
+                .executeUpdate();
+    }
+
     // «Новая сессия» — впервые увиденная ЗА ВСЮ ИСТОРИЮ, а не внутри окна
     // запроса. Прежде MIN брался только по окну, и вкладка, открытая за день
     // до окна и живая в его первый день, считалась там новой: первый день
