@@ -36,5 +36,11 @@ public record SiteEventRequest(
         String device,
 
         @Pattern(regexp = "^(wildberries|ozon)$", message = "Unknown marketplace")
-        String marketplace
+        String marketplace,
+
+        // Хост реферера у первого просмотра загрузки страницы. Без шаблона:
+        // странный реферер (android-app://, IDN) не должен отбивать пачку
+        // вместе с просмотрами — сервис нормализует, неподходящее обнуляет.
+        @Size(max = 300, message = "Referrer host too long")
+        String referrerHost
 ) {}

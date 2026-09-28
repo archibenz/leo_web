@@ -45,6 +45,9 @@ public class SiteEvent {
     @Column(length = 16)
     private String marketplace;
 
+    @Column(name = "referrer_host", length = 253)
+    private String referrerHost;
+
     public SiteEvent() {}
 
     @PrePersist
@@ -62,6 +65,7 @@ public class SiteEvent {
     public String getProductId() { return productId; }
     public UUID getModelId() { return modelId; }
     public String getPath() { return path; }
+    public String getReferrerHost() { return referrerHost; }
     public String getLocale() { return locale; }
     public String getDevice() { return device; }
     public String getMarketplace() { return marketplace; }
@@ -72,6 +76,7 @@ public class SiteEvent {
     public void setProductId(String productId) { this.productId = productId; }
     public void setModelId(UUID modelId) { this.modelId = modelId; }
     public void setPath(String path) { this.path = path; }
+    public void setReferrerHost(String referrerHost) { this.referrerHost = referrerHost; }
     public void setLocale(String locale) { this.locale = locale; }
     public void setDevice(String device) { this.device = device; }
     public void setMarketplace(String marketplace) { this.marketplace = marketplace; }

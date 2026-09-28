@@ -103,3 +103,35 @@ describe('SiteEventsRouteTracker', () => {
     expect(trackSiteEvent).toHaveBeenCalledWith('page_view', expect.objectContaining({path: '/ru/administrator-coat'}));
   });
 });
+
+// Хост реферера (28.09) — у первого просмотра загрузки, и забирается даже
+// тогда, когда первым открыта админка: иначе первый переход из неё на витрину
+// унёс бы реферер исходной загрузки как новый заход.
+describe('хост реферера', () => {
+  beforeEach(() => {
+    vi.resetModules();
+    trackSiteEvent.mockReset();
+    stubMatchMedia(false);
+    mockSearch = new URLSearchParams();
+    Object.defineProperty(document, 'referrer', {value: 'https://t.me/reinasleo', configurable: true});
+  });
+
+  it('есть у первого просмотра, нет у перехода внутри сайта', async () => {
+    const {default: Tracker} = await import('../SiteEventsRouteTracker');
+    mockPathname = '/ru';
+    const {rerender} = render(<Tracker />);
+    mockPathname = '/ru/shop';
+    rerender(<Tracker />);
+    expect(trackSiteEvent.mock.calls.map((c) => (c[1] as {referrerHost?: string}).referrerHost)).toEqual(['t.me', undefined]);
+  });
+
+  it('первый экран — админка: хост сгорает там, витрина его не получает', async () => {
+    const {default: Tracker} = await import('../SiteEventsRouteTracker');
+    mockPathname = '/ru/admin';
+    const {rerender} = render(<Tracker />);
+    mockPathname = '/ru/shop';
+    rerender(<Tracker />);
+    expect(trackSiteEvent).toHaveBeenCalledTimes(1);
+    expect((trackSiteEvent.mock.calls[0]![1] as {referrerHost?: string}).referrerHost).toBeUndefined();
+  });
+});

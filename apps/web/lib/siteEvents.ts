@@ -32,6 +32,8 @@ export interface SiteEventFields {
   locale?: string;
   device?: 'phone' | 'desktop';
   marketplace?: 'wildberries' | 'ozon';
+  /** Только у первого page_view загрузки страницы (lib/referrerHost.ts). */
+  referrerHost?: string;
 }
 
 interface QueuedSiteEvent extends SiteEventFields {

@@ -232,6 +232,7 @@ class SiteDailyPublisherTest {
         verify(repo).sessionFirstSeen(midnight);
         verify(repo).pageViewsByHour(midnight);
         verify(repo).utmQueriesByHour(midnight);
+        verify(repo).referrersByHour(midnight);
 
         List<String> dates = dailyDates(seen);
         assertThat(dates).hasSize(SiteDailyPublisher.ROLLING_DAYS).doesNotHaveDuplicates();
@@ -281,7 +282,7 @@ class SiteDailyPublisherTest {
         sources.put(d2, List.of());
         Instant stamp = Instant.parse("2026-09-28T09:07:00Z");
 
-        var envelopes = SiteDailyPublisher.sourceEnvelopes(sources, stamp);
+        var envelopes = SiteDailyPublisher.sourceEnvelopes(sources, Map.of(), stamp);
 
         assertThat(envelopes).extracting(SiteDailyPublisher.Envelope::key).containsExactly(
                 "site_daily_sources:2026-09-24:" + stamp.toEpochMilli(),
@@ -306,7 +307,7 @@ class SiteDailyPublisherTest {
         LocalDate day = LocalDate.of(2026, 9, 24);
         List<SiteStatsService.UtmRow> rows = java.util.stream.IntStream.range(0, SiteDailyPublisher.MAX_SOURCE_ROWS + 50)
                 .mapToObj(i -> new SiteStatsService.UtmRow("s" + i, null, null, 1)).toList();
-        var envelopes = SiteDailyPublisher.sourceEnvelopes(Map.of(day, rows), Instant.now());
+        var envelopes = SiteDailyPublisher.sourceEnvelopes(Map.of(day, rows), Map.of(), Instant.now());
         assertThat(envelopes).hasSize(1);
         @SuppressWarnings("unchecked")
         Map<String, Object> event = ((List<Map<String, Object>>) envelopes.get(0).body().get("events")).get(0);
@@ -362,5 +363,21 @@ class SiteDailyPublisherTest {
             java.nio.file.Files.writeString(fixture, actual);
         }
         assertThat(actual).isEqualTo(java.nio.file.Files.readString(fixture));
+    }
+
+    @Test
+    void referrersGoIntoTheSameDayEnvelopeAsHostAndSessions() {
+        LocalDate day = LocalDate.of(2026, 9, 24);
+        var envelopes = SiteDailyPublisher.sourceEnvelopes(
+                Map.of(day, List.of()),
+                Map.of(day, List.of(new SiteStatsService.ReferrerRow("t.me", 5), new SiteStatsService.ReferrerRow("direct", 4))),
+                Instant.now());
+
+        assertThat(envelopes).hasSize(1);
+        @SuppressWarnings("unchecked")
+        Map<String, Object> event = ((List<Map<String, Object>>) envelopes.get(0).body().get("events")).get(0);
+        assertThat(event.get("referrers")).isEqualTo(List.of(
+                Map.of("host", "t.me", "sessions", 5L), Map.of("host", "direct", "sessions", 4L)));
+        assertThat(event.get("utm")).isEqualTo(List.of());
     }
 }

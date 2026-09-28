@@ -255,4 +255,22 @@ class SiteStatsServiceTest {
         assertThat(clipped).endsWith("😀");
         assertThat(Character.isHighSurrogate(clipped.charAt(clipped.length() - 1))).isFalse();
     }
+
+    // ---- рефереры для site_daily_sources
+
+    @Test
+    void foldReferrersCountsFirstViewsPerHostOnTheMoscowCalendar() {
+        LocalDate from = LocalDate.of(2026, 9, 21);
+        var byDay = SiteStatsService.foldReferrers(List.of(
+                page("2026-09-21T09:00:00Z", "direct", 4),
+                page("2026-09-21T12:00:00Z", "t.me", 3),
+                page("2026-09-21T13:00:00Z", "t.me", 2),
+                // 21:30Z — уже 22.09 по Москве.
+                page("2026-09-21T21:30:00Z", "yandex.ru", 1)), from, from.plusDays(1));
+
+        assertThat(byDay.get(from)).containsExactly(
+                new SiteStatsService.ReferrerRow("t.me", 5),
+                new SiteStatsService.ReferrerRow("direct", 4));
+        assertThat(byDay.get(from.plusDays(1))).containsExactly(new SiteStatsService.ReferrerRow("yandex.ru", 1));
+    }
 }

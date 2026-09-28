@@ -154,6 +154,26 @@ public class SiteStatsService {
         }
     }
 
+    /** Хост реферера за сутки: сколько заходов (первых просмотров) с него. */
+    public record ReferrerRow(String host, long sessions) {}
+
+    /** Рефереры по суткам — для referrers в site_daily_sources. */
+    @Transactional(readOnly = true)
+    public Map<LocalDate, List<ReferrerRow>> getDailyReferrers(LocalDate from, LocalDate to) {
+        Instant since = from.atStartOfDay(MOSCOW).toInstant();
+        return foldReferrers(siteEvents.referrersByHour(since), from, to);
+    }
+
+    static Map<LocalDate, List<ReferrerRow>> foldReferrers(List<Object[]> hourly, LocalDate from, LocalDate to) {
+        Map<LocalDate, Map<String, Long>> byDay = foldPages(hourly, from, to);
+        Map<LocalDate, List<ReferrerRow>> out = new LinkedHashMap<>();
+        byDay.forEach((day, hosts) -> out.put(day, hosts.entrySet().stream()
+                .map(e -> new ReferrerRow(e.getKey(), e.getValue()))
+                .sorted(Comparator.comparingLong(ReferrerRow::sessions).reversed().thenComparing(ReferrerRow::host))
+                .toList()));
+        return out;
+    }
+
     public static LocalDate today() {
         return Instant.now().atZone(MOSCOW).toLocalDate();
     }
