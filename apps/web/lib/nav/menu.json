@@ -361,12 +361,26 @@
           "icon": "package",
           "app": "analytics",
           "kind": "link",
-          "path": "/analytics/ozon/funnel",
+          "path": "/analytics/ozon/products",
           "match": "prefix",
           "roles": [
             "section:finance"
           ],
           "children": [
+            {
+              "id": "ozon-products",
+              "title": {
+                "ru": "Товары"
+              },
+              "icon": "package",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/ozon/products",
+              "match": "prefix",
+              "roles": [
+                "section:products"
+              ]
+            },
             {
               "id": "ozon-funnel",
               "title": {
