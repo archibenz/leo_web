@@ -340,6 +340,20 @@
       },
       "items": [
         {
+          "id": "ozon-dashboard",
+          "title": {
+            "ru": "Дашборд"
+          },
+          "icon": "layout-dashboard",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/ozon",
+          "match": "exact",
+          "roles": [
+            "section:dashboard"
+          ]
+        },
+        {
           "id": "ozon-goods",
           "title": {
             "ru": "Товары"
