@@ -438,6 +438,20 @@
               "roles": [
                 "section:products"
               ]
+            },
+            {
+              "id": "ozon-orders",
+              "title": {
+                "ru": "Заказы"
+              },
+              "icon": "clipboard-list",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/ozon/orders",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
             }
           ]
         },
