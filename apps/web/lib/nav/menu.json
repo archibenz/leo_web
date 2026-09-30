@@ -354,6 +354,36 @@
           ]
         },
         {
+          "id": "ozon-finance",
+          "title": {
+            "ru": "Финансы"
+          },
+          "icon": "wallet",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/ozon/pnl",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ],
+          "children": [
+            {
+              "id": "ozon-pnl",
+              "title": {
+                "ru": "P&L"
+              },
+              "icon": "wallet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/ozon/pnl",
+              "match": "prefix",
+              "roles": [
+                "section:finance"
+              ]
+            }
+          ]
+        },
+        {
           "id": "ozon-goods",
           "title": {
             "ru": "Товары"
