@@ -493,11 +493,39 @@
       },
       "items": [
         {
+          "id": "site-dashboard",
+          "title": {
+            "ru": "Дашборд"
+          },
+          "icon": "layout-dashboard",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/site",
+          "match": "exact",
+          "roles": [
+            "section:dashboard"
+          ]
+        },
+        {
           "id": "site-visits",
           "title": {
             "ru": "Посещения"
           },
           "icon": "chart-line",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/site/visits",
+          "match": "exact",
+          "roles": [
+            "section:finance"
+          ]
+        },
+        {
+          "id": "site-admin",
+          "title": {
+            "ru": "Админка сайта"
+          },
+          "icon": "store",
           "app": "site",
           "kind": "link",
           "path": "/{locale}/admin",

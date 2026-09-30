@@ -178,7 +178,7 @@ describe('общее меню с аналитикой', () => {
     expect(screen.queryByRole('link', {name: 'toAnalytics'})).toBeNull();
   });
 
-  it('текущим отмечен только свой пункт: «Посещения» на /ru/admin, «Свод» — нет', () => {
+  it('текущим отмечен только свой пункт: «Админка сайта» на /ru/admin, «Свод» и «Посещения» — нет', () => {
     setViewport(DESKTOP);
     render(
       <AdminLayout>
@@ -189,8 +189,10 @@ describe('общее меню с аналитикой', () => {
     // По имени, а не по адресу: на /ru/admin ведёт ещё и марка в шапке панели.
     // Ищем среди настоящих <a>: хлебная крошка в шапке тоже «ссылка» с этим
     // именем (span role=link), а отметку несёт пункт панели.
-    const visits = screen.getAllByRole('link', {name: 'Посещения'}).find((el) => el.tagName === 'A');
-    expect(visits).toHaveAttribute('data-active', 'true');
+    const home = screen.getAllByRole('link', {name: 'Админка сайта'}).find((el) => el.tagName === 'A');
+    expect(home).toHaveAttribute('data-active', 'true');
     expect(screen.getByRole('link', {name: 'Свод'})).not.toHaveAttribute('data-active', 'true');
+    // «Посещения» с 30.09 — экран аналитики, а не главная админки (#236).
+    expect(screen.getByRole('link', {name: 'Посещения'})).not.toHaveAttribute('data-active', 'true');
   });
 });
