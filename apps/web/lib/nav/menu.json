@@ -394,6 +394,20 @@
               "roles": [
                 "section:finance"
               ]
+            },
+            {
+              "id": "ozon-sizes",
+              "title": {
+                "ru": "Размеры и остатки"
+              },
+              "icon": "ruler",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/ozon/sizes",
+              "match": "prefix",
+              "roles": [
+                "section:products"
+              ]
             }
           ]
         },
