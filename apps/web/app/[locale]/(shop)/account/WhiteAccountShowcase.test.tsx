@@ -1,4 +1,4 @@
-import {afterEach, describe, it, expect, vi} from 'vitest';
+import {afterEach, beforeEach, describe, it, expect, vi} from 'vitest';
 import {render, screen, within, cleanup} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import WhiteAccountShowcase from './WhiteAccountShowcase';
@@ -18,7 +18,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({refresh: vi.fn()}),
 }));
 
-// No token in storage → the hook resolves to signed-out immediately.
+// No bearer token still requires a cookie-session check before showing guest forms.
 const lsStore = new Map<string, string>();
 const mockLocalStorage = {
   clear: () => lsStore.clear(),
@@ -39,25 +39,39 @@ if (typeof window !== 'undefined') {
   Object.defineProperty(window, 'localStorage', {value: mockLocalStorage, configurable: true, writable: true});
 }
 
-afterEach(() => {
+const anonymousFetch = async (url: RequestInfo | URL): Promise<Response> => ({
+  ok: String(url).includes('/api/auth/logout'),
+  status: String(url).includes('/api/auth/logout') ? 204 : 403,
+  json: async () => ({}),
+}) as Response;
+
+beforeEach(() => {
+  global.fetch = vi.fn(anonymousFetch);
+});
+
+afterEach(async () => {
   cleanup();
   localStorage.clear();
   // The auth store is module state, so a test that signs a user in leaves the
   // next one looking at the signed-in page instead of the form.
-  whiteLogout();
+  global.fetch = vi.fn(anonymousFetch);
+  await whiteLogout();
   trackSiteEvent.mockClear();
 });
 
-const renderPage = () =>
-  render(
+const renderPage = async () => {
+  const rendered = render(
     <NextIntlClientProvider locale="en" messages={enMessages as never}>
       <WhiteAccountShowcase locale="en" />
     </NextIntlClientProvider>,
   );
+  await screen.findByRole('tab', {name: /sign in/i});
+  return rendered;
+};
 
 describe('WhiteAccountShowcase', () => {
   it('shows the sign-in form by default when signed out', async () => {
-    renderPage();
+    await renderPage();
     expect(await screen.findByRole('heading', {level: 1, name: /account/i})).toBeInTheDocument();
     expect(screen.getByRole('tab', {name: /sign in/i})).toHaveAttribute('aria-selected', 'true');
     const main = screen.getByRole('main');
@@ -67,7 +81,7 @@ describe('WhiteAccountShowcase', () => {
 
   it('switches to the sign-up tab with the code step gated', async () => {
     const user = userEvent.setup();
-    renderPage();
+    await renderPage();
     await user.click(await screen.findByRole('tab', {name: /sign up/i}));
     expect(screen.getByRole('button', {name: /send the code/i})).toBeInTheDocument();
     // Name/password arrive only after the code is sent.
@@ -76,18 +90,23 @@ describe('WhiteAccountShowcase', () => {
 
   it('sign-up gates on a required consent checkbox and sends privacyAccepted', async () => {
     const calls: {url: string; body: Record<string, unknown> | null}[] = [];
+    let registered = false;
     global.fetch = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
       const u = String(url);
       calls.push({url: u, body: init?.body ? JSON.parse(String(init.body)) : null});
       const ok = (body: unknown) => ({ok: true, status: 200, json: async () => body});
       if (u.includes('/api/auth/send-code')) return ok({message: 'sent'}) as unknown as Response;
-      if (u.includes('/api/auth/register')) return ok({token: 'tok'}) as unknown as Response;
-      if (u.includes('/api/auth/me')) return ok({id: 1, email: 'anna@test.dev', name: 'Anna'}) as unknown as Response;
+      if (u.includes('/api/auth/register')) {
+        registered = true;
+        return ok({token: 'tok'}) as unknown as Response;
+      }
+      if (u.includes('/api/auth/me')) return registered ?
+        ok({id: 1, email: 'anna@test.dev', name: 'Anna'}) as unknown as Response : anonymousFetch(url);
       return {ok: false, status: 404, json: async () => ({})} as unknown as Response;
     }) as unknown as typeof fetch;
 
     const user = userEvent.setup();
-    renderPage();
+    await renderPage();
     await user.click(await screen.findByRole('tab', {name: /sign up/i}));
     await user.type(screen.getByLabelText(/email/i), 'anna@test.dev');
     await user.click(screen.getByRole('button', {name: /send the code/i}));
@@ -118,7 +137,7 @@ describe('WhiteAccountShowcase', () => {
 // fourth pins the new decorative panel down — it may be seen and never touched.
 describe('WhiteAccountShowcase — auth-5 contract', () => {
   it('renders the e-mail and password fields on the sign-in tab', async () => {
-    renderPage();
+    await renderPage();
     const main = screen.getByRole('main');
     const email = within(main).getByLabelText(/email/i);
     const password = within(main).getByLabelText(/password/i);
@@ -132,11 +151,12 @@ describe('WhiteAccountShowcase — auth-5 contract', () => {
       if (String(url).includes('/api/auth/login')) {
         return {ok: false, status: 401, json: async () => ({message: 'bad'})} as unknown as Response;
       }
+      if (String(url).includes('/api/auth/me')) return anonymousFetch(url);
       return {ok: false, status: 404, json: async () => ({})} as unknown as Response;
     }) as unknown as typeof fetch;
 
     const user = userEvent.setup();
-    renderPage();
+    await renderPage();
     const main = screen.getByRole('main');
     await user.type(within(main).getByLabelText(/email/i), 'anna@test.dev');
     await user.type(within(main).getByLabelText(/password/i), 'wrong-one');
@@ -147,7 +167,7 @@ describe('WhiteAccountShowcase — auth-5 contract', () => {
 
   it('keeps the decorative panel out of the tab order and out of the a11y tree', async () => {
     const user = userEvent.setup();
-    const {container} = renderPage();
+    const {container} = await renderPage();
 
     // Exactly one, and it is the side panel: the owner asked for the moving
     // lines on the wide screen only. jsdom applies no CSS, so which screens it
@@ -174,7 +194,7 @@ describe('WhiteAccountShowcase — auth-5 contract', () => {
   });
 
   it('offers no Apple, GitHub or Google sign-in', async () => {
-    renderPage();
+    await renderPage();
     await screen.findByRole('heading', {level: 1, name: /account/i});
     expect(screen.queryByRole('button', {name: /apple/i})).toBeNull();
     expect(screen.queryByRole('button', {name: /github/i})).toBeNull();
@@ -191,16 +211,21 @@ describe('WhiteAccountShowcase — auth-5 contract', () => {
 // тому, кто догадается написать в поддержку (так было с 17.09, lw-wvxu).
 describe('WhiteAccountShowcase — как воспользоваться правами на данные', () => {
   const signIn = async () => {
+    let signedIn = false;
     global.fetch = vi.fn(async (url: RequestInfo | URL) => {
       const u = String(url);
       const ok = (body: unknown) => ({ok: true, status: 200, json: async () => body}) as unknown as Response;
-      if (u.includes('/api/auth/login')) return ok({token: 'tok'});
-      if (u.includes('/api/auth/me')) return ok({id: 1, email: 'anna@test.dev', name: 'Anna'});
+      if (u.includes('/api/auth/login')) {
+        signedIn = true;
+        return ok({token: 'tok'});
+      }
+      if (u.includes('/api/auth/me')) return signedIn ?
+        ok({id: 1, email: 'anna@test.dev', name: 'Anna'}) : anonymousFetch(url);
       return {ok: false, status: 404, json: async () => ({})} as unknown as Response;
     }) as unknown as typeof fetch;
 
     const user = userEvent.setup();
-    renderPage();
+    await renderPage();
     const main = screen.getByRole('main');
     await user.type(within(main).getByLabelText(/email/i), 'anna@test.dev');
     await user.type(within(main).getByLabelText(/password/i), 'Passw0rd123');

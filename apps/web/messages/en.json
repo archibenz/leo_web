@@ -631,6 +631,14 @@
     "clearConfirmMessage": "All items will be removed from your cart. This cannot be undone."
   },
   "auth": {
+    "errors": {
+      "sessionExpired": "Your session has expired. Please sign in again.",
+      "verificationUnavailable": "We could not verify your session. Please try again.",
+      "logoutFailed": "Server sign-out could not be completed. Please try again."
+    },
+    "retryVerification": "Check session again",
+    "retryLogout": "Complete sign-out",
+    "loggingOut": "Signing out…",
     "tg": {
       "expired": {
         "title": "Link expired",
