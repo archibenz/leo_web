@@ -164,4 +164,140 @@ describe('apiFetch', () => {
     await expect(apiFetch('/api/auth/me', {skipAuthHandler: true})).rejects.toMatchObject({status: 401});
     expect(onUnauthorized).not.toHaveBeenCalled();
   });
+
+  it('keeps the replacement session when an old request returns 401', async () => {
+    const onUnauthorized = vi.fn(() => clearToken());
+    setUnauthorizedHandler(onUnauthorized);
+    setToken('old-token');
+    let respond!: (response: FakeResponse) => void;
+    mockFetch.mockImplementation(() => new Promise<FakeResponse>((resolve) => {respond = resolve;}));
+    const pending = apiFetch('/api/me/orders');
+    setToken('replacement-token');
+    respond(res({}, {status: 401}));
+
+    await expect(pending).rejects.toMatchObject({status: 401});
+    expect(onUnauthorized).not.toHaveBeenCalled();
+    expect(getToken()).toBe('replacement-token');
+  });
+
+  it('does not expire the browser session for a separate authorization header', async () => {
+    const onUnauthorized = vi.fn(() => clearToken());
+    setUnauthorizedHandler(onUnauthorized);
+    setToken('session-token');
+    mockFetch.mockResolvedValue(res({}, {status: 401}));
+
+    await expect(apiFetch('/api/auth/telegram/poll', {headers: {Authorization: 'Bearer challenge-token'}}))
+      .rejects.toMatchObject({status: 401});
+    expect(onUnauthorized).not.toHaveBeenCalled();
+    expect(getToken()).toBe('session-token');
+  });
+
+  it('preserves Retry-After so auth retries can wait for the server', async () => {
+    mockFetch.mockResolvedValue({...res({}, {status: 429}), headers: new Headers({'Retry-After': '60'})});
+
+    await expect(apiFetch('/api/auth/me', {skipAuthHandler: true}))
+      .rejects.toMatchObject({status: 429, retryAfter: '60'});
+  });
+
+  it.each(['login', 'register', 'telegram/poll', 'telegram/exchange'])('waits for a pending %s cookie response before clearing it', async (endpoint) => {
+    let respond!: (response: FakeResponse) => void;
+    mockFetch.mockImplementation((url: string) => url.endsWith('/api/auth/logout') ?
+      Promise.resolve(res(null, {status: 204})) : new Promise<FakeResponse>((resolve) => {respond = resolve;}));
+    const auth = apiFetch(`/api/auth/${endpoint}`, {method: endpoint.startsWith('telegram/') ? 'GET' : 'POST', skipAuthHandler: true}).catch(() => undefined);
+    const logout = apiFetch<void>('/api/auth/logout', {method: 'POST', skipAuthHandler: true});
+    await Promise.resolve();
+    const callsBeforeResponse = mockFetch.mock.calls.length;
+    respond(res({token: 'late-token'}));
+    await Promise.all([auth, logout]);
+
+    expect(callsBeforeResponse).toBe(1);
+    expect(mockFetch.mock.calls.map(([url]) => url)).toEqual([`/api/auth/${endpoint}`, '/api/auth/logout']);
+  });
+
+  it('still clears the cookie if the pending login request fails', async () => {
+    let reject!: (error: Error) => void;
+    mockFetch.mockImplementation((url: string) => url.endsWith('/api/auth/logout') ?
+      Promise.resolve(res(null, {status: 204})) : new Promise<FakeResponse>((_, no) => {reject = no;}));
+    const login = apiFetch('/api/auth/login', {method: 'POST'}).catch(() => undefined);
+    const logout = apiFetch<void>('/api/auth/logout', {method: 'POST', skipAuthHandler: true});
+    await Promise.resolve();
+    const callsBeforeFailure = mockFetch.mock.calls.length;
+    reject(new TypeError('offline'));
+    await Promise.all([login, logout]);
+
+    expect(callsBeforeFailure).toBe(1);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('fails closed after 15s of pending auth headers and clears the cookie on explicit retry', async () => {
+    vi.useFakeTimers();
+    try {
+      let respond!: (response: FakeResponse) => void;
+      mockFetch.mockImplementation((url: string) => url.endsWith('/api/auth/logout') ?
+        Promise.resolve(res(null, {status: 204})) : new Promise<FakeResponse>((resolve) => {respond = resolve;}));
+      const login = apiFetch('/api/auth/login', {method: 'POST'}).catch((error: Error) => error);
+      let finished = false;
+      const logout = apiFetch<void>('/api/auth/logout', {method: 'POST', skipAuthHandler: true})
+        .catch((error: Error) => {finished = true; return error;});
+
+      await vi.advanceTimersByTimeAsync(14_999);
+      expect(finished).toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      await vi.advanceTimersByTimeAsync(1);
+      expect(finished).toBe(true);
+      expect(await logout).toMatchObject({message: 'Authentication response is still pending'});
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      respond(res({token: 'late-token'}));
+      expect(await login).toMatchObject({message: 'Authentication request superseded'});
+      await apiFetch<void>('/api/auth/logout', {method: 'POST', skipAuthHandler: true});
+      expect(mockFetch.mock.calls.map(([url]) => url)).toEqual(['/api/auth/login', '/api/auth/logout']);
+      expect(getToken()).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it.each(['login', 'register', 'telegram/poll', 'telegram/exchange'])('rejects a late %s response body after logout', async (endpoint) => {
+    let body!: (value: unknown) => void;
+    const pendingBody = new Promise<unknown>((resolve) => {body = resolve;});
+    mockFetch.mockImplementation((url: string) => Promise.resolve(url.endsWith('/api/auth/logout') ?
+      res(null, {status: 204}) : {ok: true, status: 200, json: () => pendingBody}));
+    const pending = apiFetch(`/api/auth/${endpoint}`, {method: endpoint.startsWith('telegram/') ? 'GET' : 'POST', skipAuthHandler: true});
+    await apiFetch<void>('/api/auth/logout', {method: 'POST', skipAuthHandler: true});
+    body({token: 'late-token'});
+
+    await expect(pending).rejects.toThrow('Authentication request superseded');
+    expect(getToken()).toBeNull();
+  });
+
+  it.each(['login', 'register', 'telegram/poll', 'telegram/exchange'])('refuses a late %s body after another tab completes cookie-only logout', async endpoint => {
+    let body!: (value: unknown) => void;
+    mockFetch.mockResolvedValue({ok: true, status: 200, json: () => new Promise(resolve => {body = resolve;})});
+    const pending = apiFetch(`/api/auth/${endpoint}`, {skipAuthHandler: true});
+    await Promise.resolve();
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'reinasleo_logout', newValue: JSON.stringify({phase: 'complete', nonce: 'another-tab'}),
+    }));
+    body({token: 'late-token'});
+    await expect(pending).rejects.toThrow('Authentication request superseded');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    expect(getToken()).toBeNull();
+  });
+
+  it('keeps a replacement session even when it happens to reuse the same JWT', async () => {
+    const onUnauthorized = vi.fn(() => clearToken());
+    setUnauthorizedHandler(onUnauthorized);
+    setToken('same-token');
+    let respond!: (response: FakeResponse) => void;
+    mockFetch.mockImplementation(() => new Promise<FakeResponse>((resolve) => {respond = resolve;}));
+    const old = apiFetch('/api/me/orders');
+    clearToken();
+    setToken('same-token');
+    respond(res({}, {status: 401}));
+
+    await expect(old).rejects.toMatchObject({status: 401});
+    expect(onUnauthorized).not.toHaveBeenCalled();
+    expect(getToken()).toBe('same-token');
+  });
 });

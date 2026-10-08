@@ -1,9 +1,10 @@
 'use client';
 
-import {createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode} from 'react';
+import {createContext, useContext, useState, useEffect, useCallback, useMemo, useRef, type ReactNode} from 'react';
 import {isValidEmail} from '../lib/validation';
 import {apiFetch, setToken, clearToken, getToken, setUnauthorizedHandler} from '../lib/api';
 import {showToast} from '../lib/toast';
+import {isInvalidMeSession, authRetryDelay, fetchSessionUser, logoutSession, readLogoutPhase} from '../lib/authSession';
 
 export type User = {
   id: string;
@@ -43,6 +44,10 @@ type AuthContextType = {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  authError: boolean;
+  retryAuth: () => Promise<void>;
+  logoutError: boolean;
+  isLoggingOut: boolean;
   login: (email: string, password: string) => Promise<{success: boolean; error?: string}>;
   sendCode: (email: string) => Promise<{success: boolean; error?: string}>;
   register: (data: RegisterData) => Promise<{success: boolean; error?: string}>;
@@ -52,7 +57,7 @@ type AuthContextType = {
   loginWithToken: (jwt: string) => Promise<void>;
   deleteAccount: (credential: string, confirmation: string) => Promise<{success: boolean; error?: string}>;
   requestDeleteChallenge: () => Promise<{success: boolean; error?: string}>;
-  logout: () => void;
+  logout: () => Promise<{success: boolean}>;
   validateEmail: (email: string) => boolean;
   isAdmin: boolean;
 };
@@ -105,48 +110,141 @@ function meToUser(data: MeApiResponse): User {
 export function AuthProvider({children}: {children: ReactNode}) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authError, setAuthError] = useState(false);
+  const [logoutError, setLogoutError] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const generation = useRef(0);
+  const mounted = useRef(false);
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inflight = useRef<{generation: number; token: string | null; promise: Promise<void>} | null>(null);
+  const logoutRequest = useRef<Promise<{success: boolean}> | null>(null);
+  const remoteLogoutBlocked = useRef(false);
+  const remoteLogoutTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    setUnauthorizedHandler(() => {
-      clearToken();
-      setUser(null);
-      showToast({kind: 'error', messageKey: 'auth.errors.sessionExpired'});
-    });
-    return () => setUnauthorizedHandler(null);
+  const cancelRemoteLogoutTimer = useCallback(() => {
+    if (remoteLogoutTimer.current !== null) clearTimeout(remoteLogoutTimer.current);
+    remoteLogoutTimer.current = null;
   }, []);
 
-  useEffect(() => {
-    const token = getToken();
-    if (!token) {
-      setIsLoading(false);
+  const cancelRetry = useCallback(() => {
+    if (retryTimer.current !== null) clearTimeout(retryTimer.current);
+    retryTimer.current = null;
+  }, []);
+
+  const isCurrent = useCallback((current: number, token: string | null) => (
+    mounted.current && generation.current === current && getToken() === token
+  ), []);
+
+  const invalidate = useCallback(() => {
+    generation.current += 1;
+    cancelRetry();
+    inflight.current = null;
+    setUser(null);
+    setAuthError(false);
+    setIsLoading(false);
+    return generation.current;
+  }, [cancelRetry]);
+
+  const verifySession = useCallback(function verify(token: string | null, current: number, attempt = 0): Promise<void> {
+    if (!isCurrent(current, token)) return Promise.resolve();
+    if (inflight.current?.generation === current && inflight.current.token === token) {
+      return inflight.current.promise;
+    }
+    setIsLoading(true);
+    setAuthError(false);
+    let request!: Promise<void>;
+    request = (async () => {
+      try {
+        const {user: data, cookieVerified} = await fetchSessionUser<MeApiResponse>(token, () => isCurrent(current, token));
+        if (isCurrent(current, token)) {
+          if (cookieVerified && token) {
+            clearToken();
+            token = getToken();
+          }
+          setUser(meToUser(data));
+        }
+      } catch (error) {
+        if (isCurrent(current, token)) {
+          setUser(null);
+          if (isInvalidMeSession(error)) {
+            clearToken();
+            invalidate();
+          } else {
+            setAuthError(true);
+            const delay = authRetryDelay(error, attempt);
+            if (attempt < 2 && Number.isFinite(delay)) {
+              retryTimer.current = setTimeout(() => {
+                retryTimer.current = null;
+                if (isCurrent(current, token)) void verify(token, current, attempt + 1).catch(() => {});
+              }, delay);
+            }
+          }
+        }
+        throw error;
+      } finally {
+        if (isCurrent(current, token)) setIsLoading(false);
+        if (inflight.current?.promise === request) inflight.current = null;
+      }
+    })();
+    inflight.current = {generation: current, token, promise: request};
+    return request;
+  }, [invalidate, isCurrent]);
+
+  const retryAuth = useCallback(async () => {
+    if (logoutRequest.current || remoteLogoutBlocked.current) return;
+    if (inflight.current && isCurrent(inflight.current.generation, inflight.current.token)) {
+      await inflight.current.promise.catch(() => {});
       return;
     }
+    const current = invalidate();
+    await verifySession(getToken(), current).catch(() => {});
+  }, [invalidate, isCurrent, verifySession]);
 
-    apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true})
-      .then(data => setUser(meToUser(data)))
-      .catch(() => clearToken())
-      .finally(() => setIsLoading(false));
-  }, []);
-
-  // Cross-tab auth sync: when the token is set/cleared in another tab, mirror it here.
-  // localStorage 'storage' events fire only in *other* tabs, never the originator.
   useEffect(() => {
+    mounted.current = true;
+    setUnauthorizedHandler(() => {
+      if (logoutRequest.current) return;
+      clearToken();
+      invalidate();
+      showToast({kind: 'error', messageKey: 'auth.errors.sessionExpired'});
+    });
+    const current = invalidate();
+    void verifySession(getToken(), current).catch(() => {});
     function handleStorage(e: StorageEvent) {
-      if (e.key !== 'reinasleo_token' || e.storageArea !== localStorage) return;
-      if (!e.newValue) {
-        setUser(null);
+      const phase = readLogoutPhase(e);
+      if (phase) {
+        if (logoutRequest.current) return;
+        cancelRemoteLogoutTimer();
+        remoteLogoutBlocked.current = phase !== 'complete';
+        if (phase === 'complete') clearToken();
+        invalidate();
+        setIsLoggingOut(phase === 'pending');
+        setLogoutError(phase === 'failed');
+        if (phase === 'pending') {
+          remoteLogoutTimer.current = setTimeout(() => {
+            remoteLogoutTimer.current = null;
+            if (!mounted.current || logoutRequest.current) return;
+            setIsLoggingOut(false);
+            setLogoutError(true);
+          }, 15_000);
+        }
         return;
       }
-      apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true})
-        .then(data => setUser(meToUser(data)))
-        .catch(() => {
-          clearToken();
-          setUser(null);
-        });
+      if (e.key !== 'reinasleo_token' || e.storageArea !== localStorage) return;
+      const next = invalidate();
+      if (!logoutRequest.current && !remoteLogoutBlocked.current) void verifySession(getToken(), next).catch(() => {});
     }
     window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
+    return () => {
+      mounted.current = false;
+      generation.current += 1;
+      cancelRetry();
+      cancelRemoteLogoutTimer();
+      inflight.current = null;
+      setUnauthorizedHandler(null);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [cancelRetry, cancelRemoteLogoutTimer, invalidate, verifySession]);
 
   const validateEmail = useCallback((email: string): boolean => {
     return isValidEmail(email);
@@ -157,6 +255,10 @@ export function AuthProvider({children}: {children: ReactNode}) {
       return {success: false, error: 'invalid_email'};
     }
 
+    if (remoteLogoutBlocked.current) return {success: false, error: 'login_failed'};
+    if (logoutRequest.current) await logoutRequest.current;
+    const current = invalidate();
+    const previousToken = getToken();
     try {
       const data = await apiFetch<LoginApiResponse>('/api/auth/login', {
         method: 'POST',
@@ -164,15 +266,13 @@ export function AuthProvider({children}: {children: ReactNode}) {
         skipAuthHandler: true,
       });
 
+      if (!isCurrent(current, previousToken)) return {success: false, error: 'login_failed'};
       setToken(data.token);
       try {
-        const me = await apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true});
-        setUser(meToUser(me));
+        await verifySession(getToken(), current);
+        if (isCurrent(current, getToken())) setLogoutError(false);
       } catch (meErr) {
-        // Log only the message — avoid emitting raw error bodies (PII from
-        // /me response) to client console buffers (Vercel/Datadog RUM, etc.).
-        console.warn('auth: /me follow-up failed', meErr instanceof Error ? meErr.message : 'unknown');
-        setUser({id: data.id, email: data.email, name: data.name, surname: data.surname, role: data.role});
+        if (isInvalidMeSession(meErr)) return {success: false, error: 'login_failed'};
       }
       return {success: true};
     } catch (err: unknown) {
@@ -182,7 +282,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
       }
       return {success: false, error: 'login_failed'};
     }
-  }, []);
+  }, [invalidate, isCurrent, verifySession]);
 
   const sendCode = useCallback(async (email: string): Promise<{success: boolean; error?: string}> => {
     if (!isValidEmail(email)) {
@@ -227,6 +327,10 @@ export function AuthProvider({children}: {children: ReactNode}) {
       return {success: false, error: 'privacy_required'};
     }
 
+    if (remoteLogoutBlocked.current) return {success: false, error: 'registration_failed'};
+    if (logoutRequest.current) await logoutRequest.current;
+    const current = invalidate();
+    const previousToken = getToken();
     try {
       const resp = await apiFetch<LoginApiResponse>('/api/auth/register', {
         method: 'POST',
@@ -246,15 +350,13 @@ export function AuthProvider({children}: {children: ReactNode}) {
         skipAuthHandler: true,
       });
 
+      if (!isCurrent(current, previousToken)) return {success: false, error: 'registration_failed'};
       setToken(resp.token);
       try {
-        const me = await apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true});
-        setUser(meToUser(me));
+        await verifySession(getToken(), current);
+        if (isCurrent(current, getToken())) setLogoutError(false);
       } catch (meErr) {
-        // Log only the message — avoid emitting raw error bodies (PII from
-        // /me response) to client console buffers (Vercel/Datadog RUM, etc.).
-        console.warn('auth: /me follow-up failed', meErr instanceof Error ? meErr.message : 'unknown');
-        setUser({id: resp.id, email: resp.email, name: resp.name, surname: resp.surname, role: resp.role});
+        if (isInvalidMeSession(meErr)) return {success: false, error: 'registration_failed'};
       }
       return {success: true};
     } catch (err: unknown) {
@@ -288,20 +390,22 @@ export function AuthProvider({children}: {children: ReactNode}) {
       }
       return {success: false, error: 'registration_failed'};
     }
-  }, []);
+  }, [invalidate, isCurrent, verifySession]);
 
   const linkEmail = useCallback(async (email: string, code: string): Promise<{success: boolean; error?: string}> => {
     if (!isValidEmail(email)) {
       return {success: false, error: 'invalid_email'};
     }
 
+    const current = generation.current;
+    const token = getToken();
     try {
       const data = await apiFetch<MeApiResponse>('/api/auth/link-email', {
         method: 'POST',
         body: JSON.stringify({email: email.trim(), code: code.trim()}),
         skipAuthHandler: true,
       });
-      setUser(meToUser(data));
+      if (isCurrent(current, token)) setUser(meToUser(data));
       return {success: true};
     } catch (err: unknown) {
       const apiErr = err as {status?: number; body?: {error?: string}};
@@ -313,20 +417,22 @@ export function AuthProvider({children}: {children: ReactNode}) {
       }
       return {success: false, error: 'link_failed'};
     }
-  }, []);
+  }, [isCurrent]);
 
   const updateNewsletterPreferences = useCallback(async (prefs: NewsletterPreferences): Promise<{success: boolean; error?: string}> => {
+    const current = generation.current;
+    const token = getToken();
     try {
       const data = await apiFetch<MeApiResponse>('/api/auth/newsletter-preferences', {
         method: 'PUT',
         body: JSON.stringify(prefs),
       });
-      setUser(meToUser(data));
+      if (isCurrent(current, token)) setUser(meToUser(data));
       return {success: true};
     } catch {
       return {success: false, error: 'update_failed'};
     }
-  }, []);
+  }, [isCurrent]);
 
   const initTelegramAuth = useCallback(async (): Promise<{success: boolean; deepLink?: string; initToken?: string; error?: string}> => {
     try {
@@ -341,33 +447,45 @@ export function AuthProvider({children}: {children: ReactNode}) {
   }, []);
 
   const loginWithToken = useCallback(async (jwt: string) => {
+    if (remoteLogoutBlocked.current) throw new Error('Logout is not complete');
+    if (logoutRequest.current) await logoutRequest.current;
+    const current = invalidate();
     setToken(jwt);
-    try {
-      const data = await apiFetch<MeApiResponse>('/api/auth/me', {skipAuthHandler: true});
-      setUser(meToUser(data));
-    } catch (err) {
-      clearToken();
-      setUser(null);
-      throw err;
-    }
-  }, []);
+    await verifySession(getToken(), current);
+    if (isCurrent(current, getToken())) setLogoutError(false);
+  }, [invalidate, isCurrent, verifySession]);
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' && !isLoading && !authError && !logoutError && !isLoggingOut;
 
-  const logout = useCallback(async () => {
-    // Call the backend FIRST so the httpOnly rl_session cookie is cleared.
-    // Without this, the cookie lives for the full JWT TTL (24h) even after
-    // "logout" — and AdminGuard's cookie-presence check lets a logged-out
-    // user past the redirect. Fail-open: if the request fails (network /
-    // backend down) we still clear local state below so the UI is consistent.
-    try {
-      await apiFetch<void>('/api/auth/logout', {method: 'POST', skipAuthHandler: true});
-    } catch {
-      // ignore — log out client-side anyway
-    }
+  const logout = useCallback((): Promise<{success: boolean}> => {
+    if (logoutRequest.current) return logoutRequest.current;
+    cancelRemoteLogoutTimer();
+    invalidate();
     clearToken();
-    setUser(null);
-  }, []);
+    setIsLoggingOut(true);
+    let cleared = false;
+    const request = logoutSession().then(() => {
+      cleared = true;
+      remoteLogoutBlocked.current = false;
+      if (mounted.current && logoutRequest.current === request) setLogoutError(false);
+      return {success: true};
+    }).catch(() => {
+      if (mounted.current && logoutRequest.current === request) setLogoutError(true);
+      return {success: false};
+    }).finally(() => {
+      if (logoutRequest.current !== request) return;
+      logoutRequest.current = null;
+      if (!mounted.current) return;
+      setIsLoggingOut(false);
+      const token = getToken();
+      if (cleared && token) {
+        const current = invalidate();
+        void verifySession(token, current).catch(() => {});
+      }
+    });
+    logoutRequest.current = request;
+    return request;
+  }, [cancelRemoteLogoutTimer, invalidate, verifySession]);
 
   const requestDeleteChallenge = useCallback(async (): Promise<{success: boolean; error?: string}> => {
     try {
@@ -386,14 +504,18 @@ export function AuthProvider({children}: {children: ReactNode}) {
   }, []);
 
   const deleteAccount = useCallback(async (credential: string, confirmation: string): Promise<{success: boolean; error?: string}> => {
+    const current = generation.current;
+    const token = getToken();
     try {
       await apiFetch<void>('/api/auth/me', {
         method: 'DELETE',
         body: JSON.stringify({credential, confirmation}),
         skipAuthHandler: true,
       });
-      clearToken();
-      setUser(null);
+      if (isCurrent(current, token)) {
+        clearToken();
+        invalidate();
+      }
       return {success: true};
     } catch (err: unknown) {
       const apiErr = err as {status?: number; body?: {error?: string}};
@@ -410,12 +532,16 @@ export function AuthProvider({children}: {children: ReactNode}) {
       if (apiErr.status === undefined) return {success: false, error: 'network_error'};
       return {success: false, error: 'delete_failed'};
     }
-  }, []);
+  }, [invalidate, isCurrent]);
 
   const value = useMemo(() => ({
     user,
-    isAuthenticated: !!user,
+    isAuthenticated: !!user && !authError && !logoutError && !isLoggingOut,
     isLoading,
+    authError,
+    retryAuth,
+    logoutError,
+    isLoggingOut,
     login,
     sendCode,
     register,
@@ -428,7 +554,7 @@ export function AuthProvider({children}: {children: ReactNode}) {
     logout,
     validateEmail,
     isAdmin,
-  }), [user, isLoading, login, sendCode, register, linkEmail, updateNewsletterPreferences, initTelegramAuth, loginWithToken, deleteAccount, requestDeleteChallenge, logout, validateEmail, isAdmin]);
+  }), [user, isLoading, authError, retryAuth, logoutError, isLoggingOut, login, sendCode, register, linkEmail, updateNewsletterPreferences, initTelegramAuth, loginWithToken, deleteAccount, requestDeleteChallenge, logout, validateEmail, isAdmin]);
 
   return (
     <AuthContext.Provider value={value}>
@@ -441,6 +567,10 @@ const defaultAuthContext: AuthContextType = {
   user: null,
   isAuthenticated: false,
   isLoading: true,
+  authError: false,
+  retryAuth: async () => {},
+  logoutError: false,
+  isLoggingOut: false,
   login: async () => ({success: false}),
   sendCode: async () => ({success: false}),
   register: async () => ({success: false}),
@@ -450,7 +580,7 @@ const defaultAuthContext: AuthContextType = {
   loginWithToken: async () => {},
   deleteAccount: async () => ({success: false}),
   requestDeleteChallenge: async () => ({success: false}),
-  logout: () => {},
+  logout: async () => ({success: false}),
   validateEmail: () => false,
   isAdmin: false,
 };
