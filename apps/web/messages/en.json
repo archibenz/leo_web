@@ -1773,7 +1773,26 @@
       "tgWaiting": "Waiting for Telegram…",
       "tgHint": "We opened our bot — press “Start” there. Sign-in completes here automatically.",
       "tgExpired": "The sign-in link has expired. Press the button again.",
-      "tgError": "Could not reach Telegram. Please try again."
+      "tgError": "Could not reach Telegram. Please try again.",
+      "telegramLink": {
+        "title": "Telegram for Analytics",
+        "description": "Confirm your Telegram account in our bot, then return here and check the confirmation. This links Telegram to your current site account.",
+        "idle": "A fresh confirmation check is required for Analytics.",
+        "pending": "Confirmation is not available yet. Complete the step in our Telegram bot, then check again.",
+        "verified": "Confirmation checked. You can open Analytics.",
+        "expired": "The link has expired. Create a new link to confirm in Telegram.",
+        "checkAgain": "The confirmation check has expired. Check again before opening Analytics.",
+        "sessionExpired": "Your site session has expired. Sign in again to continue.",
+        "accessRequired": "Sign in again and check that your account has administrator access.",
+        "conflict": "This Telegram account is already linked to another site account. Contact support to resolve the link.",
+        "rateLimited": "Too many requests. Wait a minute, then try again.",
+        "unavailable": "Could not check the confirmation. Please try again.",
+        "confirm": "Confirm in Telegram",
+        "confirmAgain": "Confirm again in Telegram",
+        "openTelegram": "Open Telegram",
+        "check": "Check confirmation",
+        "signInAgain": "Sign in again"
+      }
     },
     "editModeSwitch": {
       "label": "Site edit mode",
