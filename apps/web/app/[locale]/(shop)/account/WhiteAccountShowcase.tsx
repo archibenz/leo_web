@@ -10,6 +10,7 @@ import {trackSiteEvent} from '../../../../lib/siteEvents';
 import {safeNextPath} from '../../../../lib/safeNext';
 import {Button} from '../../../../components/ui/button';
 import OwnerTools from '../../../../components/editor/OwnerTools';
+import WhiteTelegramLink from '../../../../components/account/WhiteTelegramLink';
 import WhiteTelegramLogin from '../../WhiteTelegramLogin';
 import WhiteFloatingPaths from '../../WhiteFloatingPaths';
 import {WhiteAtGlyph} from '../../wv-icons';
@@ -200,6 +201,7 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
                   здесь делает, а выход завершает страницу. Прежде оба органа
                   висели ПОСЛЕ выхода, и «Выйти» оказывалось в середине. */}
               <OwnerTools locale={locale} />
+              <WhiteTelegramLink userId={user.id} role={user.role} onSignInAgain={whiteLogout} />
 
               <button
                 type="button"
