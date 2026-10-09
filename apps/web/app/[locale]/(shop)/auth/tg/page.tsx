@@ -1,10 +1,11 @@
 'use client';
 
-import {Suspense, useEffect, useState} from 'react';
+import {Suspense, useEffect, useRef, useState} from 'react';
 import {useSearchParams, useRouter} from 'next/navigation';
 import {useLocale, useTranslations} from 'next-intl';
 import {apiFetch} from '../../../../../lib/api';
-import {whiteAdoptToken} from '../../../../../hooks/useWhiteAuth';
+import {authRetryDelay} from '../../../../../lib/authSession';
+import {useWhiteAuth, whiteAdoptToken, whiteRetryAuth} from '../../../../../hooks/useWhiteAuth';
 import {Button} from '../../../../../components/ui/button';
 import {INK, MUTED, HAIR} from '../../../wv-palette';
 
@@ -16,16 +17,53 @@ type ExchangeResponse = {
   surname?: string;
 };
 
-// The moment between "bot handed us a token" and "exchange answered" — a plain
-// ring in the vitrine's own ink reads as "working".
-//
-// Раньше здесь стояла оговорка «золотая вспышка принадлежит LoaderSplash, он
-// остаётся градиентному админу». С 17.09 это неправда дважды: свечения у
-// LoaderSplash нет вовсе, и админ давно не градиентный. Запись поправлена, а
-// не удалена: следующий увидит, что выбор кольца — не про отсутствие вспышки,
-// а про то, что на этих маршрутах свой загрузчик не нужен. animate-spin bows out under prefers-reduced-motion,
-// same as every other spinner on the White routes. #wv-main is the skip-link
-// target WhiteHeader always points at (WhiteHeader.tsx).
+type ExchangeResult = {status: 'exchanged'; userId: string} | {status: 'expired'} | {status: 'unavailable'; retryAt?: number};
+type CallbackAttempt = {token: string; retryCount: number; outcome: ExchangeResult | null; result: Promise<ExchangeResult>};
+const MAX_EXCHANGE_RETRIES = 1;
+
+// Keep only the latest attempt in memory: remounts must not consume its link twice.
+// Completed results contain no JWT, so reopening after logout cannot adopt it again.
+let callbackAttempt: CallbackAttempt | null = null;
+let callbackOwner: symbol | null = null;
+
+function exchangeOnce(token: string, requestedRetry: number): CallbackAttempt {
+  const previous = callbackAttempt?.token === token ? callbackAttempt : null;
+  if (previous && (requestedRetry <= previous.retryCount || previous.retryCount >= MAX_EXCHANGE_RETRIES
+    || previous.outcome?.status !== 'unavailable' || previous.outcome.retryAt === undefined
+    || previous.outcome.retryAt > Date.now())) return previous;
+  const attempt: CallbackAttempt = {
+    token,
+    retryCount: previous ? previous.retryCount + 1 : 0,
+    outcome: null,
+    result: apiFetch<ExchangeResponse>('/api/auth/telegram/exchange', {
+      headers: {Authorization: 'Bearer ' + token},
+      cache: 'no-store',
+      skipAuthHandler: true,
+    }).then(async (data): Promise<ExchangeResult> => {
+      if (callbackAttempt === attempt && callbackOwner !== null) {
+        // A temporary /me failure preserves the session; its store owns retries.
+        await whiteAdoptToken(data.token).catch(() => {});
+      }
+      return {status: 'exchanged', userId: String(data.id)};
+    }).catch((error: unknown): ExchangeResult => {
+      const status = (error as {status?: number} | null)?.status;
+      if (status === 400 || status === 404 || status === 410) return {status: 'expired'};
+      const retryable = status === 429 || status === 502 || error instanceof TypeError;
+      const delay = authRetryDelay(error, attempt.retryCount);
+      return {
+        status: 'unavailable',
+        retryAt: retryable && attempt.retryCount < MAX_EXCHANGE_RETRIES && Number.isFinite(delay)
+          ? Date.now() + delay : undefined,
+      };
+    }).then(result => {
+      attempt.outcome = result;
+      return result;
+    }),
+  };
+  callbackAttempt = attempt;
+  return attempt;
+}
+
 function TgWaitingSign() {
   const t = useTranslations('common');
   return (
@@ -41,64 +79,106 @@ function TgWaitingSign() {
 }
 
 function TelegramAuthContent() {
-  const searchParams = useSearchParams();
+  const token = useSearchParams().get('token');
   const router = useRouter();
   const locale = useLocale();
-  const t = useTranslations('auth.tg.expired');
-  const [status, setStatus] = useState<'loading' | 'error'>('loading');
+  const t = useTranslations('auth.tg');
+  const auth = useWhiteAuth();
+  const redirected = useRef<string | null>(null);
+  const [state, setState] = useState<{token: string | null; result: ExchangeResult} | null>(null);
+  const [requestedRetry, setRequestedRetry] = useState(0);
+  const [retryReady, setRetryReady] = useState(false);
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    // Reject malformed tokens client-side: backend issues 32-char hex (UUID
-    // without dashes). A crafted URL with arbitrary characters should not
-    // reach the exchange endpoint or land in headers.
+    const owner = Symbol();
+    callbackOwner = owner;
+    setRequestedRetry(0);
     if (!token || !/^[A-Za-z0-9_-]{20,128}$/.test(token)) {
-      setStatus('error');
-      return;
+      callbackAttempt = null;
+      setState({token, result: {status: 'expired'}});
+    } else {
+      setState(null);
     }
+    return () => {
+      if (callbackOwner === owner) callbackOwner = null;
+    };
+  }, [token]);
 
-    apiFetch<ExchangeResponse>(`/api/auth/telegram/exchange`, {
-      headers: {Authorization: `Bearer ${token}`},
-    })
-      .then(async data => {
-        // Same adoption WhiteTelegramLogin's poll loop uses: sets the token
-        // and resolves /api/auth/me itself, no AuthProvider required. A false
-        // `ok` means the exchange answered but the account didn't come back —
-        // landing on /account signed-out would look like a login that
-        // worked when it didn't, so that counts as failure too.
-        const {ok} = await whiteAdoptToken(data.token);
-        if (!ok) {
-          setStatus('error');
-          return;
-        }
-        router.replace(`/${locale}/account`);
-      })
-      .catch(() => {
-        setStatus('error');
-      });
-  }, [searchParams, router, locale]);
+  useEffect(() => {
+    if (!token || !/^[A-Za-z0-9_-]{20,128}$/.test(token) || !auth.ready || auth.isLoggingOut || auth.logoutError) return;
+    // Finish the initial cookie check before exchange captures its auth generation.
+    let active = true;
+    const attempt = exchangeOnce(token, requestedRetry);
+    void attempt.result.then(result => {
+      if (active && callbackAttempt === attempt) setState({token, result});
+    });
+    return () => {active = false;};
+  }, [token, requestedRetry, auth.ready, auth.isLoggingOut, auth.logoutError]);
 
-  if (status === 'error') {
-    return (
-      <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center">
-        <div className="w-full max-w-md border p-10 text-center" style={{borderColor: HAIR}}>
-          <p className="font-display text-xl" style={{color: INK}}>{t('title')}</p>
-          <p className="mt-4 text-sm leading-relaxed" style={{color: MUTED}}>{t('description')}</p>
+  const result = state?.token === token ? state.result : null;
+  const retryAt = result?.status === 'unavailable' ? result.retryAt : undefined;
+  useEffect(() => {
+    setRetryReady(retryAt !== undefined && retryAt <= Date.now());
+    if (retryAt === undefined || retryAt <= Date.now()) return;
+    const timer = setTimeout(() => setRetryReady(true), retryAt - Date.now());
+    return () => clearTimeout(timer);
+  }, [retryAt]);
+
+  useEffect(() => {
+    if (result?.status !== 'exchanged' || !auth.ready || auth.authError || auth.logoutError || auth.isLoggingOut) return;
+    if (!auth.user || String(auth.user.id) !== result.userId || redirected.current === token) return;
+    redirected.current = token;
+    router.replace('/' + locale + '/account');
+  }, [result, token, auth.ready, auth.authError, auth.logoutError, auth.isLoggingOut, auth.user, router, locale]);
+
+  if (!result || (result.status === 'exchanged' && !auth.ready)) return <TgWaitingSign />;
+
+  const kind = result.status === 'expired' ? 'expired' : 'unavailable';
+  return (
+    <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center">
+      <div className="w-full max-w-md border p-10 text-center" style={{borderColor: HAIR}}>
+        <p className="font-display text-xl" style={{color: INK}}>{t(kind + '.title')}</p>
+        <p className="mt-4 text-sm leading-relaxed" style={{color: MUTED}}>{t(kind + '.description')}</p>
+        {result.status === 'exchanged' && (
           <Button
             type="button"
-            onClick={() => router.push(`/${locale}/account`)}
+            onClick={() => {void whiteRetryAuth().catch(() => {});}}
+            disabled={!auth.ready || auth.logoutError || auth.isLoggingOut}
             variant="white"
             size="white"
             className="mt-7 w-full"
           >
-            {t('cta')}
+            {t('unavailable.retry')}
           </Button>
-        </div>
-      </main>
-    );
-  }
-
-  return <TgWaitingSign />;
+        )}
+        {retryAt !== undefined && (
+          <Button
+            type="button"
+            onClick={() => {
+              if (!retryReady || !auth.ready || auth.logoutError || auth.isLoggingOut) return;
+              setState(null);
+              setRequestedRetry(count => Math.min(count + 1, MAX_EXCHANGE_RETRIES));
+            }}
+            disabled={!retryReady || !auth.ready || auth.logoutError || auth.isLoggingOut}
+            variant="white"
+            size="white"
+            className="mt-7 w-full"
+          >
+            {t('unavailable.retryExchange')}
+          </Button>
+        )}
+        <Button
+          type="button"
+          onClick={() => router.push('/' + locale + '/account')}
+          variant="white"
+          size="white"
+          className="mt-7 w-full"
+        >
+          {t(kind + '.cta')}
+        </Button>
+      </div>
+    </main>
+  );
 }
 
 export default function TelegramAuthPage() {

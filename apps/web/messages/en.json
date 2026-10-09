@@ -644,6 +644,13 @@
         "title": "Link expired",
         "description": "This sign-in link is no longer valid. Return to the sign-in page and try again.",
         "cta": "Go back"
+      },
+      "unavailable": {
+        "title": "Sign-in is not confirmed yet",
+        "description": "We could not verify your session. Check again or return to the sign-in page.",
+        "retry": "Check sign-in",
+        "retryExchange": "Retry sign-in",
+        "cta": "Return to account"
       }
     }
   },
