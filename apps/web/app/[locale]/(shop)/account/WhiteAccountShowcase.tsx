@@ -5,11 +5,12 @@ import Image from 'next/image';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
-import {useWhiteAuth, whiteLogin, whiteSendCode, whiteRegister, whiteLogout, WHITE_PASSWORD_RE} from '../../../../hooks/useWhiteAuth';
+import {useWhiteAuth, whiteLogin, whiteSendCode, whiteRegister, whiteLogout, whiteRetryAuth, WHITE_PASSWORD_RE} from '../../../../hooks/useWhiteAuth';
 import {trackSiteEvent} from '../../../../lib/siteEvents';
 import {safeNextPath} from '../../../../lib/safeNext';
 import {Button} from '../../../../components/ui/button';
 import OwnerTools from '../../../../components/editor/OwnerTools';
+import WhiteTelegramLink from '../../../../components/account/WhiteTelegramLink';
 import WhiteTelegramLogin from '../../WhiteTelegramLogin';
 import WhiteFloatingPaths from '../../WhiteFloatingPaths';
 import {WhiteAtGlyph} from '../../wv-icons';
@@ -37,8 +38,9 @@ const CTA = 'w-full text-[12px] uppercase tracking-[0.2em]';
 export default function WhiteAccountShowcase({locale}: {locale: string}) {
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
-  const {user, ready} = useWhiteAuth();
+  const {user, ready, authError, logoutError, isLoggingOut} = useWhiteAuth();
   const t = useTranslations('white.account');
+  const ta = useTranslations('auth');
   const tf = useTranslations('white.footer');
 
   const [tab, setTab] = useState<'in' | 'up'>('in');
@@ -171,7 +173,24 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
               стоял null: форма появлялась через долю секунды и дважды
               сдвигала подвал — CLS 1,16 на телефоне (вычистка 26.09). 600 px —
               замеренная высота формы входа на 390/768/1440 (596–607). */}
-          {!ready ? <div aria-hidden="true" className="min-h-[600px]" /> : user ? (
+          {!ready ? <div aria-hidden="true" className="min-h-[600px]" /> : isLoggingOut ? (
+            <p role="status" className="min-h-[600px] text-[15px]" style={{color: MUTED}}>{ta('loggingOut')}</p>
+          ) : logoutError || authError ? (
+            <div className="min-h-[600px] wv-rise">
+              <h1 className="font-display text-[clamp(38px,calc(3vw_+_26px),56px)] font-light leading-[1] tracking-[-0.01em]">{t('title')}</h1>
+              <p role="alert" className="mt-5 text-[15px] leading-relaxed" style={{color: MUTED}}>
+                {ta(logoutError ? 'errors.logoutFailed' : 'errors.verificationUnavailable')}
+              </p>
+              <Button type="button" variant="white" className={`${CTA} mt-6`} disabled={busy} onClick={async () => {
+                setBusy(true);
+                if (logoutError) await whiteLogout();
+                else await whiteRetryAuth();
+                setBusy(false);
+              }}>
+                {ta(logoutError ? 'retryLogout' : 'retryVerification')}
+              </Button>
+            </div>
+          ) : user ? (
             <div className="wv-rise">
               <h1 className="font-display text-[clamp(38px,calc(3vw_+_26px),56px)] font-light leading-[1] tracking-[-0.01em]">
                 {t('hello')} {user.name}
@@ -200,10 +219,11 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
                   здесь делает, а выход завершает страницу. Прежде оба органа
                   висели ПОСЛЕ выхода, и «Выйти» оказывалось в середине. */}
               <OwnerTools locale={locale} />
+              <WhiteTelegramLink userId={user.id} role={user.role} onSignInAgain={() => {void whiteLogout();}} />
 
               <button
                 type="button"
-                onClick={() => whiteLogout()}
+                onClick={() => {void whiteLogout();}}
                 className="wv-link mt-10 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.18em]"
                 style={{color: MUTED}}
               >

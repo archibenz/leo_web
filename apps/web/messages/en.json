@@ -631,11 +631,26 @@
     "clearConfirmMessage": "All items will be removed from your cart. This cannot be undone."
   },
   "auth": {
+    "errors": {
+      "sessionExpired": "Your session has expired. Please sign in again.",
+      "verificationUnavailable": "We could not verify your session. Please try again.",
+      "logoutFailed": "Server sign-out could not be completed. Please try again."
+    },
+    "retryVerification": "Check session again",
+    "retryLogout": "Complete sign-out",
+    "loggingOut": "Signing out…",
     "tg": {
       "expired": {
         "title": "Link expired",
         "description": "This sign-in link is no longer valid. Return to the sign-in page and try again.",
         "cta": "Go back"
+      },
+      "unavailable": {
+        "title": "Sign-in is not confirmed yet",
+        "description": "We could not verify your session. Check again or return to the sign-in page.",
+        "retry": "Check sign-in",
+        "retryExchange": "Retry sign-in",
+        "cta": "Return to account"
       }
     }
   },
@@ -1773,7 +1788,26 @@
       "tgWaiting": "Waiting for Telegram…",
       "tgHint": "We opened our bot — press “Start” there. Sign-in completes here automatically.",
       "tgExpired": "The sign-in link has expired. Press the button again.",
-      "tgError": "Could not reach Telegram. Please try again."
+      "tgError": "Could not reach Telegram. Please try again.",
+      "telegramLink": {
+        "title": "Telegram for Analytics",
+        "description": "Confirm your Telegram account in our bot, then return here and check the confirmation. This links Telegram to your current site account.",
+        "idle": "A fresh confirmation check is required for Analytics.",
+        "pending": "Confirmation is not available yet. Complete the step in our Telegram bot, then check again.",
+        "verified": "Confirmation checked. You can open Analytics.",
+        "expired": "The link has expired. Create a new link to confirm in Telegram.",
+        "checkAgain": "The confirmation check has expired. Check again before opening Analytics.",
+        "sessionExpired": "Your site session has expired. Sign in again to continue.",
+        "accessRequired": "Sign in again and check that your account has administrator access.",
+        "conflict": "This Telegram account is already linked to another site account. Contact support to resolve the link.",
+        "rateLimited": "Too many requests. Wait a minute, then try again.",
+        "unavailable": "Could not check the confirmation. Please try again.",
+        "confirm": "Confirm in Telegram",
+        "confirmAgain": "Confirm again in Telegram",
+        "openTelegram": "Open Telegram",
+        "check": "Check confirmation",
+        "signInAgain": "Sign in again"
+      }
     },
     "editModeSwitch": {
       "label": "Site edit mode",

@@ -91,13 +91,10 @@ export function NavUser({locale}: {locale: string}) {
           className="w-full cursor-pointer"
           variant="destructive"
           onSelect={() => {
-            // logout() у AuthContext асинхронный (он ещё и гасит куку на
-            // бэкенде), но ждать его здесь нечего: страницы админки уже
-            // отрисованы и лежат в кэше роутера. Полная перезагрузка на
-            // витрину — единственный способ гарантированно их выбросить;
-            // мягкий переход отдал бы их из кэша вышедшему человеку.
-            void logout();
-            window.location.href = `/${locale}`;
+            void logout().then(({success}) => {
+              // Полный переход очищает клиентский кеш админских страниц.
+              if (success) window.location.href = `/${locale}`;
+            });
           }}
         >
           <LogOutIcon />
