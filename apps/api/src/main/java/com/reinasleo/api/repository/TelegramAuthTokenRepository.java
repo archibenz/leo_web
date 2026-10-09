@@ -34,7 +34,6 @@ public interface TelegramAuthTokenRepository extends JpaRepository<TelegramAuthT
      * Returns empty if the token is already used, expired, or unbound.
      * Native query because JPQL does not support UPDATE ... RETURNING.
      */
-    @Modifying
     @Query(value = """
             UPDATE telegram_auth_tokens
             SET used = true
@@ -52,7 +51,6 @@ public interface TelegramAuthTokenRepository extends JpaRepository<TelegramAuthT
      * Replaces the two-step `findById + deleteIfClaimed` pattern in pollAuth
      * which had a residual TOCTOU window between the read and the delete.
      */
-    @Modifying
     @Query(value = """
             DELETE FROM telegram_auth_tokens
             WHERE token = :token
