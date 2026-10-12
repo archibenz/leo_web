@@ -1,5 +1,5 @@
 import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
-import {render, screen, cleanup, waitFor} from '@testing-library/react';
+import {render, screen, cleanup, act} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {setViewport} from './viewport';
 
@@ -16,7 +16,7 @@ const token = {value: null as string | null};
 const me = vi.fn();
 vi.mock('../../../lib/api', () => ({
   getToken: () => token.value,
-  apiFetch: (path: string) => me(path),
+  apiFetch: (path: string, options?: unknown) => me(path, options),
   setToken: () => {},
   clearToken: () => {
     token.value = null;
@@ -86,9 +86,10 @@ describe('честность режима', () => {
   });
 
   it('постороннему не рассказывает ни про какой режим, даже если сервер знает про намерение', async () => {
-    render(<EditorNotice editing={false} wantsEdit />);
+    me.mockRejectedValue(Object.assign(new Error('anonymous cookie'), {status: 401}));
+    await act(async () => {render(<EditorNotice editing={false} wantsEdit />);});
 
-    await waitFor(() => expect(me).not.toHaveBeenCalled());
+    expect(me).toHaveBeenCalledExactlyOnceWith('/api/auth/me', {skipAuthHandler: true, skipBearer: true});
     expect(screen.queryByRole('alert')).toBeNull();
   });
 });

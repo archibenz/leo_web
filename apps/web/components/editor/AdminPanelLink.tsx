@@ -1,6 +1,7 @@
 'use client';
 
 import {useTranslations} from 'next-intl';
+import {ArrowUpRight} from 'lucide-react';
 import {useEditorSession} from './useEditorSession';
 
 // Ссылка на /admin, рядом с выключателем режима правки на странице аккаунта —
@@ -35,11 +36,12 @@ export default function AdminPanelLink({locale}: {locale: string}) {
   // знать, тёмный вокруг фон или светлый.
   return (
     <a href={`/${locale}/admin`} className={OWNER_LINK} style={OWNER_LINK_STYLE}>
-      {t('adminLink')}
+      <span>{t('adminLink')}</span>
+      <ArrowUpRight className="wv-owner-arrow" size={17} aria-hidden="true" />
     </a>
   );
 }
 
 export const OWNER_LINK =
-  'mt-3 flex min-h-12 w-full items-center justify-center rounded-[2px] px-4 text-center text-[13px] uppercase tracking-[0.12em] transition-opacity hover:opacity-70';
+  'wv-owner-link mt-3 flex min-h-12 w-full items-center justify-between gap-4 rounded-[2px] px-4 text-left text-[13px] uppercase tracking-[0.12em]';
 export const OWNER_LINK_STYLE = {color: 'currentColor', border: '1px solid currentColor'} as const;

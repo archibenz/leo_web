@@ -2515,6 +2515,126 @@ body:has([data-edit-bar='full']) [data-edit-bar='intent'] {
   animation: pageEnter 260ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
+.wv-owner-link {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.wv-owner-link::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: currentColor;
+  opacity: 0.06;
+  transform: translateX(-101%);
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wv-owner-arrow {
+  flex: 0 0 auto;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wv-owner-link:focus-visible::before { transform: none; }
+.wv-owner-link:focus-visible .wv-owner-arrow { transform: translate(2px, -2px); }
+.wv-owner-link:active { opacity: 0.75; }
+
+.wv-telegram-card {
+  margin-top: 32px;
+  padding: 24px;
+  border: 1px solid #e7e2db;
+  background: #faf8f4;
+  color: #1c1714;
+}
+.wv-telegram-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.wv-telegram-icon {
+  flex-shrink: 0;
+}
+.wv-telegram-progress {
+  animation: wv-telegram-spin 900ms linear infinite;
+}
+@keyframes wv-telegram-spin {
+  to { transform: rotate(360deg); }
+}
+.wv-telegram-copy {
+  margin-top: 10px;
+  color: #776e64;
+  font-size: 13px;
+  line-height: 1.65;
+}
+.wv-telegram-hint {
+  margin-top: 8px;
+  color: #776e64;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.wv-telegram-hint summary {
+  min-height: 44px;
+  padding-block: 12px;
+  cursor: pointer;
+}
+.wv-telegram-state {
+  min-height: 42px;
+  margin-top: 16px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.wv-account-enter,
+.wv-telegram-state {
+  animation: wv-account-state 220ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.wv-telegram-action {
+  width: 100%;
+  margin-top: 16px;
+  gap: 12px;
+  border-radius: 2px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.wv-telegram-action svg {
+  flex-shrink: 0;
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wv-telegram-open {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid currentColor;
+  text-underline-offset: 4px;
+}
+@keyframes wv-account-state {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (hover: hover) {
+  .wv-owner-link:hover::before { transform: none; }
+  .wv-owner-link:hover .wv-owner-arrow { transform: translate(2px, -2px); }
+  .wv-telegram-action:hover:not(:disabled) svg { transform: translateX(2px); }
+}
+@media (max-width: 480px) {
+  .wv-telegram-card { padding: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wv-owner-link::before,
+  .wv-owner-arrow,
+  .wv-telegram-action svg { transition: none; }
+  .wv-owner-link:focus-visible .wv-owner-arrow,
+  .wv-owner-link:hover .wv-owner-arrow,
+  .wv-telegram-action:hover:not(:disabled) svg { transform: none; }
+  .wv-account-enter,
+  .wv-telegram-state,
+  .wv-telegram-progress { animation: none; }
+}
+
 /* Двадцать четвёртое место, где сайт слушает эту настройку. Анимация здесь
    украшение: без неё страница просто появляется, и ничего не теряется. */
 @media (prefers-reduced-motion: reduce) {

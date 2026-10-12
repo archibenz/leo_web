@@ -176,7 +176,7 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
           {!ready ? <div aria-hidden="true" className="min-h-[600px]" /> : isLoggingOut ? (
             <p role="status" className="min-h-[600px] text-[15px]" style={{color: MUTED}}>{ta('loggingOut')}</p>
           ) : logoutError || authError ? (
-            <div className="min-h-[600px] wv-rise">
+            <div className="min-h-[600px] wv-account-enter">
               <h1 className="font-display text-[clamp(38px,calc(3vw_+_26px),56px)] font-light leading-[1] tracking-[-0.01em]">{t('title')}</h1>
               <p role="alert" className="mt-5 text-[15px] leading-relaxed" style={{color: MUTED}}>
                 {ta(logoutError ? 'errors.logoutFailed' : 'errors.verificationUnavailable')}
@@ -191,7 +191,7 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
               </Button>
             </div>
           ) : user ? (
-            <div className="wv-rise">
+            <div className="wv-account-enter">
               <h1 className="font-display text-[clamp(38px,calc(3vw_+_26px),56px)] font-light leading-[1] tracking-[-0.01em]">
                 {t('hello')} {user.name}
               </h1>
@@ -269,7 +269,7 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
               </p>
             </div>
           ) : (
-            <div className="wv-rise">
+            <div className="wv-account-enter">
               <h1 className="font-display text-[clamp(38px,calc(3vw_+_26px),56px)] font-light leading-[1] tracking-[-0.01em]">{t('title')}</h1>
               <p className="mt-4 text-[13.5px] leading-relaxed" style={{color: MUTED}}>{t('intro')}</p>
 

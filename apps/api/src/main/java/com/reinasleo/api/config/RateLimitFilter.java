@@ -30,6 +30,7 @@ public class RateLimitFilter implements Filter {
 
     private final Cache<String, Bucket> authBuckets = buildCache();
     private final Cache<String, Bucket> telegramBuckets = buildCache();
+    private final Cache<String, Bucket> telegramLinkStatusBuckets = buildCache();
     private final Cache<String, Bucket> deleteChallengeBuckets = buildCache();
     private final Cache<String, Bucket> botBuckets = buildCache();
     private final Cache<String, Bucket> contactBuckets = buildCache();
@@ -39,6 +40,7 @@ public class RateLimitFilter implements Filter {
 
     private final Counter authHitCounter;
     private final Counter telegramHitCounter;
+    private final Counter telegramLinkStatusHitCounter;
     private final Counter deleteChallengeHitCounter;
     private final Counter botHitCounter;
     private final Counter contactHitCounter;
@@ -60,6 +62,7 @@ public class RateLimitFilter implements Filter {
         this.integrationsPerMinute = integrationsPerMinute;
         this.authHitCounter = hitCounter(meters, "auth");
         this.telegramHitCounter = hitCounter(meters, "telegram");
+        this.telegramLinkStatusHitCounter = hitCounter(meters, "telegram_link_status");
         this.deleteChallengeHitCounter = hitCounter(meters, "delete_challenge");
         this.botHitCounter = hitCounter(meters, "bot");
         this.contactHitCounter = hitCounter(meters, "contact");
@@ -98,6 +101,9 @@ public class RateLimitFilter implements Filter {
         if (path.equals("/api/auth/me/delete-challenge")) {
             if (isRateLimited(deleteChallengeBuckets, ip, res,
                     this::createDeleteChallengeBucket, deleteChallengeHitCounter)) return;
+        } else if (path.equals("/api/auth/me/telegram-link/status") && "GET".equals(req.getMethod())) {
+            if (isRateLimited(telegramLinkStatusBuckets, ip, res,
+                    this::createTelegramLinkStatusBucket, telegramLinkStatusHitCounter)) return;
         } else if (path.startsWith("/api/auth/telegram/")) {
             if (isRateLimited(telegramBuckets, ip, res, this::createTelegramBucket, telegramHitCounter)) return;
         } else if (path.startsWith("/api/auth/")) {
@@ -141,6 +147,12 @@ public class RateLimitFilter implements Filter {
     private Bucket createAuthBucket() {
         return Bucket.builder()
                 .addLimit(Bandwidth.simple(10, Duration.ofMinutes(1)))
+                .build();
+    }
+
+    private Bucket createTelegramLinkStatusBucket() {
+        return Bucket.builder()
+                .addLimit(Bandwidth.simple(30, Duration.ofMinutes(1)))
                 .build();
     }
 

@@ -6,17 +6,13 @@ const me = vi.fn();
 vi.mock('../../../lib/api', () => ({
   getToken: () => token.value,
   API_BASE: '',
-  apiFetch: (path: string) => me(path),
+  apiFetch: (path: string, options?: unknown) => me(path, options),
+  setToken: (value: string) => {token.value = value;},
+  clearToken: () => {token.value = null;},
 }));
 
-// useEditorSession хранит inFlight/silentUntil в переменных на уровне модуля —
-// одно обещание и один отказ-на-минуту на все компоненты страницы, это и
-// проверяется ниже. Но тот же module-scope переживает и переход между
-// тестами: «отказ запоминается» выставляет silentUntil на минуту вперёд, и
-// без сброса модуля это глушило бы все ПОСЛЕДУЮЩИЕ тесты файла тем же
-// молчанием, вне зависимости от их собственного мока. Зелёное держалось
-// только на том, что «отказ» объявлен последним по тексту — vi.resetModules()
-// плюс динамический re-import перед каждым тестом делают порядок неважным.
+// Роль и дедупликация принадлежат общему cookie-aware useWhiteAuth.
+// Сбрасываем его module-scope, чтобы результат одного кейса не решал следующий.
 let useEditorSession: typeof import('../useEditorSession').useEditorSession;
 
 function Probe({label}: {label: string}) {
@@ -52,11 +48,11 @@ describe('цена опознания роли', () => {
 
     await waitFor(() => expect(screen.getByTestId('шапка')).toHaveTextContent('редактор'));
     expect(screen.getByTestId('полоса')).toHaveTextContent('редактор');
-    expect(me).toHaveBeenCalledTimes(1);
+    expect(me).toHaveBeenCalledExactlyOnceWith('/api/auth/me', {skipAuthHandler: true, skipBearer: true});
+    expect(token.value).toBeNull();
   });
 
   it('следующая страница берёт роль из памяти вкладки, а не из сети', async () => {
-    token.value = 'admin-token';
     render(<Probe label="первая" />);
     await waitFor(() => expect(screen.getByTestId('первая')).toHaveTextContent('редактор'));
     cleanup();
@@ -81,10 +77,11 @@ describe('цена опознания роли', () => {
     expect(me).toHaveBeenCalledTimes(1);
   });
 
-  it('анонимный посетитель не стоит ни одного запроса', async () => {
+  it('анонимность определяет один cookie-запрос без наследования роли', async () => {
+    me.mockRejectedValue(Object.assign(new Error('anonymous cookie'), {status: 401}));
     render(<Probe label="гость" />);
 
     await waitFor(() => expect(screen.getByTestId('гость')).toHaveTextContent('посторонний'));
-    expect(me).not.toHaveBeenCalled();
+    expect(me).toHaveBeenCalledExactlyOnceWith('/api/auth/me', {skipAuthHandler: true, skipBearer: true});
   });
 });

@@ -1,7 +1,8 @@
 import {apiFetch} from './api';
 
 export type TelegramLinkChallenge = {deepLink: string; expiresAt: number};
-export type TelegramLinkFailure = 'sessionExpired' | 'accessRequired' | 'pending' | 'conflict' | 'rateLimited' | 'unavailable';
+export type TelegramLinkStatus = {linked: boolean; verified: boolean; verifiedUntil: number | null};
+export type TelegramLinkFailure = 'sessionExpired' | 'accessRequired' | 'conflict' | 'rateLimited' | 'unavailable';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -20,7 +21,7 @@ function deadline(value: unknown, lifetime: number): number {
 
 export async function issueTelegramLink(signal: AbortSignal): Promise<TelegramLinkChallenge> {
   const data = record(await apiFetch<unknown>('/api/auth/me/telegram-link/challenge', {
-    method: 'POST', cache: 'no-store', signal, skipAuthHandler: true,
+    method: 'POST', cache: 'no-store', signal, skipAuthHandler: true, skipBearer: true,
   }));
   if (typeof data.challenge_token !== 'string' || !/^[A-Za-z0-9_-]{43}$/.test(data.challenge_token)
     || typeof data.deep_link !== 'string') throw new Error('Invalid challenge');
@@ -31,29 +32,38 @@ export async function issueTelegramLink(signal: AbortSignal): Promise<TelegramLi
   return {deepLink: link.href, expiresAt: deadline(data.expires_at, 300_000)};
 }
 
-export async function verifyTelegramLink(userId: string | number, signal: AbortSignal): Promise<number> {
-  const data = record(await apiFetch<unknown>('/api/admin/analytics-session', {
-    cache: 'no-store', signal, skipAuthHandler: true,
+export async function getTelegramLinkStatus(userId: string | number, signal: AbortSignal): Promise<TelegramLinkStatus> {
+  const data = record(await apiFetch<unknown>('/api/auth/me/telegram-link/status', {
+    cache: 'no-store', signal, skipAuthHandler: true, skipBearer: true,
   }));
   if (typeof userId !== 'string' || !UUID.test(userId)
     || data.schema_version !== 1 || data.site_user_id !== userId
-    || data.telegram_verified !== true || data.is_admin !== true
-    || typeof data.telegram_id !== 'number' || !Number.isSafeInteger(data.telegram_id) || data.telegram_id <= 0
-    || !(data.telegram_username === null || typeof data.telegram_username === 'string')) {
+    || typeof data.linked !== 'boolean' || typeof data.verified !== 'boolean'
+    || (data.verified && !data.linked)
+    || (!data.verified && data.verified_until !== null)) {
     throw new Error('Invalid identity');
   }
-  return deadline(data.expires_at, 60_000);
+  return {
+    linked: data.linked,
+    verified: data.verified,
+    verifiedUntil: data.verified ? deadline(data.verified_until, 86_400_000) : null,
+  };
 }
 
 export function telegramLinkFailure(error: unknown): TelegramLinkFailure {
   const status = (error as {status?: unknown} | null)?.status;
   if (status === 401) return 'sessionExpired';
-  if (status === 403) {
-    const body = (error as {body?: unknown}).body;
-    const message = body && typeof body === 'object' ? (body as {message?: unknown}).message : null;
-    return message === 'telegram_link_required' || message === 'telegram_link_refresh_required' ? 'pending' : 'accessRequired';
-  }
+  if (status === 403) return 'accessRequired';
   if (status === 409) return 'conflict';
   if (status === 429) return 'rateLimited';
   return 'unavailable';
+}
+
+export function telegramLinkRetryAt(error: unknown): number {
+  const value = (error as {retryAfter?: unknown} | null)?.retryAfter;
+  const delay = typeof value === 'string' && /^\d+$/.test(value)
+    ? Number(value) * 1000
+    : typeof value === 'string' ? Date.parse(value) - Date.now() : NaN;
+  if (delay > 2_147_483_647) return Infinity;
+  return Date.now() + (Number.isFinite(delay) && delay > 0 ? delay : 60_000);
 }
