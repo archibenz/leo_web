@@ -29,7 +29,7 @@ import java.util.UUID;
 @Service
 public class TelegramIdentityService {
     public static final Duration CHALLENGE_LIFETIME = Duration.ofMinutes(5);
-    public static final Duration VERIFICATION_LIFETIME = Duration.ofHours(24);
+    public static final Duration VERIFICATION_LIFETIME = Duration.ofDays(90);
     public static final Duration ASSERTION_LIFETIME = Duration.ofSeconds(60);
     private final TelegramIdentityStore store;
     private final String botUsername;
@@ -89,7 +89,7 @@ public class TelegramIdentityService {
                 || store.ownedByAnother(account.id(), telegramId)) {
             throw new ConflictException("telegram_link_conflict");
         }
-        Instant validUntil = earlier(now.plus(VERIFICATION_LIFETIME), challenge.issuerExpiresAt());
+        Instant validUntil = now.plus(VERIFICATION_LIFETIME);
         try {
             store.verify(account, telegramId, request.telegramUsername(), now, validUntil);
             store.consume(hash, now);

@@ -7,7 +7,10 @@ import com.reinasleo.api.repository.TelegramIdentityStore.Identity;
 import com.reinasleo.api.security.SiteSessionClaims.Session;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Optional;
@@ -52,6 +55,27 @@ class TelegramLinkStatusTest {
     void shorterProofBoundsVerification() {
         linkedAccount(now.minusSeconds(1), now.plusSeconds(10));
         assertThat(service.linkStatus(session).verifiedUntil()).isEqualTo(now.plusSeconds(10));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {2, 100})
+    void newSessionReusesLongLivedProofWithoutRenewingIt(int sessionDays) {
+        Instant confirmedAt = now.minus(Duration.ofDays(2));
+        Instant proofExpiry = confirmedAt.plus(Duration.ofDays(90));
+        linkedAccount(confirmedAt, proofExpiry);
+        Session fresh = new Session(userId, now.plus(Duration.ofDays(sessionDays)));
+
+        assertThatThrownBy(() -> service.linkStatus(new Session(userId, confirmedAt.plusSeconds(60))))
+                .isInstanceOf(UnauthorizedException.class);
+        var status = service.linkStatus(fresh);
+
+        assertThat(status.siteUserId()).isEqualTo(userId);
+        assertThat(status.linked()).isTrue();
+        assertThat(status.verified()).isTrue();
+        assertThat(status.verifiedUntil()).isEqualTo(sessionDays == 2 ? fresh.expiresAt() : proofExpiry);
+        verify(store).activeAccount(userId, false);
+        verify(store).identity(userId);
+        verifyNoMoreInteractions(store);
     }
 
     @Test

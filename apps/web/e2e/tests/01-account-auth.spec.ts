@@ -289,10 +289,11 @@ const tl = (key: string) => {
   return value;
 };
 
-async function mockTelegramAccount(page: Page, role = 'user') {
+async function mockTelegramAccount(page: Page, role = 'user', now = new Date()) {
   const state = {
     linked: false,
     verified: false,
+    verifiedUntil: new Date(now.getTime() + 3_600_000).toISOString(),
     siteUserId: SITE_USER_ID,
     challengeStatus: 200,
     statusCalls: 0,
@@ -300,7 +301,7 @@ async function mockTelegramAccount(page: Page, role = 'user') {
     telegramOpens: 0,
     unexpectedApi: [] as string[],
   };
-  await page.clock.install({time: new Date()});
+  await page.clock.install({time: now});
   // Context interception also covers the popup's first request.
   await page.context().route('https://t.me/**', (route) => {
     state.telegramOpens++;
@@ -320,7 +321,7 @@ async function mockTelegramAccount(page: Page, role = 'user') {
       site_user_id: state.siteUserId,
       linked: state.linked,
       verified: state.verified,
-      verified_until: state.verified ? new Date(Date.now() + 3_600_000).toISOString() : null,
+      verified_until: state.verified ? state.verifiedUntil : null,
     }});
   });
   await page.route('**/api/auth/me/telegram-link/challenge', (route) => {
@@ -349,6 +350,32 @@ async function captureTelegram(page: Page, testInfo: TestInfo, name: string) {
 }
 
 test.describe('signed-in Telegram connection', () => {
+  for (const elapsedDays of [0, 60]) {
+    test(`a fresh site session reuses a ninety-day Telegram proof on day ${elapsedDays}`, async ({page}, testInfo) => {
+      const day = 86_400_000;
+      const confirmedAt = Date.parse('2026-10-13T10:00:00Z');
+      const state = await mockTelegramAccount(page, 'admin', new Date(confirmedAt + elapsedDays * day));
+      state.linked = true;
+      state.verified = true;
+      state.verifiedUntil = new Date(confirmedAt + 90 * day).toISOString();
+
+      const card = await openTelegramAccount(page);
+      await expect(card).toHaveAttribute('data-state', 'verified');
+      await page.clock.fastForward(30_000);
+      await expect(card).toHaveAttribute('data-state', 'verified');
+      await expect(card.getByRole('status')).toHaveText(tl('verified'));
+      await expect(card.getByRole('button')).toHaveCount(0);
+      await expect(card.getByRole('link', {name: tl('openTelegram')})).toHaveCount(0);
+      await expect(page.getByRole('link', {name: copy('editModeSwitch', 'analyticsLink'), exact: true}))
+        .toHaveAttribute('href', '/analytics');
+      expect(state.statusCalls).toBeGreaterThanOrEqual(1);
+      expect(state.challengeCalls).toBe(0);
+      expect(state.telegramOpens).toBe(0);
+      expect(state.unexpectedApi).toEqual([]);
+      await captureTelegram(page, testInfo, `admin-existing-proof-day-${elapsedDays}`);
+    });
+  }
+
   test('one click opens Telegram and returning confirms the same member account automatically', async ({page}, testInfo) => {
     const state = await mockTelegramAccount(page);
     const card = await openTelegramAccount(page);

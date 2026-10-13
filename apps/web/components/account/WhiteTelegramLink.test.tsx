@@ -63,6 +63,52 @@ describe('Site account Telegram connection', () => {
     expect(getState()).toBe('idle');
   });
 
+  it('reuses persistent confirmation in a fresh Site session until its original deadline', async () => {
+    const day = 86_400_000;
+    const verifiedUntil = Date.now() + 90 * day;
+    const fetchMock = vi.mocked(fetch).mockResolvedValueOnce(response(identity(true, true)));
+    const firstSession = render(tree());
+    await flush();
+    expect(getState()).toBe('verified');
+    await advance(50_000);
+    expect(getState()).toBe('refresh');
+    firstSession.unmount();
+
+    vi.setSystemTime(new Date(verifiedUntil - 89 * day));
+    const schedule = vi.spyOn(window, 'setTimeout');
+    fetchMock.mockResolvedValueOnce(response({...identity(true, true), verified_until: new Date(verifiedUntil).toISOString()}));
+    render(tree());
+    await flush();
+    expect(getState()).toBe('verified');
+    for (const [, delay] of schedule.mock.calls) expect(delay).toBeLessThanOrEqual(2_147_483_647);
+    await advance(30 * day);
+    expect(getState()).toBe('verified');
+    await advance(verifiedUntil - Date.now() - 1);
+    expect(getState()).toBe('verified');
+    await advance(1);
+    expect(getState()).toBe('refresh');
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      '/api/auth/me/telegram-link/status', '/api/auth/me/telegram-link/status',
+    ]);
+    expect(window.open).not.toHaveBeenCalled();
+  });
+
+  it('automatically shows confirmation from visible polling without a return event', async () => {
+    const fetchMock = vi.mocked(fetch).mockResolvedValueOnce(response(identity()))
+      .mockResolvedValueOnce(response(challenge()))
+      .mockImplementationOnce(async () => response({...identity(true, true), verified_until: new Date(Date.now() + 90 * 86_400_000).toISOString()}));
+    render(tree());
+    await flush();
+    await click(messages.connect);
+    await advance(15_001);
+    expect(getState()).toBe('verified');
+    expect(screen.getByRole('status')).toHaveTextContent(messages.verified);
+    expect(screen.queryByRole('link', {name: messages.openTelegram})).toBeNull();
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      '/api/auth/me/telegram-link/status', '/api/auth/me/telegram-link/challenge', '/api/auth/me/telegram-link/status',
+    ]);
+  });
+
   it('preopens a detached window in the click and automatically verifies after returning', async () => {
     let finish!: (value: Response) => void;
     const opened = popup();

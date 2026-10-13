@@ -46,7 +46,7 @@ export async function getTelegramLinkStatus(userId: string | number, signal: Abo
   return {
     linked: data.linked,
     verified: data.verified,
-    verifiedUntil: data.verified ? deadline(data.verified_until, 86_400_000) : null,
+    verifiedUntil: data.verified ? deadline(data.verified_until, 90 * 86_400_000) : null,
   };
 }
 

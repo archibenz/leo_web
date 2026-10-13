@@ -67,6 +67,12 @@ describe('Telegram linking transport and trusted response', () => {
     expect(await getTelegramLinkStatus(USER_ID, signal())).toEqual({linked, verified: false, verifiedUntil: null});
   });
 
+  it.each([2, 30, 90])('accepts a current session with %s days of remaining confirmation', async (days) => {
+    const verifiedUntil = NOW.getTime() + days * 86_400_000;
+    respond({...identity(), verified_until: new Date(verifiedUntil).toISOString()});
+    expect(await getTelegramLinkStatus(USER_ID, signal())).toEqual({linked: true, verified: true, verifiedUntil});
+  });
+
   it.each([
     ['another account UUID', {site_user_id: '164ff844-636f-42aa-9c23-60ced64a3fbe'}],
     ['a different schema', {schema_version: 2}],
@@ -76,7 +82,7 @@ describe('Telegram linking transport and trusted response', () => {
     ['an expiry on unverified status', {verified: false}],
     ['missing proof expiry', {verified_until: null}],
     ['an expired proof', {verified_until: NOW.toISOString()}],
-    ['a proof lasting longer than 24 hours', {verified_until: new Date(NOW.getTime() + 86_400_001).toISOString()}],
+    ['a proof lasting longer than 90 days', {verified_until: new Date(NOW.getTime() + 90 * 86_400_000 + 1).toISOString()}],
     ['an expiry without a timezone', {verified_until: '2026-10-08T12:00:50'}],
   ])('rejects %s before showing confirmation', async (_case, change) => {
     respond({...identity(), ...change});

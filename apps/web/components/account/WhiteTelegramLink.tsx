@@ -140,8 +140,15 @@ function TelegramLinkControls({userId, role, onSignInAgain}: Props) {
   }, [checkStatus, expireChallenge, view.challenge]);
 
   useEffect(() => {
-    if (!view.verifiedUntil) return;
-    const timer = window.setTimeout(() => update(emptyView('refresh')), Math.max(0, view.verifiedUntil - Date.now()));
+    const verifiedUntil = view.verifiedUntil;
+    if (!verifiedUntil) return;
+    let timer: number;
+    const checkExpiry = () => {
+      const remaining = verifiedUntil - Date.now();
+      if (remaining <= 0) update(emptyView('refresh'));
+      else timer = window.setTimeout(checkExpiry, Math.min(remaining, 2_147_483_647));
+    };
+    checkExpiry();
     return () => window.clearTimeout(timer);
   }, [update, view.verifiedUntil]);
 
