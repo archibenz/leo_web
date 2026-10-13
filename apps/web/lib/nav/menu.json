@@ -476,6 +476,34 @@
           ]
         },
         {
+          "id": "ozon-supplies",
+          "title": {
+            "ru": "Поставки"
+          },
+          "icon": "package",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/ozon/supplies",
+          "match": "prefix",
+          "roles": [
+            "section:supplies"
+          ]
+        },
+        {
+          "id": "ozon-warehouses",
+          "title": {
+            "ru": "Склады"
+          },
+          "icon": "warehouse",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/ozon/warehouses",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ]
+        },
+        {
           "id": "ozon-books",
           "title": {
             "ru": "Книги"
