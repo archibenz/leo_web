@@ -87,6 +87,16 @@
               ]
             },
             {
+              "id": "wb-finance-realization",
+              "title": {"ru": "Реализация"},
+              "icon": "wallet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/finance/realization",
+              "match": "prefix",
+              "roles": ["section:finance"]
+            },
+            {
               "id": "wb-finance-ads",
               "title": {
                 "ru": "Реклама"
@@ -380,6 +390,16 @@
               "roles": [
                 "section:finance"
               ]
+            },
+            {
+              "id": "ozon-finance-realization",
+              "title": {"ru": "Реализация"},
+              "icon": "wallet",
+              "app": "analytics",
+              "kind": "link",
+              "path": "/analytics/ozon/realization",
+              "match": "prefix",
+              "roles": ["section:finance"]
             }
           ]
         },

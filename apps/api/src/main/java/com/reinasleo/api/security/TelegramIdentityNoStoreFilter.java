@@ -19,6 +19,7 @@ public class TelegramIdentityNoStoreFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         if (path.equals("/api/admin/analytics-session")
                 || path.equals("/api/auth/me/telegram-link/challenge")
+                || path.equals("/api/auth/me/telegram-link/status")
                 || path.equals("/api/bot/telegram-link/confirm")) {
             response.setHeader("Cache-Control", "no-store");
         }

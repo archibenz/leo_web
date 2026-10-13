@@ -56,14 +56,17 @@ describe('WhiteTelegramLogin', () => {
     expect(screen.getByRole('button', {name: /tgWaiting/})).toBeDisabled();
   });
 
-  it('resumes polling from a saved init token on mount', async () => {
+  it('resumes polling and adopts the verified cookie without retaining a legacy bearer', async () => {
     lsStore.set('tg_init_token', 'saved456');
     mockFetchRoutes([{status: 'ready', token: 'jwt-resume'}]);
     render(<WhiteTelegramLogin />);
     await act(async () => {
       await Promise.resolve();
     });
-    expect(lsStore.get('reinasleo_token')).toBe('jwt-resume');
+    expect(lsStore.has('reinasleo_token')).toBe(false);
     expect(lsStore.has('tg_init_token')).toBe(false);
+    expect(fetch).toHaveBeenNthCalledWith(2, '/api/auth/me', {
+      headers: {'Content-Type': 'application/json'}, credentials: 'include',
+    });
   });
 });

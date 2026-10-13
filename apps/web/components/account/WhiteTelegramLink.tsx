@@ -2,111 +2,257 @@
 
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
+import {AlertCircle, ArrowUpRight, Check, LoaderCircle, Send} from 'lucide-react';
 import {Button} from '../ui/button';
-import {issueTelegramLink, verifyTelegramLink, telegramLinkFailure, type TelegramLinkChallenge, type TelegramLinkFailure} from '../../lib/telegramLink';
+import {getTelegramLinkStatus, issueTelegramLink, telegramLinkFailure, telegramLinkRetryAt,
+  type TelegramLinkChallenge, type TelegramLinkFailure} from '../../lib/telegramLink';
 
 type Props = {userId: string | number; role?: string; onSignInAgain: () => void};
-type Status = TelegramLinkFailure | 'idle' | 'verified' | 'expired' | 'checkAgain';
+type Status = TelegramLinkFailure | 'loading' | 'idle' | 'starting' | 'pending' | 'linked' | 'verified' | 'refresh' | 'expired';
+type Action = 'status' | 'issue';
+type View = {status: Status; challenge: TelegramLinkChallenge | null; verifiedUntil: number | null; retryAt: number | null; retryAction: Action};
+type Request = {controller: AbortController; timer: number};
 
-function TelegramLinkControls({userId, onSignInAgain}: Omit<Props, 'role'>) {
+const passiveStates = new Set<Status>(['loading', 'idle', 'pending', 'linked', 'verified', 'refresh', 'expired']);
+const emptyView = (status: Status): View => ({status, challenge: null, verifiedUntil: null, retryAt: null, retryAction: 'status'});
+
+function TelegramLinkControls({userId, role, onSignInAgain}: Props) {
   const t = useTranslations('white.account.telegramLink');
-  const [challenge, setChallenge] = useState<TelegramLinkChallenge | null>(null);
-  const [verifiedUntil, setVerifiedUntil] = useState<number | null>(null);
-  const [status, setStatus] = useState<Status>('idle');
-  const [busy, setBusy] = useState(false);
-  const request = useRef<AbortController | null>(null);
-  const expireChallenge = useCallback(() => {
-    request.current?.abort();
-    request.current = null;
-    setBusy(false);
-    setChallenge(null);
-    setVerifiedUntil(null);
-    setStatus('expired');
+  const isAdmin = role === 'admin';
+  const [view, setView] = useState<View>(() => emptyView('loading'));
+  const current = useRef(view);
+  const request = useRef<Request | null>(null);
+  const blankWindow = useRef<Window | null>(null);
+  const lastCheck = useRef(-Infinity);
+
+  const update = useCallback((next: View) => {
+    current.current = next;
+    setView(next);
   }, []);
 
-  useEffect(() => () => request.current?.abort(), []);
-  useEffect(() => {
-    if (!challenge) return;
-    const timer = window.setTimeout(expireChallenge, Math.max(0, challenge.expiresAt - Date.now()));
-    return () => window.clearTimeout(timer);
-  }, [challenge, expireChallenge]);
-  useEffect(() => {
-    if (!verifiedUntil) return;
-    const timer = window.setTimeout(() => {
-      setVerifiedUntil(null);
-      setStatus('checkAgain');
-    }, Math.max(0, verifiedUntil - Date.now()));
-    return () => window.clearTimeout(timer);
-  }, [verifiedUntil]);
+  const closeBlank = useCallback(() => {
+    blankWindow.current?.close();
+    blankWindow.current = null;
+  }, []);
 
-  async function run(action: 'issue' | 'verify') {
-    if (request.current) return;
+  const cancelRequest = useCallback(() => {
+    if (!request.current) return;
+    request.current.controller.abort();
+    window.clearTimeout(request.current.timer);
+    request.current = null;
+  }, []);
+
+  const expireChallenge = useCallback(() => {
+    if (!current.current.challenge) return;
+    cancelRequest();
+    closeBlank();
+    lastCheck.current = -Infinity;
+    update(emptyView('expired'));
+  }, [cancelRequest, closeBlank, update]);
+
+  const beginRequest = useCallback((retryAction: Action): Request | null => {
+    if (request.current) return null;
     const controller = new AbortController();
-    request.current = controller;
-    setBusy(true);
-    setVerifiedUntil(null);
-    setStatus('idle');
-    if (action === 'issue') setChallenge(null);
+    const timer = window.setTimeout(() => {
+      if (request.current?.controller !== controller) return;
+      cancelRequest();
+      closeBlank();
+      update({...emptyView('unavailable'), retryAction});
+    }, 15_000);
+    request.current = {controller, timer};
+    return request.current;
+  }, [cancelRequest, closeBlank, update]);
+
+  const finishRequest = useCallback((active: Request) => {
+    window.clearTimeout(active.timer);
+    if (request.current === active) request.current = null;
+  }, []);
+
+  const showFailure = useCallback((error: unknown, retryAction: Action) => {
+    const status = telegramLinkFailure(error);
+    update({...emptyView(status), retryAction, retryAt: status === 'rateLimited' ? telegramLinkRetryAt(error) : null});
+  }, [update]);
+
+  const checkStatus = useCallback(async (retry = false) => {
+    if (document.visibilityState === 'hidden') return;
+    if (current.current.challenge && current.current.challenge.expiresAt <= Date.now()) expireChallenge();
+    const previous = current.current;
+    if (request.current || (previous.retryAt && previous.retryAt > Date.now())) return;
+    if (!retry && (!passiveStates.has(previous.status) || Date.now() - lastCheck.current < 3000)) return;
+    const active = beginRequest('status');
+    if (!active) return;
+    lastCheck.current = Date.now();
+    if (retry) update(emptyView('loading'));
     try {
-      if (action === 'issue') {
-        const next = await issueTelegramLink(controller.signal);
-        if (controller.signal.aborted) return;
-        setChallenge(next);
-        setStatus('pending');
+      const result = await getTelegramLinkStatus(userId, active.controller.signal);
+      if (active.controller.signal.aborted) return;
+      const challenge = current.current.challenge;
+      if (challenge && challenge.expiresAt <= Date.now()) {
+        expireChallenge();
+        return;
+      }
+      if (result.linked && (!isAdmin || result.verified)) {
+        update({...emptyView(isAdmin ? 'verified' : 'linked'), verifiedUntil: isAdmin ? result.verifiedUntil : null});
       } else {
-        const expiresAt = await verifyTelegramLink(userId, controller.signal);
-        if (controller.signal.aborted) return;
-        setChallenge(null);
-        setVerifiedUntil(expiresAt);
-        setStatus('verified');
+        update({...emptyView(challenge ? 'pending' : result.linked ? 'refresh' : previous.status === 'expired' ? 'expired' : 'idle'), challenge});
       }
     } catch (error) {
-      if (controller.signal.aborted) return;
-      const failure = telegramLinkFailure(error);
-      if (failure === 'sessionExpired' || failure === 'accessRequired' || failure === 'conflict') setChallenge(null);
-      setStatus(failure);
+      if (!active.controller.signal.aborted) showFailure(error, 'status');
     } finally {
-      if (!controller.signal.aborted) {
-        request.current = null;
-        setBusy(false);
+      finishRequest(active);
+    }
+  }, [beginRequest, expireChallenge, finishRequest, isAdmin, showFailure, update, userId]);
+
+  useEffect(() => {
+    void checkStatus();
+    const checkOnReturn = () => {void checkStatus();};
+    const clearOnSessionChange = (event: StorageEvent) => {
+      if (event.storageArea !== window.localStorage) return;
+      if (event.key !== null && event.key !== 'reinasleo_token' && event.key !== 'reinasleo_logout') return;
+      cancelRequest();
+      closeBlank();
+      update(emptyView('sessionExpired'));
+    };
+    window.addEventListener('focus', checkOnReturn);
+    document.addEventListener('visibilitychange', checkOnReturn);
+    window.addEventListener('storage', clearOnSessionChange);
+    return () => {
+      window.removeEventListener('focus', checkOnReturn);
+      document.removeEventListener('visibilitychange', checkOnReturn);
+      window.removeEventListener('storage', clearOnSessionChange);
+      cancelRequest();
+      closeBlank();
+      lastCheck.current = -Infinity;
+    };
+  }, [cancelRequest, checkStatus, closeBlank, update]);
+
+  useEffect(() => {
+    if (!view.challenge) return;
+    const challenge = view.challenge;
+    const expiry = window.setTimeout(() => {
+      if (current.current.challenge === challenge) expireChallenge();
+    }, Math.max(0, challenge.expiresAt - Date.now()));
+    const poll = window.setInterval(() => {void checkStatus();}, 15_000);
+    return () => {
+      window.clearTimeout(expiry);
+      window.clearInterval(poll);
+    };
+  }, [checkStatus, expireChallenge, view.challenge]);
+
+  useEffect(() => {
+    const verifiedUntil = view.verifiedUntil;
+    if (!verifiedUntil) return;
+    let timer: number;
+    const checkExpiry = () => {
+      const remaining = verifiedUntil - Date.now();
+      if (remaining <= 0) update(emptyView('refresh'));
+      else timer = window.setTimeout(checkExpiry, Math.min(remaining, 2_147_483_647));
+    };
+    checkExpiry();
+    return () => window.clearTimeout(timer);
+  }, [update, view.verifiedUntil]);
+
+  useEffect(() => {
+    if (!view.retryAt || !Number.isFinite(view.retryAt)) return;
+    const timer = window.setTimeout(() => update({...current.current, retryAt: null}), Math.max(0, view.retryAt - Date.now()));
+    return () => window.clearTimeout(timer);
+  }, [update, view.retryAt]);
+
+  async function connect() {
+    if (current.current.status === 'loading' || current.current.status === 'starting'
+      || (current.current.retryAt && current.current.retryAt > Date.now())) return;
+    let checkingExpired = current.current.status === 'expired';
+    cancelRequest();
+    closeBlank();
+    try {
+      blankWindow.current = window.open('about:blank', '_blank');
+      // Keep the user gesture for browsers that block windows opened after await.
+      if (blankWindow.current) blankWindow.current.opener = null;
+    } catch {
+      closeBlank();
+    }
+    const active = beginRequest(checkingExpired ? 'status' : 'issue');
+    if (!active) {closeBlank(); return;}
+    update(emptyView('starting'));
+    try {
+      if (checkingExpired) {
+        lastCheck.current = Date.now();
+        const result = await getTelegramLinkStatus(userId, active.controller.signal);
+        if (active.controller.signal.aborted) return;
+        if (result.linked && (!isAdmin || result.verified)) {
+          closeBlank();
+          update({...emptyView(isAdmin ? 'verified' : 'linked'), verifiedUntil: isAdmin ? result.verifiedUntil : null});
+          return;
+        }
+        checkingExpired = false;
       }
+      const challenge = await issueTelegramLink(active.controller.signal);
+      if (active.controller.signal.aborted) return;
+      update({...emptyView('pending'), challenge});
+      if (blankWindow.current && !blankWindow.current.closed) {
+        try {
+          blankWindow.current.location.replace(challenge.deepLink);
+          blankWindow.current = null;
+        } catch {
+          closeBlank();
+        }
+      } else {
+        blankWindow.current = null;
+      }
+    } catch (error) {
+      if (!active.controller.signal.aborted) {
+        closeBlank();
+        showFailure(error, checkingExpired ? 'status' : 'issue');
+      }
+    } finally {
+      finishRequest(active);
     }
   }
 
+  const busy = view.status === 'loading' || view.status === 'starting';
+  const linked = view.status === 'linked' || view.status === 'verified';
+  const signIn = view.status === 'sessionExpired' || view.status === 'accessRequired';
+  const failed = view.status === 'conflict' || view.status === 'unavailable' || view.status === 'rateLimited';
+  const Icon = busy ? LoaderCircle : linked ? Check : failed || signIn || view.status === 'expired' ? AlertCircle : Send;
+
   return (
-    <section className="mt-10" aria-label={t('title')}>
-      <h2 className="text-[11px] uppercase tracking-[0.2em] opacity-60">{t('title')}</h2>
-      <p className="mt-3 text-[13px] leading-relaxed">{t('description')}</p>
-      <p className="mt-3 text-[13px] leading-relaxed" role="status" aria-live="polite">{t(status)}</p>
-      {status === 'sessionExpired' || status === 'accessRequired' ? (
-        <Button variant="white" size="white" className="mt-4 w-full" onClick={onSignInAgain}>{t('signInAgain')}</Button>
-      ) : (
-        <div className="mt-4 flex flex-col gap-3">
-          <Button variant="white" size="white" className="w-full text-[12px] uppercase tracking-[0.16em]" disabled={busy} onClick={() => run('issue')}>
-            {t(verifiedUntil ? 'confirmAgain' : 'confirm')}
-          </Button>
-          {challenge && (
-            <a href={challenge.deepLink} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"
-              className="wv-link inline-flex min-h-11 items-center justify-center text-[13px]"
-              onClick={(event) => {
-                if (challenge.expiresAt <= Date.now()) {
-                  event.preventDefault();
-                  expireChallenge();
-                }
-              }}>
-              <span className="wv-link-ink">{t('openTelegram')}</span>
-            </a>
-          )}
-          <button type="button" disabled={busy} onClick={() => run('verify')}
-            className="wv-link inline-flex min-h-11 items-center justify-center text-[13px] disabled:opacity-50">
-            <span className="wv-link-ink">{t('check')}</span>
-          </button>
-        </div>
+    <section className="wv-telegram-card" data-state={view.status} aria-label={t('title')}>
+      <div className="wv-telegram-heading">
+        <span className="wv-telegram-icon"><Icon aria-hidden="true" size={20} className={busy ? 'wv-telegram-progress' : undefined} /></span>
+        <h2>{t('title')}</h2>
+      </div>
+      {!linked && view.status !== 'refresh' && <p className="wv-telegram-copy">{t('description')}</p>}
+      <p key={view.status} className="wv-telegram-state" data-status={view.status} role="status" aria-live="polite" aria-atomic="true">{t(view.status)}</p>
+      {signIn ? (
+        <Button variant="white" size="white" className="wv-telegram-action" onClick={onSignInAgain}>{t('signInAgain')}</Button>
+      ) : view.challenge ? (
+        <>
+          <a href={view.challenge.deepLink} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"
+            className="wv-telegram-open wv-telegram-action"
+            onClick={(event) => {
+              if (view.challenge!.expiresAt <= Date.now()) {
+                event.preventDefault();
+                expireChallenge();
+              }
+            }}>
+            {t('openTelegram')}<ArrowUpRight aria-hidden="true" size={16} />
+          </a>
+          <details className="wv-telegram-hint">
+            <summary>{t('helpTitle')}</summary>
+            <p>{t('help')}</p>
+          </details>
+        </>
+      ) : !linked && (
+        <Button variant="white" size="white" className="wv-telegram-action" disabled={busy || view.retryAt !== null}
+          onClick={() => failed && view.retryAction === 'status' ? void checkStatus(true) : void connect()}>
+          {t(busy ? 'working' : view.retryAt ? 'wait' : failed ? 'retry' : view.status === 'refresh' ? 'refreshAction' : 'connect')}
+          {!busy && <ArrowUpRight aria-hidden="true" size={16} />}
+        </Button>
       )}
     </section>
   );
 }
 
-export default function WhiteTelegramLink({userId, role, onSignInAgain}: Props) {
-  return role === 'admin' ? <TelegramLinkControls key={String(userId)} userId={userId} onSignInAgain={onSignInAgain} /> : null;
+export default function WhiteTelegramLink(props: Props) {
+  return <TelegramLinkControls key={String(props.userId) + ':' + (props.role === 'admin' ? 'admin' : 'buyer')} {...props} />;
 }

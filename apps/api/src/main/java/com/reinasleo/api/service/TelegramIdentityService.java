@@ -3,6 +3,7 @@ package com.reinasleo.api.service;
 import com.reinasleo.api.dto.AnalyticsSessionResponse;
 import com.reinasleo.api.dto.BotTelegramLinkConfirmRequest;
 import com.reinasleo.api.dto.TelegramLinkChallengeResponse;
+import com.reinasleo.api.dto.TelegramLinkStatusResponse;
 import com.reinasleo.api.exception.ConflictException;
 import com.reinasleo.api.exception.UnauthorizedException;
 import com.reinasleo.api.repository.TelegramIdentityStore;
@@ -28,7 +29,7 @@ import java.util.UUID;
 @Service
 public class TelegramIdentityService {
     public static final Duration CHALLENGE_LIFETIME = Duration.ofMinutes(5);
-    public static final Duration VERIFICATION_LIFETIME = Duration.ofHours(24);
+    public static final Duration VERIFICATION_LIFETIME = Duration.ofDays(90);
     public static final Duration ASSERTION_LIFETIME = Duration.ofSeconds(60);
     private final TelegramIdentityStore store;
     private final String botUsername;
@@ -88,7 +89,7 @@ public class TelegramIdentityService {
                 || store.ownedByAnother(account.id(), telegramId)) {
             throw new ConflictException("telegram_link_conflict");
         }
-        Instant validUntil = earlier(now.plus(VERIFICATION_LIFETIME), challenge.issuerExpiresAt());
+        Instant validUntil = now.plus(VERIFICATION_LIFETIME);
         try {
             store.verify(account, telegramId, request.telegramUsername(), now, validUntil);
             store.consume(hash, now);
@@ -96,6 +97,22 @@ public class TelegramIdentityService {
             // A legacy registration can win the unique Telegram-ID race.
             throw new ConflictException("telegram_link_conflict");
         }
+    }
+
+    @Transactional(readOnly = true)
+    public TelegramLinkStatusResponse linkStatus(Session session) {
+        if (!session.expiresAt().isAfter(clock.instant())) throw new UnauthorizedException("site_session_required");
+        var account = store.activeAccount(session.userId(), false)
+                .orElseThrow(() -> new UnauthorizedException("site_session_required"));
+        var proof = store.identity(account.id()).orElse(null);
+        Instant now = clock.instant();
+        if (!session.expiresAt().isAfter(now)) throw new UnauthorizedException("site_session_required");
+        boolean linked = proof != null && account.id().equals(proof.userId())
+                && account.telegramId() != null && account.telegramId() == proof.telegramId()
+                && !proof.verifiedAt().isAfter(now);
+        boolean verified = linked && proof.validUntil().isAfter(now);
+        Instant verifiedUntil = verified ? earlier(proof.validUntil(), session.expiresAt()) : null;
+        return new TelegramLinkStatusResponse(1, account.id(), linked, verified, verifiedUntil);
     }
 
     @Transactional(readOnly = true)
