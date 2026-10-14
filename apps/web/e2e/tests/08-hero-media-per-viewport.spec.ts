@@ -41,6 +41,54 @@ const WIDE = {width: 1440, height: 900};
 // нет `currentSrc`, за которым можно дождаться детерминированно (кейс без JS).
 const SETTLE_MS = 2_000;
 
+test.describe('hero waits for visible content', () => {
+  for (const hiddenStyle of ['display:none', 'paused page-enter animation']) {
+    test(`preloads at time zero behind ${hiddenStyle} and starts from the beginning after reveal`, async ({page}) => {
+      await page.setViewportSize(WIDE);
+      await page.addInitScript(() => {
+        const observed = window as typeof window & {heroStarts: {time: number; visible: boolean}[]};
+        observed.heroStarts = [];
+        document.addEventListener('play', (event) => {
+          const video = event.target;
+          if (!(video instanceof HTMLVideoElement) || video.id !== 'wv-hero-video') return;
+          let visible = video.getBoundingClientRect().height > 0;
+          for (let element: Element | null = video; element; element = element.parentElement) {
+            const style = getComputedStyle(element);
+            visible &&= style.display !== 'none' && style.visibility === 'visible' && Number(style.opacity) >= 0.99;
+          }
+          observed.heroStarts.push({time: video.currentTime, visible});
+        }, true);
+      });
+      // Hold the real rendered page hidden, as a delayed stream boundary or
+      // page-enter animation does, without replacing its media/controller.
+      await page.route('**/ru', async (route) => {
+        const response = await route.fetch();
+        const html = await response.text();
+        const nonce = html.match(/nonce="([^"]+)"/)?.[1] ?? '';
+        const hold = hiddenStyle === 'display:none'
+          ? '#wv-main{display:none!important}'
+          : '.page-enter{animation-play-state:paused!important}';
+        await route.fulfill({response, body: html.replace('<head>', `<head><style id="hero-reveal-hold" nonce="${nonce}">${hold}</style>`)});
+      });
+      await openWhite(page, '/ru');
+      const video = page.locator('#wv-hero-video');
+      await expect(video).toHaveAttribute('src', HERO.videoDesktopUrl!);
+      await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.readyState)).toBeGreaterThanOrEqual(2);
+      await page.waitForTimeout(SETTLE_MS);
+      expect(await video.evaluate((element: HTMLVideoElement) => ({paused: element.paused, time: element.currentTime})))
+        .toEqual({paused: true, time: 0});
+      expect(await page.evaluate(() => (window as typeof window & {heroStarts: unknown[]}).heroStarts)).toEqual([]);
+
+      await page.evaluate(() => document.getElementById('hero-reveal-hold')!.remove());
+      await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeGreaterThan(0.2);
+      const starts = await page.evaluate(() => (window as typeof window & {heroStarts: {time: number; visible: boolean}[]}).heroStarts);
+      expect(starts.length).toBeGreaterThan(0);
+      expect(starts[0].visible).toBe(true);
+      expect(starts[0].time).toBeLessThan(0.1);
+    });
+  }
+});
+
 function trackRequestPaths(page: Page): string[] {
   const paths: string[] = [];
   page.on('request', (req) => paths.push(new URL(req.url()).pathname));
