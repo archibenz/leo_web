@@ -4,7 +4,7 @@ import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
 import Link from 'next/link';
-import {MoreHorizontalIcon, PencilIcon, PlusIcon, Trash2Icon} from 'lucide-react';
+import {MoreHorizontalIcon, PencilIcon, Trash2Icon} from 'lucide-react';
 import BrandLoader from '../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../lib/api';
 import {CareSymbolsRow} from '../../../../../components/CareSymbols';
@@ -40,6 +40,7 @@ type CareGuide = {
 
 export default function AdminCarePage() {
   const t = useTranslations('admin');
+  const ui = useTranslations('admin.ui');
   // Отдельный разбор: у admin уже есть свои `title` и `cancel` (например
   // admin.title — «Админ-панель»), и положи я подписи этого экрана рядом,
   // заголовок страницы молча стал бы названием всей админки.
@@ -48,25 +49,37 @@ export default function AdminCarePage() {
   const locale = pathname.split('/')[1] || 'ru';
   const [guides, setGuides] = useState<CareGuide[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [deletingIds, setDeletingIds] = useState<string[]>([]);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setLoadFailed(false);
     apiFetch<CareGuide[]>('/api/admin/care-guides')
-      .then(setGuides)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+      .then(data => {if (active) setGuides(data);})
+      .catch(() => {if (active) setLoadFailed(true);})
+      .finally(() => {if (active) setLoading(false);});
+    return () => {active = false;};
+  }, [loadAttempt]);
 
   const parseSymbols = (raw: string): string[] => {
     try { return JSON.parse(raw); } catch { return []; }
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Удалить "${title}"?`)) return;
+    if (deletingIds.includes(id) || !confirm(t('confirmDelete', {name: title}))) return;
+    setDeleteError(null);
+    setDeletingIds(ids => [...ids, id]);
     try {
       await apiFetch(`/api/admin/care-guides/${id}`, {method: 'DELETE'});
       setGuides(prev => prev.filter(g => g.id !== id));
-    } catch (err) {
-      console.error('[AdminCare] delete failed', err);
+    } catch {
+      setDeleteError(ui('deleteFailed', {name: title}));
+    } finally {
+      setDeletingIds(ids => ids.filter(value => value !== id));
     }
   };
 
@@ -78,10 +91,9 @@ export default function AdminCarePage() {
   return (
     <ListPage
       action={
-        <Button asChild className="min-h-11">
+        <Button asChild variant="owner" size="owner">
           <Link href={`/${locale}/admin/care/new`}>
-            <PlusIcon />
-            {tc('add')}
+            <span>{tc('add')}</span>
           </Link>
         </Button>
       }
@@ -96,10 +108,13 @@ export default function AdminCarePage() {
         {tc('notShownNotice')}
       </Notice>
 
+      {deleteError && <p role="alert" className="text-[13px] text-destructive">{deleteError}</p>}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
+        <div role="status" aria-label={ui('loading')} className="flex items-center justify-center py-20">
           <BrandLoader size={32} />
         </div>
+      ) : loadFailed ? (
+        <Panel><p role="alert" className="mb-4 text-[13px]">{ui('loadFailed')}</p><Button className="min-h-11" onClick={() => setLoadAttempt(value => value + 1)}>{ui('retry')}</Button></Panel>
       ) : guides.length === 0 ? (
         <Panel>
           <PanelEmpty>{tc('empty')}</PanelEmpty>
@@ -151,6 +166,8 @@ export default function AdminCarePage() {
                           <DropdownMenuTrigger asChild>
                             <Button
                               aria-label={t('rowActions', {name: guide.title})}
+                              disabled={deletingIds.includes(guide.id)}
+                              aria-busy={deletingIds.includes(guide.id)}
                               className="size-11"
                               size="icon"
                               variant="ghost"

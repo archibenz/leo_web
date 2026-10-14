@@ -1106,6 +1106,17 @@
     }
   },
   "admin": {
+    "ui": {
+      "retry": "Retry",
+      "loading": "Loading…",
+      "loadFailed": "Could not load the data. Please try again.",
+      "saveFailed": "Could not save changes. Please try again.",
+      "deleteFailed": "Could not delete “{name}”. Please try again.",
+      "stockFailed": "Could not save stock. Please try again.",
+      "stockLabel": "Stock: {name}",
+      "acknowledgeFailed": "Could not acknowledge the alert. Please try again.",
+      "collectionsLoadFailed": "Could not load collections. Your saved selection will be kept."
+    },
     "title": "Admin Panel",
     "dashboard": "Visits",
     "products": "Products",
@@ -1485,7 +1496,7 @@
       "removeFavourite": "Remove {name} from favourites",
       "addFavourite": "Add {name} to favourites",
       "quickAddNamed": "Quick add {name}",
-      "added": "Added ✓",
+      "added": "Added",
       "quickAdd": "Quick add",
       "selectSizeFor": "Select a size for {name}",
       "close": "Close",

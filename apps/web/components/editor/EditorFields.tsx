@@ -2,12 +2,8 @@
 
 import {useRef, useState, type ReactNode} from 'react';
 import {HAIR, INK, MUTED, SIGNAL} from '../../app/[locale]/wv-palette';
+import {DynamicButton} from '../ui/dynamic-button';
 import {uploadMedia} from './editorApi';
-
-// Поля редактора в языке витрины: волосяная линия вместо рамки, прямые углы,
-// подписи капителью. Готовой кнопки shadcn в этой ветке нет — примитивы
-// `components/ui/button.tsx` приезжают с ветками подвала и входа, и тащить их
-// сюда значило бы тянуть чужую незавершённую работу.
 
 export function EditorLabel({children}: {children: ReactNode}) {
   return (
@@ -341,19 +337,21 @@ export function MediaThumb({src, kind, alt}: {src: string; kind: 'image' | 'vide
   );
 }
 
-export function MediaField({label, value, kind, onChange}: {
+export function MediaField({label, value, kind, onChange, onUploadingChange}: {
   label: string;
   value: string | undefined;
   kind: 'image' | 'video';
   onChange: (next: string | null) => void;
+  onUploadingChange?: (uploading: boolean) => void;
 }) {
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function pick(file: File | undefined) {
-    if (!file) return;
+    if (!file || busy) return;
     setBusy(true);
+    onUploadingChange?.(true);
     setError(null);
     try {
       onChange(await uploadMedia(file, kind));
@@ -363,6 +361,7 @@ export function MediaField({label, value, kind, onChange}: {
       setError(e instanceof Error ? e.message : 'не загрузилось');
     } finally {
       setBusy(false);
+      onUploadingChange?.(false);
       if (input.current) input.current.value = '';
     }
   }
@@ -395,7 +394,7 @@ export function MediaField({label, value, kind, onChange}: {
             )}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            <EditorButton onClick={() => input.current?.click()} disabled={busy}>
+            <EditorButton onClick={() => input.current?.click()} busy={busy}>
               {busy ? 'загружаю…' : 'Заменить'}
             </EditorButton>
             {value && (
@@ -430,8 +429,8 @@ export function MediaField({label, value, kind, onChange}: {
 export function MediaPairField({label, kind, phone, desktop}: {
   label: string;
   kind: 'image' | 'video';
-  phone: {value: string | undefined; onChange: (next: string | null) => void};
-  desktop: {value: string | undefined; onChange: (next: string | null) => void};
+  phone: {value: string | undefined; onChange: (next: string | null) => void; onUploadingChange?: (uploading: boolean) => void};
+  desktop: {value: string | undefined; onChange: (next: string | null) => void; onUploadingChange?: (uploading: boolean) => void};
 }) {
   return (
     <div>
@@ -446,17 +445,18 @@ export function MediaPairField({label, kind, phone, desktop}: {
           На телефоне правило не срабатывало никогда, то есть не помогало
           нигде. */}
       <div className="flex flex-col gap-3">
-        <MediaField label="Телефон" kind={kind} value={phone.value} onChange={phone.onChange} />
-        <MediaField label="Десктоп" kind={kind} value={desktop.value} onChange={desktop.onChange} />
+        <MediaField label="Телефон" kind={kind} {...phone} />
+        <MediaField label="Десктоп" kind={kind} {...desktop} />
       </div>
     </div>
   );
 }
 
-export function EditorButton({children, onClick, disabled, tone = 'plain', type = 'button'}: {
+export function EditorButton({children, onClick, disabled, busy = false, tone = 'plain', type = 'button'}: {
   children: ReactNode;
   onClick?: () => void;
   disabled?: boolean;
+  busy?: boolean;
   tone?: 'plain' | 'solid' | 'quiet' | 'signal';
   type?: 'button' | 'submit';
 }) {
@@ -473,6 +473,13 @@ export function EditorButton({children, onClick, disabled, tone = 'plain', type 
   // родиться мелкой, потому что размер ей взять неоткуда, кроме как отсюда.
   const base =
     'inline-flex min-h-11 items-center justify-center px-4 py-2 text-[13px] uppercase tracking-[0.12em] transition-colors disabled:opacity-45';
+  if (tone === 'solid' && typeof children === 'string') {
+    return (
+      <DynamicButton type={type} onClick={onClick} disabled={disabled} state={busy ? 'pending' : 'idle'} className="min-h-11 py-2">
+        {children}
+      </DynamicButton>
+    );
+  }
   const style =
     tone === 'solid'
       ? {background: INK, color: '#fff', border: `1px solid ${INK}`}
@@ -482,7 +489,7 @@ export function EditorButton({children, onClick, disabled, tone = 'plain', type 
           ? {background: 'transparent', color: MUTED, border: `1px solid ${HAIR}`}
           : {background: 'transparent', color: INK, border: `1px solid ${INK}`};
   return (
-    <button type={type} onClick={onClick} disabled={disabled} className={base} style={style}>
+    <button type={type} onClick={onClick} disabled={disabled || busy} aria-busy={busy} className={base} style={style}>
       {children}
     </button>
   );

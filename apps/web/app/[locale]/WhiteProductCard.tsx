@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../hooks/useWhiteFavourites';
@@ -53,6 +53,19 @@ export default function WhiteProductCard({
   const [added, setAdded] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
+  const focusFrame = useRef<number | null>(null);
+  const addedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (focusFrame.current !== null) window.cancelAnimationFrame(focusFrame.current);
+    if (addedTimer.current !== null) clearTimeout(addedTimer.current);
+  }, []);
+
+  const closePanel = useCallback(() => {
+    setOpen(false);
+    if (focusFrame.current !== null) window.cancelAnimationFrame(focusFrame.current);
+    focusFrame.current = window.requestAnimationFrame(() => triggerRef.current?.focus({preventScroll: true}));
+  }, []);
 
   const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
   const range = whitePriceRange(product);
@@ -71,8 +84,7 @@ export default function WhiteProductCard({
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        setOpen(false);
-        triggerRef.current?.focus();
+        closePanel();
       }
     };
     const onDown = (e: MouseEvent) => {
@@ -84,12 +96,13 @@ export default function WhiteProductCard({
       document.removeEventListener('keydown', onKey);
       document.removeEventListener('mousedown', onDown);
     };
-  }, [open]);
+  }, [open, closePanel]);
 
   const openPanel = () => {
     setOpen(true);
     // Move focus into the panel once it has painted.
-    window.requestAnimationFrame(() => {
+    if (focusFrame.current !== null) window.cancelAnimationFrame(focusFrame.current);
+    focusFrame.current = window.requestAnimationFrame(() => {
       panelRef.current?.querySelector<HTMLButtonElement>('button[data-size]')?.focus();
     });
   };
@@ -114,11 +127,10 @@ export default function WhiteProductCard({
       slug: product.slug,
       image: primary?.image ?? product.image,
     });
-    setOpen(false);
+    closePanel();
     setAdded(true);
-    // Return focus after the trigger re-renders, then clear the confirmation.
-    window.requestAnimationFrame(() => triggerRef.current?.focus());
-    window.setTimeout(() => setAdded(false), 1600);
+    if (addedTimer.current !== null) clearTimeout(addedTimer.current);
+    addedTimer.current = setTimeout(() => setAdded(false), 1600);
   };
 
   const riseCls = rise ? `wv-rise wv-delay-${(index % 3) + 1}` : '';
@@ -207,7 +219,7 @@ export default function WhiteProductCard({
         {/* Quick Add only appears for a piece the site can actually sell. While
             stock is unknown the bag would be taking an order we cannot fill, so
             the strip says where the garment is bought instead. */}
-        {quickAdd && !open && inStock && (
+        {quickAdd && inStock && (
           <button
             ref={triggerRef}
             type="button"
@@ -215,6 +227,9 @@ export default function WhiteProductCard({
             aria-haspopup="true"
             aria-expanded={open}
             aria-label={t('quickAddNamed', {name})}
+            aria-hidden={open || undefined}
+            tabIndex={open ? -1 : undefined}
+            style={{visibility: open ? 'hidden' : undefined}}
             className="wv-quickadd absolute inset-x-0 bottom-0 z-[5] flex h-11 items-center justify-center bg-white/90 text-[11px] uppercase tracking-[0.2em] backdrop-blur-sm"
           >
             {added ? t('added') : t('quickAdd')}
@@ -236,10 +251,7 @@ export default function WhiteProductCard({
           >
             <button
               type="button"
-              onClick={() => {
-                setOpen(false);
-                triggerRef.current?.focus();
-              }}
+              onClick={closePanel}
               aria-label={t('close')}
               className="absolute right-1 top-1 flex h-11 w-11 items-center justify-center text-[15px] leading-none transition-opacity hover:opacity-60"
               style={{color: MUTED}}

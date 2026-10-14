@@ -39,7 +39,8 @@ function verticalRangesOverlap(a: Box, b: Box): boolean {
   return a.y < b.y + b.height && b.y < a.y + a.height;
 }
 
-test.beforeEach(async ({request}) => {
+test.beforeEach(async ({page, request}) => {
+  await page.route('**/api/auth/me', route => route.fulfill({status: 401, json: {}}));
   await skipUnlessFixtureCatalogue(request);
 });
 

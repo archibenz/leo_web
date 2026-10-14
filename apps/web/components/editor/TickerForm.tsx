@@ -257,7 +257,7 @@ export default function TickerForm({section, products, locale, onSaved}: {
           {error}
         </p>
       )}
-      <EditorButton tone="solid" onClick={() => void save()} disabled={!dirty || busy || blockedByInvalidHref}>
+      <EditorButton tone="solid" busy={busy} onClick={() => void save()} disabled={!dirty || busy || blockedByInvalidHref}>
         {busy ? 'сохраняю…' : 'Сохранить в черновик'}
       </EditorButton>
     </div>

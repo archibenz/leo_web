@@ -98,6 +98,7 @@ function isKnownStatus(status: string): status is OrderStatus {
 
 export default function AdminDashboardPage() {
   const t = useTranslations('admin');
+  const ui = useTranslations('admin.ui');
   const pathname = usePathname() || '/';
   const locale = pathname.split('/')[1] || 'ru';
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
@@ -109,6 +110,8 @@ export default function AdminDashboardPage() {
   const [topCarts, setTopCarts] = useState<TopProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [acknowledgingIds, setAcknowledgingIds] = useState<string[]>([]);
+  const [acknowledgeErrors, setAcknowledgeErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     Promise.all([
@@ -139,17 +142,17 @@ export default function AdminDashboardPage() {
   }, []);
 
   const handleAcknowledge = async (id: string) => {
+    if (acknowledgingIds.includes(id)) return;
+    setAcknowledgingIds(ids => [...ids, id]);
+    setAcknowledgeErrors(errors => ({...errors, [id]: ''}));
     try {
       await apiFetch(`/api/admin/alerts/${id}/acknowledge`, {method: 'POST'});
       setAlerts(prev => prev.filter(a => a.id !== id));
-      if (dashboard) {
-        setDashboard({...dashboard, totalAlerts: dashboard.totalAlerts - 1});
-      }
+      setDashboard(current => current && {...current, totalAlerts: Math.max(0, current.totalAlerts - 1)});
     } catch {
-      // Previously swallowed silently — admin saw the alert "disappear" but
-      // the backend never acknowledged it. Surface a load-level error so they
-      // know to reload.
-      setLoadError('load_failed');
+      setAcknowledgeErrors(errors => ({...errors, [id]: ui('acknowledgeFailed')}));
+    } finally {
+      setAcknowledgingIds(ids => ids.filter(value => value !== id));
     }
   };
 
@@ -354,6 +357,8 @@ export default function AdminDashboardPage() {
           <Panel title={`${t('alerts')}${alerts.length > 0 ? ` (${alerts.length})` : ''}`}>
             <AlertsList
               alerts={alerts}
+              pendingIds={acknowledgingIds}
+              errors={acknowledgeErrors}
               labels={{
                 outOfStock: t('alert.outOfStock'),
                 lowStock: t('alert.lowStock'),

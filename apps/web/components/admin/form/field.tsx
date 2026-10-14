@@ -2,6 +2,7 @@
 
 import type {ReactNode} from 'react';
 import {Label} from '@/components/ui/label';
+import {DynamicButton} from '@/components/ui/dynamic-button';
 
 // Поле формы админки.
 //
@@ -71,7 +72,7 @@ export function FormActions({
 }) {
   return (
     <div className="-mx-4 sticky bottom-0 z-10 flex flex-wrap items-center justify-end gap-3 border-t bg-background/95 px-4 py-3 backdrop-blur md:-mx-6 md:px-6">
-      {message && <span className="mr-auto text-muted-foreground text-[13px]">{message}</span>}
+      {message && <span role="status" className="mr-auto text-muted-foreground text-[13px]">{message}</span>}
       {onCancel && cancelLabel && (
         <button
           className="min-h-11 px-3 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
@@ -81,14 +82,13 @@ export function FormActions({
           {cancelLabel}
         </button>
       )}
-      <button
-        className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-6 text-[13px] font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-        disabled={saving}
+      <DynamicButton
+        state={saving ? 'pending' : 'idle'}
         onClick={onSave}
         type={onSave ? 'button' : 'submit'}
       >
         {saving ? savingLabel : saveLabel}
-      </button>
+      </DynamicButton>
     </div>
   );
 }

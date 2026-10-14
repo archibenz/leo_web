@@ -503,7 +503,7 @@ export default function ModelForm({modelId, onSaved}: {
           {error}
         </p>
       )}
-      <EditorButton tone="solid" onClick={() => void save()} disabled={!dirty || busy || blank.length > 0 || noSizes || badCells}>
+      <EditorButton tone="solid" busy={busy} onClick={() => void save()} disabled={!dirty || busy || blank.length > 0 || noSizes || badCells}>
         {busy ? 'сохраняю…' : 'Сохранить в черновик'}
       </EditorButton>
     </div>

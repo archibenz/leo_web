@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {subscribeWhiteBagAdds, type WhiteBagItem} from '../../hooks/useWhiteBag';
 import {INK, MUTED, HAIR} from './wv-palette';
@@ -25,33 +25,49 @@ export default function WhiteBagPopup({locale}: {locale: string}) {
   const [item, setItem] = useState<WhiteBagItem | null>(null);
   const [leaving, setLeaving] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const paused = useRef(false);
+  const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hovered = useRef(false);
+  const popupRef = useRef<HTMLDivElement>(null);
+
+  const clearTimers = useCallback(() => {
+    if (timer.current !== null) clearTimeout(timer.current);
+    if (exitTimer.current !== null) clearTimeout(exitTimer.current);
+    timer.current = null;
+    exitTimer.current = null;
+  }, []);
+
+  const close = useCallback(() => {
+    clearTimers();
+    setLeaving(true);
+    exitTimer.current = setTimeout(() => {
+      setItem(null);
+      hovered.current = false;
+    }, 260);
+  }, [clearTimers]);
 
   useEffect(() => subscribeWhiteBagAdds((next) => {
+    clearTimers();
     setLeaving(false);
     setItem(next);
-  }), []);
+  }), [clearTimers]);
 
   // Restart the countdown on every add: a second garment should get its own
   // five seconds, not inherit what was left of the first.
   useEffect(() => {
     if (!item) return;
     const arm = () => {
-      if (timer.current) clearTimeout(timer.current);
+      if (timer.current !== null) clearTimeout(timer.current);
       timer.current = setTimeout(() => {
-        if (paused.current) {
+        if (hovered.current || popupRef.current?.contains(document.activeElement)) {
           arm();
           return;
         }
-        setLeaving(true);
-        setTimeout(() => setItem(null), 260);
+        close();
       }, DISMISS_MS);
     };
     arm();
-    return () => {
-      if (timer.current) clearTimeout(timer.current);
-    };
-  }, [item]);
+    return clearTimers;
+  }, [item, close, clearTimers]);
 
   if (!item) return null;
 
@@ -60,22 +76,19 @@ export default function WhiteBagPopup({locale}: {locale: string}) {
   // the bag itself is the honest destination for them.
   const href = item.slug ? `/${locale}/product/${item.slug}` : `/${locale}/bag`;
   const colour = locale === 'ru' ? item.colorRu : item.colorEn;
-  const close = () => {
-    setLeaving(true);
-    setTimeout(() => setItem(null), 260);
-  };
 
   return (
     <div
+      ref={popupRef}
       // Polite, not assertive: the bag is a side effect of a deliberate tap, so
       // it should not interrupt whatever a screen reader is already saying.
       role="status"
       aria-live="polite"
       onMouseEnter={() => {
-        paused.current = true;
+        hovered.current = true;
       }}
       onMouseLeave={() => {
-        paused.current = false;
+        hovered.current = false;
       }}
       className={`wv-bagpop fixed inset-x-3 top-3 z-[70] mx-auto max-w-[380px] border bg-white sm:inset-x-auto sm:right-5 sm:top-5 ${leaving ? 'wv-bagpop-out' : ''}`}
       style={{borderColor: HAIR, boxShadow: '0 10px 40px rgba(28,23,20,0.10)'}}
@@ -97,7 +110,7 @@ export default function WhiteBagPopup({locale}: {locale: string}) {
           <Link
             href={`/${locale}/bag`}
             onClick={close}
-            className="wv-arrow-link mt-2 inline-flex items-center gap-2 self-start text-[11px] uppercase tracking-[0.18em]"
+            className="wv-arrow-link mt-2 inline-flex min-h-11 items-center gap-2 self-start text-[11px] uppercase tracking-[0.18em]"
             style={{color: INK}}
           >
             {t('goToBag')}
@@ -107,7 +120,7 @@ export default function WhiteBagPopup({locale}: {locale: string}) {
           type="button"
           onClick={close}
           aria-label={t('close')}
-          className="-mr-1 -mt-1 flex h-9 w-9 shrink-0 items-start justify-end text-[15px] leading-none"
+          className="-mr-1 -mt-1 flex h-11 w-11 shrink-0 items-start justify-end text-[15px] leading-none"
           style={{color: MUTED}}
         >
           ×

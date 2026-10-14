@@ -302,7 +302,7 @@ export default function VariantForm({modelId, variantId, onSaved}: {
           Дождитесь загрузки кадров — сохранение начнётся, как только все долетят.
         </p>
       )}
-      <EditorButton tone="solid" onClick={() => void save()} disabled={!dirty || busy || uploading || discountError !== null}>
+      <EditorButton tone="solid" busy={busy} onClick={() => void save()} disabled={!dirty || busy || uploading || discountError !== null}>
         {busy ? 'сохраняю…' : 'Сохранить в черновик'}
       </EditorButton>
     </div>

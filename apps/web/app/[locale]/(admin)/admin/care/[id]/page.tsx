@@ -2,6 +2,9 @@
 
 import {useState, useEffect} from 'react';
 import {useParams} from 'next/navigation';
+import {useTranslations} from 'next-intl';
+import {Button} from '../../../../../../components/ui/button';
+import {Panel} from '../../../../../../components/admin/dashboard/panel';
 import CareGuideForm from '../../../../../../components/admin/CareGuideForm';
 import BrandLoader from '../../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../../lib/api';
@@ -18,29 +21,36 @@ interface CareGuideData {
 }
 
 export default function EditCareGuidePage() {
+  const ui = useTranslations('admin.ui');
   const params = useParams();
   const id = params?.id as string;
   const [data, setData] = useState<CareGuideData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setLoadFailed(false);
     apiFetch<CareGuideData>(`/api/admin/care-guides/${id}`)
-      .then(setData)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [id]);
+      .then(data => {if (active) setData(data);})
+      .catch(() => {if (active) setLoadFailed(true);})
+      .finally(() => {if (active) setLoading(false);});
+    return () => {active = false;};
+  }, [id, loadAttempt]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
+      <div role="status" aria-label={ui('loading')} className="flex items-center justify-center py-20">
         <BrandLoader size={32} />
       </div>
     );
   }
 
-  if (!data) {
+  if (loadFailed || !data) {
     return (
-      <p className="text-muted-foreground text-[13px]">Not found</p>
+      <Panel><p role="alert" className="mb-4 text-[13px]">{ui('loadFailed')}</p><Button className="min-h-11" onClick={() => setLoadAttempt(value => value + 1)}>{ui('retry')}</Button></Panel>
     );
   }
 

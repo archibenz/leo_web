@@ -21,6 +21,7 @@ import {
 } from '../../../../../components/ui/select';
 import {Panel, PanelEmpty} from '../../../../../components/admin/dashboard/panel';
 import {Notice} from '../../../../../components/admin/list/notice';
+import {FormActions} from '../../../../../components/admin/form/field';
 
 type Product = {
   id: string;
@@ -40,8 +41,10 @@ const SEASONS = ['spring', 'summer', 'autumn', 'winter'];
 
 export default function AdminHomepagePage() {
   const t = useTranslations('admin');
+  const ui = useTranslations('admin.ui');
   const locale = useLocale();
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -57,6 +60,8 @@ export default function AdminHomepagePage() {
   const [collectionSearch, setCollectionSearch] = useState('');
 
   const loadData = useCallback(async () => {
+    setLoading(true);
+    setLoadFailed(false);
     try {
       const [config, prods, cols] = await Promise.all([
         apiFetch<ConfigMap>('/api/admin/config'),
@@ -64,23 +69,21 @@ export default function AdminHomepagePage() {
         apiFetch<Collection[]>('/api/admin/collections'),
       ]);
 
+      const featured = config.featuredProducts ? JSON.parse(config.featuredProducts) : [];
+      const homepageCollections = config.homepageCollections ? JSON.parse(config.homepageCollections) : [];
       setProducts(prods);
       setCollections(cols);
 
-      if (config.featuredProducts) {
-        try { setFeaturedProductIds(JSON.parse(config.featuredProducts)); } catch { /* malformed JSON — keep default */ }
-      }
-      if (config.homepageCollections) {
-        try { setHomepageCollectionIds(JSON.parse(config.homepageCollections)); } catch { /* malformed JSON — keep default */ }
-      }
+      setFeaturedProductIds(featured);
+      setHomepageCollectionIds(homepageCollections);
       if (config.currentSeason) {
         setSeason(config.currentSeason);
       }
       if (config.currentSeasonYear) {
         setSeasonYear(config.currentSeasonYear);
       }
-    } catch (err) {
-      console.error('[AdminHomepage] load failed', err);
+    } catch {
+      setLoadFailed(true);
     }
     setLoading(false);
   }, []);
@@ -90,6 +93,7 @@ export default function AdminHomepagePage() {
   }, [loadData]);
 
   const handleSave = async () => {
+    if (loading || loadFailed || saving) return;
     setSaving(true);
     setMessage('');
 
@@ -158,9 +162,11 @@ export default function AdminHomepagePage() {
       <Notice>{t('homepageNotOnSiteNotice')}</Notice>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
+        <div role="status" aria-label={ui('loading')} className="flex items-center justify-center py-20">
           <BrandLoader size={32} />
         </div>
+      ) : loadFailed ? (
+        <Panel><p role="alert" className="mb-4 text-[13px]">{ui('loadFailed')}</p><Button className="min-h-11" onClick={loadData}>{ui('retry')}</Button></Panel>
       ) : (
         <>
           <Panel title={t('currentSeason')}>
@@ -341,13 +347,8 @@ export default function AdminHomepagePage() {
         о котором он написал про страницу аккаунта.
         Вне ветки загрузки её нет нарочно: сохранять нечего, пока не
         загрузилось. */}
-    {!loading && (
-      <div className="-mx-4 sticky bottom-0 flex items-center justify-end gap-4 border-t bg-background/95 px-4 py-3 backdrop-blur md:-mx-6 md:px-6">
-        {message && <span className="text-muted-foreground text-[13px]">{message}</span>}
-        <Button className="min-h-11" disabled={saving} onClick={handleSave}>
-          {saving ? t('saving') : t('saveSettings')}
-        </Button>
-      </div>
+    {!loading && !loadFailed && (
+      <FormActions message={message} saving={saving} onSave={handleSave} saveLabel={t('saveSettings')} savingLabel={t('saving')} />
       )}
     </>
   );

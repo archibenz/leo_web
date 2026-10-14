@@ -18,10 +18,14 @@ export function AlertsList({
   alerts,
   labels,
   onAcknowledge,
+  pendingIds = [],
+  errors = {},
 }: {
   alerts: StockAlert[];
   labels: {outOfStock: string; lowStock: string; current: string; acknowledge: string; empty: string};
   onAcknowledge: (id: string) => void;
+  pendingIds?: string[];
+  errors?: Record<string, string>;
 }) {
   if (alerts.length === 0) return <PanelEmpty>{labels.empty}</PanelEmpty>;
 
@@ -44,10 +48,13 @@ export function AlertsList({
               <p className="text-muted-foreground text-[12px]">
                 {labels.current}: <span className="tabular-nums">{alert.currentStock}</span>
               </p>
+              {errors[alert.id] && <p role="alert" className="text-[13px] text-destructive">{errors[alert.id]}</p>}
             </div>
             {/* min-h-11 — наш порог зоны нажатия: владелец гасит уведомления
                 с телефона. */}
             <Button
+              disabled={pendingIds.includes(alert.id)}
+              aria-busy={pendingIds.includes(alert.id)}
               className="min-h-11 shrink-0"
               onClick={() => onAcknowledge(alert.id)}
               size="sm"
