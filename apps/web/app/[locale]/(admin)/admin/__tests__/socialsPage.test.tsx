@@ -48,6 +48,8 @@ describe('admin socials — one list for the whole site', () => {
     const saving = screen.getByRole('button', {name: 'Сохраняем…'});
     expect(saving).toBeDisabled();
     expect(saving).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByLabelText('Telegram')).toBeDisabled();
+    expect(screen.getByRole('checkbox', {name: 'Показывать Telegram на сайте'})).toBeDisabled();
     expect(screen.queryByRole('button', {name: 'Сохранено'})).toBeNull();
     await user.click(saving);
     expect(apiFetch.mock.calls.filter(([, init]) => init?.method === 'PUT')).toHaveLength(1);

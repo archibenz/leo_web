@@ -160,6 +160,7 @@ function перечислить(список: Промах[]): string {
 
 test.describe('витрина на телефоне: по каждой цели можно попасть пальцем', () => {
   test.beforeEach(async ({page}) => {
+    await page.route('**/api/auth/me', route => route.fulfill({status: 401, json: {}}));
     await page.setViewportSize(PHONE);
     await openWhite(page, '/ru');
   });

@@ -1,5 +1,5 @@
 import {afterEach, describe, it, expect, vi} from 'vitest';
-import {render, screen, cleanup, waitFor, act} from '@testing-library/react';
+import {render, screen, cleanup, waitFor, act, fireEvent} from '@testing-library/react';
 import WhiteBagPopup from './WhiteBagPopup';
 import {addToWhiteBag, removeFromWhiteBag} from '../../hooks/useWhiteBag';
 import {NextIntlClientProvider} from 'next-intl';
@@ -137,5 +137,59 @@ describe('WhiteBagPopup', () => {
       vi.advanceTimersByTime(5400);
     });
     await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument());
+  });
+
+  it.each(['automatic', 'manual'])('gives a new item its full lifetime during an %s dismissal', (dismissal) => {
+    vi.useFakeTimers();
+    renderPopup();
+    act(() => addToWhiteBag(ITEM));
+    if (dismissal === 'automatic') act(() => vi.advanceTimersByTime(5000));
+    else fireEvent.click(screen.getByRole('button', {name: /close/i}));
+    act(() => vi.advanceTimersByTime(100));
+
+    act(() => addToWhiteBag(LEGACY_ITEM));
+    act(() => vi.advanceTimersByTime(4999));
+    expect(screen.getByRole('status')).toHaveTextContent('Balloon Skirt');
+
+    act(() => vi.advanceTimersByTime(261));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('keeps the popup while a link has keyboard focus, even after the pointer leaves', () => {
+    vi.useFakeTimers();
+    renderPopup();
+    act(() => addToWhiteBag(ITEM));
+    fireEvent.mouseEnter(screen.getByRole('status'));
+    const bagLink = screen.getByRole('link', {name: /go to the bag/i});
+    act(() => bagLink.focus());
+    fireEvent.mouseLeave(screen.getByRole('status'));
+
+    act(() => vi.advanceTimersByTime(10000));
+    expect(bagLink).toHaveFocus();
+    expect(screen.getByRole('status')).toBeInTheDocument();
+
+    act(() => bagLink.blur());
+    act(() => vi.advanceTimersByTime(5260));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('clears a pending exit timer when unmounted', () => {
+    vi.useFakeTimers();
+    const {unmount} = renderPopup();
+    act(() => addToWhiteBag(ITEM));
+    act(() => vi.advanceTimersByTime(5000));
+    unmount();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('resumes dismissal if a newer item removes the focused thumbnail', () => {
+    vi.useFakeTimers();
+    renderPopup();
+    act(() => addToWhiteBag(ITEM));
+    act(() => screen.getByRole('link', {name: ITEM.en}).focus());
+
+    act(() => addToWhiteBag(LEGACY_ITEM));
+    act(() => vi.advanceTimersByTime(5260));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
 });

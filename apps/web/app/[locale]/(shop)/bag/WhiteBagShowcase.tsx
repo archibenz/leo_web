@@ -4,10 +4,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
-import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
-import WhiteHeader from '../../WhiteHeader';
-import WhiteHeaderActions from '../../WhiteHeaderActions';
-import WhiteFooter from '../../WhiteFooter';
 import {findProductByKey, whiteProductHref, whiteEffectivePrice} from '../../../../lib/catalogue/select';
 import type {WhiteProduct} from '../../../../lib/catalogue/types';
 import {INK, MUTED, HAIR} from '../../wv-palette';
@@ -18,8 +14,7 @@ import {MaskIcon} from '../../wv-icons';
 // prototype holds the user's selection locally; it does not claim a purchase.
 
 export default function WhiteBagShowcase({locale, products}: {locale: string; products: readonly WhiteProduct[]}) {
-  const {items, count, remove, setQty} = useWhiteBag();
-  const {count: favCount} = useWhiteFavourites();
+  const {items, remove, setQty} = useWhiteBag();
   const ru = locale === 'ru';
   const t = useTranslations('white.bag');
   const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
@@ -95,21 +90,21 @@ export default function WhiteBagShowcase({locale, products}: {locale: string; pr
                     type="button"
                     onClick={() => remove(i.id)}
                     aria-label={t('removeFromBag', {name: ru ? i.ru : i.en})}
-                    className="-mr-2 -mt-2 flex h-10 w-10 items-start justify-end self-start pr-2 pt-2 text-[18px] leading-none transition-opacity hover:opacity-60"
+                    className="-mr-2 -mt-2 flex h-11 w-11 items-start justify-end self-start pr-2 pt-2 text-[18px] leading-none transition-opacity hover:opacity-60"
                     style={{color: MUTED}}
                   >
                     ×
                   </button>
 
-                  <div className="col-start-2 flex items-end justify-between gap-4 self-end">
+                  <div className="col-span-2 col-start-2 flex flex-wrap items-end justify-between gap-x-4 gap-y-2 self-end">
                     {/* Quantity — bare glyph stepper, no boxes. */}
-                    <div className="-ml-3 flex items-center" role="group" aria-label={t('quantity')}>
+                    <div className="-ml-3 flex shrink-0 items-center" role="group" aria-label={t('quantity')}>
                       <button
                         type="button"
                         onClick={() => setQty(i.id, i.qty - 1)}
                         disabled={i.qty <= 1}
                         aria-label={t('decreaseQty')}
-                        className="flex h-10 w-10 items-center justify-center text-[16px] leading-none transition-opacity hover:opacity-60 disabled:opacity-30"
+                        className="flex h-11 w-11 items-center justify-center text-[16px] leading-none transition-opacity hover:opacity-60 disabled:opacity-30"
                         style={{color: INK}}
                       >
                         −
@@ -119,7 +114,7 @@ export default function WhiteBagShowcase({locale, products}: {locale: string; pr
                         type="button"
                         onClick={() => setQty(i.id, i.qty + 1)}
                         aria-label={t('increaseQty')}
-                        className="flex h-10 w-10 items-center justify-center text-[16px] leading-none transition-opacity hover:opacity-60"
+                        className="flex h-11 w-11 items-center justify-center text-[16px] leading-none transition-opacity hover:opacity-60"
                         style={{color: INK}}
                       >
                         +

@@ -31,24 +31,36 @@ type Product = {
 
 export default function AdminInventoryPage() {
   const t = useTranslations('admin');
+  const ui = useTranslations('admin.ui');
   const pathname = usePathname() || '/';
   const locale = pathname.split('/')[1] || 'ru';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [stockError, setStockError] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState(0);
   const [query, setQuery] = useState('');
 
   useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setLoadFailed(false);
     apiFetch<Product[]>('/api/admin/products')
       .then(data => {
-        setProducts(data.filter(p => p.active && !p.isTest));
+        if (active) setProducts(data.filter(p => p.active && !p.isTest));
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+      .catch(() => {if (active) setLoadFailed(true);})
+      .finally(() => {if (active) setLoading(false);});
+    return () => {active = false;};
+  }, [loadAttempt]);
 
   const handleUpdateStock = async (id: string) => {
+    if (savingId) return;
+    setSavingId(id);
+    setStockError(false);
     try {
       const updated = await apiFetch<Product>(`/api/admin/products/${id}/stock`, {
         method: 'PATCH',
@@ -56,8 +68,10 @@ export default function AdminInventoryPage() {
       });
       setProducts(prev => prev.map(p => p.id === id ? {...p, stockQuantity: updated.stockQuantity} : p));
       setEditingId(null);
-    } catch (err) {
-      console.error('[AdminInventory] stock update failed', err);
+    } catch {
+      setStockError(true);
+    } finally {
+      setSavingId(null);
     }
   };
 
@@ -78,9 +92,11 @@ export default function AdminInventoryPage() {
       title={t('inventory')}
     >
       {loading ? (
-        <div className="flex items-center justify-center py-20">
+        <div role="status" aria-label={ui('loading')} className="flex items-center justify-center py-20">
           <BrandLoader size={32} />
         </div>
+      ) : loadFailed ? (
+        <Panel><p role="alert" className="mb-4 text-[13px]">{ui('loadFailed')}</p><Button className="min-h-11" onClick={() => setLoadAttempt(value => value + 1)}>{ui('retry')}</Button></Panel>
       ) : products.length === 0 ? (
         <Panel>
           <PanelEmpty>{t('product.noProducts')}</PanelEmpty>
@@ -118,15 +134,20 @@ export default function AdminInventoryPage() {
                         {editing ? (
                           <div className="flex items-center justify-end gap-2">
                             <Input
+                              aria-label={ui('stockLabel', {name: product.title})}
+                              aria-describedby={stockError ? `stock-error-${product.id}` : undefined}
+                              disabled={savingId === product.id}
                               autoFocus
                               className="h-11 w-20 text-center tabular-nums"
                               inputMode="numeric"
-                              onChange={e => setEditValue(parseInt(e.target.value) || 0)}
+                              onChange={e => {setEditValue(parseInt(e.target.value) || 0); setStockError(false);}}
                               type="number"
                               value={editValue}
                             />
                             <Button
                               aria-label={t('ok')}
+                              disabled={savingId === product.id}
+                              aria-busy={savingId === product.id}
                               className="size-11"
                               onClick={() => handleUpdateStock(product.id)}
                               size="icon"
@@ -135,8 +156,9 @@ export default function AdminInventoryPage() {
                             </Button>
                             <Button
                               aria-label={t('cancel')}
+                              disabled={savingId === product.id}
                               className="size-11"
-                              onClick={() => setEditingId(null)}
+                              onClick={() => {setEditingId(null); setStockError(false);}}
                               size="icon"
                               variant="ghost"
                             >
@@ -162,8 +184,10 @@ export default function AdminInventoryPage() {
                               {product.stockQuantity}
                             </span>
                             <Button
+                              disabled={savingId !== null}
                               className="min-h-11"
                               onClick={() => {
+                                setStockError(false);
                                 setEditingId(product.id);
                                 setEditValue(product.stockQuantity);
                               }}
@@ -174,6 +198,7 @@ export default function AdminInventoryPage() {
                             </Button>
                           </div>
                         )}
+                        {editing && stockError && <p id={`stock-error-${product.id}`} role="alert" className="mt-2 text-right text-[13px] text-destructive">{ui('stockFailed')}</p>}
                       </TableCell>
                     </TableRow>
                   );

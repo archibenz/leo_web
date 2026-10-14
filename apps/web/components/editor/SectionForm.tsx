@@ -53,13 +53,17 @@ export default function SectionForm({section, onSaved}: {section: StorefrontSect
   const [before] = useState(() => initial(section));
   const [draft, setDraft] = useState<Draft>(() => initial(section));
   const [busy, setBusy] = useState(false);
+  const [uploads, setUploads] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<string | null>(null);
 
   const patch = patchOf(before, draft);
   const dirty = Object.keys(patch).length > 0;
+  const uploading = Object.values(uploads).some(Boolean);
   const set = <K extends keyof Draft>(key: K) => (value: Draft[K]) => setDraft((d) => ({...d, [key]: value}));
+  const uploadState = (key: keyof Draft) => (pending: boolean) => setUploads((current) => ({...current, [key]: pending}));
 
   async function save() {
+    if (!dirty || busy || uploading) return;
     setBusy(true);
     setError(null);
     try {
@@ -86,21 +90,21 @@ export default function SectionForm({section, onSaved}: {section: StorefrontSect
       <MediaPairField
         label="Ролик"
         kind="video"
-        phone={{value: draft.videoUrl ?? undefined, onChange: set('videoUrl')}}
-        desktop={{value: draft.videoDesktopUrl ?? undefined, onChange: set('videoDesktopUrl')}}
+        phone={{value: draft.videoUrl ?? undefined, onChange: set('videoUrl'), onUploadingChange: uploadState('videoUrl')}}
+        desktop={{value: draft.videoDesktopUrl ?? undefined, onChange: set('videoDesktopUrl'), onUploadingChange: uploadState('videoDesktopUrl')}}
       />
       <MediaPairField
         label="Кадр"
         kind="image"
-        phone={{value: draft.posterUrl ?? undefined, onChange: set('posterUrl')}}
-        desktop={{value: draft.posterDesktopUrl ?? undefined, onChange: set('posterDesktopUrl')}}
+        phone={{value: draft.posterUrl ?? undefined, onChange: set('posterUrl'), onUploadingChange: uploadState('posterUrl')}}
+        desktop={{value: draft.posterDesktopUrl ?? undefined, onChange: set('posterDesktopUrl'), onUploadingChange: uploadState('posterDesktopUrl')}}
       />
       {error && (
         <p role="alert" className="text-[12px] leading-snug" style={{color: '#b4452f'}}>
           {error}
         </p>
       )}
-      <EditorButton tone="solid" onClick={() => void save()} disabled={!dirty || busy}>
+      <EditorButton tone="solid" busy={busy} onClick={() => void save()} disabled={!dirty || busy || uploading}>
         {busy ? 'сохраняю…' : 'Сохранить в черновик'}
       </EditorButton>
     </div>

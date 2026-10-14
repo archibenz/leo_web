@@ -3,11 +3,8 @@
 import Image from 'next/image';
 import {useState} from 'react';
 import {useTranslations} from 'next-intl';
-import {useWhiteBag, addToWhiteBag} from '../../../../hooks/useWhiteBag';
-import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
-import WhiteHeader from '../../WhiteHeader';
-import WhiteHeaderActions from '../../WhiteHeaderActions';
-import WhiteFooter from '../../WhiteFooter';
+import {Button} from '../../../../components/ui/button';
+import {addToWhiteBag} from '../../../../hooks/useWhiteBag';
 import {INK, MUTED, HAIR} from '../../wv-palette';
 import {WhiteArrow} from '../../wv-icons';
 import {findProductByKey, setColour, whiteProductHref, whiteEffectivePrice} from '../../../../lib/catalogue/select';
@@ -20,9 +17,8 @@ import type {WhiteProduct, WhiteSet} from '../../../../lib/catalogue/types';
 // The looks and the catalogue arrive as props from the server page.
 
 export default function WhiteSetsShowcase({locale, sets, products}: {locale: string; sets: WhiteSet[]; products: WhiteProduct[]}) {
-  const {count} = useWhiteBag();
-  const {count: favCount} = useWhiteFavourites();
   const t = useTranslations('white.sets');
+  const tPdp = useTranslations('white.pdp');
   const ru = locale === 'ru';
   const [addedSet, setAddedSet] = useState<string | null>(null);
 
@@ -118,13 +114,15 @@ export default function WhiteSetsShowcase({locale, sets, products}: {locale: str
                   </ul>
 
                   <div className="mt-8 flex flex-wrap items-center gap-5">
-                    <button
+                    <Button
                       type="button"
+                      variant="white"
+                      size="white"
                       onClick={() => addWholeLook(set)}
-                      className="inline-flex min-h-12 items-center justify-center bg-[#1c1714] px-9 py-4 text-[12px] uppercase tracking-[0.2em] text-white transition-opacity hover:opacity-85"
+                      className="text-[12px] uppercase tracking-[0.2em]"
                     >
-                      {addedSet === set.key ? '✓' : t('addAll')}
-                    </button>
+                      {addedSet === set.key ? tPdp('added') : t('addAll')}
+                    </Button>
                     <span className="text-[13px] tabular-nums" style={{color: MUTED}}>
                       {t('wholeLook')} — <span style={{color: INK}}>{total.toLocaleString('ru-RU')} ₽</span>
                     </span>

@@ -1,4 +1,4 @@
-import {render, screen, waitFor, cleanup} from '@testing-library/react';
+import {act, fireEvent, render, screen, waitFor, cleanup} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, it, expect, vi} from 'vitest';
 import {NextIntlClientProvider} from 'next-intl';
@@ -40,6 +40,34 @@ function byId<T extends Element>(container: HTMLElement, id: string): () => T {
 }
 
 describe('admin site texts', () => {
+  it('freezes all related fields during PUT and clears saved feedback on the next edit', async () => {
+    setViewport(1280);
+    let resolve!: (data: unknown) => void;
+    const pending = new Promise((done) => {resolve = done;});
+    apiFetch.mockImplementation((_path: string, init?: RequestInit) => init?.method === 'PUT'
+      ? pending : Promise.resolve({texts: {'white.sets.title': {ru: 'Образы'}}}));
+    const user = userEvent.setup();
+    const {container} = renderPage();
+    const title = await waitFor(byId<HTMLInputElement>(container, ru('white.sets.title')));
+    await user.click(screen.getByRole('button', {name: 'Сохранить'}));
+    expect(title).toBeDisabled();
+    expect(screen.getByLabelText(ruMessages.admin.texts.email)).toBeDisabled();
+    expect(screen.getByRole('button', {name: 'Вернуть как было'})).toBeDisabled();
+    await act(async () => resolve({texts: {'white.sets.title': {ru: 'Образы'}}}));
+    expect(screen.getByRole('status')).toHaveTextContent(ruMessages.admin.texts.saved);
+    fireEvent.change(title, {target: {value: 'Новые образы'}});
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('names each text field by its subject and language and associates its validation error', async () => {
+    setViewport(1280);
+    const {container} = renderPage();
+    const field = await waitFor(byId<HTMLTextAreaElement>(container, ru('white.pdp.preorderBody')));
+    expect(field).toHaveAccessibleName(/.+ · Русский/);
+    fireEvent.change(field, {target: {value: 'Без имени'}});
+    expect(field).toHaveAccessibleDescription('нужно оставить {name}');
+  });
+
   it('shows the original inside each empty field and saves the edits as a whole', async () => {
     setViewport(1280);
     const user = userEvent.setup();

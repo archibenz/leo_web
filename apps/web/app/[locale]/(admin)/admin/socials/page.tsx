@@ -5,6 +5,7 @@ import {useTranslations} from 'next-intl';
 import BrandLoader from '../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../lib/api';
 import {DynamicButton} from '../../../../../components/ui/dynamic-button';
+import {Button} from '../../../../../components/ui/button';
 import {Checkbox} from '../../../../../components/ui/checkbox';
 import {Input} from '../../../../../components/ui/input';
 import {Label} from '../../../../../components/ui/label';
@@ -26,17 +27,22 @@ type Row = {network: SocialNetwork; href: string; shown: boolean};
 
 export default function AdminSocialsPage() {
   const t = useTranslations('admin.socials');
+  const ui = useTranslations('admin.ui');
   const desktop = useIsDesktop();
   const [rows, setRows] = useState<Row[] | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ok: boolean; text: string} | null>(null);
 
   useEffect(() => {
+    let active = true;
+    setLoadFailed(false);
     apiFetch<{links: Row[]}>('/api/admin/site/socials')
-      .then((data) => setRows(data.links))
-      .catch(() => setLoadFailed(true));
-  }, []);
+      .then((data) => {if (active) setRows(data.links);})
+      .catch(() => {if (active) setLoadFailed(true);});
+    return () => {active = false;};
+  }, [loadAttempt]);
 
   const update = (network: SocialNetwork, patch: Partial<Row>) => {
     setMessage(null);
@@ -44,7 +50,7 @@ export default function AdminSocialsPage() {
   };
 
   const save = async () => {
-    if (!rows) return;
+    if (!rows || saving || !desktop) return;
     setSaving(true);
     setMessage(null);
     try {
@@ -69,7 +75,8 @@ export default function AdminSocialsPage() {
 
       {loadFailed ? (
         <Panel>
-          <p className="text-[13px]">{t('loadFailed')}</p>
+          <p role="alert" className="mb-4 text-[13px]">{ui('loadFailed')}</p>
+          <Button className="min-h-11" onClick={() => setLoadAttempt(value => value + 1)}>{ui('retry')}</Button>
         </Panel>
       ) : !rows ? (
         <div className="flex items-center justify-center py-20">
@@ -86,14 +93,14 @@ export default function AdminSocialsPage() {
                 <Input
                   id={`social-${row.network}`}
                   value={row.href}
-                  disabled={!desktop}
+                  disabled={!desktop || saving}
                   inputMode="url"
                   onChange={(e) => update(row.network, {href: e.target.value})}
                 />
                 <label className="flex min-h-11 items-center gap-2 text-[13px]">
                   <Checkbox
                     checked={row.shown}
-                    disabled={!desktop}
+                    disabled={!desktop || saving}
                     aria-label={t('showOnSite', {network: SOCIAL_LABELS[row.network]})}
                     onCheckedChange={(v) => update(row.network, {shown: v === true})}
                   />

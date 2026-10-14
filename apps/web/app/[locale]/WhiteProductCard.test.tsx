@@ -120,7 +120,7 @@ describe('WhiteProductCard Quick Add', () => {
       expect(bag[0]!.price).toBe(11900); // sale, not regular 23000
     });
     // Visible confirmation on the trigger…
-    expect(await screen.findByText('Added ✓')).toBeInTheDocument();
+    expect(screen.getByRole('button', {name: /quick add/i})).toHaveTextContent(enMessages.white.card.added);
     // …and a polite status announced to screen readers (the trigger's own
     // accessible name stays the stable "Quick add …" label).
     expect(screen.getByRole('status')).toHaveTextContent(/added to bag/i);
@@ -131,6 +131,20 @@ describe('WhiteProductCard Quick Add', () => {
     expect(screen.queryByRole('button', {name: /quick add/i})).not.toBeInTheDocument();
     // The card is still a link to the product.
     expect(screen.getAllByRole('link').length).toBeGreaterThan(0);
+  });
+
+  it.each(['Escape', 'close button'])('returns focus to Quick Add after dismissing with %s', async (dismissal) => {
+    const user = userEvent.setup();
+    renderCard(<WhiteProductCard locale="en" product={PRODUCT} quickAdd />);
+    await user.click(screen.getByRole('button', {name: /quick add/i}));
+    await waitFor(() => expect(screen.getByRole('button', {name: 'XS'})).toHaveFocus());
+
+    if (dismissal === 'Escape') await user.keyboard('{Escape}');
+    else await user.click(screen.getByRole('button', {name: /close/i}));
+
+    await waitFor(() => expect(screen.getByRole('button', {name: /quick add/i})).toHaveFocus());
+    expect(screen.queryByRole('group', {name: /select size/i})).not.toBeInTheDocument();
+    expect(readBag()).toHaveLength(0);
   });
 });
 

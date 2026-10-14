@@ -1748,6 +1748,17 @@ h2.font-display:not(.wv-root *),
   opacity: 1;
   transform: translateY(0);
 }
+/* Closed mobile search must also leave the keyboard and accessibility tree.
+   The same field stays visible at sm and above, independently of mobile state. */
+.wv-shop-search > * { visibility: hidden; }
+.wv-shop-search[data-open='true'] > * { visibility: visible; }
+@media (min-width: 640px) {
+  .wv-shop-search > * {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .wv-reveal,
   .wv-reveal > * { transition: none; }

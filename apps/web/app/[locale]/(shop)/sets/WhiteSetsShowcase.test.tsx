@@ -96,6 +96,15 @@ describe('WhiteSetsShowcase', () => {
     expect(bag.every((i) => i.size === 'M')).toBe(true);
   });
 
+  it('keeps a readable success label after adding a look', async () => {
+    const user = userEvent.setup();
+    renderSets();
+    const [button] = screen.getAllByRole('button', {name: /add the whole look/i});
+    await user.click(button!);
+    expect(button).toHaveAccessibleName('Added');
+    expect(button).toHaveFocus();
+  });
+
   it('takes the colour worn in the picture, not the garment default', async () => {
     const user = userEvent.setup();
     renderSets('ru');

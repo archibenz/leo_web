@@ -31,6 +31,8 @@ export default function GalleryField({image, gallery, onChange, onUploadingChang
   const [items, setItems] = useState<GalleryItem[]>(() => toItems(image, gallery));
   const [uploads, setUploads] = useState<PendingUpload[]>([]);
   const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [draggingFiles, setDraggingFiles] = useState(false);
+  const dragDepth = useRef(0);
   const nextUploadId = useRef(0);
 
   // onChange/onUploadingChange не мемоизированы у вызывающей стороны
@@ -84,6 +86,8 @@ export default function GalleryField({image, gallery, onChange, onUploadingChang
 
   function onDrop(e: DragEvent<HTMLLabelElement>) {
     e.preventDefault();
+    dragDepth.current = 0;
+    setDraggingFiles(false);
     addFiles(e.dataTransfer.files);
   }
 
@@ -192,9 +196,24 @@ export default function GalleryField({image, gallery, onChange, onUploadingChang
 
       <label
         onDrop={onDrop}
-        onDragOver={(e) => e.preventDefault()}
-        className="mt-3 flex min-h-[44px] cursor-pointer flex-col items-center gap-1 px-4 py-4 text-center transition-colors hover:bg-black/[0.02]"
-        style={{border: `1px dashed ${HAIR}`}}
+        onDragEnter={(e) => {
+          if (!Array.from(e.dataTransfer.types).includes('Files')) return;
+          e.preventDefault();
+          dragDepth.current += 1;
+          setDraggingFiles(true);
+        }}
+        onDragOver={(e) => {
+          if (!Array.from(e.dataTransfer.types).includes('Files')) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'copy';
+        }}
+        onDragLeave={() => {
+          dragDepth.current = Math.max(0, dragDepth.current - 1);
+          if (dragDepth.current === 0) setDraggingFiles(false);
+        }}
+        data-dragging={draggingFiles || undefined}
+        className="mt-3 flex min-h-[44px] cursor-pointer flex-col items-center gap-1 px-4 py-4 text-center transition-colors hover:bg-black/[0.02] data-[dragging=true]:bg-black/[0.04] has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-[#1c1714] has-[:focus-visible]:outline-offset-2 motion-reduce:transition-none"
+        style={{border: `1px dashed ${draggingFiles ? INK : HAIR}`}}
       >
         <span className="text-[12px]" style={{color: MUTED}}>
           Перетащите кадры сюда или выберите файлы
@@ -204,7 +223,7 @@ export default function GalleryField({image, gallery, onChange, onUploadingChang
           accept="image/jpeg,image/png"
           multiple
           aria-label="Добавить кадры"
-          className="hidden"
+          className="sr-only"
           onChange={(e) => {
             addFiles(e.target.files);
             e.target.value = '';

@@ -23,20 +23,22 @@ export default function PublishList({reloadKey}: {reloadKey: number}) {
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(() => {
-    listDrafts()
-      .then(setDrafts)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : 'не прочиталось'));
+    setError(null);
+    return listDrafts().then(setDrafts);
   }, []);
 
-  useEffect(reload, [reload, reloadKey]);
+  useEffect(() => {
+    void reload().catch((e: unknown) => setError(e instanceof Error ? e.message : 'не прочиталось'));
+  }, [reload, reloadKey]);
 
   async function run(action: 'publish' | 'discard', row: DraftSummary) {
+    if (busy !== null) return;
     setBusy(`${action}:${row.id}`);
     setError(null);
     try {
       await (action === 'publish' ? publish(row.kind, row.id) : discard(row.kind, row.id));
-      reload();
       refresh();
+      await reload();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'не получилось');
     } finally {
@@ -52,7 +54,7 @@ export default function PublishList({reloadKey}: {reloadKey: number}) {
     );
   }
 
-  if (drafts && drafts.length === 0) {
+  if (drafts && drafts.length === 0 && !error) {
     return (
       <p className="text-[12px]" style={{color: MUTED}}>
         Неопубликованных правок нет.
@@ -86,10 +88,10 @@ export default function PublishList({reloadKey}: {reloadKey: number}) {
               {/* Публикация выключена там, где в сантиметре от кнопки написано
                   «опубликовать нельзя». Сервер отказ держит и без этого, но
                   самая опасная кнопка не должна спорить с собственной подписью. */}
-              <EditorButton tone="solid" disabled={busy !== null || broken !== undefined} onClick={() => void run('publish', row)}>
+              <EditorButton tone="solid" busy={busy === `publish:${row.id}`} disabled={busy !== null || broken !== undefined} onClick={() => void run('publish', row)}>
                 {busy === `publish:${row.id}` ? 'публикую…' : 'Опубликовать'}
               </EditorButton>
-              <EditorButton tone="signal" disabled={busy !== null} onClick={() => void run('discard', row)}>
+              <EditorButton tone="signal" busy={busy === `discard:${row.id}`} disabled={busy !== null} onClick={() => void run('discard', row)}>
                 {busy === `discard:${row.id}` ? 'отменяю…' : 'Отменить черновик'}
               </EditorButton>
             </div>

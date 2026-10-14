@@ -4,7 +4,7 @@ import {useState, useEffect, useMemo} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
 import Link from 'next/link';
-import {MoreHorizontalIcon, PencilIcon, PlusIcon, Trash2Icon} from 'lucide-react';
+import {MoreHorizontalIcon, PencilIcon, Trash2Icon} from 'lucide-react';
 import BrandLoader from '../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../lib/api';
 import {formatPrice} from '../../../../../lib/formatPrice';
@@ -42,10 +42,15 @@ type Product = {
 
 export default function AdminProductsPage() {
   const t = useTranslations('admin');
+  const ui = useTranslations('admin.ui');
   const pathname = usePathname() || '/';
   const locale = pathname.split('/')[1] || 'ru';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [deletingIds, setDeletingIds] = useState<string[]>([]);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   // Тестовые (демо) товары скрыты по умолчанию (вычистка 26.09): на проде их
   // 13, все неактивны, английскими названиями стояли первыми и отодвигали 87
@@ -53,19 +58,27 @@ export default function AdminProductsPage() {
   const [showTest, setShowTest] = useState(false);
 
   useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setLoadFailed(false);
     apiFetch<Product[]>('/api/admin/products')
-      .then(setProducts)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+      .then(data => {if (active) setProducts(data);})
+      .catch(() => {if (active) setLoadFailed(true);})
+      .finally(() => {if (active) setLoading(false);});
+    return () => {active = false;};
+  }, [loadAttempt]);
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(t('confirmDelete', {name: title}))) return;
+    if (deletingIds.includes(id) || !confirm(t('confirmDelete', {name: title}))) return;
+    setDeleteError(null);
+    setDeletingIds(ids => [...ids, id]);
     try {
       await apiFetch(`/api/admin/products/${id}?permanent=true`, {method: 'DELETE'});
       setProducts(prev => prev.filter(p => p.id !== id));
-    } catch (err) {
-      console.error('[AdminProducts] delete failed', err);
+    } catch {
+      setDeleteError(ui('deleteFailed', {name: title}));
+    } finally {
+      setDeletingIds(ids => ids.filter(value => value !== id));
     }
   };
 
@@ -91,10 +104,9 @@ export default function AdminProductsPage() {
   return (
     <ListPage
       action={
-        <Button asChild className="min-h-11">
+        <Button asChild variant="owner" size="owner">
           <Link href={`/${locale}/admin/products/new`}>
-            <PlusIcon />
-            {t('product.add')}
+            <span>{t('product.add')}</span>
           </Link>
         </Button>
       }
@@ -117,10 +129,13 @@ export default function AdminProductsPage() {
       }
       title={t('products')}
     >
+      {deleteError && <p role="alert" className="text-[13px] text-destructive">{deleteError}</p>}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
+        <div role="status" aria-label={ui('loading')} className="flex items-center justify-center py-20">
           <BrandLoader size={32} />
         </div>
+      ) : loadFailed ? (
+        <Panel><p role="alert" className="mb-4 text-[13px]">{ui('loadFailed')}</p><Button className="min-h-11" onClick={() => setLoadAttempt(value => value + 1)}>{ui('retry')}</Button></Panel>
       ) : products.length === 0 ? (
         <Panel>
           <PanelEmpty>{t('product.noProducts')}</PanelEmpty>
@@ -190,6 +205,8 @@ export default function AdminProductsPage() {
                         <DropdownMenuTrigger asChild>
                           <Button
                             aria-label={t('rowActions', {name: product.title})}
+                            disabled={deletingIds.includes(product.id)}
+                            aria-busy={deletingIds.includes(product.id)}
                             className="size-11"
                             size="icon"
                             variant="ghost"

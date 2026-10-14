@@ -70,6 +70,30 @@ const renderPage = async () => {
 };
 
 describe('WhiteAccountShowcase', () => {
+  it('moves the selected account tab with arrows, Home and End and links it to its panel', async () => {
+    const user = userEvent.setup();
+    await renderPage();
+    const signIn = screen.getByRole('tab', {name: /sign in/i});
+    const signUp = screen.getByRole('tab', {name: /sign up/i});
+    expect(signUp).toHaveAttribute('tabindex', '-1');
+    signIn.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(signUp).toHaveFocus();
+    expect(signUp).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tabpanel', {name: /sign up/i}).id).toBe(signUp.getAttribute('aria-controls'));
+    await user.tab();
+    expect(screen.getByLabelText(/email/i)).toHaveFocus();
+    signUp.focus();
+    await user.keyboard('{ArrowRight}');
+    expect(signIn).toHaveFocus();
+    await user.keyboard('{End}');
+    expect(signUp).toHaveFocus();
+    await user.keyboard('{Home}');
+    expect(signIn).toHaveFocus();
+    await user.keyboard('{ArrowLeft}');
+    expect(signUp).toHaveFocus();
+  });
+
   it('shows the sign-in form by default when signed out', async () => {
     await renderPage();
     expect(await screen.findByRole('heading', {level: 1, name: /account/i})).toBeInTheDocument();

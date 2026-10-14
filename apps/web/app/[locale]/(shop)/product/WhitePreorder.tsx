@@ -1,8 +1,9 @@
 'use client';
 
-import {useEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {useFocusTrap} from '../../../../lib/useFocusTrap';
+import {useMountTransition} from '../../../../lib/useMountTransition';
 import {INK, MUTED, HAIR} from '../../wv-palette';
 import {trackSiteEvent} from '../../../../lib/siteEvents';
 
@@ -23,21 +24,32 @@ export default function WhitePreorder({product, productId, size}: {product: stri
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error' | 'invalid'>('idle');
   const dialogRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  useFocusTrap(dialogRef, open);
+  const {mounted, entered} = useMountTransition(open, 200);
+  // close restores the explicit opener; Safari pointer clicks may have left
+  // another element focused before the dialog opened.
+  useFocusTrap(dialogRef, open, {returnFocus: false});
+
+  const close = useCallback(() => {
+    if (state === 'sending') return;
+    setOpen(false);
+    triggerRef.current?.focus({preventScroll: true});
+  }, [state]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [mounted]);
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && state !== 'sending') close();
+      if (e.key === 'Escape') close();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, [open, state]);
-
-  function close() {
-    setOpen(false);
-    triggerRef.current?.focus();
-  }
+  }, [open, close]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -76,20 +88,26 @@ export default function WhitePreorder({product, productId, size}: {product: stri
         {t('preorder')}
       </button>
 
-      {open && (
-        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-[rgba(28,23,20,0.42)] p-0 sm:items-center sm:p-6" onMouseDown={(e) => e.target === e.currentTarget && close()}>
+      {mounted && (
+        <div
+          aria-hidden={!open || undefined}
+          inert={!open}
+          className={`fixed inset-0 z-[80] flex items-end justify-center bg-[rgba(28,23,20,0.42)] p-0 transition-opacity duration-200 motion-reduce:transition-none sm:items-center sm:p-6 ${entered ? 'opacity-100' : 'opacity-0'} ${!open ? 'pointer-events-none' : ''}`}
+          onMouseDown={(e) => e.target === e.currentTarget && close()}
+        >
           <div
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby="wv-preorder-title"
-            className="w-full max-w-[440px] bg-white px-6 pb-8 pt-7 sm:px-9"
+            aria-busy={state === 'sending'}
+            className={`w-full max-w-[440px] bg-white px-6 pb-8 pt-7 transition-transform duration-200 motion-reduce:transform-none motion-reduce:transition-none sm:px-9 ${entered ? 'translate-y-0' : 'translate-y-3'}`}
           >
             <div className="mb-5 flex items-start justify-between gap-4">
               <h2 id="wv-preorder-title" className="font-display text-[22px] font-light leading-tight" style={{color: INK}}>
                 {t('preorderTitle')}
               </h2>
-              <button type="button" onClick={close} aria-label={t('close')} className="-mr-2 -mt-2 flex h-11 w-11 shrink-0 items-center justify-center text-[17px] leading-none" style={{color: MUTED}}>
+              <button type="button" onClick={close} disabled={state === 'sending'} aria-label={t('close')} className="-mr-2 -mt-2 flex h-11 w-11 shrink-0 items-center justify-center text-[17px] leading-none disabled:cursor-not-allowed disabled:opacity-40" style={{color: MUTED}}>
                 ×
               </button>
             </div>

@@ -4,6 +4,8 @@ import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname, useRouter} from 'next/navigation';
 import {apiFetch} from '../../lib/api';
+import BrandLoader from '../BrandLoader';
+import {Button} from '../ui/button';
 import ImageUpload from './ImageUpload';
 import {CARE_SYMBOL_KEYS, CareSymbol, getSymbolLabel} from '../CareSymbols';
 import {Input} from '../ui/input';
@@ -58,13 +60,21 @@ function числоИзПоля(значение: string): number {
 
 export default function ProductForm({productId, isNew}: ProductFormProps) {
   const t = useTranslations('admin.product');
+  const ui = useTranslations('admin.ui');
   const router = useRouter();
   const pathname = usePathname() || '/';
   const locale = pathname.split('/')[1] || 'ru';
 
   const [collections, setCollections] = useState<Collection[]>([]);
+  const [collectionsLoading, setCollectionsLoading] = useState(true);
+  const [collectionsFailed, setCollectionsFailed] = useState(false);
+  const [collectionsAttempt, setCollectionsAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [loadedProductId, setLoadedProductId] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const loadingProduct = !!productId && !isNew && loadedProductId !== productId;
 
   const [form, setForm] = useState({
     id: '',
@@ -88,10 +98,22 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
   });
 
   useEffect(() => {
-    apiFetch<Collection[]>('/api/admin/collections').then(setCollections).catch(() => {});
+    let active = true;
+    setCollectionsLoading(true);
+    setCollectionsFailed(false);
+    apiFetch<Collection[]>('/api/admin/collections')
+      .then(data => {if (active) setCollections(data);})
+      .catch(() => {if (active) setCollectionsFailed(true);})
+      .finally(() => {if (active) setCollectionsLoading(false);});
+    return () => {active = false;};
+  }, [collectionsAttempt]);
 
+  useEffect(() => {
+    let active = true;
+    setLoadFailed(false);
     if (productId && !isNew) {
       apiFetch<Record<string, unknown>>(`/api/admin/products/${productId}`).then(data => {
+        if (!active) return;
         let imgs: {src: string; alt: string}[] = [];
         if (typeof data.images === 'string') {
           try { imgs = JSON.parse(data.images); } catch { /* malformed JSON — keep empty list */ }
@@ -105,7 +127,7 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
           sizes: (data.sizes as string[]) || [],
           collectionId: (data.collectionId as string) || '',
           stockQuantity: (data.stockQuantity as number) || 0,
-          lowStockThreshold: (data.lowStockThreshold as number) || 5,
+          lowStockThreshold: (data.lowStockThreshold as number | null | undefined) ?? 5,
           occasion: (data.occasion as string) || '',
           color: (data.color as string) || '',
           material: (data.material as string) || '',
@@ -128,12 +150,15 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
             } catch { return ''; }
           })(),
         });
-      }).catch(() => {});
+        setLoadedProductId(productId);
+      }).catch(() => {if (active) setLoadFailed(true);});
     }
-  }, [productId, isNew]);
+    return () => {active = false;};
+  }, [productId, isNew, loadAttempt]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving || loadingProduct || loadFailed) return;
     setSaving(true);
     setMessage('');
 
@@ -175,7 +200,7 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
         setMessage(t('updated'));
       }
     } catch {
-      setMessage('Error saving product');
+      setMessage(ui('saveFailed'));
     } finally {
       setSaving(false);
     }
@@ -189,6 +214,13 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
         : [...prev.sizes, size],
     }));
   };
+
+  if (loadFailed) {
+    return <Panel><p role="alert" className="mb-4 text-[13px]">{ui('loadFailed')}</p><Button className="min-h-11" onClick={() => setLoadAttempt(value => value + 1)}>{ui('retry')}</Button></Panel>;
+  }
+  if (loadingProduct) {
+    return <div role="status" aria-label={ui('loading')} className="flex justify-center py-20"><BrandLoader size={32} /></div>;
+  }
 
   return (
     <form className="max-w-4xl *:mb-6 last:*:mb-0 pb-20" onSubmit={handleSubmit}>
@@ -356,6 +388,7 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
 
           <FormField id="product-collection" label={t('collection')}>
             <Select
+              disabled={collectionsLoading || collectionsFailed}
               onValueChange={value => setForm(prev => ({...prev, collectionId: value === NONE ? '' : value}))}
               value={form.collectionId || NONE}
             >
@@ -369,6 +402,12 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
                 ))}
               </SelectContent>
             </Select>
+            {collectionsFailed && (
+              <div className="space-y-2">
+                <p role="alert" className="text-[13px] text-destructive">{ui('collectionsLoadFailed')}</p>
+                <Button className="min-h-11" type="button" variant="outline" onClick={() => setCollectionsAttempt(value => value + 1)}>{ui('retry')}</Button>
+              </div>
+            )}
           </FormField>
 
           {/* Размеры — переключатели с состоянием, а не кнопки: прежде выбор

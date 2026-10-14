@@ -1,6 +1,6 @@
 'use client';
 
-import {useState, useRef, useEffect} from 'react';
+import {useState, useRef, useEffect, useId} from 'react';
 import Image from 'next/image';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
@@ -44,6 +44,7 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
   const tf = useTranslations('white.footer');
 
   const [tab, setTab] = useState<'in' | 'up'>('in');
+  const tabsId = useId();
   const tabsRef = useRef<HTMLDivElement>(null);
   // The rule under the tabs is positioned from the chosen button's own box, so
   // it slides the real distance between two labels of different widths.
@@ -276,13 +277,24 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
               {/* The line under the chosen tab slides between the two rather than
                   blinking off one and on the other, so the eye follows the move.
                   It rides on the row itself, positioned to the active half. */}
-              <div ref={tabsRef} className="relative mt-9 flex gap-6 border-b" style={{borderColor: HAIR}} role="tablist">
+              <div ref={tabsRef} className="relative mt-9 flex gap-6 border-b" style={{borderColor: HAIR}} role="tablist" aria-label={t('title')}>
                 {(['in', 'up'] as const).map((k) => (
                   <button
                     key={k}
                     type="button"
                     role="tab"
+                    id={`${tabsId}-${k}`}
+                    aria-controls={`${tabsId}-panel`}
                     aria-selected={tab === k}
+                    tabIndex={tab === k ? 0 : -1}
+                    onKeyDown={(e) => {
+                      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+                      e.preventDefault();
+                      const next = e.key === 'Home' ? 'in' : e.key === 'End' ? 'up' : k === 'in' ? 'up' : 'in';
+                      setTab(next);
+                      setError(null);
+                      document.getElementById(`${tabsId}-${next}`)?.focus();
+                    }}
                     onClick={() => {
                       setTab(k);
                       setError(null);
@@ -303,7 +315,7 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
               {/* The panel is keyed on the tab so React remounts it and the
                   entry animation replays — the two forms trade places instead of
                   one set of fields snapping into another. */}
-              <div key={tab} className="wv-tabpanel">
+              <div key={tab} id={`${tabsId}-panel`} role="tabpanel" aria-labelledby={`${tabsId}-${tab}`} className="wv-tabpanel">
               {tab === 'in' ? (
                 <form onSubmit={submitSignIn} className="mt-8 flex flex-col gap-5">
                   {emailField}

@@ -5,6 +5,7 @@ import {useTranslations} from 'next-intl';
 import BrandLoader from '../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../lib/api';
 import {Button} from '../../../../../components/ui/button';
+import {DynamicButton} from '../../../../../components/ui/dynamic-button';
 import {Input} from '../../../../../components/ui/input';
 import {Textarea} from '../../../../../components/ui/textarea';
 import {Label} from '../../../../../components/ui/label';
@@ -40,21 +41,27 @@ function original(key: string, lang: Lang): string {
 
 export default function AdminTextsPage() {
   const t = useTranslations('admin.texts');
+  const ui = useTranslations('admin.ui');
   const desktop = useIsDesktop();
   const [edits, setEdits] = useState<Record<string, LocalizedEdit> | null>(null);
   const [email, setEmail] = useState('');
   const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ok: boolean; text: string} | null>(null);
 
   useEffect(() => {
+    let active = true;
+    setLoadFailed(false);
     apiFetch<SiteTextEdits>('/api/admin/site/texts')
       .then((data) => {
+        if (!active) return;
         setEdits(data.texts ?? {});
         setEmail(data.contactEmail ?? '');
       })
-      .catch(() => setLoadFailed(true));
-  }, []);
+      .catch(() => {if (active) setLoadFailed(true);});
+    return () => {active = false;};
+  }, [loadAttempt]);
 
   const problems = useMemo(() => {
     const out: Record<string, string> = {};
@@ -74,18 +81,22 @@ export default function AdminTextsPage() {
     return out;
   }, [edits, email, t]);
 
-  const setText = (key: string, lang: Lang, value: string) =>
+  const setText = (key: string, lang: Lang, value: string) => {
+    setMessage(null);
     setEdits((prev) => ({...prev, [key]: {...prev?.[key], [lang]: value}}));
+  };
 
-  const reset = (key: string) =>
+  const reset = (key: string) => {
+    setMessage(null);
     setEdits((prev) => {
       const next = {...prev};
       delete next[key];
       return next;
     });
+  };
 
   const save = async () => {
-    if (!edits) return;
+    if (!edits || saving || !desktop || Object.keys(problems).length > 0) return;
     setSaving(true);
     setMessage(null);
     try {
@@ -111,7 +122,7 @@ export default function AdminTextsPage() {
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <p className="text-[13px] font-medium">{f.label}</p>
           {desktop && touched && (
-            <Button variant="ghost" size="sm" onClick={() => reset(f.key)}>
+            <Button variant="ghost" size="sm" disabled={saving} onClick={() => reset(f.key)}>
               {t('reset')}
             </Button>
           )}
@@ -124,17 +135,18 @@ export default function AdminTextsPage() {
             return (
               <div key={lang} className="space-y-1">
                 <Label htmlFor={id} className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
-                  {lang === 'ru' ? t('ru') : t('en')}
+                  <span className="sr-only">{f.label} ·</span>{' '}{lang === 'ru' ? t('ru') : t('en')}
                 </Label>
                 <Control
                   id={id}
                   value={edits?.[f.key]?.[lang] ?? ''}
                   placeholder={original(f.key, lang)}
-                  disabled={!desktop}
+                  disabled={!desktop || saving}
                   aria-invalid={problem ? true : undefined}
+                  aria-describedby={problem ? `${id}-error` : undefined}
                   onChange={(e) => setText(f.key, lang, e.target.value)}
                 />
-                {problem && <p className="text-[12px] text-destructive">{problem}</p>}
+                {problem && <p id={`${id}-error`} className="text-[12px] text-destructive">{problem}</p>}
               </div>
             );
           })}
@@ -153,7 +165,8 @@ export default function AdminTextsPage() {
 
       {loadFailed ? (
         <Panel>
-          <p className="text-[13px]">{t('loadFailed')}</p>
+          <p role="alert" className="mb-4 text-[13px]">{ui('loadFailed')}</p>
+          <Button className="min-h-11" onClick={() => setLoadAttempt(value => value + 1)}>{ui('retry')}</Button>
         </Panel>
       ) : !edits ? (
         <div className="flex items-center justify-center py-20">
@@ -176,11 +189,12 @@ export default function AdminTextsPage() {
                       type="email"
                       value={email}
                       placeholder={DEFAULT_CONTACT_EMAIL}
-                      disabled={!desktop}
+                      disabled={!desktop || saving}
                       aria-invalid={problems.contactEmail ? true : undefined}
-                      onChange={(e) => setEmail(e.target.value)}
+                      aria-describedby={problems.contactEmail ? 'text-contact-email-error' : undefined}
+                      onChange={(e) => {setEmail(e.target.value); setMessage(null);}}
                     />
-                    {problems.contactEmail && <p className="text-[12px] text-destructive">{problems.contactEmail}</p>}
+                    {problems.contactEmail && <p id="text-contact-email-error" className="text-[12px] text-destructive">{problems.contactEmail}</p>}
                   </div>
                 )}
               </div>
@@ -188,9 +202,9 @@ export default function AdminTextsPage() {
           ))}
           {desktop && (
             <div className="flex flex-wrap items-center gap-4">
-              <Button onClick={save} disabled={saving || hasProblems}>
+              <DynamicButton onClick={save} state={saving ? 'pending' : 'idle'} disabled={hasProblems}>
                 {saving ? t('saving') : t('save')}
-              </Button>
+              </DynamicButton>
               {hasProblems && <p className="text-[13px] text-destructive">{t('fixFirst')}</p>}
               {message && (
                 <p role="status" className={message.ok ? 'text-[13px]' : 'text-[13px] text-destructive'}>

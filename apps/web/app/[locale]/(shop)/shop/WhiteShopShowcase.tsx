@@ -2,15 +2,10 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
-import {useWhiteBag} from '../../../../hooks/useWhiteBag';
-import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
-import WhiteHeader from '../../WhiteHeader';
-import WhiteHeaderActions from '../../WhiteHeaderActions';
-import WhiteFooter from '../../WhiteFooter';
 import WhiteProductCard from '../../WhiteProductCard';
 import {INK, MUTED, HAIR} from '../../wv-palette';
 import {whiteCatLabel, whitePriceRange} from '../../../../lib/catalogue/select';
-import type {WhiteProduct as Item, WhiteCat as Cat, WhiteColor as Colour} from '../../../../lib/catalogue/types';
+import type {WhiteProduct as Item, WhiteCat as Cat} from '../../../../lib/catalogue/types';
 
 // Variant 2 "White" — shop / catalog grid with filters + sort. Same portal
 // technique as the landing/PDP. The catalogue arrives as a prop from the server
@@ -22,9 +17,6 @@ type Sort = 'new' | 'asc' | 'desc';
 export default function WhiteShopShowcase({locale, products, soldOutKeys = [], initialCat = 'all', initialQuery = '', initialSort = 'new', focusSearch = false}: {locale: string;
   products: Item[]; soldOutKeys?: number[]; initialCat?: Cat | 'all'; initialQuery?: string; initialSort?: Sort; focusSearch?: boolean}) {
   const ITEMS = products;
-  const {count} = useWhiteBag();
-  const {count: favCount} = useWhiteFavourites();
-  const ru = locale === 'ru';
   const [cat, setCat] = useState<Cat | 'all'>(initialCat);
   const [sort, setSort] = useState<Sort>(initialSort);
   const soldOutSet = new Set(soldOutKeys);
@@ -49,8 +41,11 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
   // Deep-link intent (?focus=search, e.g. from the landing "Search" link):
   // focus the field once it has painted.
   useEffect(() => {
-    if (focusSearch) searchRef.current?.focus();
+    if (focusSearch) setSearchOpen(true);
   }, [focusSearch]);
+  useEffect(() => {
+    if (searchOpen) searchRef.current?.focus();
+  }, [searchOpen, focusSearch]);
 
   // Keep the URL in sync with the active filters so a view can be shared or
   // bookmarked (history.replaceState — no navigation, no reload).
@@ -156,15 +151,13 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
             <button
               type="button"
               onClick={() => {
-                setSearchOpen((v) => {
-                  if (v && query) pickQuery('');
-                  return !v;
-                });
-                window.setTimeout(() => searchRef.current?.focus(), 60);
+                if (searchOpen && query) pickQuery('');
+                setSearchOpen(!searchOpen);
               }}
               aria-label={t('searchProducts')}
               aria-expanded={searchOpen}
-              className="flex h-10 w-10 items-center justify-center sm:hidden"
+              aria-controls="wv-shop-search-region"
+              className="flex h-11 w-11 items-center justify-center sm:hidden"
               style={{color: INK}}
             >
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" aria-hidden="true">
@@ -182,7 +175,8 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
             way to transition to a height nobody has measured. Above sm it is
             always there, so the wrapper carries no animation at all. */}
         <div
-          className="wv-reveal px-6 sm:!h-auto sm:px-0"
+          id="wv-shop-search-region"
+          className="wv-reveal wv-shop-search px-6 sm:!h-auto sm:px-0"
           data-open={searchOpen ? 'true' : 'false'}
         >
         <div className="overflow-hidden">
@@ -203,8 +197,8 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
               spellCheck={false}
               enterKeyHint="search"
               placeholder={t('searchCollection')}
-              className="min-h-11 w-full border-b bg-transparent pb-2 pr-10 pt-3 text-[15px] outline-none placeholder:text-[#776e64] [&::-webkit-search-cancel-button]:hidden"
-              style={{borderColor: HAIR, color: INK}}
+              className="wv-field min-h-11 w-full border-b bg-transparent pb-2 pr-10 pt-3 text-[15px] outline-none placeholder:text-[#776e64] [&::-webkit-search-cancel-button]:hidden"
+              style={{color: INK}}
             />
             {query && (
               <button
@@ -261,10 +255,11 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
             <span className="hidden sm:inline">{t('sort')}</span>
             <span className="relative inline-flex items-center">
             <select
+              aria-label={t('sort')}
               value={sort}
               onChange={(e) => pickSort(e.target.value as Sort)}
-              className="min-h-11 cursor-pointer appearance-none rounded-none border-0 border-b bg-transparent py-1 pl-0 pr-6 text-[12px] uppercase tracking-[0.14em] outline-none"
-              style={{color: INK, borderColor: HAIR}}
+              className="wv-field min-h-11 cursor-pointer appearance-none rounded-none border-0 border-b bg-transparent py-1 pl-0 pr-6 text-[12px] uppercase tracking-[0.14em] outline-none"
+              style={{color: INK}}
             >
               <option value="new">{t('sortNewest')}</option>
               <option value="asc">{t('sortAsc')}</option>
