@@ -1,4 +1,4 @@
-import {render, screen, waitFor, cleanup} from '@testing-library/react';
+import {act, render, screen, waitFor, cleanup} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, it, expect, vi} from 'vitest';
 import {NextIntlClientProvider} from 'next-intl';
@@ -35,6 +35,47 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('admin socials — one list for the whole site', () => {
+  it('shows success only after the save resolves and resets it when fields change', async () => {
+    setViewport(1280);
+    let resolve!: (value: {links: typeof LINKS}) => void;
+    const pending = new Promise<{links: typeof LINKS}>((done) => { resolve = done; });
+    apiFetch.mockImplementation((_path: string, init?: RequestInit) =>
+      init?.method === 'PUT' ? pending : Promise.resolve({links: LINKS}),
+    );
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole('button', {name: 'Сохранить'}));
+    const saving = screen.getByRole('button', {name: 'Сохраняем…'});
+    expect(saving).toBeDisabled();
+    expect(saving).toHaveAttribute('aria-busy', 'true');
+    expect(screen.queryByRole('button', {name: 'Сохранено'})).toBeNull();
+    await user.click(saving);
+    expect(apiFetch.mock.calls.filter(([, init]) => init?.method === 'PUT')).toHaveLength(1);
+
+    await act(async () => resolve({links: LINKS}));
+    expect(screen.getByRole('button', {name: 'Сохранено'})).toBeEnabled();
+    await user.type(screen.getByLabelText('Telegram'), '_new');
+    expect(screen.getByRole('button', {name: 'Сохранить'})).toBeEnabled();
+    expect(screen.queryByRole('status')).toBeNull();
+  });
+
+  it('returns from pending to an available retry after failure, without a success state', async () => {
+    setViewport(1280);
+    let reject!: (reason: Error) => void;
+    const pending = new Promise((_, fail) => { reject = fail; });
+    apiFetch.mockImplementation((_path: string, init?: RequestInit) =>
+      init?.method === 'PUT' ? pending : Promise.resolve({links: LINKS}),
+    );
+    const user = userEvent.setup();
+    renderPage();
+    await user.click(await screen.findByRole('button', {name: 'Сохранить'}));
+    expect(screen.getByRole('button', {name: 'Сохраняем…'})).toHaveAttribute('aria-busy', 'true');
+    await act(async () => reject(new Error('Сервер недоступен')));
+    expect(screen.getByRole('button', {name: 'Сохранить'})).toBeEnabled();
+    expect(screen.queryByRole('button', {name: 'Сохранено'})).toBeNull();
+    expect(screen.getByRole('status')).toHaveTextContent('Сервер недоступен');
+  });
+
   it('on a computer: untick a network, save — the whole list goes to the server', async () => {
     setViewport(1280);
     const user = userEvent.setup();

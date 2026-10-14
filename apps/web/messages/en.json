@@ -1327,6 +1327,7 @@
       "showOnSite": "Show {network} on the site",
       "save": "Save",
       "saving": "Saving…",
+      "savedAction": "Saved",
       "saved": "Saved. The site updates within a minute.",
       "saveFailed": "Could not save.",
       "loadFailed": "Could not load social links. Refresh the page."

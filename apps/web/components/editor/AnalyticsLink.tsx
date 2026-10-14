@@ -1,9 +1,9 @@
 'use client';
 
 import {useTranslations} from 'next-intl';
-import {ArrowUpRight} from 'lucide-react';
 import {useEditorSession} from './useEditorSession';
-import {OWNER_LINK, OWNER_LINK_STYLE} from './AdminPanelLink';
+import {OWNER_LINK_STYLE} from './AdminPanelLink';
+import {Button} from '../ui/button';
 
 // Дашборд аналитики переехал на /analytics того же домена — отдельное
 // приложение, которое nginx пускает по той же куке входа, что и сайт. Ссылка
@@ -17,10 +17,11 @@ export default function AnalyticsLink() {
   if (!isAdmin) return null;
 
   return (
-    // eslint-disable-next-line @next/next/no-html-link-for-pages -- Analytics is a separate application served by nginx.
-    <a href="/analytics" className={OWNER_LINK} style={OWNER_LINK_STYLE}>
-      <span>{t('analyticsLink')}</span>
-      <ArrowUpRight className="wv-owner-arrow" size={17} aria-hidden="true" />
-    </a>
+    <Button asChild variant="owner" size="owner" className="mt-3 w-full justify-between text-left" style={OWNER_LINK_STYLE}>
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Analytics is a separate application served by nginx. */}
+      <a href="/analytics">
+        <span>{t('analyticsLink')}</span>
+      </a>
+    </Button>
   );
 }

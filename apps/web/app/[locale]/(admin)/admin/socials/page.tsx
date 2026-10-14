@@ -4,7 +4,7 @@ import {useEffect, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import BrandLoader from '../../../../../components/BrandLoader';
 import {apiFetch} from '../../../../../lib/api';
-import {Button} from '../../../../../components/ui/button';
+import {DynamicButton} from '../../../../../components/ui/dynamic-button';
 import {Checkbox} from '../../../../../components/ui/checkbox';
 import {Input} from '../../../../../components/ui/input';
 import {Label} from '../../../../../components/ui/label';
@@ -38,8 +38,10 @@ export default function AdminSocialsPage() {
       .catch(() => setLoadFailed(true));
   }, []);
 
-  const update = (network: SocialNetwork, patch: Partial<Row>) =>
+  const update = (network: SocialNetwork, patch: Partial<Row>) => {
+    setMessage(null);
     setRows((prev) => prev && prev.map((r) => (r.network === network ? {...r, ...patch} : r)));
+  };
 
   const save = async () => {
     if (!rows) return;
@@ -101,9 +103,9 @@ export default function AdminSocialsPage() {
             ))}
             {desktop && (
               <div className="flex flex-wrap items-center gap-4">
-                <Button onClick={save} disabled={saving}>
-                  {saving ? t('saving') : t('save')}
-                </Button>
+                <DynamicButton onClick={save} state={saving ? 'pending' : message?.ok ? 'success' : 'idle'}>
+                  {saving ? t('saving') : message?.ok ? t('savedAction') : t('save')}
+                </DynamicButton>
                 {message && (
                   <p role="status" className={message.ok ? 'text-[13px]' : 'text-[13px] text-destructive'}>
                     {message.text}

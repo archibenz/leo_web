@@ -2,7 +2,7 @@
 
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
-import {AlertCircle, ArrowUpRight, Check, LoaderCircle, Send} from 'lucide-react';
+import {AlertCircle, Check, LoaderCircle, Send} from 'lucide-react';
 import {Button} from '../ui/button';
 import {getTelegramLinkStatus, issueTelegramLink, telegramLinkFailure, telegramLinkRetryAt,
   type TelegramLinkChallenge, type TelegramLinkFailure} from '../../lib/telegramLink';
@@ -235,7 +235,7 @@ function TelegramLinkControls({userId, role, onSignInAgain}: Props) {
                 expireChallenge();
               }
             }}>
-            {t('openTelegram')}<ArrowUpRight aria-hidden="true" size={16} />
+            {t('openTelegram')}
           </a>
           <details className="wv-telegram-hint">
             <summary>{t('helpTitle')}</summary>
@@ -246,7 +246,6 @@ function TelegramLinkControls({userId, role, onSignInAgain}: Props) {
         <Button variant="white" size="white" className="wv-telegram-action" disabled={busy || view.retryAt !== null}
           onClick={() => failed && view.retryAction === 'status' ? void checkStatus(true) : void connect()}>
           {t(busy ? 'working' : view.retryAt ? 'wait' : failed ? 'retry' : view.status === 'refresh' ? 'refreshAction' : 'connect')}
-          {!busy && <ArrowUpRight aria-hidden="true" size={16} />}
         </Button>
       )}
     </section>

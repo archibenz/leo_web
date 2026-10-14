@@ -27,6 +27,7 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
         ghost: "hover:bg-ui-accent hover:text-ui-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
+        owner: "wv-owner-link gap-4 rounded-[2px] border border-current bg-transparent text-current text-[13px] font-normal uppercase tracking-[0.12em] shadow-none",
         // Кнопка витрины. Заведена потому, что `accent` в теме — золото
         // градиентной админки: любой блок Efferd с `ghost`/`outline` из
         // коробки подсвечивается золотом на ховере, и каждый раз это
@@ -45,6 +46,7 @@ const buttonVariants = cva(
         lg: "h-10 rounded-md px-8",
         icon: "h-9 w-9",
         white: "min-h-[52px] px-9 py-4",
+        owner: "min-h-12 px-4 py-3",
       },
     },
     defaultVariants: {
