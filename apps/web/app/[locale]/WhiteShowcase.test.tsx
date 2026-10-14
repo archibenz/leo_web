@@ -1,6 +1,7 @@
 import type {ComponentProps} from 'react';
-import {afterEach, describe, it, expect, vi} from 'vitest';
-import {render, screen, cleanup, waitFor} from '@testing-library/react';
+import {renderToStaticMarkup} from 'react-dom/server';
+import {afterEach, beforeEach, describe, it, expect, vi} from 'vitest';
+import {render, screen, cleanup, waitFor, act} from '@testing-library/react';
 import WhiteShowcase from './WhiteShowcase';
 import {NextIntlClientProvider} from 'next-intl';
 import enMessages from '../../messages/en.json';
@@ -35,12 +36,26 @@ if (typeof window !== 'undefined') {
 
 // jsdom ships neither; the showcase portal + cards need them to mount.
 class MockIntersectionObserver {
-  observe() {}
+  static observers: MockIntersectionObserver[] = [];
+  elements = new Set<Element>();
+  constructor(private callback: IntersectionObserverCallback) {
+    MockIntersectionObserver.observers.push(this);
+  }
+  observe(element: Element) { this.elements.add(element); }
   unobserve() {}
-  disconnect() {}
+  disconnect() { this.elements.clear(); }
   takeRecords() {
     return [];
   }
+}
+function showVideo(video: Element, visible: boolean) {
+  act(() => {
+    for (const observer of MockIntersectionObserver.observers) {
+      if (observer.elements.has(video)) observer['callback']([
+        {target: video, isIntersecting: visible, intersectionRatio: visible ? 1 : 0} as IntersectionObserverEntry,
+      ], observer as unknown as IntersectionObserver);
+    }
+  });
 }
 Object.defineProperty(globalThis, 'IntersectionObserver', {value: MockIntersectionObserver, configurable: true, writable: true});
 if (typeof window !== 'undefined' && !window.matchMedia) {
@@ -74,12 +89,135 @@ function renderHome(over: Partial<ComponentProps<typeof WhiteShowcase>> = {}) {
   );
 }
 
+beforeEach(() => {
+  MockIntersectionObserver.observers = [];
+  vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => {});
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
+  vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+});
+
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  vi.restoreAllMocks();
 });
 
 describe('WhiteShowcase image-led home', () => {
+  it('preloads the correct hero during streamed HTML parsing without starting hidden playback', () => {
+    const load = vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => {});
+    const play = vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+    const html = renderToStaticMarkup(
+      <NextIntlClientProvider locale="en" messages={enMessages as never}>
+        <WhiteShowcase locale="en" featured={[]} hero={HERO} nonce="test-nonce" />
+      </NextIntlClientProvider>,
+    );
+    const hidden = document.createElement('div');
+    hidden.hidden = true;
+    hidden.innerHTML = html;
+    document.body.append(hidden);
+    try {
+      const video = hidden.querySelector('video')!;
+      const script = hidden.querySelector('script')!;
+      expect(video).not.toHaveAttribute('src');
+      expect(video.querySelector('source')).toBeNull();
+      expect(script).toHaveAttribute('nonce', 'test-nonce');
+      new Function('matchMedia', script.textContent!)(window.matchMedia);
+      expect(play).not.toHaveBeenCalled();
+      expect(video.getAttribute('src')).toBe(HERO.videoUrl);
+      expect(video.preload).toBe('auto');
+      expect(load).toHaveBeenCalledOnce();
+      expect(video.currentTime).toBe(0);
+    } finally {
+      hidden.remove();
+    }
+  });
+
+  it('does not start the hero before a real visibility observation after hydration', () => {
+    vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => {});
+    vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
+    const play = vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+    const {container} = renderHome();
+    expect(container.querySelector('video')!.currentTime).toBe(0);
+    expect(play).not.toHaveBeenCalled();
+  });
+
+  it('plays only while the hero and its browser tab are visible', async () => {
+    const {container} = renderHome();
+    const video = container.querySelector('video')!;
+    const play = vi.mocked(video.play);
+    const pause = vi.mocked(video.pause);
+    showVideo(video, true);
+    await act(async () => {});
+    expect(play).toHaveBeenCalledOnce();
+    showVideo(video, false);
+    expect(pause).toHaveBeenCalled();
+    play.mockClear();
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+    showVideo(video, true);
+    expect(play).not.toHaveBeenCalled();
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+    await act(async () => {});
+    expect(play).toHaveBeenCalledOnce();
+    pause.mockClear();
+    vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+    expect(pause.mock.contexts.filter((element) => element === video)).toHaveLength(1);
+  });
+
+  it('waits for the page reveal to finish instead of playing behind its opacity animation', async () => {
+    let finish!: () => void;
+    const finished = new Promise<void>((resolve) => { finish = resolve; });
+    const {container} = renderHome();
+    container.className = 'page-enter';
+    const animation = {animationName: 'pageEnter', playState: 'running', finished};
+    Object.defineProperty(container, 'getAnimations', {value: () => [animation]});
+    const video = container.querySelector('video')!;
+    showVideo(video, true);
+    expect(video.play).not.toHaveBeenCalled();
+    expect(video.currentTime).toBe(0);
+    animation.playState = 'finished';
+    await act(async () => { finish(); });
+    expect(video.play).toHaveBeenCalledOnce();
+  });
+
+  it('does not start a scrolled-away hero after the page reveal finishes', async () => {
+    let finish!: () => void;
+    const finished = new Promise<void>((resolve) => { finish = resolve; });
+    const {container} = renderHome();
+    container.className = 'page-enter';
+    Object.defineProperty(container, 'getAnimations', {value: () => [
+      {animationName: 'pageEnter', playState: 'running', finished},
+    ]});
+    const video = container.querySelector('video')!;
+    showVideo(video, true);
+    showVideo(video, false);
+    await act(async () => { finish(); });
+    expect(video.play).not.toHaveBeenCalled();
+  });
+
+  it('pauses a late play completion after unmount and disconnects its observer', async () => {
+    let finish!: () => void;
+    vi.mocked(HTMLMediaElement.prototype.play).mockImplementation(() => new Promise<void>((resolve) => { finish = resolve; }));
+    const {container, unmount} = renderHome();
+    const video = container.querySelector('video')!;
+    showVideo(video, true);
+    expect(video.play).toHaveBeenCalledOnce();
+    unmount();
+    vi.mocked(video.pause).mockClear();
+    await act(async () => { finish(); });
+    expect(video.pause).toHaveBeenCalledOnce();
+    expect(MockIntersectionObserver.observers.some((observer) => observer.elements.has(video))).toBe(false);
+  });
+
+  it('handles blocked autoplay without a retry loop', async () => {
+    vi.mocked(HTMLMediaElement.prototype.play).mockRejectedValue(new DOMException('Blocked', 'NotAllowedError'));
+    const {container} = renderHome();
+    showVideo(container.querySelector('video')!, true);
+    await act(async () => {});
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledOnce();
+  });
+
   it('mounts the portal with a single hero h1 and the shop CTA', async () => {
     renderHome();
 
