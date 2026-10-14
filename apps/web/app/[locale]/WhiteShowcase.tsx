@@ -13,6 +13,7 @@ import {INK, MUTED, HAIR} from './wv-palette';
 import {WhiteArrow} from './wv-icons';
 import EditableSection from '../../components/editor/EditableSection';
 import {safeJsonLd} from '../../lib/jsonLd';
+import {useVisibleVideo} from '../../lib/useVisibleVideo';
 import type {StorefrontSection, WhiteProduct} from '../../lib/catalogue/types';
 
 // Variant 2 "White" showcase. Rendered through a portal to document.body so the
@@ -84,56 +85,8 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
     return () => window.removeEventListener('hashchange', toHash);
   }, []);
 
-  // РОЛИК СЕТОВ НЕ ЗАБИРАЕТ КАНАЛ У ГЕРОЯ.
-  //
-  // Он лежит ниже сгиба, но стоял с autoPlay — а autoPlay заставляет браузер
-  // качать файл НЕЗАВИСИМО от preload="none": чтобы играть, надо скачать.
-  // Адрес при этом виден сканеру предзагрузки прямо в разметке, тогда как у
-  // героя адреса в разметке нет вовсе (он появляется после гидратации, см.
-  // объяснение ниже). Итог измерен 21.09 на телефонном профиле:
-  //
-  //   sets-static.mp4 (не виден)  @1813 мс
-  //   hero-mark2.mp4  (на экране) @4729 мс
-  //
-  // Ролик, которого человек не видит, начинал грузиться на 2,9 секунды раньше
-  // того, на который он смотрит, и на узком канале это прямо отодвигает первый
-  // кадр героя.
-  //
-  // Лечение: играть, когда подходит к экрану, а не при загрузке страницы.
-  // rootMargin в пол-экрана — чтобы к моменту, когда блок доехал до глаз, файл
-  // уже был. Наблюдателя нет (старый движок) — играем сразу, как раньше: без
-  // ролика блок теряет смысл, а постер у него и так стоит.
-  useEffect(() => {
-    const v = setsVideoRef.current;
-    if (!v) return;
-    // И КАРТИНКА ТОЖЕ, а не только ролик. Атрибут `poster` не слушает
-    // preload="none": браузер тянет его всегда, и 161 КБ блока НИЖЕ СГИБА
-    // стояли в очереди первого экрана рядом с постером героя. Замерено 21.09:
-    // sets-static.jpg стартовал на 370 мс и делил канал с тем, на что человек
-    // в этот момент смотрит.
-    //
-    // Днём мы убрали отсюда autoPlay и решили, что случай закрыт. Он был
-    // закрыт наполовину: ролик перестал грузиться, его картинка — нет.
-    const пуск = () => {
-      const картинка = v.getAttribute('data-poster');
-      if (картинка && !v.getAttribute('poster')) v.setAttribute('poster', картинка);
-      void v.play()?.catch(() => {});
-    };
-    if (typeof IntersectionObserver === 'undefined') {
-      пуск();
-      return;
-    }
-    const наблюдатель = new IntersectionObserver(
-      (записи) => {
-        if (!записи.some((з) => з.isIntersecting)) return;
-        пуск();
-        наблюдатель.disconnect();
-      },
-      {rootMargin: '50% 0px'},
-    );
-    наблюдатель.observe(v);
-    return () => наблюдатель.disconnect();
-  }, []);
+  // Preload near the viewport; playback waits until the film is on screen.
+  useVisibleVideo(setsVideoRef, setsVideo, setsPoster);
 
   // Two single-source <video> elements (one per breakpoint, toggled by CSS)
   // were also tried and measured: a `display:none` container does not stop
@@ -390,10 +343,9 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
               Capped at 560px on a desktop: at half of a wide viewport the film
               stood 960px tall, and beside something that size the copy next to
               it read as fine print. */}
-          <div className="wv-rise wv-scrub relative mx-auto aspect-[3/4] w-full overflow-hidden lg:max-w-[560px]">
-            {/* Без autoPlay: он тянет файл независимо от preload="none" и
-                отодвигал первый кадр героя (эффект выше, там числа).
-                Пуск даёт наблюдатель, когда блок подходит к экрану. */}
+          <div className="relative mx-auto aspect-[3/4] w-full overflow-hidden lg:max-w-[560px]">
+            {/* Keep the media opaque: a scroll reveal can hide advancing frames.
+                Loading nearby and playing on screen have separate observers. */}
             <video
               ref={setsVideoRef}
               muted
