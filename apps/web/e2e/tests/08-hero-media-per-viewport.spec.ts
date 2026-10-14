@@ -1,7 +1,7 @@
 import {test, expect, type Page} from '@playwright/test';
 import {STOREFRONT_FIXTURE} from '../../lib/catalogue/fixture';
 import {skipUnlessFixtureCatalogue} from '../fixtures/catalogue';
-import {openWhite} from '../fixtures/white';
+import {hydrateViaCookieNotice, openWhite} from '../fixtures/white';
 
 // lw-smu6 — на широком экране первым кадром видна телефонная обложка героя.
 // Причина: сервер не знает ширины экрана, поэтому portrait-файлы всегда уходили
@@ -31,6 +31,7 @@ import {openWhite} from '../fixtures/white';
 // витрина, — так спек проверяет страницу, а не собственные ожидания о ней.
 
 const HERO = STOREFRONT_FIXTURE.sections.find((s) => s.layout === 'hero')!;
+const SETS = STOREFRONT_FIXTURE.sections.find((s) => s.layout === 'sets-teaser')!;
 
 const NARROW = {width: 390, height: 844};
 const WIDE = {width: 1440, height: 900};
@@ -66,6 +67,71 @@ async function waitForHeroVideoSrc(page: Page): Promise<string> {
 
 test.beforeEach(async ({request}) => {
   await skipUnlessFixtureCatalogue(request);
+});
+
+test.describe('collection media waits for the viewer', () => {
+  test.beforeEach(async ({page}) => {
+    await page.route('**/api/auth/me', (route) => route.fulfill({status: 401, json: {error: 'unauthorized'}}));
+  });
+
+  for (const viewport of [NARROW, WIDE]) {
+    test(`preloads without playing below the ${viewport.width}px viewport, then pauses and resumes on screen`, async ({page}) => {
+      await page.setViewportSize(viewport);
+      await openWhite(page, '/ru');
+      await hydrateViaCookieNotice(page);
+      const video = page.locator('#wv-atelier video');
+      const placeVideo = (top: number) => video.evaluate((element, y) => {
+        window.scrollBy({top: element.getBoundingClientRect().top - y, behavior: 'instant'});
+      }, top);
+
+      await placeVideo(viewport.height + 100);
+      await expect(video).toHaveAttribute('poster', SETS.posterUrl!);
+      await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.readyState)).toBeGreaterThanOrEqual(2);
+      await page.waitForTimeout(1_000);
+      const waiting = await video.evaluate((element: HTMLVideoElement) => ({
+        top: element.getBoundingClientRect().top, paused: element.paused, time: element.currentTime,
+      }));
+      expect(waiting.top).toBeGreaterThan(viewport.height);
+      expect(waiting.paused).toBe(true);
+      expect(waiting.time).toBe(0);
+
+      await placeVideo(100);
+      await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeGreaterThan(0.2);
+      const opacity = await video.evaluate((element) => {
+        let effectiveOpacity = 1;
+        for (let ancestor: Element | null = element; ancestor; ancestor = ancestor.parentElement) {
+          effectiveOpacity *= Number(getComputedStyle(ancestor).opacity);
+        }
+        return effectiveOpacity;
+      });
+      expect(opacity).toBe(1);
+
+      await placeVideo(viewport.height + 100);
+      await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.paused)).toBe(true);
+      const pausedAt = await video.evaluate((element: HTMLVideoElement) => element.currentTime);
+      await page.waitForTimeout(300);
+      expect(await video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeCloseTo(pausedAt, 2);
+      await placeVideo(100);
+      await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeGreaterThan(pausedAt + 0.1);
+    });
+  }
+
+  test('reduced motion keeps both posters without requesting either video', async ({page}) => {
+    await page.setViewportSize(WIDE);
+    await page.emulateMedia({reducedMotion: 'reduce'});
+    const paths = trackRequestPaths(page);
+    await openWhite(page, '/ru');
+    await hydrateViaCookieNotice(page);
+    const video = page.locator('#wv-atelier video');
+    await video.scrollIntoViewIfNeeded();
+    await expect(video).toHaveAttribute('poster', SETS.posterUrl!);
+    await page.waitForTimeout(SETTLE_MS);
+    expect(await video.evaluate((element: HTMLVideoElement) => ({paused: element.paused, time: element.currentTime})))
+      .toEqual({paused: true, time: 0});
+    expect(paths).not.toContain(SETS.videoUrl!);
+    expect(paths).not.toContain(HERO.videoUrl!);
+    expect(paths).not.toContain(HERO.videoDesktopUrl!);
+  });
 });
 
 test.describe('hero media stays on its own side of the breakpoint', () => {
