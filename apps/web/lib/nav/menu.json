@@ -25,6 +25,43 @@
       "emphasis": true
     },
     {
+      "id": "data-entry",
+      "title": {
+        "ru": "Ввод данных"
+      },
+      "fold": true,
+      "items": [
+        {
+          "id": "data-entry-costs",
+          "title": {
+            "ru": "Себестоимость"
+          },
+          "icon": "sheet",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/data-entry/costs",
+          "match": "prefix",
+          "roles": [
+            "section:products"
+          ]
+        },
+        {
+          "id": "data-entry-operating-expenses",
+          "title": {
+            "ru": "Операционные расходы"
+          },
+          "icon": "wallet",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/data-entry/operating-expenses",
+          "match": "prefix",
+          "roles": [
+            "section:finance"
+          ]
+        }
+      ]
+    },
+    {
       "id": "wb",
       "title": {
         "ru": "WB"
