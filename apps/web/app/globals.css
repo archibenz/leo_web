@@ -2536,7 +2536,34 @@ body:has([data-edit-bar='full']) [data-edit-bar='intent'] {
 }
 .wv-owner-link:focus-visible::before { transform: none; }
 .wv-owner-link:focus-visible .wv-owner-arrow { transform: translate(2px, -2px); }
-.wv-owner-link:active { opacity: 0.75; }
+.wv-owner-link:active:not(:disabled) { opacity: 0.75; }
+
+.wv-dynamic-width {
+  display: inline-block;
+  vertical-align: middle;
+  transition: width 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wv-dynamic-content {
+  display: inline-flex;
+  width: max-content;
+  align-items: center;
+  gap: 16px;
+  animation: wv-action-enter 180ms ease-out;
+}
+.wv-dynamic-spinner { animation: wv-action-spin 900ms linear infinite; }
+@keyframes wv-action-enter {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes wv-action-spin { to { transform: rotate(360deg); } }
+
+.wv-scroll-fade {
+  --wv-fade-top: 0px;
+  --wv-fade-bottom: 0px;
+  mask-image: linear-gradient(to bottom, transparent, #000 var(--wv-fade-top), #000 calc(100% - var(--wv-fade-bottom)), transparent);
+}
+/* Keep keyboard targets and their focus rings fully visible. */
+.wv-scroll-fade:focus-within { mask-image: none; }
 
 .wv-telegram-card {
   margin-top: 32px;
@@ -2616,8 +2643,8 @@ body:has([data-edit-bar='full']) [data-edit-bar='intent'] {
   to { opacity: 1; transform: none; }
 }
 @media (hover: hover) {
-  .wv-owner-link:hover::before { transform: none; }
-  .wv-owner-link:hover .wv-owner-arrow { transform: translate(2px, -2px); }
+  .wv-owner-link:hover:not(:disabled)::before { transform: none; }
+  .wv-owner-link:hover:not(:disabled) .wv-owner-arrow { transform: translate(2px, -2px); }
   .wv-telegram-action:hover:not(:disabled) svg { transform: translateX(2px); }
 }
 @media (max-width: 480px) {
@@ -2626,11 +2653,14 @@ body:has([data-edit-bar='full']) [data-edit-bar='intent'] {
 @media (prefers-reduced-motion: reduce) {
   .wv-owner-link::before,
   .wv-owner-arrow,
+  .wv-dynamic-width,
   .wv-telegram-action svg { transition: none; }
   .wv-owner-link:focus-visible .wv-owner-arrow,
-  .wv-owner-link:hover .wv-owner-arrow,
+  .wv-owner-link:hover:not(:disabled) .wv-owner-arrow,
   .wv-telegram-action:hover:not(:disabled) svg { transform: none; }
   .wv-account-enter,
+  .wv-dynamic-content,
+  .wv-dynamic-spinner,
   .wv-telegram-state,
   .wv-telegram-progress { animation: none; }
 }

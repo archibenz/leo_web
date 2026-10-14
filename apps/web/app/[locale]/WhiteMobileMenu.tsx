@@ -6,6 +6,9 @@ import {useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
+import {ArrowUpRight} from 'lucide-react';
+import {Button} from '../../components/ui/button';
+import {ScrollFade} from '../../components/ui/scroll-fade';
 import {useFocusTrap} from '../../lib/useFocusTrap';
 import {useWhiteAuth} from '../../hooks/useWhiteAuth';
 import {useMountTransition} from '../../lib/useMountTransition';
@@ -190,14 +193,12 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                 <span className="text-[17px] leading-snug md:text-[19px]" style={{color: INK}}>
                   {user ? t('welcomeName', {name: user.name}) : t('welcome')}
                 </span>
-                <Link
-                  href={`/${locale}/account`}
-                  onClick={() => setOpen(false)}
-                  className="wv-cta relative inline-flex w-full items-center justify-center overflow-hidden border px-6 py-3.5 text-[12px] uppercase tracking-[0.2em]"
-                  style={{borderColor: INK, color: INK}}
-                >
-                  <span className="wv-cta-label relative z-[1]">{user ? t('toAccount') : t('signIn')}</span>
-                </Link>
+                <Button asChild variant="owner" size="owner" className="w-full justify-between text-left">
+                  <Link href={`/${locale}/account`} onClick={() => setOpen(false)}>
+                    <span>{user ? t('toAccount') : t('signIn')}</span>
+                    <ArrowUpRight className="wv-owner-arrow" size={17} aria-hidden="true" />
+                  </Link>
+                </Button>
               </div>
             </div>
 
@@ -206,27 +207,29 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                 clips at the top once it overflows, and with sets added the list
                 no longer fits a 900px desktop: the last category was hidden
                 behind the service block. */}
-            <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6">
-              <div className="flex w-full flex-col pb-6 pt-1">
-                {links.map((l) => {
-                  // Sets is a page of its own, so it answers to the path; the
-                  // rest are filters on the shop and answer to the category.
-                  const active = l.key === 'sets' ? pathname === l.href : activeCat != null && l.key === activeCat;
-                  return (
-                    <Link
-                      key={l.key}
-                      href={l.href}
-                      onClick={() => setOpen(false)}
-                      aria-current={active ? 'page' : undefined}
-                      className="wv-menu-item wv-menu-link flex min-h-11 items-center font-display text-[26px] font-light tracking-[-0.01em] md:text-[30px]"
-                      style={{color: active ? INK : MUTED, fontWeight: active ? 500 : 300, animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
-                    >
-                      <span className="wv-menu-label">{l.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </nav>
+            <ScrollFade asChild>
+              <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto px-6">
+                <div className="flex w-full flex-col pb-6 pt-1">
+                  {links.map((l) => {
+                    // Sets is a page of its own, so it answers to the path; the
+                    // rest are filters on the shop and answer to the category.
+                    const active = l.key === 'sets' ? pathname === l.href : activeCat != null && l.key === activeCat;
+                    return (
+                      <Link
+                        key={l.key}
+                        href={l.href}
+                        onClick={() => setOpen(false)}
+                        aria-current={active ? 'page' : undefined}
+                        className="wv-menu-item wv-menu-link flex min-h-11 items-center font-display text-[26px] font-light tracking-[-0.01em] md:text-[30px]"
+                        style={{color: active ? INK : MUTED, fontWeight: active ? 500 : 300, animationDelay: `${90 + links.indexOf(l) * 45}ms`}}
+                      >
+                        <span className="wv-menu-label">{l.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </nav>
+            </ScrollFade>
 
             {/* Service pages — small stacked rows, each arriving on the same
                 cadence as the categories above. */}
