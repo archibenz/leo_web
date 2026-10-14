@@ -1,7 +1,6 @@
 'use client';
 
 import {useLayoutEffect, useRef, useState} from 'react';
-import {ArrowUpRight, Check, Loader2} from 'lucide-react';
 import {Button, type ButtonProps} from './button';
 
 type DynamicButtonProps = Omit<ButtonProps, 'asChild' | 'children'> & {
@@ -26,13 +25,11 @@ export function DynamicButton({children, state, disabled, type = 'button', ...pr
     return () => observer.disconnect();
   }, [children, state]);
 
-  const Icon = state === 'pending' ? Loader2 : state === 'success' ? Check : ArrowUpRight;
   return (
     <Button variant="owner" size="owner" {...props} type={type} disabled={disabled || state === 'pending'} aria-busy={state === 'pending'}>
       <span className="wv-dynamic-width" style={{width}}>
         <span key={state} ref={content} className="wv-dynamic-content">
-          <span>{children}</span>
-          <Icon aria-hidden="true" className={state === 'pending' ? 'wv-dynamic-spinner' : state === 'idle' ? 'wv-owner-arrow' : undefined} />
+          {children}
         </span>
       </span>
     </Button>

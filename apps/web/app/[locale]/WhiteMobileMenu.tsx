@@ -6,7 +6,6 @@ import {useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import {usePathname} from 'next/navigation';
 import {useTranslations} from 'next-intl';
-import {ArrowUpRight} from 'lucide-react';
 import {Button} from '../../components/ui/button';
 import {ScrollFade} from '../../components/ui/scroll-fade';
 import {useFocusTrap} from '../../lib/useFocusTrap';
@@ -196,7 +195,6 @@ export default function WhiteMobileMenu({locale, activeCat}: {locale: string; ac
                 <Button asChild variant="owner" size="owner" className="w-full justify-between text-left">
                   <Link href={`/${locale}/account`} onClick={() => setOpen(false)}>
                     <span>{user ? t('toAccount') : t('signIn')}</span>
-                    <ArrowUpRight className="wv-owner-arrow" size={17} aria-hidden="true" />
                   </Link>
                 </Button>
               </div>

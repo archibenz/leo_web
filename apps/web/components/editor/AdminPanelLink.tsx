@@ -1,7 +1,6 @@
 'use client';
 
 import {useTranslations} from 'next-intl';
-import {ArrowUpRight} from 'lucide-react';
 import {useEditorSession} from './useEditorSession';
 import {Button} from '../ui/button';
 
@@ -39,7 +38,6 @@ export default function AdminPanelLink({locale}: {locale: string}) {
     <Button asChild variant="owner" size="owner" className="mt-3 w-full justify-between text-left" style={OWNER_LINK_STYLE}>
       <a href={`/${locale}/admin`}>
         <span>{t('adminLink')}</span>
-        <ArrowUpRight className="wv-owner-arrow" size={17} aria-hidden="true" />
       </a>
     </Button>
   );

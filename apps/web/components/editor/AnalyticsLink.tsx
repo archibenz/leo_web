@@ -1,7 +1,6 @@
 'use client';
 
 import {useTranslations} from 'next-intl';
-import {ArrowUpRight} from 'lucide-react';
 import {useEditorSession} from './useEditorSession';
 import {OWNER_LINK_STYLE} from './AdminPanelLink';
 import {Button} from '../ui/button';
@@ -22,7 +21,6 @@ export default function AnalyticsLink() {
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Analytics is a separate application served by nginx. */}
       <a href="/analytics">
         <span>{t('analyticsLink')}</span>
-        <ArrowUpRight className="wv-owner-arrow" size={17} aria-hidden="true" />
       </a>
     </Button>
   );
