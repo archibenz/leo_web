@@ -3,9 +3,10 @@
 import {useState, useEffect, useMemo} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import {MoreHorizontalIcon, PencilIcon, Trash2Icon} from 'lucide-react';
-import BrandLoader from '../../../../../components/BrandLoader';
+import {PageSkeleton} from '@/components/loading/PageSkeleton';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {apiFetch} from '../../../../../lib/api';
 import {formatPrice} from '../../../../../lib/formatPrice';
 import {Badge} from '../../../../../components/ui/badge';
@@ -56,6 +57,8 @@ export default function AdminProductsPage() {
   // 13, все неактивны, английскими названиями стояли первыми и отодвигали 87
   // настоящих. Не удаляем — на них могут быть ссылки; показываются по кнопке.
   const [showTest, setShowTest] = useState(false);
+
+  usePageLoading(loading);
 
   useEffect(() => {
     let active = true;
@@ -131,9 +134,7 @@ export default function AdminProductsPage() {
     >
       {deleteError && <p role="alert" className="text-[13px] text-destructive">{deleteError}</p>}
       {loading ? (
-        <div role="status" aria-label={ui('loading')} className="flex items-center justify-center py-20">
-          <BrandLoader size={32} />
-        </div>
+        <PageSkeleton kind="admin-table" embedded />
       ) : loadFailed ? (
         <Panel><p role="alert" className="mb-4 text-[13px]">{ui('loadFailed')}</p><Button className="min-h-11" onClick={() => setLoadAttempt(value => value + 1)}>{ui('retry')}</Button></Panel>
       ) : products.length === 0 ? (

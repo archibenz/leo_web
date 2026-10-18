@@ -1,7 +1,8 @@
 'use client';
 
 import {Suspense, useEffect, useRef, useState} from 'react';
-import {useSearchParams, useRouter} from 'next/navigation';
+import {useSearchParams} from 'next/navigation';
+import {useLoadingRouter as useRouter} from '@/components/loading/useLoadingRouter';
 import {useLocale, useTranslations} from 'next-intl';
 import {apiFetch} from '../../../../../lib/api';
 import {authRetryDelay} from '../../../../../lib/authSession';

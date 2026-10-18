@@ -1,7 +1,7 @@
 'use client';
 
 import {useRef, type ReactNode} from 'react';
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import Image from 'next/image';
 import BlurReveal from './BlurReveal';
 import {Carousel} from './ui/carousel';

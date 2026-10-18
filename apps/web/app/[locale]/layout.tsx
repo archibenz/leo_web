@@ -6,6 +6,7 @@ import {NextIntlClientProvider} from 'next-intl';
 import {getMessages} from 'next-intl/server';
 import Metrika from '../../components/Metrika';
 import SiteEventsRouteTracker from '../../components/SiteEventsRouteTracker';
+import {PageLoadingProvider} from '../../components/loading/PageLoadingProvider';
 
 import {locales, type Locale} from '../../i18n';
 
@@ -72,7 +73,7 @@ export default async function LocaleLayout({
       <Suspense fallback={null}>
         <SiteEventsRouteTracker />
       </Suspense>
-      {children}
+      <PageLoadingProvider>{children}</PageLoadingProvider>
     </NextIntlClientProvider>
   );
 }

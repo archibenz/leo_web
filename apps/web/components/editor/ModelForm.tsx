@@ -6,6 +6,7 @@ import {HAIR, INK, MUTED, SIGNAL} from '../../app/[locale]/wv-palette';
 import {EditorButton, TextField} from './EditorFields';
 import {saveModelDraft, type Patch} from './editorApi';
 import {classifyModelErrors, extractApiFieldErrors, type KnownModelField} from './modelFieldErrors';
+import {useEditorFormState} from './useEditorFormState';
 
 // Название, короткое описание, история, состав и уход модели — та же карточка,
 // что уже открывает VariantForm (apiFetch<ModelDto> отдаёт её целиком, черновик
@@ -187,23 +188,27 @@ const FIELD_ERROR_TEXT: Record<KnownModelField, string> = {
 
 const EN_FIELDS_ID = 'wv-model-en-fields';
 
-export default function ModelForm({modelId, onSaved}: {
+type Props = {
   modelId: string;
   onSaved: () => void;
-}) {
+};
+
+export default function ModelForm(props: Props) {
+  return <ModelFormFields key={props.modelId} {...props} />;
+}
+
+function ModelFormFields({modelId, onSaved}: Props) {
   const [before, setBefore] = useState<Draft | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [serverFieldErrors, setServerFieldErrors] = useState<Partial<Record<KnownModelField, string>>>({});
   const [enOpen, setEnOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
-    // Переключение на другую модель без закрытия панели не размонтирует
-    // ModelForm — меняется только modelId. Черновик сбрасываем СРАЗУ, а не
-    // ждём ответа сети — тот же приём и та же причина, что у VariantForm: поля
-    // не должны на мгновение показать чужую, ещё не подтверждённую карточку.
+    // Ответ старой карточки не должен попасть в новую после смены цели.
     setBefore(null);
     setDraft(null);
     setError(null);
@@ -215,11 +220,16 @@ export default function ModelForm({modelId, onSaved}: {
         setBefore(loaded);
         setDraft(loaded);
       })
-      .catch((e: unknown) => alive && setError(e instanceof Error ? e.message : 'не прочиталось'));
+      .catch((e: unknown) => alive && setError(e instanceof Error ? e.message : 'не прочиталось'))
+      .finally(() => { if (alive) setLoading(false); });
     return () => {
       alive = false;
     };
   }, [modelId]);
+
+  const patch = before && draft ? patchOf(before, draft) : {};
+  const dirty = Object.keys(patch).length > 0;
+  useEditorFormState(dirty, busy || loading, () => { setDraft(before); setError(null); setServerFieldErrors({}); });
 
   if (error && !draft) {
     return (
@@ -236,8 +246,6 @@ export default function ModelForm({modelId, onSaved}: {
     );
   }
 
-  const patch = patchOf(before, draft);
-  const dirty = Object.keys(patch).length > 0;
   const blank = blankRequiredFields(patch);
   // Хотя бы один размер: без него сервер отобьёт весь черновик (@NotEmpty), а
   // карточка останется без кнопок размеров.
@@ -288,11 +296,14 @@ export default function ModelForm({modelId, onSaved}: {
     blankSet.has(field) ? FIELD_ERROR_TEXT[field] : serverFieldErrors[field];
 
   async function save() {
+    if (!draft || !dirty || busy || blank.length > 0 || noSizes || badCells) return;
+    const submitted = draft;
     setBusy(true);
     setError(null);
     setServerFieldErrors({});
     try {
       await saveModelDraft(modelId, patch);
+      setBefore(submitted);
       onSaved();
     } catch (e) {
       const {known, unknownFields} = classifyModelErrors(extractApiFieldErrors(e));

@@ -58,8 +58,8 @@ async function openModelTextsPanel(page: Page) {
   await mockModelRoutes(page);
   await openWhite(page, `/ru/product/${PRODUCT.slug}?edit=1`);
 
-  await page.getByRole('button', {name: 'Название', exact: true}).click();
-  const panel = page.getByRole('complementary', {name: 'Правка витрины'});
+  await page.getByRole('group', {name: 'Название', exact: true}).click();
+  const panel = page.getByRole('complementary', {name: 'Редактор сайта'});
   // Карточка реально прочиталась (панель не застряла на «читаю карточку…») —
   // без этого следующий шаг просто не нашёл бы поле и упал бы менее внятно.
   await expect(panel.getByRole('textbox', {name: 'Название · ru', exact: true})).toHaveValue(PRODUCT.ru);

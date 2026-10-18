@@ -1,5 +1,9 @@
-import LoaderSplash from '../../../../components/LoaderSplash';
+'use client';
+
+import {usePathname} from 'next/navigation';
+import {PageLoadingFallback, getPageSkeletonKind} from '@/components/loading/PageSkeleton';
 
 export default function Loading() {
-  return <LoaderSplash />;
+  const pathname = usePathname();
+  return <PageLoadingFallback kind={getPageSkeletonKind(pathname ?? '/admin')} />;
 }

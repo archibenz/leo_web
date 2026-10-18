@@ -1,7 +1,10 @@
 'use client';
 
+import Link from '@/components/loading/LoadingLink';
 import {useState, useRef, useEffect, useId} from 'react';
 import Image from 'next/image';
+import {PageSkeleton} from '@/components/loading/PageSkeleton';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
@@ -39,6 +42,7 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
   const {count} = useWhiteBag();
   const {count: favCount} = useWhiteFavourites();
   const {user, ready, authError, logoutError, isLoggingOut} = useWhiteAuth();
+  usePageLoading(!ready || isLoggingOut);
   const t = useTranslations('white.account');
   const ta = useTranslations('auth');
   const tf = useTranslations('white.footer');
@@ -170,11 +174,7 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
         <div className="relative mx-auto w-full max-w-[420px]">
           <p className="mb-7 text-[11px] uppercase tracking-[0.32em]" style={{color: MUTED}}>{t('eyebrow')}</p>
 
-          {/* Пока вход не выяснен — место под форму, а не пустота. Прежде тут
-              стоял null: форма появлялась через долю секунды и дважды
-              сдвигала подвал — CLS 1,16 на телефоне (вычистка 26.09). 600 px —
-              замеренная высота формы входа на 390/768/1440 (596–607). */}
-          {!ready ? <div aria-hidden="true" className="min-h-[600px]" /> : isLoggingOut ? (
+          {!ready ? <PageSkeleton kind="account" embedded className="min-h-[600px]" /> : isLoggingOut ? (
             <p role="status" className="min-h-[600px] text-[15px]" style={{color: MUTED}}>{ta('loggingOut')}</p>
           ) : logoutError || authError ? (
             <div className="min-h-[600px] wv-account-enter">
@@ -207,12 +207,12 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
                     спана подписи некуда отойти, и черта идёт прямо по буквам —
                     на телефоне это видно постоянно, потому что после касания
                     фокус залипает. */}
-                <a href={`/${locale}/favourites`} className="wv-menu-link flex min-h-12 items-center text-[14px]">
+                <Link href={`/${locale}/favourites`} className="wv-menu-link flex min-h-12 items-center text-[14px]">
                   <span className="wv-menu-label">{t('favourites')}{favCount > 0 ? ` · ${favCount}` : ''}</span>
-                </a>
-                <a href={`/${locale}/bag`} className="wv-menu-link flex min-h-12 items-center text-[14px]">
+                </Link>
+                <Link href={`/${locale}/bag`} className="wv-menu-link flex min-h-12 items-center text-[14px]">
                   <span className="wv-menu-label">{t('bag')}{count > 0 ? ` · ${count}` : ''}</span>
-                </a>
+                </Link>
               </div>
 
               {/* Владельцу и только ему. Стоит между своими ссылками и
@@ -264,9 +264,9 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
                   Сторож на место и на различимость — в WhiteAccountShowcase.test.tsx. */}
               <p className="mt-16 max-w-[38ch] text-[13px] leading-relaxed" style={{color: MUTED}}>
                 {t('dataRights')}{' '}
-                <a href={`/${locale}/contact`} className="wv-link">
+                <Link href={`/${locale}/contact`} className="wv-link">
                   <span className="wv-link-ink" style={{color: INK}}>{t('dataRightsCta')}</span>
-                </a>
+                </Link>
               </p>
             </div>
           ) : (
@@ -362,10 +362,10 @@ export default function WhiteAccountShowcase({locale}: {locale: string}) {
                         <span>
                           {t.rich('consent', {
                             policy: (chunks) => (
-                              <a href={`/${locale}/privacy`} className="wv-link-inline" style={{color: INK}}>{chunks}</a>
+                              <Link href={`/${locale}/privacy`} className="wv-link-inline" style={{color: INK}}>{chunks}</Link>
                             ),
                             offer: (chunks) => (
-                              <a href={`/${locale}/offer`} className="wv-link-inline" style={{color: INK}}>{chunks}</a>
+                              <Link href={`/${locale}/offer`} className="wv-link-inline" style={{color: INK}}>{chunks}</Link>
                             ),
                           })}
                         </span>

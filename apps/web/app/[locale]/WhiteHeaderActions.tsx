@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import type {ReactNode} from 'react';
 import {useTranslations} from 'next-intl';
 import {MUTED, INK, SIGNAL} from './wv-palette';

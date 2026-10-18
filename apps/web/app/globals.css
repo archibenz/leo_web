@@ -2582,6 +2582,26 @@ body:has([data-edit-bar='full']) [data-edit-bar='intent'] {
   font-size: 16px;
   line-height: 1.4;
 }
+.wv-telegram-card:is([data-state="linked"], [data-state="verified"]) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 20px;
+  margin-top: 16px;
+  padding: 14px 0;
+  border-width: 0 0 1px;
+  background: transparent;
+}
+.wv-telegram-card:is([data-state="linked"], [data-state="verified"]) .wv-telegram-heading {
+  gap: 8px;
+  font-size: 14px;
+}
+.wv-telegram-card:is([data-state="linked"], [data-state="verified"]) .wv-telegram-state {
+  min-height: 0;
+  margin-top: 0;
+  color: #776e64;
+  font-size: 12px;
+}
 .wv-telegram-icon {
   flex-shrink: 0;
 }

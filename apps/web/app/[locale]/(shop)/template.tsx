@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import {PageContentReady} from '../../../components/loading/PageLoadingProvider';
 
 // Переход между страницами витрины.
 //
@@ -17,5 +18,5 @@ import type {ReactNode} from 'react';
 // Проверено замером на живом стенде: при переходе между разделами админки
 // обращений к `/api/auth/me` не прибавляется.
 export default function ShopTemplate({children}: {children: ReactNode}) {
-  return <div className="page-enter">{children}</div>;
+  return <PageContentReady><div className="page-enter">{children}</div></PageContentReady>;
 }

@@ -3,6 +3,7 @@
 import {useEffect, useMemo, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import BrandLoader from '../../BrandLoader';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {apiFetch} from '../../../lib/api';
 import {Panel, PanelEmpty} from './panel';
 import {Stat, StatGrid} from './stat-grid';
@@ -78,6 +79,7 @@ export function SiteVisits() {
   const [paths, setPaths] = useState<SitePath[] | null>(null);
   const [daysFailed, setDaysFailed] = useState(false);
   const [pathsFailed, setPathsFailed] = useState(false);
+  usePageLoading(!daysFailed && (days === null || (!pathsFailed && paths === null)));
 
   useEffect(() => {
     apiFetch<SiteDay[]>(`/api/admin/stats/site-daily?days=${DAYS}`)

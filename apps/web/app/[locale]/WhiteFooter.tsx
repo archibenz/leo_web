@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import Image from 'next/image';
 import {useEffect, useRef, useState, type FormEvent} from 'react';
 import {useTranslations} from 'next-intl';

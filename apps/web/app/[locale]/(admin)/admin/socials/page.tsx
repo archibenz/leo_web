@@ -2,7 +2,8 @@
 
 import {useEffect, useState} from 'react';
 import {useTranslations} from 'next-intl';
-import BrandLoader from '../../../../../components/BrandLoader';
+import {PageSkeleton} from '@/components/loading/PageSkeleton';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {apiFetch} from '../../../../../lib/api';
 import {DynamicButton} from '../../../../../components/ui/dynamic-button';
 import {Button} from '../../../../../components/ui/button';
@@ -34,6 +35,8 @@ export default function AdminSocialsPage() {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ok: boolean; text: string} | null>(null);
+
+  usePageLoading(!rows && !loadFailed);
 
   useEffect(() => {
     let active = true;
@@ -79,9 +82,7 @@ export default function AdminSocialsPage() {
           <Button className="min-h-11" onClick={() => setLoadAttempt(value => value + 1)}>{ui('retry')}</Button>
         </Panel>
       ) : !rows ? (
-        <div className="flex items-center justify-center py-20">
-          <BrandLoader size={32} />
-        </div>
+        <PageSkeleton kind="admin-form" embedded />
       ) : (
         <Panel>
           <div className="space-y-5">

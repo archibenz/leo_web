@@ -2,7 +2,8 @@
 
 import {useEffect} from 'react';
 import {useTranslations} from 'next-intl';
-import Link from 'next/link';
+import Link from '../../../components/loading/LoadingLink';
+import {PageLoadingError, useLoadingNavigation, browserRoute} from '../../../components/loading/PageLoadingProvider';
 import {useParams} from 'next/navigation';
 import {MUTED} from '../wv-palette';
 import WhiteErrorFigure from '../WhiteErrorFigure';
@@ -13,6 +14,7 @@ import {reportClientError} from '../../../lib/clientErrors';
 
 export default function WhiteError({error, reset}: {error: Error & {digest?: string}; reset: () => void}) {
   const t = useTranslations('white.error');
+  const navigate = useLoadingNavigation();
 
   // Ошибка рендера у покупателя → аналитика. С digest — это серверная ошибка:
   // её уже прислал instrumentation.ts (onRequestError), а браузер видит лишь
@@ -25,6 +27,7 @@ export default function WhiteError({error, reset}: {error: Error & {digest?: str
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 py-24 text-center">
+      <PageLoadingError />
       <div className="wv-rise">
         <WhiteErrorFigure left="5" right="0" />
       </div>
@@ -32,7 +35,7 @@ export default function WhiteError({error, reset}: {error: Error & {digest?: str
       <h1 className="wv-rise wv-delay-1 mt-4 font-display text-[clamp(30px,calc(2vw_+_22px),44px)] font-light leading-[1.05] tracking-[-0.01em]">{t('title')}</h1>
       <p className="wv-rise wv-delay-2 mt-6 max-w-sm text-[15px] leading-relaxed" style={{color: MUTED}}>{t('intro')}</p>
       <div className="wv-rise wv-delay-3 mt-10 flex flex-col items-center gap-5">
-        <button type="button" onClick={reset} className="wv-btn inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
+        <button type="button" onClick={() => navigate ? navigate(reset, browserRoute()) : reset()} className="wv-btn inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
           {t('retry')}
         </button>
         <Link href={`/${locale}`} className="wv-link text-[12px] uppercase tracking-[0.2em]" style={{color: MUTED}}>

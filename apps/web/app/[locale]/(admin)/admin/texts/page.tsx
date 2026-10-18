@@ -2,7 +2,8 @@
 
 import {useEffect, useMemo, useState} from 'react';
 import {useTranslations} from 'next-intl';
-import BrandLoader from '../../../../../components/BrandLoader';
+import {PageSkeleton} from '@/components/loading/PageSkeleton';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {apiFetch} from '../../../../../lib/api';
 import {Button} from '../../../../../components/ui/button';
 import {DynamicButton} from '../../../../../components/ui/dynamic-button';
@@ -49,6 +50,8 @@ export default function AdminTextsPage() {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ok: boolean; text: string} | null>(null);
+
+  usePageLoading(!edits && !loadFailed);
 
   useEffect(() => {
     let active = true;
@@ -169,9 +172,7 @@ export default function AdminTextsPage() {
           <Button className="min-h-11" onClick={() => setLoadAttempt(value => value + 1)}>{ui('retry')}</Button>
         </Panel>
       ) : !edits ? (
-        <div className="flex items-center justify-center py-20">
-          <BrandLoader size={32} />
-        </div>
+        <PageSkeleton kind="admin-form" embedded />
       ) : (
         <>
           {SITE_TEXT_FIELDS.map((group) => (

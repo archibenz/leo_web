@@ -1,75 +1,76 @@
 'use client';
 
-import {createContext, useCallback, useContext, useMemo, useState, type ReactNode} from 'react';
-import {useRouter} from 'next/navigation';
-import type {StorefrontBrokenDraft, WhiteProduct} from '../../lib/catalogue/types';
+import {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
+import {useLoadingRouter as useRouter} from '@/components/loading/useLoadingRouter';
+import type {StorefrontBrokenDraft, StorefrontSection, WhiteProduct} from '../../lib/catalogue/types';
 import {defaultLocale} from '../../i18n-routing';
 import EditorPanel from './EditorPanel';
 import EditorNotice from './EditorNotice';
 import {useViewport} from './useIsDesktop';
+import {workspaceCopy} from './workspaceCopy';
 import type {DraftKind, EditorTarget} from './types';
+import styles from './EditorWorkspace.module.css';
+
+export type EditorTab = 'blocks' | 'properties' | 'changes';
+export type EditorFormState = {dirty: boolean; busy: boolean; reset: () => void};
+export type EditableRegion = {
+  id: string;
+  label: string;
+  owner: {kind: DraftKind; id: string};
+  getTarget: () => EditorTarget;
+  getElement: () => HTMLElement | null;
+};
 
 type EditorContextValue = {
-  // Сервер отдал черновик. Единственный признак, которому можно верить: он
-  // означает, что бэкенд признал эту сессию редактором. Кнопка в шапке — нет.
   editing: boolean;
+  sessionEditing: boolean;
   target: EditorTarget | null;
-  open: (target: EditorTarget) => void;
+  selectedRegion: string | null;
+  open: (target: EditorTarget, regionId?: string) => void;
   close: () => void;
+  regions: EditableRegion[];
+  selectRegion: (id: string) => void;
+  tab: EditorTab;
+  setTab: (tab: EditorTab) => void;
+  formState: EditorFormState;
+  setFormState: (state: EditorFormState) => void;
+  operationBusy: boolean;
+  setOperationBusy: (busy: boolean) => void;
+  guardMessage: string | null;
+  canLeave: () => boolean;
+  discardLocal: () => void;
+  clearDiscardedTarget: (kind: DraftKind, id: string) => void;
   brokenDrafts: StorefrontBrokenDraft[];
   brokenFor: (kind: DraftKind, id: string) => StorefrontBrokenDraft | undefined;
   refresh: () => void;
-  // Локаль страницы и полный каталог — нужны TickerForm (лист «Куда ведёт»:
-  // /<locale>/... и /<locale>/product/<slug>). Уже есть на странице
-  // (storefrontForViewer), поэтому проброшены пропом, а не второй ручкой.
   locale: string;
   products: WhiteProduct[];
-  // Сколько точек правки на ЭТОЙ странице. Считается тем, что каждая точка
-  // сама отмечается при появлении: список правится в шести местах на весь
-  // сайт, и число, посчитанное руками, разошлось бы с настоящим в первый же
-  // раз, когда точку добавят или уберут.
   editableCount: number;
-  registerEditable: (id: string) => void;
+  registerEditable: (region: EditableRegion) => void;
   unregisterEditable: (id: string) => void;
 };
 
-// Витрина без провайдера — обычный магазин. Значение по умолчанию нужно, чтобы
-// точки редактирования можно было расставить в компонентах, которые рендерятся
-// и вне режима (и в тестах витрины, где провайдера нет).
+const EMPTY_FORM: EditorFormState = {dirty: false, busy: false, reset: () => {}};
 const CLOSED: EditorContextValue = {
-  editing: false,
-  target: null,
-  open: () => {},
-  close: () => {},
-  brokenDrafts: [],
-  brokenFor: () => undefined,
-  refresh: () => {},
-  locale: defaultLocale,
-  products: [],
-  editableCount: 0,
-  registerEditable: () => {},
-  unregisterEditable: () => {},
+  editing: false, sessionEditing: false, target: null, selectedRegion: null,
+  open: () => {}, close: () => {}, regions: [], selectRegion: () => {},
+  tab: 'blocks', setTab: () => {}, formState: EMPTY_FORM, setFormState: () => {},
+  operationBusy: false, setOperationBusy: () => {}, guardMessage: null,
+  canLeave: () => true, discardLocal: () => {}, clearDiscardedTarget: () => {},
+  brokenDrafts: [], brokenFor: () => undefined, refresh: () => {},
+  locale: defaultLocale, products: [], editableCount: 0,
+  registerEditable: () => {}, unregisterEditable: () => {},
 };
-
 const EditorContext = createContext<EditorContextValue | null>(null);
-
 export function useEditor(): EditorContextValue {
   return useContext(EditorContext) ?? CLOSED;
 }
 
-/**
- * Обёртка страницы в режиме редактирования.
- *
- * Живёт в СТРАНИЦЕ, а не в чроме: только страница знает, отдал ли сервер
- * черновик. Шапка про это не знает и знать не должна — её переключатель лишь
- * ставит флаг в адрес (или куку).
- *
- * wantsEdit по умолчанию равен editing: если сервер отдал черновик, значит
- * черновик и хотели, а страницы/тесты, которым нечестный баннер безразличен
- * (editing решает всё сам), могут не передавать его вовсе. Кто заботится о
- * баннере — например, страница — передаёт СВОЙ wantsEdit из
- * storefrontForViewer явно, потому что default тут в лучшем случае угадывает.
- */
+export function sameEditorTarget(left: EditorTarget | null, right: EditorTarget) {
+  return left?.kind === right.kind && left.id === right.id &&
+    (left.kind !== 'variant' || right.kind !== 'variant' || left.modelId === right.modelId);
+}
+
 export function EditorProvider({editing, wantsEdit = editing, brokenDrafts = [], locale = defaultLocale, products = [], children}: {
   editing: boolean;
   wantsEdit?: boolean;
@@ -79,69 +80,137 @@ export function EditorProvider({editing, wantsEdit = editing, brokenDrafts = [],
   children: ReactNode;
 }) {
   const router = useRouter();
-  // Правка — только на компьютере (useIsDesktop.ts). Сервер ширины не знает и
-  // черновик отдаёт по куке; здесь решается, можно ли его ПРАВИТЬ. На узком
-  // экране не работает ни одна точка правки, панель не открывается. Пока
-  // ширина неизвестна (до гидратации) — тоже: инструменты появятся кадром позже.
   const viewport = useViewport();
   const canEdit = editing && viewport === 'desktop';
+  const copy = workspaceCopy(locale);
   const [target, setTarget] = useState<EditorTarget | null>(null);
-  // Множество, а не счётчик: React в строгом режиме монтирует дважды, и
-  // счётчик показал бы удвоенное число. Одинаковый идентификатор дважды в
-  // множество не ляжет.
-  const [editableIds, setEditableIds] = useState<readonly string[]>([]);
+  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+  const [regions, setRegions] = useState<EditableRegion[]>([]);
+  const [tab, setTab] = useState<EditorTab>('blocks');
+  const [formState, updateFormState] = useState<EditorFormState>(EMPTY_FORM);
+  const [operationBusy, setOperationBusy] = useState(false);
+  const [guardMessage, setGuardMessage] = useState<string | null>(null);
+  const discardedSections = useRef(new Map<string, StorefrontSection[]>());
 
-  const registerEditable = useCallback((id: string) => {
-    setEditableIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+  const setFormState = useCallback((next: EditorFormState) => {
+    updateFormState((previous) => previous.dirty === next.dirty && previous.busy === next.busy && previous.reset === next.reset ? previous : next);
+    if (!next.busy) setGuardMessage(null);
+  }, []);
+  const registerEditable = useCallback((region: EditableRegion) => {
+    setRegions((previous) => [...previous.filter((item) => item.id !== region.id), region]);
   }, []);
   const unregisterEditable = useCallback((id: string) => {
-    setEditableIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : prev));
+    setRegions((previous) => previous.filter((region) => region.id !== id));
   }, []);
 
+  const canLeave = useCallback(() => {
+    if (formState.busy || operationBusy) {
+      setGuardMessage(copy.busyHint);
+      return false;
+    }
+    if (formState.dirty && !window.confirm(copy.leaveConfirm)) return false;
+    setGuardMessage(null);
+    return true;
+  }, [copy, formState, operationBusy]);
+  const isFreshTarget = useCallback((next: EditorTarget) => {
+    if (next.kind !== 'section') return true;
+    if (discardedSections.current.get(next.id)?.includes(next.section)) {
+      setGuardMessage(copy.refreshPending);
+      return false;
+    }
+    discardedSections.current.delete(next.id);
+    return true;
+  }, [copy]);
+  const open = useCallback((next: EditorTarget, regionId?: string) => {
+    if (!canEdit) return;
+    if (!isFreshTarget(next)) return;
+    if (regionId === selectedRegion && sameEditorTarget(target, next)) {setTab('properties'); return;}
+    if (!canLeave()) return;
+    setTarget(next);
+    setSelectedRegion(regionId ?? null);
+    setTab('properties');
+  }, [canEdit, canLeave, isFreshTarget, selectedRegion, target]);
+  const close = useCallback(() => {
+    if (!canLeave()) return;
+    setTarget(null);
+    setSelectedRegion(null);
+    setTab('blocks');
+  }, [canLeave]);
+  const selectRegion = useCallback((id: string) => {
+    const region = regions.find((item) => item.id === id);
+    if (!region) return;
+    const next = region.getTarget();
+    if (!isFreshTarget(next)) return;
+    if ((id !== selectedRegion || !sameEditorTarget(target, next)) && !canLeave()) return;
+    setTarget(next);
+    setSelectedRegion(id);
+    setTab('properties');
+    region.getElement()?.scrollIntoView({block: 'center', behavior: 'auto'});
+    region.getElement()?.focus({preventScroll: true});
+  }, [canLeave, isFreshTarget, regions, selectedRegion, target]);
+  const discardLocal = useCallback(() => {
+    if (formState.busy || operationBusy || !formState.dirty) return;
+    if (window.confirm(copy.discardLocalConfirm)) formState.reset();
+  }, [copy, formState, operationBusy]);
+  const clearDiscardedTarget = useCallback((kind: DraftKind, id: string) => {
+    if (kind === 'section') {
+      const snapshots = regions.map((region) => region.getTarget())
+        .filter((item): item is Extract<EditorTarget, {kind: 'section'}> => item.kind === 'section' && item.id === id)
+        .map((item) => item.section);
+      discardedSections.current.set(id, snapshots);
+    }
+    if (!target) return;
+    const ownerKind = target.kind === 'variant' ? 'model' : target.kind;
+    const ownerId = target.kind === 'variant' ? target.modelId : target.id;
+    if (kind === ownerKind && id === ownerId) {setTarget(null); setSelectedRegion(null);}
+  }, [target, regions]);
+
+  useEffect(() => {
+    if (!editing) return;
+    const beforeUnload = (event: BeforeUnloadEvent) => {
+      if (!formState.dirty && !formState.busy && !operationBusy) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    const beforeLink = (event: MouseEvent) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const element = event.target instanceof Element ? event.target : null;
+      const link = element?.closest<HTMLAnchorElement>('a[href]');
+      if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+      if (element?.closest('[data-editor-select]')) return;
+      const url = new URL(link.href, window.location.href);
+      if (url.pathname === location.pathname && url.search === location.search && url.hash) return;
+      if (!canLeave()) {event.preventDefault(); event.stopPropagation();}
+      else if (formState.dirty) formState.reset();
+    };
+    window.addEventListener('beforeunload', beforeUnload);
+    document.addEventListener('click', beforeLink, true);
+    return () => {
+      window.removeEventListener('beforeunload', beforeUnload);
+      document.removeEventListener('click', beforeLink, true);
+    };
+  }, [editing, canLeave, formState, operationBusy]);
+
   const brokenFor = useCallback(
-    (kind: DraftKind, id: string) => brokenDrafts.find((b) => b.kind === kind && (b.id === id || b.key === id)),
+    (kind: DraftKind, id: string) => brokenDrafts.find((item) => item.kind === kind && (item.id === id || item.key === id)),
     [brokenDrafts],
   );
-
-  // Перерисовка сервером, а не правка состояния на клиенте: предпросмотр
-  // собирает бэкенд той же функцией слияния, которой публикует. Показать
-  // «как будет» своими силами значит завести вторую правду.
   const refresh = useCallback(() => router.refresh(), [router]);
+  const value = useMemo<EditorContextValue>(() => ({
+    editing: canEdit, sessionEditing: editing, target, selectedRegion, open, close,
+    regions, selectRegion, tab, setTab, formState, setFormState, operationBusy,
+    setOperationBusy, guardMessage, canLeave, discardLocal, clearDiscardedTarget,
+    brokenDrafts, brokenFor, refresh, locale, products, editableCount: regions.length,
+    registerEditable, unregisterEditable,
+  }), [canEdit, editing, target, selectedRegion, open, close, regions, selectRegion, tab, formState,
+    setFormState, operationBusy, guardMessage, canLeave, discardLocal, clearDiscardedTarget, brokenDrafts,
+    brokenFor, refresh, locale, products, registerEditable, unregisterEditable]);
 
-  const value = useMemo<EditorContextValue>(
-    () => ({
-      editing: canEdit,
-      target: canEdit ? target : null,
-      open: setTarget,
-      close: () => setTarget(null),
-      brokenDrafts,
-      brokenFor,
-      refresh,
-      locale,
-      products,
-      editableCount: editableIds.length,
-      registerEditable,
-      unregisterEditable,
-    }),
-    [canEdit, target, brokenDrafts, brokenFor, refresh, locale, products, editableIds, registerEditable, unregisterEditable],
-  );
-
-  // Панель занимает правую колонку на широком экране — содержимое уезжает
-  // влево, а не прячется под ней. На телефоне это нижняя полка, и страница
-  // получает запас снизу, чтобы её низ оставался достижимым.
-  const shifted = canEdit && target !== null;
-
-  return (
-    <EditorContext.Provider value={value}>
-      <div className={shifted ? 'transition-[padding] duration-200 motion-reduce:transition-none max-lg:pb-[62vh] lg:pr-[360px]' : ''}>
-        {/* Полосе — решение СЕРВЕРА (editing), а не canEdit: на телефоне
-            черновик отдан, и полоса обязана это сказать, пусть и без
-            инструментов (readOnly). С canEdit=false она решила бы, что сервер
-            отказал сессии, и сказала бы неправду. */}
-        <EditorNotice editing={editing} wantsEdit={wantsEdit} readOnly={viewport === 'narrow'} />
-        {children}
-      </div>
-      <EditorPanel />
-    </EditorContext.Provider>
-  );
+  return <EditorContext.Provider value={value}>
+    <div data-editor-preview={canEdit ? '' : undefined} className={canEdit ? styles.preview : undefined}>
+      <EditorNotice editing={editing} wantsEdit={wantsEdit} readOnly={viewport === 'narrow'} />
+      {children}
+    </div>
+    <EditorPanel />
+  </EditorContext.Provider>;
 }

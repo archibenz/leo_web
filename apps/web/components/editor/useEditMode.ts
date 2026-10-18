@@ -1,7 +1,7 @@
 'use client';
 
 import {useEffect, useState} from 'react';
-import {useRouter} from 'next/navigation';
+import {useLoadingRouter as useRouter} from '@/components/loading/useLoadingRouter';
 import {useEditorSession} from './useEditorSession';
 import {readEditCookie, writeEditCookie} from './editCookie';
 

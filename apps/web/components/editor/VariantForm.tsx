@@ -6,6 +6,7 @@ import {INK, MUTED, SIGNAL} from '../../app/[locale]/wv-palette';
 import {EditorButton, EditorLabel, NumberField, PercentField, SelectField} from './EditorFields';
 import GalleryField from './GalleryField';
 import {saveVariantDraft, type Patch} from './editorApi';
+import {useEditorFormState} from './useEditorFormState';
 
 // Цена, скидка, наличие и галерея цветового варианта.
 //
@@ -125,25 +126,29 @@ function patchOf(before: Draft, now: Draft): Patch {
   return patch;
 }
 
-export default function VariantForm({modelId, variantId, onSaved}: {
+type Props = {
   modelId: string;
   variantId: string;
   onSaved: () => void;
-}) {
+};
+
+export default function VariantForm(props: Props) {
+  return <VariantFormFields key={`${props.modelId}:${props.variantId}`} {...props} />;
+}
+
+function VariantFormFields({modelId, variantId, onSaved}: Props) {
   const [before, setBefore] = useState<Draft | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [computed, setComputed] = useState<Computed | null>(null);
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [resetVersion, setResetVersion] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
-    // Переключение на другой вариант без закрытия панели (клик по другому
-    // свотчу) не размонтирует VariantForm — меняются только props. Черновик
-    // сбрасываем СРАЗУ, а не ждём ответа сети: иначе GalleryField, ключом
-    // на variantId, перемонтировался бы РАНЬШЕ, чем придут новые image/gallery,
-    // и получил бы в качестве «начального» состояния ещё старые, чужие кадры.
+    // Ответ старой карточки не должен попасть в новую после смены цели.
     setBefore(null);
     setDraft(null);
     setComputed(null);
@@ -175,11 +180,20 @@ export default function VariantForm({modelId, variantId, onSaved}: {
           sourceCheckedAt: v.sourceCheckedAt ?? null,
         });
       })
-      .catch((e: unknown) => alive && setError(e instanceof Error ? e.message : 'не прочиталось'));
+      .catch((e: unknown) => alive && setError(e instanceof Error ? e.message : 'не прочиталось'))
+      .finally(() => { if (alive) setLoading(false); });
     return () => {
       alive = false;
     };
   }, [modelId, variantId]);
+
+  const patch = before && draft ? patchOf(before, draft) : {};
+  const dirty = Object.keys(patch).length > 0;
+  useEditorFormState(dirty, busy || loading || uploading, () => {
+    setDraft(before);
+    setError(null);
+    setResetVersion((version) => version + 1);
+  });
 
   if (error && !draft) {
     return (
@@ -196,8 +210,6 @@ export default function VariantForm({modelId, variantId, onSaved}: {
     );
   }
 
-  const patch = patchOf(before, draft);
-  const dirty = Object.keys(patch).length > 0;
   const set = <K extends keyof Draft>(key: K) => (value: Draft[K]) => setDraft((d) => (d ? {...d, [key]: value} : d));
   const discountError = discountPctError(draft.discountPct);
   // Поднят ДО того, как посчитанное успело прийти (computed===null, первая
@@ -208,10 +220,13 @@ export default function VariantForm({modelId, variantId, onSaved}: {
   const проверено = computed?.sourceCheckedAt ? когдаПроверено(computed.sourceCheckedAt) : null;
 
   async function save() {
+    if (!draft || !dirty || busy || uploading || discountError !== null) return;
+    const submitted = draft;
     setBusy(true);
     setError(null);
     try {
       await saveVariantDraft(variantId, patch);
+      setBefore(submitted);
       onSaved();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'не сохранилось');
@@ -221,7 +236,7 @@ export default function VariantForm({modelId, variantId, onSaved}: {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div key={resetVersion} className="flex flex-col gap-4">
       <SelectField
         label="Источник цены"
         value={draft.priceSource}

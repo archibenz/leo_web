@@ -2,9 +2,11 @@
 
 import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
-import {usePathname, useRouter} from 'next/navigation';
+import {usePathname} from 'next/navigation';
+import {useLoadingRouter as useRouter} from '@/components/loading/useLoadingRouter';
 import {apiFetch} from '../../lib/api';
-import BrandLoader from '../BrandLoader';
+import {PageSkeleton} from '@/components/loading/PageSkeleton';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {Button} from '../ui/button';
 import ImageUpload from './ImageUpload';
 import {CARE_SYMBOL_KEYS, CareSymbol, getSymbolLabel} from '../CareSymbols';
@@ -96,6 +98,8 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
     careSymbols: [] as string[],
     careText: '',
   });
+
+  usePageLoading(!loadFailed && (loadingProduct || collectionsLoading));
 
   useEffect(() => {
     let active = true;
@@ -219,7 +223,7 @@ export default function ProductForm({productId, isNew}: ProductFormProps) {
     return <Panel><p role="alert" className="mb-4 text-[13px]">{ui('loadFailed')}</p><Button className="min-h-11" onClick={() => setLoadAttempt(value => value + 1)}>{ui('retry')}</Button></Panel>;
   }
   if (loadingProduct) {
-    return <div role="status" aria-label={ui('loading')} className="flex justify-center py-20"><BrandLoader size={32} /></div>;
+    return <PageSkeleton kind="admin-form" embedded />;
   }
 
   return (

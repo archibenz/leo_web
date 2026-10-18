@@ -94,12 +94,14 @@ export function removeWhiteFavourite(key: number): void {
 }
 
 export function useWhiteFavourites() {
+  const [ready, setReady] = useState(false);
   const [snapshot, setSnapshot] = useState<readonly number[]>([]);
 
   useEffect(() => {
     load();
     ensureStorageSync();
     setSnapshot([...keys]);
+    setReady(true);
     const listener = (next: readonly number[]) => setSnapshot(next);
     listeners.add(listener);
     return () => {
@@ -108,6 +110,7 @@ export function useWhiteFavourites() {
   }, []);
 
   return {
+    ready,
     keys: snapshot,
     count: snapshot.length,
     has: (key: number) => snapshot.includes(key),

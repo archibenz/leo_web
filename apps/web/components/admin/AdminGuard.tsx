@@ -1,9 +1,11 @@
 'use client';
 
 import {useEffect, useRef} from 'react';
-import {useRouter, usePathname} from 'next/navigation';
+import {usePathname} from 'next/navigation';
+import {useLoadingRouter as useRouter} from '@/components/loading/useLoadingRouter';
 import {useAuth} from '../../contexts/AuthContext';
-import BrandLoader from '../BrandLoader';
+import {PageSkeleton, getPageSkeletonKind} from '@/components/loading/PageSkeleton';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {useTranslations} from 'next-intl';
 
 export default function AdminGuard({children}: {children: React.ReactNode}) {
@@ -14,6 +16,7 @@ export default function AdminGuard({children}: {children: React.ReactNode}) {
   const t = useTranslations('admin');
   const auth = useTranslations('auth');
   const logoutRetryRequested = useRef(false);
+  usePageLoading(isLoading || isLoggingOut);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated && !authError && !logoutError && !isLoggingOut && !logoutRetryRequested.current) {
@@ -23,9 +26,7 @@ export default function AdminGuard({children}: {children: React.ReactNode}) {
 
   if (isLoading || isLoggingOut) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <BrandLoader size={32} />
-      </div>
+      <PageSkeleton kind={getPageSkeletonKind(pathname)} />
     );
   }
 

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from '@/components/loading/LoadingLink';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../hooks/useWhiteFavourites';
@@ -30,16 +31,16 @@ export default function WhiteNotFoundShowcase({locale}: {locale: string}) {
         <h1 className="wv-rise wv-delay-1 mt-4 font-display text-[clamp(30px,calc(2vw_+_22px),44px)] font-light leading-[1.05] tracking-[-0.01em]">{t('title')}</h1>
         <p className="wv-rise wv-delay-2 mt-7 max-w-sm text-[15px] leading-relaxed" style={{color: MUTED}}>{t('intro')}</p>
         <div className="wv-rise wv-delay-3 mt-11 flex flex-col items-center gap-5">
-          <a href={`/${locale}`} className="wv-btn inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
+          <Link href={`/${locale}`} className="wv-btn inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
             {t('home')}
-          </a>
-          <a
+          </Link>
+          <Link
             href={`/${locale}/shop`}
             className="text-[12px] uppercase tracking-[0.2em] transition-opacity hover:opacity-60"
             style={{color: MUTED}}
           >
             {t('shop')}
-          </a>
+          </Link>
         </div>
       </main>
     </>

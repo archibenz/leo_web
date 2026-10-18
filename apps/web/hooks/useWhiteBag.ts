@@ -177,12 +177,14 @@ export function removeFromWhiteBag(id: string): void {
 }
 
 export function useWhiteBag() {
+  const [ready, setReady] = useState(false);
   const [snapshot, setSnapshot] = useState<readonly WhiteBagItem[]>([]);
 
   useEffect(() => {
     load();
     ensureStorageSync();
     setSnapshot([...items]);
+    setReady(true);
     const listener = (next: readonly WhiteBagItem[]) => setSnapshot(next);
     listeners.add(listener);
     return () => {
@@ -191,6 +193,7 @@ export function useWhiteBag() {
   }, []);
 
   return {
+    ready,
     items: snapshot,
     count: snapshot.reduce((sum, i) => sum + i.qty, 0),
     add: addToWhiteBag,

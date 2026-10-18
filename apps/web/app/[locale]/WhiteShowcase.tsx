@@ -1,5 +1,6 @@
 'use client';
 
+import Link from '@/components/loading/LoadingLink';
 import {Fragment, useEffect, useRef} from 'react';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../hooks/useWhiteBag';
@@ -175,7 +176,7 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
             the same destination as the button below, and announcing "shop the
             collection" twice is worse than not announcing this layer at all.
             Keyboard and screen-reader users get there through the CTA. */}
-        <a
+        <Link
           href={`/${locale}/shop`}
           aria-hidden="true"
           tabIndex={-1}
@@ -193,13 +194,13 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
           </h1>
           {/* pointer-events return here: the wrapper above releases them so the
               banner-wide link underneath stays reachable across the whole scrim. */}
-          <a
+          <Link
             href={`/${locale}/shop`}
             className="wv-hero-cta wv-arrow-link pointer-events-auto mt-8 inline-flex items-center justify-center gap-3 border border-white/80 px-9 py-4 text-[12px] uppercase tracking-[0.2em] text-white transition-colors [text-shadow:none] hover:bg-white hover:text-[#1c1714]"
           >
             {t('shopCollection')}
             <WhiteArrow />
-          </a>
+          </Link>
         </div>
       </section>
       </EditableSection>
@@ -264,7 +265,7 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
             {/* The film opens the sets too. Nothing interactive sits inside this
                 cell, so a plain overlay link is enough — no nesting to work
                 around like the hero. */}
-            <a
+            <Link
               href={`/${locale}/sets`}
               aria-hidden="true"
               tabIndex={-1}
@@ -284,10 +285,10 @@ export default function WhiteShowcase({locale, featured, hero, setsTeaser, ticke
             <p className="mt-8 max-w-md text-[15px] leading-relaxed" style={{color: MUTED}}>
               {setsBody}
             </p>
-            <a href={`/${locale}/sets`} className="wv-btn wv-arrow-link mt-10 inline-flex items-center justify-center gap-3 self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
+            <Link href={`/${locale}/sets`} className="wv-btn wv-arrow-link mt-10 inline-flex items-center justify-center gap-3 self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
               {ts('explore')}
               <WhiteArrow />
-            </a>
+            </Link>
           </div>
         </div>
       </section>

@@ -1,6 +1,9 @@
 'use client';
 
+import Link from '@/components/loading/LoadingLink';
 import {useTranslations} from 'next-intl';
+import {PageSkeleton} from '@/components/loading/PageSkeleton';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {useWhiteFavourites} from '../../../../hooks/useWhiteFavourites';
 import WhiteHeader from '../../WhiteHeader';
@@ -19,7 +22,8 @@ import type {WhiteProduct} from '../../../../lib/catalogue/types';
 
 export default function WhiteFavouritesShowcase({locale, products}: {locale: string; products: readonly WhiteProduct[]}) {
   const {count} = useWhiteBag();
-  const {keys} = useWhiteFavourites();
+  const {keys, ready} = useWhiteFavourites();
+  usePageLoading(!ready);
   const t = useTranslations('white.favourites');
 
   // Preserve the order items were saved in; drop any stale keys.
@@ -29,7 +33,7 @@ export default function WhiteFavouritesShowcase({locale, products}: {locale: str
     <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 py-12 sm:px-10">
-        {saved.length === 0 ? (
+        {!ready ? <PageSkeleton kind="favorites" embedded /> : saved.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">
             {/* Square-geometry heart glyph — hairline outline, decorative. */}
             <span aria-hidden="true" className="mb-10 flex h-16 w-16 items-center justify-center" style={{border: `1px solid ${HAIR}`}}>
@@ -39,9 +43,9 @@ export default function WhiteFavouritesShowcase({locale, products}: {locale: str
             <p className="mt-5 max-w-sm text-[14px] leading-relaxed" style={{color: MUTED}}>
               {t('emptyHint')}
             </p>
-            <a href={`/${locale}/shop`} className="wv-btn mt-10 inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
+            <Link href={`/${locale}/shop`} className="wv-btn mt-10 inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
               {t('browse')}
-            </a>
+            </Link>
           </div>
         ) : (
           <>

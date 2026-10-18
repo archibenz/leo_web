@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import {usePathname} from 'next/navigation';
 import {cn} from '@/lib/utils';
 import {Sidebar, SidebarContent, SidebarFooter, SidebarHeader} from '@/components/ui/sidebar';

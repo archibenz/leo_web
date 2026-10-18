@@ -6,7 +6,8 @@ import {useTranslations} from 'next-intl';
 import {Button} from '../../../../../../components/ui/button';
 import {Panel} from '../../../../../../components/admin/dashboard/panel';
 import CareGuideForm from '../../../../../../components/admin/CareGuideForm';
-import BrandLoader from '../../../../../../components/BrandLoader';
+import {PageSkeleton} from '@/components/loading/PageSkeleton';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {apiFetch} from '../../../../../../lib/api';
 
 interface CareGuideData {
@@ -29,6 +30,8 @@ export default function EditCareGuidePage() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
 
+  usePageLoading(loading);
+
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -42,9 +45,7 @@ export default function EditCareGuidePage() {
 
   if (loading) {
     return (
-      <div role="status" aria-label={ui('loading')} className="flex items-center justify-center py-20">
-        <BrandLoader size={32} />
-      </div>
+      <PageSkeleton kind="admin-form" embedded />
     );
   }
 

@@ -10,9 +10,17 @@ const api = vi.hoisted(() => ({
   publish: vi.fn(),
   discard: vi.fn(),
   refresh: vi.fn(),
+  setFormState: vi.fn(),
+  setOperationBusy: vi.fn(),
+  clearDiscardedTarget: vi.fn(),
 }));
 vi.mock('../editorApi', () => api);
-vi.mock('../EditorProvider', () => ({useEditor: () => ({refresh: api.refresh, brokenDrafts: []})}));
+vi.mock('../EditorProvider', () => ({useEditor: () => ({
+  refresh: api.refresh, brokenDrafts: [], locale: 'ru', regions: [],
+  formState: {dirty: false, busy: false, reset: () => {}}, operationBusy: false,
+  setFormState: api.setFormState, setOperationBusy: api.setOperationBusy,
+  clearDiscardedTarget: api.clearDiscardedTarget,
+})}));
 
 import {EditorButton} from '../EditorFields';
 import GalleryField from '../GalleryField';
@@ -40,8 +48,9 @@ beforeEach(() => {
   api.saveSectionDraft.mockResolvedValue({});
   api.publish.mockResolvedValue({});
   api.discard.mockResolvedValue({});
+  vi.spyOn(window, 'confirm').mockReturnValue(true);
 });
-afterEach(cleanup);
+afterEach(() => {cleanup(); vi.restoreAllMocks();});
 
 describe('GalleryField file target', () => {
   it('lets the keyboard reach the native file chooser', async () => {
@@ -127,12 +136,25 @@ describe('EditorButton pending state', () => {
 });
 
 describe('PublishList refresh lifecycle', () => {
+  it('ignores an older draft response after a more recent save has refreshed the list', async () => {
+    const older = deferred<DraftSummary[]>();
+    const latest = deferred<DraftSummary[]>();
+    api.listDrafts.mockReturnValueOnce(older.promise).mockReturnValueOnce(latest.promise);
+    const {rerender} = render(<PublishList reloadKey={0} />);
+    rerender(<PublishList reloadKey={1} />);
+    await act(async () => latest.resolve([DRAFT]));
+    expect(screen.getByRole('button', {name: 'Опубликовать'})).toBeInTheDocument();
+    await act(async () => older.resolve([]));
+    expect(screen.getByRole('button', {name: 'Опубликовать'})).toBeInTheDocument();
+    expect(screen.queryByText('Неопубликованных правок нет.')).not.toBeInTheDocument();
+  });
+
   it.each(['publish', 'discard'] as const)('keeps %s pending until the updated drafts arrive', async (action) => {
     const reload = deferred<DraftSummary[]>();
     api.listDrafts.mockResolvedValueOnce([DRAFT]).mockReturnValueOnce(reload.promise);
     const user = userEvent.setup();
     render(<PublishList reloadKey={0} />);
-    const actionName = action === 'publish' ? 'Опубликовать' : 'Отменить черновик';
+    const actionName = action === 'publish' ? 'Опубликовать' : 'Удалить сохранённый черновик';
     await user.click(await screen.findByRole('button', {name: actionName}));
     await waitFor(() => expect(api.listDrafts).toHaveBeenCalledTimes(2));
 

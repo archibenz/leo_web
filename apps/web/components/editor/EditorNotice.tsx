@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import {useEffect, useState} from 'react';
-import {useRouter} from 'next/navigation';
+import {useLoadingRouter as useRouter} from '@/components/loading/useLoadingRouter';
 import {FOOT, HAIR, INK, SIGNAL} from '../../app/[locale]/wv-palette';
 import {useEditor} from './EditorProvider';
 import {useEditorSession} from './useEditorSession';
@@ -49,7 +49,7 @@ export default function EditorNotice({editing, wantsEdit, readOnly = false}: {
   readOnly?: boolean;
 }) {
   const {isAdmin} = useEditorSession();
-  const {editableCount} = useEditor();
+  const {editableCount, editing: workspaceEditing} = useEditor();
 
   // ЖДЁМ, ПОКА ТОЧКИ УСПЕЮТ ОТМЕТИТЬСЯ, и это единственное место, где мы
   // ждём времени, а не следствия. Причина названа честно: мы ждём ОТСУТСТВИЯ,
@@ -119,17 +119,13 @@ export default function EditorNotice({editing, wantsEdit, readOnly = false}: {
               ? 'Режим правки · на этой странице пока нечего править'
               : 'Режим правки · страница показывает черновик'}
         </span>
-        {/* 44px/13px, и это не та же мера, что у кнопок входа, — она важнее.
-            Промах по входу означает «не вошёл, нажму ещё раз». Промах по
-            ВЫХОДУ означает «застрял в режиме правки», а это читается как
-            «сайт сломался». Замер 15.09 дал здесь 17 px — худшее на экране. */}
-        <Link
+        {!workspaceEditing && <Link
           href={plainHref}
           onClick={finishEditing}
           className="inline-flex min-h-11 items-center px-3 text-[13px] underline underline-offset-4"
         >
           Закончить правку
-        </Link>
+        </Link>}
       </div>
     );
   }

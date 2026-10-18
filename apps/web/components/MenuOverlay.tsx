@@ -2,7 +2,7 @@
 
 import {useEffect, useRef, useState, useCallback} from 'react';
 import {useTranslations} from 'next-intl';
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import {usePathname} from 'next/navigation';
 import {useFocusTrap} from '../lib/useFocusTrap';
 

@@ -8,6 +8,7 @@ import {DateField, EditorButton, SelectField, TextField} from './EditorFields';
 import {saveSectionDraft, type Patch} from './editorApi';
 import {destinationFromHref, hrefForDestination, isLocalHref, type TickerDestinationKind} from './tickerDestination';
 import {classifyTickerErrors, extractApiFieldErrors} from './tickerFieldErrors';
+import {useEditorFormState} from './useEditorFormState';
 
 // Список строк бегущей строки. Одна форма на весь блок, а не на строку: сервер
 // принимает `items` целиком, тем же слиянием, что и заголовок героя — массив
@@ -72,7 +73,7 @@ function customHrefInvalid(row: Row): boolean {
   return row.destination === 'custom' && value !== '' && !isLocalHref(value);
 }
 
-export default function TickerForm({section, products, locale, onSaved}: {
+type Props = {
   section: StorefrontSection;
   products: WhiteProduct[];
   // Локаль страницы, на которой открыта панель — приходит явным пропом от
@@ -82,11 +83,17 @@ export default function TickerForm({section, products, locale, onSaved}: {
   // локаль из пути, WhiteLocaleSwitch.tsx разбирает оба случая на глаз).
   locale: string;
   onSaved: () => void;
-}) {
+};
+
+export default function TickerForm(props: Props) {
+  return <TickerFormFields key={`${props.section.id}:${props.locale}`} {...props} />;
+}
+
+function TickerFormFields({section, products, locale, onSaved}: Props) {
   const t = useTranslations('editor.ticker');
   const productSlugs = products.map((p) => p.slug);
 
-  const [before] = useState(() => initial(section, locale, productSlugs));
+  const [before, setBefore] = useState(() => initial(section, locale, productSlugs));
   const [rows, setRows] = useState<Row[]>(() => initial(section, locale, productSlugs));
   const [busy, setBusy] = useState(false);
   // Общая плашка — только для отказов, которые НЕ удалось привязать ни к
@@ -97,6 +104,7 @@ export default function TickerForm({section, products, locale, onSaved}: {
 
   const dirty = JSON.stringify(rows) !== JSON.stringify(before);
   const blockedByInvalidHref = rows.some(customHrefInvalid);
+  useEditorFormState(dirty, busy, () => { setRows(before); setError(null); setFieldErrors({}); });
   const setRow = (i: number) => (patch: Partial<Row> | ((row: Row) => Partial<Row>)) =>
     setRows((list) => list.map((row, j) => (j === i ? {...row, ...(typeof patch === 'function' ? patch(row) : patch)} : row)));
 
@@ -111,12 +119,15 @@ export default function TickerForm({section, products, locale, onSaved}: {
   }
 
   async function save() {
+    if (!dirty || busy || blockedByInvalidHref) return;
+    const submitted = rows;
     setBusy(true);
     setError(null);
     setFieldErrors({});
     try {
       const patch: Patch = {items: rows.map((row) => toWire(row, locale))};
       await saveSectionDraft(section.id, patch);
+      setBefore(submitted);
       onSaved();
     } catch (e) {
       const {known, unknownFields} = classifyTickerErrors(extractApiFieldErrors(e));

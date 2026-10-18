@@ -3,7 +3,7 @@
 import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
 import Image from 'next/image';
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import BlurReveal from './BlurReveal';
 import {CareSymbolsRow} from './CareSymbols';
 
