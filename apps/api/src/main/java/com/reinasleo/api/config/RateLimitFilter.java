@@ -90,6 +90,11 @@ public class RateLimitFilter implements Filter {
         HttpServletRequest req = (HttpServletRequest) request;
         HttpServletResponse res = (HttpServletResponse) response;
         String path = req.getRequestURI();
+        // This endpoint is limited after JWT validation in the security chain.
+        if (path.equals("/api/auth/analytics-session") && "GET".equals(req.getMethod())) {
+            chain.doFilter(request, response);
+            return;
+        }
         String ip = getClientIp(req);
 
         // Telegram polling (/api/auth/telegram/poll) needs frequent calls — frontend

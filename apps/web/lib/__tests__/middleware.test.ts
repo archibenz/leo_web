@@ -73,6 +73,13 @@ const KNOWN_SLUG = [...CATALOGUE_SLUGS][0] ?? 'catalogue-was-not-available';
 // world it is decides what correct behaviour even means — with no catalogue the
 // edge must not police slugs at all.
 describe('middleware dead ends', () => {
+  it('recognizes only the exact account permission route', () => {
+    expect(edgeStatus('/ru/account/analytics-access')).toBe(200);
+    expect(edgeStatus('/en/account/analytics-access')).toBe(200);
+    expect(edgeStatus('/ru/account/unknown')).toBe(404);
+    expect(edgeStatus('/ru/account/analytics-access/unknown')).toBe(404);
+  });
+
   it.runIf(CATALOGUE_SLUGS_IS_STUB)('lets product slugs through when the build had no catalogue', () => {
     // The stub is the fail-open path: an empty list would otherwise 404 every
     // garment on the site. Production can never get one — prebuild exits 1

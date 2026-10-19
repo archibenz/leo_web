@@ -2,6 +2,8 @@ package com.reinasleo.api.config;
 
 import com.reinasleo.api.security.JwtAuthFilter;
 import com.reinasleo.api.security.MetricsAuthFilter;
+import com.reinasleo.api.security.AnalyticsIdentityRateLimitFilter;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -47,7 +49,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, MeterRegistry meters) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
@@ -109,6 +111,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/me",
                                 "/api/auth/me/**",
+                                "/api/auth/analytics-session",
                                 "/api/auth/link-email",
                                 "/api/auth/newsletter-preferences"
                         ).authenticated()
@@ -129,7 +132,8 @@ public class SecurityConfig {
                         .anyRequest().denyAll()
                 )
                 .addFilterBefore(metricsAuthFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(new AnalyticsIdentityRateLimitFilter(meters), JwtAuthFilter.class);
         return http.build();
     }
 

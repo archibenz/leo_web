@@ -48,7 +48,7 @@ describe('цена опознания роли', () => {
 
     await waitFor(() => expect(screen.getByTestId('шапка')).toHaveTextContent('редактор'));
     expect(screen.getByTestId('полоса')).toHaveTextContent('редактор');
-    expect(me).toHaveBeenCalledExactlyOnceWith('/api/auth/me', {skipAuthHandler: true, skipBearer: true});
+    expect(me).toHaveBeenCalledExactlyOnceWith('/api/auth/me', {skipAuthHandler: true, skipBearer: true, signal: expect.any(AbortSignal)});
     expect(token.value).toBeNull();
   });
 
@@ -82,6 +82,6 @@ describe('цена опознания роли', () => {
     render(<Probe label="гость" />);
 
     await waitFor(() => expect(screen.getByTestId('гость')).toHaveTextContent('посторонний'));
-    expect(me).toHaveBeenCalledExactlyOnceWith('/api/auth/me', {skipAuthHandler: true, skipBearer: true});
+    expect(me).toHaveBeenCalledExactlyOnceWith('/api/auth/me', {skipAuthHandler: true, skipBearer: true, signal: expect.any(AbortSignal)});
   });
 });

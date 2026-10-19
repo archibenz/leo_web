@@ -117,19 +117,33 @@ public class TelegramIdentityService {
 
     @Transactional(readOnly = true)
     public AnalyticsSessionResponse analyticsSession(Session session) {
+        return analyticsSession(session, true);
+    }
+
+    @Transactional(readOnly = true)
+    public AnalyticsSessionResponse analyticsIdentity(Session session) {
+        return analyticsSession(session, false);
+    }
+
+    private AnalyticsSessionResponse analyticsSession(Session session, boolean adminRequired) {
         Instant now = clock.instant();
         if (!session.expiresAt().isAfter(now)) throw new UnauthorizedException("site_session_required");
-        var account = store.activeAccount(session.userId(), false).orElseThrow(() -> denied("site_admin_required"));
-        if (!"admin".equals(account.role())) throw denied("site_admin_required");
+        var account = store.activeAccount(session.userId(), false).orElseThrow(() ->
+                adminRequired ? denied("site_admin_required") : new UnauthorizedException("site_session_required"));
+        boolean isAdmin = "admin".equals(account.role());
+        if (adminRequired && !isAdmin) throw denied("site_admin_required");
         var proof = store.identity(account.id()).orElseThrow(() -> denied("telegram_link_required"));
-        if (account.telegramId() == null || account.telegramId() != proof.telegramId()) {
+        if (!account.id().equals(proof.userId()) || account.telegramId() == null
+                || account.telegramId() != proof.telegramId()) {
             throw denied("telegram_link_required");
         }
+        now = clock.instant();
+        if (!session.expiresAt().isAfter(now)) throw new UnauthorizedException("site_session_required");
         if (proof.verifiedAt().isAfter(now) || !proof.validUntil().isAfter(now)) {
             throw denied("telegram_link_refresh_required");
         }
         Instant expiresAt = earlier(earlier(now.plus(ASSERTION_LIFETIME), session.expiresAt()), proof.validUntil());
-        return new AnalyticsSessionResponse(1, account.id(), proof.telegramId(), true, true, proof.username(), expiresAt);
+        return new AnalyticsSessionResponse(1, account.id(), proof.telegramId(), true, isAdmin, proof.username(), expiresAt);
     }
 
     private static ResponseStatusException denied(String code) {

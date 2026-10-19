@@ -115,6 +115,7 @@ function isDeadEnd(pathname: string): boolean {
   if (!first) return false;
   if (!ROUTE_SEGMENTS.has(first)) return true;
   if (UNPOLICED.has(first)) return false;
+  if (first === 'account' && second === 'analytics-access' && deeper.length === 0) return false;
   if (first === 'product') {
     // /product with no slug is the legacy ?p=<key> address, and it has a page.
     if (!second) return false;

@@ -639,6 +639,7 @@
     "retryVerification": "Check session again",
     "retryLogout": "Complete sign-out",
     "loggingOut": "Signing out…",
+    "checkingSession": "Checking your session…",
     "tg": {
       "expired": {
         "title": "Link expired",
@@ -1801,6 +1802,12 @@
       "tgHint": "We opened our bot — press “Start” there. Sign-in completes here automatically.",
       "tgExpired": "The sign-in link has expired. Press the button again.",
       "tgError": "Could not reach Telegram. Please try again.",
+      "analyticsAccess": {
+        "title": "Analytics access",
+        "open": "Analytics",
+        "unavailable": "We could not check Analytics access. Please try again.",
+        "retry": "Check access again"
+      },
       "telegramLink": {
         "title": "Telegram",
         "description": "Connect Telegram to this account. Confirm in our bot, then return here.",
@@ -1809,8 +1816,8 @@
         "starting": "Opening Telegram…",
         "pending": "Finish in our bot, then return here. We’ll check the connection automatically.",
         "linked": "Telegram is connected to your account.",
-        "verified": "Telegram is connected. Analytics is ready to open.",
-        "refresh": "Telegram is connected. Confirm once more to open Analytics securely.",
+        "verified": "Telegram is confirmed for your account.",
+        "refresh": "Telegram is connected. Confirm it again to renew your verification.",
         "expired": "This link has expired. Connect again to get a new one.",
         "sessionExpired": "Your site session has expired. Sign in again to continue.",
         "accessRequired": "Your session could not be confirmed. Sign in again to continue.",

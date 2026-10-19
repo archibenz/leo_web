@@ -25,14 +25,30 @@ export function isInvalidMeSession(error: unknown): boolean {
 }
 
 export async function fetchSessionUser<T>(token: string | null, isCurrent: () => boolean): Promise<{user: T; cookieVerified: boolean}> {
+  const controller = new AbortController();
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    timeout = setTimeout(() => {
+      reject(Object.assign(new Error('Session verification timed out'), {name: 'TimeoutError'}));
+      controller.abort();
+    }, 15_000);
+  });
+  const verify = async () => {
+    try {
+      const user = await apiFetch<T>('/api/auth/me', {skipAuthHandler: true, skipBearer: true, signal: controller.signal});
+      return {user, cookieVerified: true};
+    } catch (error) {
+      // Only a definitive anonymous cookie response permits legacy bearer fallback.
+      if (controller.signal.aborted || !token || !isInvalidMeSession(error) || !isCurrent()) throw error;
+      const user = await apiFetch<T>('/api/auth/me', {skipAuthHandler: true, signal: controller.signal});
+      return {user, cookieVerified: false};
+    }
+  };
   try {
-    const user = await apiFetch<T>('/api/auth/me', {skipAuthHandler: true, skipBearer: true});
-    return {user, cookieVerified: true};
-  } catch (error) {
-    // Only a definitive anonymous cookie response permits legacy bearer fallback.
-    if (!token || !isInvalidMeSession(error) || !isCurrent()) throw error;
-    const user = await apiFetch<T>('/api/auth/me', {skipAuthHandler: true});
-    return {user, cookieVerified: false};
+    // Bound the whole check, including body parsing and a legacy fallback.
+    return await Promise.race([verify(), deadline]);
+  } finally {
+    if (timeout !== undefined) clearTimeout(timeout);
   }
 }
 
