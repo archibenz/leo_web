@@ -3,7 +3,8 @@
 import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
-import BrandLoader from '../../../../components/BrandLoader';
+import {PageSkeleton} from '@/components/loading/PageSkeleton';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {apiFetch} from '../../../../lib/api';
 import {Button} from '../../../../components/ui/button';
 import {Panel, PanelEmpty} from '../../../../components/admin/dashboard/panel';
@@ -113,6 +114,8 @@ export default function AdminDashboardPage() {
   const [acknowledgingIds, setAcknowledgingIds] = useState<string[]>([]);
   const [acknowledgeErrors, setAcknowledgeErrors] = useState<Record<string, string>>({});
 
+  usePageLoading(loading);
+
   useEffect(() => {
     Promise.all([
       apiFetch<Dashboard>('/api/admin/dashboard'),
@@ -175,9 +178,7 @@ export default function AdminDashboardPage() {
       <h1 className="font-display text-[clamp(24px,2.4vw,32px)] leading-none">{t('dashboard')}</h1>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <BrandLoader size={32} />
-        </div>
+        <PageSkeleton kind="admin-dashboard" embedded />
       ) : loadError ? (
         <Panel>
           <div className="space-y-4 text-center">

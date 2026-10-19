@@ -4,6 +4,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {AlertCircle, Check, LoaderCircle, Send} from 'lucide-react';
 import {Button} from '../ui/button';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {getTelegramLinkStatus, issueTelegramLink, telegramLinkFailure, telegramLinkRetryAt,
   type TelegramLinkChallenge, type TelegramLinkFailure} from '../../lib/telegramLink';
 
@@ -19,6 +20,7 @@ const emptyView = (status: Status): View => ({status, challenge: null, verifiedU
 function TelegramLinkControls({userId, onSignInAgain, onVerified}: Props) {
   const t = useTranslations('white.account.telegramLink');
   const [view, setView] = useState<View>(() => emptyView('loading'));
+  usePageLoading(view.status === 'loading');
   const current = useRef(view);
   const request = useRef<Request | null>(null);
   const blankWindow = useRef<Window | null>(null);

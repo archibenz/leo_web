@@ -1,8 +1,10 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import Image from 'next/image';
 import {useTranslations} from 'next-intl';
+import {PageSkeleton} from '@/components/loading/PageSkeleton';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
 import {findProductByKey, whiteProductHref, whiteEffectivePrice} from '../../../../lib/catalogue/select';
 import type {WhiteProduct} from '../../../../lib/catalogue/types';
@@ -14,7 +16,8 @@ import {MaskIcon} from '../../wv-icons';
 // prototype holds the user's selection locally; it does not claim a purchase.
 
 export default function WhiteBagShowcase({locale, products}: {locale: string; products: readonly WhiteProduct[]}) {
-  const {items, remove, setQty} = useWhiteBag();
+  const {items, remove, setQty, ready} = useWhiteBag();
+  usePageLoading(!ready);
   const ru = locale === 'ru';
   const t = useTranslations('white.bag');
   const fmt = (n: number) => `${n.toLocaleString('ru-RU')} ₽`;
@@ -34,7 +37,7 @@ export default function WhiteBagShowcase({locale, products}: {locale: string; pr
     <>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col px-6 py-12 sm:px-10">
-        {items.length === 0 ? (
+        {!ready ? <PageSkeleton kind="bag" embedded /> : items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center py-12 text-center">
             {/* Square-geometry bag glyph — hairline outline, ink, decorative. */}
             <span aria-hidden="true" className="mb-10 flex h-16 w-16 items-center justify-center" style={{border: `1px solid ${HAIR}`}}>
@@ -44,9 +47,9 @@ export default function WhiteBagShowcase({locale, products}: {locale: string; pr
             <p className="mt-5 max-w-sm text-[14px] leading-relaxed" style={{color: MUTED}}>
               {t('emptyHint')}
             </p>
-            <a href={`/${locale}/shop`} className="wv-btn mt-10 inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
+            <Link href={`/${locale}/shop`} className="wv-btn mt-10 inline-flex items-center justify-center px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
               {t('continueShopping')}
-            </a>
+            </Link>
           </div>
         ) : (
           <div className="mx-auto w-full max-w-2xl">
@@ -146,9 +149,9 @@ export default function WhiteBagShowcase({locale, products}: {locale: string; pr
 
             {/* min-h-11 → 44px tap floor (this is the bag's only nav affordance
                 besides qty/remove); mt-4 trims the gap the taller box adds. */}
-            <a href={`/${locale}/shop`} className="wv-btn mt-8 inline-flex items-center justify-center self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
+            <Link href={`/${locale}/shop`} className="wv-btn mt-8 inline-flex items-center justify-center self-start px-9 py-4 text-[12px] uppercase tracking-[0.2em]">
               {t('viewCollection')}
-            </a>
+            </Link>
           </div>
         )}
       </main>

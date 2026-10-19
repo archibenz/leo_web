@@ -47,9 +47,10 @@ beforeEach(() => {
   calls.length = 0;
   refresh.mockReset();
   answer.mockReset().mockResolvedValue({});
+  vi.spyOn(window, 'confirm').mockReturnValue(true);
 });
 
-afterEach(cleanup);
+afterEach(() => {cleanup(); vi.restoreAllMocks();});
 
 describe('правка блока на месте', () => {
   it('шлёт только тронутое поле — иначе вторая правка затирала бы первую', async () => {
@@ -87,7 +88,7 @@ describe('публикация и отмена', () => {
   function renderList() {
     answer.mockImplementation((path: string) => Promise.resolve(path.endsWith('/drafts') ? drafts : {}));
     return render(
-      <EditorProvider editing brokenDrafts={[]}>
+      <EditorProvider editing locale="ru" brokenDrafts={[]}>
         <PublishList reloadKey={0} />
       </EditorProvider>,
     );
@@ -97,7 +98,7 @@ describe('публикация и отмена', () => {
     renderList();
 
     expect(await screen.findByText(/aw26-hero/)).toBeInTheDocument();
-    expect(screen.getByText('headlineRu, posterUrl')).toBeInTheDocument();
+    expect(screen.getByText('Заголовок · ru, Кадр · телефон')).toBeInTheDocument();
   });
 
   it('«Опубликовать» бьёт в ручку публикации этого блока и перечитывает страницу', async () => {
@@ -111,11 +112,11 @@ describe('публикация и отмена', () => {
     await waitFor(() => expect(refresh).toHaveBeenCalled());
   });
 
-  it('«Отменить черновик» удаляет именно черновик, а не строку', async () => {
+  it('«Удалить сохранённый черновик» удаляет именно черновик, а не строку', async () => {
     const user = userEvent.setup();
     renderList();
 
-    await user.click(await screen.findByRole('button', {name: /Отменить черновик/i}));
+    await user.click(await screen.findByRole('button', {name: /Удалить сохранённый черновик/i}));
 
     await waitFor(() => expect(calls.map((c) => c.path)).toContain('/api/admin/storefront/sections/sec-1/draft'));
     expect(calls.find((c) => c.path.endsWith('/draft'))!.init?.method).toBe('DELETE');
@@ -124,7 +125,7 @@ describe('публикация и отмена', () => {
   it('у нечитаемого черновика говорит, что публиковать его нельзя — и не даёт', async () => {
     answer.mockImplementation((path: string) => Promise.resolve(path.endsWith('/drafts') ? drafts : {}));
     render(
-      <EditorProvider editing brokenDrafts={[{kind: 'section', id: 'sec-1', key: 'aw26-hero', reason: 'unknown_variant:wb-404'}]}>
+      <EditorProvider editing locale="ru" brokenDrafts={[{kind: 'section', id: 'sec-1', key: 'aw26-hero', reason: 'unknown_variant:wb-404'}]}>
         <PublishList reloadKey={0} />
       </EditorProvider>,
     );
@@ -132,7 +133,7 @@ describe('публикация и отмена', () => {
     expect(await screen.findByRole('status')).toHaveTextContent(/опубликовать его нельзя/i);
     // Отказ держит сервер, но кнопка не должна спорить с подписью рядом с собой.
     expect(screen.getByRole('button', {name: /Опубликовать/i})).toBeDisabled();
-    expect(screen.getByRole('button', {name: /Отменить черновик/i})).toBeEnabled();
+    expect(screen.getByRole('button', {name: /Удалить сохранённый черновик/i})).toBeEnabled();
   });
 });
 

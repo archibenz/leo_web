@@ -1,5 +1,6 @@
 'use client';
 
+import Link from '@/components/loading/LoadingLink';
 import {useEffect, useRef, useState} from 'react';
 import {useTranslations} from 'next-intl';
 import {INK, MUTED, HAIR} from './wv-palette';
@@ -83,9 +84,9 @@ export default function WhiteCookieNotice({locale}: {locale: string}) {
           {/* wv-tap, not a 44px inline-flex: this link sits inside a sentence,
               and a tall flex box takes its baseline from its centred contents,
               which lifts the word off the line it belongs to. */}
-          <a href={`/${locale}/privacy`} className="wv-link wv-tap relative" style={{color: INK}}>
+          <Link href={`/${locale}/privacy`} className="wv-link wv-tap relative" style={{color: INK}}>
             <span className="wv-link-ink">{t('cookieMore')}</span>
-          </a>
+          </Link>
         </p>
         <button
           type="button"

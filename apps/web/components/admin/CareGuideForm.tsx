@@ -2,7 +2,8 @@
 
 import {useState} from 'react';
 import {useTranslations} from 'next-intl';
-import {usePathname, useRouter} from 'next/navigation';
+import {usePathname} from 'next/navigation';
+import {useLoadingRouter as useRouter} from '@/components/loading/useLoadingRouter';
 import {apiFetch} from '../../lib/api';
 import {Input} from '../ui/input';
 import {Textarea} from '../ui/textarea';

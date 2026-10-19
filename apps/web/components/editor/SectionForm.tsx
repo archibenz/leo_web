@@ -5,6 +5,7 @@ import type {StorefrontSection} from '../../lib/catalogue/types';
 import {MUTED} from '../../app/[locale]/wv-palette';
 import {EditorButton, MediaPairField, TextField} from './EditorFields';
 import {saveSectionDraft, type Patch} from './editorApi';
+import {useEditorFormState} from './useEditorFormState';
 
 // Тексты и медиа блока главной. Уходит только тронутое: PUT принимает частичный
 // патч и накапливает его поверх уже сохранённого черновика.
@@ -49,8 +50,14 @@ function patchOf(before: Draft, now: Draft): Patch {
   return patch;
 }
 
-export default function SectionForm({section, onSaved}: {section: StorefrontSection; onSaved: () => void}) {
-  const [before] = useState(() => initial(section));
+type Props = {section: StorefrontSection; onSaved: () => void};
+
+export default function SectionForm(props: Props) {
+  return <SectionFormFields key={props.section.id} {...props} />;
+}
+
+function SectionFormFields({section, onSaved}: Props) {
+  const [before, setBefore] = useState(() => initial(section));
   const [draft, setDraft] = useState<Draft>(() => initial(section));
   const [busy, setBusy] = useState(false);
   const [uploads, setUploads] = useState<Record<string, boolean>>({});
@@ -59,6 +66,7 @@ export default function SectionForm({section, onSaved}: {section: StorefrontSect
   const patch = patchOf(before, draft);
   const dirty = Object.keys(patch).length > 0;
   const uploading = Object.values(uploads).some(Boolean);
+  useEditorFormState(dirty, busy || uploading, () => { setDraft(before); setError(null); });
   const set = <K extends keyof Draft>(key: K) => (value: Draft[K]) => setDraft((d) => ({...d, [key]: value}));
   const uploadState = (key: keyof Draft) => (pending: boolean) => setUploads((current) => ({...current, [key]: pending}));
 
@@ -66,8 +74,10 @@ export default function SectionForm({section, onSaved}: {section: StorefrontSect
     if (!dirty || busy || uploading) return;
     setBusy(true);
     setError(null);
+    const submitted = draft;
     try {
       await saveSectionDraft(section.id, patch);
+      setBefore(submitted);
       onSaved();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'не сохранилось');

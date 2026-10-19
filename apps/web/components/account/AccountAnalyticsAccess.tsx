@@ -79,12 +79,12 @@ function AnalyticsAccess({locale}: Props) {
       {status === 'allowed' ? (
         <Button asChild variant="owner" size="owner" className="w-full justify-between text-left" style={OWNER_LINK_STYLE}>
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Analytics is a separate application served by nginx. */}
-          <a href="/analytics">{t('open')}</a>
+          <a href="/analytics"><span>{t('open')}</span></a>
         </Button>
       ) : (
         <>
           <p role="status" className="text-[13px] leading-relaxed">{t('unavailable')}</p>
-          <Button variant="owner" size="owner" className="mt-3 w-full text-left" style={OWNER_LINK_STYLE} onClick={() => {void check(true);}}>{t('retry')}</Button>
+          <Button variant="owner" size="owner" className="mt-3 w-full text-left" style={OWNER_LINK_STYLE} onClick={() => {void check(true);}}><span>{t('retry')}</span></Button>
         </>
       )}
     </section>

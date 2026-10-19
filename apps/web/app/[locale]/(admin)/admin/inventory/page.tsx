@@ -3,9 +3,10 @@
 import {useState, useEffect, useMemo} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import {CheckIcon, XIcon} from 'lucide-react';
-import BrandLoader from '../../../../../components/BrandLoader';
+import {PageSkeleton} from '@/components/loading/PageSkeleton';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {apiFetch} from '../../../../../lib/api';
 import {Button} from '../../../../../components/ui/button';
 import {Input} from '../../../../../components/ui/input';
@@ -43,6 +44,8 @@ export default function AdminInventoryPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState(0);
   const [query, setQuery] = useState('');
+
+  usePageLoading(loading);
 
   useEffect(() => {
     let active = true;
@@ -92,9 +95,7 @@ export default function AdminInventoryPage() {
       title={t('inventory')}
     >
       {loading ? (
-        <div role="status" aria-label={ui('loading')} className="flex items-center justify-center py-20">
-          <BrandLoader size={32} />
-        </div>
+        <PageSkeleton kind="admin-table" embedded />
       ) : loadFailed ? (
         <Panel><p role="alert" className="mb-4 text-[13px]">{ui('loadFailed')}</p><Button className="min-h-11" onClick={() => setLoadAttempt(value => value + 1)}>{ui('retry')}</Button></Panel>
       ) : products.length === 0 ? (

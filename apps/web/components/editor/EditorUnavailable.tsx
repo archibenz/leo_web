@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import {HAIR, INK, MUTED, SIGNAL} from '../../app/[locale]/wv-palette';
 
 // Предпросмотр не собрался. Показать вместо него опубликованную витрину

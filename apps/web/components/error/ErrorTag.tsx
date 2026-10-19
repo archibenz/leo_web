@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import type {ReactNode} from 'react';
 
 type ErrorVariant = 'default' | 'warn' | 'private' | 'offline';

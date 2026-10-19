@@ -3,9 +3,10 @@
 import {useState, useEffect} from 'react';
 import {useTranslations} from 'next-intl';
 import {usePathname} from 'next/navigation';
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import {MoreHorizontalIcon, PencilIcon, Trash2Icon} from 'lucide-react';
-import BrandLoader from '../../../../../components/BrandLoader';
+import {PageSkeleton} from '@/components/loading/PageSkeleton';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {apiFetch} from '../../../../../lib/api';
 import {CareSymbolsRow} from '../../../../../components/CareSymbols';
 import {Badge} from '../../../../../components/ui/badge';
@@ -53,6 +54,8 @@ export default function AdminCarePage() {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [deletingIds, setDeletingIds] = useState<string[]>([]);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  usePageLoading(loading);
 
   useEffect(() => {
     let active = true;
@@ -110,9 +113,7 @@ export default function AdminCarePage() {
 
       {deleteError && <p role="alert" className="text-[13px] text-destructive">{deleteError}</p>}
       {loading ? (
-        <div role="status" aria-label={ui('loading')} className="flex items-center justify-center py-20">
-          <BrandLoader size={32} />
-        </div>
+        <PageSkeleton kind="admin-table" embedded />
       ) : loadFailed ? (
         <Panel><p role="alert" className="mb-4 text-[13px]">{ui('loadFailed')}</p><Button className="min-h-11" onClick={() => setLoadAttempt(value => value + 1)}>{ui('retry')}</Button></Panel>
       ) : guides.length === 0 ? (

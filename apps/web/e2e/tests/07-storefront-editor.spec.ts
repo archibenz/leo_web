@@ -1,5 +1,4 @@
 import {test, expect, request, type APIRequestContext, type Page} from '@playwright/test';
-import {copy} from '../fixtures/messages';
 
 // Режим правки на живых страницах витрины.
 //
@@ -15,7 +14,6 @@ import {copy} from '../fixtures/messages';
 const TOKEN = process.env.E2E_EDITOR_TOKEN ?? 'fixture-editor-token';
 const API = process.env.E2E_API_PROXY;
 const DRAFT_MARK = /Черновик/;
-const EDIT_LABEL = copy('editModeSwitch', 'label');
 
 // Живой путь удаляет черновики и правит витрину — гонять его можно только по
 // сговору с самой базой (assertTestDatabase ниже) и только последовательно:
@@ -179,14 +177,14 @@ test.describe('вход в режим правки', () => {
     await asOwner(page);
     await page.goto('/ru/account');
 
-    const toggle = page.getByRole('switch', {name: EDIT_LABEL});
-    await expect(toggle).toBeVisible();
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-checked', 'true');
+    const entry = page.getByRole('link', {name: /^Редактировать сайт/});
+    await expect(entry).toBeVisible();
+    await entry.click();
+    await expect(page.getByRole('complementary', {name: 'Редактор сайта'})).toBeVisible();
 
     await page.goto('/ru');
 
-    await expect(page.getByText('Режим правки')).toBeVisible();
+    await expect(page.getByRole('complementary', {name: 'Редактор сайта'})).toBeVisible();
     await expect(page.locator('h1')).toContainText(DRAFT_MARK);
   });
 });
@@ -197,7 +195,7 @@ test.describe('правка на месте', () => {
     await page.goto('/ru?edit=1');
 
     await page.getByRole('button', {name: 'Герой'}).click();
-    const panel = page.getByRole('complementary', {name: 'Правка витрины'});
+    const panel = page.getByRole('complementary', {name: 'Редактор сайта'});
     await expect(panel).toBeVisible();
 
     // Не модалка: страница под панелью видна и остаётся кликабельной — у
@@ -212,7 +210,7 @@ test.describe('правка на месте', () => {
     await page.goto('/ru?edit=1');
     await expect(page.locator('h1')).toContainText(DRAFT_MARK);
 
-    await page.getByRole('link', {name: 'Закончить правку'}).first().click();
+    await page.getByRole('complementary', {name: 'Редактор сайта'}).getByRole('button', {name: 'Закончить правку'}).click();
 
     await expect(page).not.toHaveURL(/edit=1/);
     await expect(page.locator('body')).not.toContainText(DRAFT_MARK);
@@ -241,7 +239,7 @@ test.describe('правка доезжает до витрины', () => {
     await asOwner(page);
     await page.goto('/ru?edit=1');
     await page.getByRole('button', {name: 'Герой'}).click();
-    const panel = page.getByRole('complementary', {name: 'Правка витрины'});
+    const panel = page.getByRole('complementary', {name: 'Редактор сайта'});
     const headline = panel.getByRole('textbox', {name: 'Заголовок · ru', exact: true});
 
     const published = await headline.inputValue();
@@ -265,9 +263,9 @@ test.describe('правка доезжает до витрины', () => {
       await guestPage.goto('/ru');
       await expect(guestPage.locator('body')).not.toContainText(edited);
 
-      // 3. Публикация. Панель после перезагрузки закрыта — открываем заново.
-      await page.getByRole('button', {name: 'Герой'}).click();
-      await expect(panel.getByText('headlineRu')).toBeVisible();
+      // 3. Публикация сохранённого блока — отдельная вкладка рабочего пространства.
+      await panel.getByRole('tab', {name: 'Изменения', exact: true}).click();
+      await expect(panel.getByText('Заголовок · ru', {exact: true})).toBeVisible();
       await panel.getByRole('button', {name: 'Опубликовать'}).click();
       await expect(panel.getByText(/Неопубликованных правок нет/)).toBeVisible({timeout: 25_000});
 

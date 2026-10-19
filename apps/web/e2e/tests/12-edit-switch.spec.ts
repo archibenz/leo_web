@@ -16,9 +16,15 @@ import {openWhite, acknowledgeCookies, hydrateViaCookieNotice, openSettledForOwn
 
 const HOME = '/ru';
 const ACCOUNT = '/ru/account';
-const EDIT_LABEL = copy('editModeSwitch', 'label');
+const EDIT_ENTRY = /^Редактировать сайт/;
 const ADMIN_LINK_LABEL = copy('editModeSwitch', 'adminLink');
 const DRAFT_BAR = 'Режим правки · страница показывает черновик';
+
+test.beforeEach(async ({page}) => {
+  // The fixture server has no auth API. Guests receive the actual signed-out
+  // contract; owner helpers override this route with their admin response.
+  await page.route('**/api/auth/me', route => route.fulfill({status: 401, json: {}}));
+});
 
 async function mockOwnerRole(page: Page) {
   // /api/auth/** лимитирован 10 запросами в минуту на IP, а спеки идут
@@ -104,6 +110,8 @@ async function assertNoEditSurface(page: Page) {
   await expect(content.getByText(DRAFT_BAR)).toHaveCount(0);
   await expect(content.getByText(/черновик/i)).toHaveCount(0);
   await expect(content.locator('[style*="dashed"]')).toHaveCount(0);
+  await expect(content.locator('[data-editable]')).toHaveCount(0);
+  await expect(page.getByRole('complementary', {name: 'Редактор сайта'})).toHaveCount(0);
 }
 
 for (const viewport of [
@@ -140,24 +148,20 @@ test('страница вне режима совпадает с покупат�
   await ownerContext.close();
 });
 
-test('включил выключатель в аккаунте → перешёл на главную → режим пережил переход', async ({page}) => {
+test('открыл редактор из аккаунта → режим пережил переход на главную', async ({page}) => {
   await asOwner(page);
   await open(page, ACCOUNT);
 
-  // #wv-page, не вся вкладка: этот кейс — про куку с аккаунта, не про шапку,
-  // и ему нельзя ломаться, если в шапке однажды появится свой switch (как в
-  // мутации координатора) — тогда getByRole('switch') без области честно
-  // упал бы в строгом режиме Playwright на двух совпадениях сразу.
-  const toggle = page.locator('#wv-page').getByRole('switch', {name: EDIT_LABEL});
-  await expect(toggle).toHaveAttribute('aria-checked', 'false');
-  await toggle.click();
-  await expect(toggle).toHaveAttribute('aria-checked', 'true');
+  const entry = page.locator('#wv-page').getByRole('link', {name: EDIT_ENTRY});
+  await expect(entry).toHaveAttribute('href', '/ru?edit=1');
+  await entry.click();
+  await expect(page.getByRole('complementary', {name: 'Редактор сайта'})).toBeVisible();
 
   const cookiesOn = await page.context().cookies();
   expect(cookiesOn.find((c) => c.name === 'rl_edit')?.value).toBe('1');
 
   await open(page, HOME);
-  await expect(page.getByText(DRAFT_BAR)).toBeVisible();
+  await expect(page.getByRole('complementary', {name: 'Редактор сайта'})).toBeVisible();
   await expect(page.locator('#wv-page').getByText(/черновик/i).first()).toBeVisible();
 });
 
@@ -166,9 +170,10 @@ test('включил выключатель в аккаунте → перешё
 // работал — тем же днём он включал этот самый выключатель). Отсутствие у
 // покупателя проверяется как отсутствие в разметке (toHaveCount(0)), а не
 // видимостью — иначе стиль display:none прошёл бы тест, ничего не починив.
-test('владелец видит ссылку на /admin рядом с выключателем — у покупателя её нет в разметке вовсе', async ({page, browser}) => {
+test('владелец видит ссылку на /admin рядом с редактором — у покупателя её нет в разметке вовсе', async ({page, browser}) => {
   await open(page, ACCOUNT);
   await expect(page.locator('#wv-page').getByRole('link', {name: ADMIN_LINK_LABEL})).toHaveCount(0);
+  await expect(page.locator('#wv-page').getByRole('link', {name: EDIT_ENTRY})).toHaveCount(0);
 
   const ownerContext = await browser.newContext();
   const ownerPage = await ownerContext.newPage();
@@ -186,12 +191,12 @@ test('«Закончить правку» снимает куку — следу
   await asOwner(page);
   await open(page, ACCOUNT);
   // #wv-page — см. комментарий у предыдущего теста.
-  await page.locator('#wv-page').getByRole('switch', {name: EDIT_LABEL}).click();
+  await page.locator('#wv-page').getByRole('link', {name: EDIT_ENTRY}).click();
 
   await open(page, HOME);
-  await expect(page.getByText(DRAFT_BAR)).toBeVisible(); // подтверждаем, что было включено — иначе клик ниже ничего не доказывает
+  await expect(page.getByRole('complementary', {name: 'Редактор сайта'})).toBeVisible();
 
-  await page.getByRole('link', {name: 'Закончить правку'}).click();
+  await page.getByRole('complementary', {name: 'Редактор сайта'}).getByRole('button', {name: 'Закончить правку'}).click();
 
   // Ожиданием, как в случае на 390 px ниже: кука снимается переходом по
   // ссылке, а разовый снимок сразу после клика иногда опережал его — тест

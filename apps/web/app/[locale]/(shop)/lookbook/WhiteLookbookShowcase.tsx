@@ -1,5 +1,6 @@
 'use client';
 
+import Link from '@/components/loading/LoadingLink';
 import Image from 'next/image';
 import {useTranslations} from 'next-intl';
 import {useWhiteBag} from '../../../../hooks/useWhiteBag';
@@ -46,13 +47,13 @@ export default function WhiteLookbookShowcase({locale, looks}: {locale: string; 
           return (
             <section key={p.key} className="mx-auto max-w-[1400px] px-6 pb-20 sm:px-10 sm:pb-28">
               <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-16">
-                <a
+                <Link
                   href={href}
                   aria-label={name}
                   className={`wv-rise wv-ph relative block aspect-[3/4] w-full overflow-hidden ${reversed ? 'lg:order-2' : ''}`}
                 >
                   <Image src={p.image} alt={name} fill priority={i === 0} sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
-                </a>
+                </Link>
                 <div className={`wv-rise wv-delay-1 ${reversed ? 'lg:order-1' : ''}`}>
                   <p className="text-[12px] uppercase tabular-nums tracking-[0.2em]" style={{color: MUTED}}>
                     {t('look')} {String(i + 1).padStart(2, '0')}
@@ -61,13 +62,13 @@ export default function WhiteLookbookShowcase({locale, looks}: {locale: string; 
                   <p className="mt-4 max-w-sm text-[14px] leading-relaxed" style={{color: MUTED}}>{desc}</p>
                   {/* min-h-11 → 44px tap floor (this is the primary shop-this-look
                       CTA); mt-4 trims the visual gap the taller box would add. */}
-                  <a
+                  <Link
                     href={href}
                     className="mt-4 inline-flex min-h-11 items-center text-[12px] uppercase tracking-[0.2em] transition-opacity hover:opacity-60"
                     style={{color: INK}}
                   >
                     {t('shopLook')} →
-                  </a>
+                  </Link>
                 </div>
               </div>
             </section>

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from '@/components/loading/LoadingLink';
 import Image from 'next/image';
 import {useState} from 'react';
 import {useTranslations} from 'next-intl';
@@ -91,7 +92,7 @@ export default function WhiteSetsShowcase({locale, sets, products}: {locale: str
                       const colour = setColour(set, p);
                       return (
                       <li key={p.key} className="border-t lg:min-w-0 lg:flex-1 lg:border-t-0" style={{borderColor: HAIR}}>
-                        <a
+                        <Link
                           href={`${whiteProductHref(locale, p)}?c=${colour.key}`}
                           className="group flex min-h-[72px] items-center gap-4 py-3 transition-opacity hover:opacity-70 lg:min-h-0 lg:flex-col lg:items-stretch lg:gap-3 lg:py-0"
                         >
@@ -107,7 +108,7 @@ export default function WhiteSetsShowcase({locale, sets, products}: {locale: str
                           <span className="lg:hidden">
                             <WhiteArrow size={14} />
                           </span>
-                        </a>
+                        </Link>
                       </li>
                       );
                     })}

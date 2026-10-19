@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import {ChevronRightIcon} from 'lucide-react';
 import {
   SidebarGroup,

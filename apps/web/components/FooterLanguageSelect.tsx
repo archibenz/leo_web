@@ -1,7 +1,7 @@
 'use client';
 
 import {useState, useRef, useEffect} from 'react';
-import {useRouter} from 'next/navigation';
+import {useLoadingRouter as useRouter} from '@/components/loading/useLoadingRouter';
 import {useTranslations} from 'next-intl';
 
 type Language = {

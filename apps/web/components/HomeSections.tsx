@@ -1,7 +1,7 @@
 'use client';
 
 import {useRef, useState, useEffect, useCallback, type ReactNode} from 'react';
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import Image from 'next/image';
 import {useTranslations} from 'next-intl';
 import BlurReveal from './BlurReveal';

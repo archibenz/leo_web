@@ -3,7 +3,8 @@
 import {useState, useEffect, useCallback} from 'react';
 import {useTranslations, useLocale} from 'next-intl';
 import {SearchIcon, XIcon} from 'lucide-react';
-import BrandLoader from '../../../../../components/BrandLoader';
+import {PageSkeleton} from '@/components/loading/PageSkeleton';
+import {usePageLoading} from '@/components/loading/PageLoadingProvider';
 import {apiFetch} from '../../../../../lib/api';
 import {formatPrice} from '../../../../../lib/formatPrice';
 import {Badge} from '../../../../../components/ui/badge';
@@ -88,6 +89,8 @@ export default function AdminHomepagePage() {
     setLoading(false);
   }, []);
 
+  usePageLoading(loading);
+
   useEffect(() => {
     loadData();
   }, [loadData]);
@@ -162,9 +165,7 @@ export default function AdminHomepagePage() {
       <Notice>{t('homepageNotOnSiteNotice')}</Notice>
 
       {loading ? (
-        <div role="status" aria-label={ui('loading')} className="flex items-center justify-center py-20">
-          <BrandLoader size={32} />
-        </div>
+        <PageSkeleton kind="admin-form" embedded />
       ) : loadFailed ? (
         <Panel><p role="alert" className="mb-4 text-[13px]">{ui('loadFailed')}</p><Button className="min-h-11" onClick={loadData}>{ui('retry')}</Button></Panel>
       ) : (

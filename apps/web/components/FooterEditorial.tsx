@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/loading/LoadingLink';
 import {getTranslations} from 'next-intl/server';
 import type {ReactNode} from 'react';
 import type {Locale} from '../i18n';

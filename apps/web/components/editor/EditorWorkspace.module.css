@@ -1,0 +1,46 @@
+.preview {padding-right: 384px; min-width: 0;}
+:global(.wv-root):has(.preview) > :global(header),
+:global(.wv-root):has(.preview) > :global(footer) {margin-right: 384px;}
+.inspector {position: fixed; inset: 0 0 var(--wv-cookie-h, 0px) auto; z-index: 1200; display: flex; flex-direction: column; width: 384px; background: #fff; color: #1c1714; border-left: 1px solid #e7e2db; text-align: left;}
+.inspector[hidden] {display: none;}
+.heading {padding: 28px 24px 20px;}
+.eyebrow {font-size: 10px; letter-spacing: .18em; color: #77716a;}
+.heading h2 {margin: 12px 0 5px; font-size: 24px; line-height: 1.2; font-weight: 400; letter-spacing: -.025em;}
+.heading p {margin: 0; color: #77716a; font-size: 13px;}
+.tabs {display: flex; padding: 0 24px; gap: 22px; border-bottom: 1px solid #e7e2db;}
+.tabs button {min-height: 44px; padding: 10px 0; font-size: 13px; border-bottom: 2px solid transparent; color: #77716a;}
+.tabs button[aria-selected="true"] {border-color: #1c1714; color: #1c1714;}
+.panelBody {flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 24px;}
+.panelBody section[hidden] {display: none;}
+.hint {font-size: 13px; line-height: 1.6; margin: 0 0 24px; color: #77716a;}
+.blockList {list-style: none; margin: 0; padding: 0; border-top: 1px solid #e7e2db;}
+.blockList button {display: flex; align-items: center; width: 100%; text-align: left; gap: 16px; padding: 15px 10px; min-height: 52px; font-size: 14px; line-height: 1.45; border-bottom: 1px solid #e7e2db; transition: background .16s;}
+.blockList button span {font-size: 11px; color: #77716a; font-variant-numeric: tabular-nums;}
+.blockList button:hover, .blockList button[aria-pressed="true"] {background: #faf8f4;}
+.targetHeading {font-size: 19px; line-height: 1.3; font-weight: 400; margin: 0 0 10px;}
+.footer {padding: 16px 24px 22px; border-top: 1px solid #e7e2db; background: #fff;}
+.saveStatus {display: flex; align-items: center; gap: 8px; margin: 0 0 14px; font-size: 12px; line-height: 1.5; color: #77716a;}
+.saveStatus::before {content: ''; flex-shrink: 0; width: 5px; height: 5px; border: 1px solid currentColor; border-radius: 50%;}
+.saveStatus[data-dirty="true"]::before {background: #1c1714; border-color: #1c1714;}
+.finish {width: 100%; min-height: 44px; padding: 10px 14px; border: 1px solid #e7e2db; font-size: 13px; transition: border-color .16s;}
+.finish:hover {border-color: #1c1714;}
+.finish:disabled, .textAction:disabled {opacity: .4; cursor: wait;}
+.textAction {margin-top: 14px; min-height: 44px; font-size: 13px; text-decoration: underline; text-underline-offset: 4px; color: #77716a;}
+.guardMessage {margin: 0 0 12px; font-size: 12px; line-height: 1.5; color: #a23c2d;}
+.region {position: relative; outline: 1px dashed transparent; outline-offset: -1px; cursor: pointer; scroll-margin-block: 130px;}
+.region:hover, .region:focus-visible {outline-color: #77716a;}
+.region[data-selected="true"] {outline: 1px solid #1c1714; outline-offset: -1px;}
+.regionLabel {position: absolute; z-index: 5; left: 10px; top: 8px; max-width: calc(100% - 20px); padding: 5px 8px; background: #fff; border: 1px solid #e7e2db; color: #1c1714; font-size: 11px; line-height: 1.3; opacity: 0; pointer-events: none; transform: translateY(-4px); transition: opacity .15s, transform .15s;}
+.region:hover > .regionLabel, .region:focus-within > .regionLabel, .region[data-selected="true"] > .regionLabel {opacity: 1; transform: none;}
+.broken {margin: 0; padding: 8px 12px; font-size: 12px; line-height: 1.5; color: #a23c2d; background: #faf8f4;}
+.ownerTools {margin-top: 32px; border-top: 1px solid #e7e2db; padding-top: 22px;}
+.ownerLabel {font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #77716a; margin: 0 0 14px;}
+.ownerEntry {display: flex; flex-direction: column; justify-content: center; gap: 7px; min-height: 74px; padding: 16px 18px; background: #1c1714; color: #fff; transition: background .18s;}
+.ownerEntry:hover {background: #38322d;}
+.ownerEntry strong {font-size: 15px; font-weight: 400;}
+.ownerEntry span {font-size: 12px; line-height: 1.4; color: #d7d2cc;}
+.ownerLinks {display: flex; flex-wrap: wrap; gap: 12px 28px; margin-top: 8px;}
+.ownerLinks a {display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; text-decoration: underline; text-decoration-color: #c9c2ba; text-underline-offset: 5px;}
+.ownerLinks a:hover {text-decoration-color: currentColor;}
+.inspector button:focus-visible, .ownerTools a:focus-visible {outline: 2px solid currentColor; outline-offset: 3px;}
+@media (prefers-reduced-motion: reduce) {.regionLabel, .blockList button, .ownerEntry, .finish {transition: none;}}

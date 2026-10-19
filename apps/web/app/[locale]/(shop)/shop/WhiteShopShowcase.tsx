@@ -1,6 +1,8 @@
 'use client';
 
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState, useTransition} from 'react';
+import {PageContentReady, usePageLoading} from '@/components/loading/PageLoadingProvider';
+import {PageSkeleton} from '@/components/loading/PageSkeleton';
 import {useTranslations} from 'next-intl';
 import WhiteProductCard from '../../WhiteProductCard';
 import {INK, MUTED, HAIR} from '../../wv-palette';
@@ -22,17 +24,21 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
   const soldOutSet = new Set(soldOutKeys);
   const [query, setQuery] = useState(initialQuery);
   const [searchOpen, setSearchOpen] = useState(Boolean(focusSearch) || Boolean(initialQuery));
+  const [filterPending, startFilterTransition] = useTransition();
+  const deferredQuery = useDeferredValue(query);
+  const resultsPending = filterPending || query !== deferredQuery;
+  usePageLoading(resultsPending);
 
   // Client navigations (the drawer links) re-render this page with new
   // searchParams but never remount it — the filters must follow the URL.
-  useEffect(() => {
+  useLayoutEffect(() => {
     setCat(initialCat);
   }, [initialCat]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     setQuery(initialQuery);
     if (initialQuery) setSearchOpen(true);
   }, [initialQuery]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     setSort(initialSort);
   }, [initialSort]);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -57,25 +63,31 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
     window.history.replaceState(null, '', url);
   };
   const pickCat = (c: Cat | 'all') => {
-    setCat(c);
-    syncParam('cat', c === 'all' ? null : c);
+    startFilterTransition(() => {
+      setCat(c);
+      syncParam('cat', c === 'all' ? null : c);
+    });
   };
   const pickQuery = (q: string) => {
     setQuery(q);
     syncParam('q', q.trim() || null);
   };
   const pickSort = (s: Sort) => {
-    setSort(s);
-    // 'new' is the default — keep it out of the URL so shared links stay clean.
-    syncParam('sort', s === 'new' ? null : s);
+    startFilterTransition(() => {
+      setSort(s);
+      // 'new' is the default — keep it out of the URL so shared links stay clean.
+      syncParam('sort', s === 'new' ? null : s);
+    });
   };
 
   const hasFilters = cat !== 'all' || query.trim() !== '' || sort !== 'new';
   const clearFilters = () => {
-    setCat('all');
     setQuery('');
-    setSort('new');
-    if (typeof window !== 'undefined') window.history.replaceState(null, '', `/${locale}/shop`);
+    startFilterTransition(() => {
+      setCat('all');
+      setSort('new');
+      if (typeof window !== 'undefined') window.history.replaceState(null, '', `/${locale}/shop`);
+    });
   };
 
   // 'all' chip reads "All/Все"; real categories use the shared whiteCatLabel
@@ -83,7 +95,7 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
   const catLabel = (c: Cat | 'all') => (c === 'all' ? t('all') : whiteCatLabel(c, locale));
 
   const shown = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = deferredQuery.trim().toLowerCase();
     let filtered = cat === 'all' ? ITEMS : ITEMS.filter((i) => i.cat === cat);
     // Free-text match against both locales so "dress" and "платье" both work.
     if (q) filtered = filtered.filter((i) => `${i.en} ${i.ru} ${whiteCatLabel(i.cat, 'en')} ${whiteCatLabel(i.cat, 'ru')}`.toLowerCase().includes(q));
@@ -104,7 +116,7 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
     return filtered;
     // ITEMS is a prop now, not a module constant — leaving it out of the deps
     // would keep the grid on the catalogue of the first render.
-  }, [ITEMS, cat, sort, query]);
+  }, [ITEMS, cat, sort, deferredQuery]);
 
   // Edge-fade affordance for the mobile category carousel (sm: it wraps, no
   // scroll → edge stays 'none', no mask). Keyed off scroll position so it never
@@ -141,7 +153,7 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
   const cats: (Cat | 'all')[] = ['all', 'dresses', 'outerwear', 'knitwear', 'tailoring', 'skirts'];
 
   return (
-    <>
+    <PageContentReady>
 
       <main id="wv-main" tabIndex={-1} style={{outline: 'none'}} className="mx-auto max-w-[1400px] sm:px-10">
         {/* Title */}
@@ -292,13 +304,13 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
             compare two garments they can never see at once. `bleed` is dropped
             below sm — it exists to run a single column edge to edge, and with
             two columns it would eat the gutter between them. */}
-        <div className="grid grid-cols-2 gap-x-3 gap-y-8 px-6 pt-4 pb-12 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 sm:px-0 sm:pt-10 lg:grid-cols-3 lg:gap-x-8">
+        {resultsPending ? <PageSkeleton kind="catalog" embedded className="px-6 pt-4 pb-12 sm:px-0 sm:pt-10" /> : <div className="grid grid-cols-2 gap-x-3 gap-y-8 px-6 pt-4 pb-12 sm:grid-cols-2 sm:gap-x-6 sm:gap-y-12 sm:px-0 sm:pt-10 lg:grid-cols-3 lg:gap-x-8">
           {shown.map((p, i) => (
             <WhiteProductCard key={p.key} locale={locale} product={p} index={i} priority={i < 4} rise soldOut={soldOutSet.has(p.key)} />
           ))}
-        </div>
+        </div>}
 
-        {shown.length === 0 && (
+        {!resultsPending && shown.length === 0 && (
           <div className="flex flex-col items-center px-6 py-24 text-center sm:px-0">
             <p className="max-w-sm text-[14px] leading-relaxed" style={{color: MUTED}}>
               {query.trim() ? t('nothingFound', {query: query.trim()}) : hasFilters ? t('noMatch') : t('nothingHere')}
@@ -315,6 +327,6 @@ export default function WhiteShopShowcase({locale, products, soldOutKeys = [], i
           </div>
         )}
       </main>
-    </>
+    </PageContentReady>
   );
 }

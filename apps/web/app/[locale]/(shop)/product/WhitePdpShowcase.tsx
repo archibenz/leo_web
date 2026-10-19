@@ -1,5 +1,6 @@
 'use client';
 
+import Link from '@/components/loading/LoadingLink';
 import Image from 'next/image';
 import {useState, useEffect, useRef} from 'react';
 import {useTranslations} from 'next-intl';
@@ -316,14 +317,14 @@ export default function WhitePdpShowcase({
             same line. The box stays exactly text-height; only the touch target
             is larger. */}
         <nav className="py-2 text-[11px] uppercase tracking-[0.18em] sm:py-5" style={{color: MUTED}} aria-label={t('breadcrumb')}>
-          <a href={`/${locale}`} className="wv-tap relative transition-opacity hover:opacity-60">REINASLEO</a>
+          <Link href={`/${locale}`} className="wv-tap relative transition-opacity hover:opacity-60">REINASLEO</Link>
           <span className="mx-2">/</span>
           {/* size 11 matches the type: the default 13 drew a head taller than the
               caps beside it. Alignment is in globals.css — see .wv-crumb-arrow. */}
-          <a href={`/${locale}/shop`} className="wv-arrow-link wv-crumb-arrow wv-tap relative whitespace-nowrap transition-opacity hover:opacity-60">
+          <Link href={`/${locale}/shop`} className="wv-arrow-link wv-crumb-arrow wv-tap relative whitespace-nowrap transition-opacity hover:opacity-60">
             <WhiteArrow back size={11} />
             <span className="ml-2">{t('shop')}</span>
-          </a>
+          </Link>
           <span className="mx-2">/</span>
           <span style={{color: INK}} aria-current="page">{name}</span>
         </nav>
@@ -582,9 +583,9 @@ export default function WhitePdpShowcase({
         <section className="mx-auto w-full max-w-[1400px] border-t px-6 pb-4 pt-14 sm:px-10" style={{borderColor: HAIR}}>
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 className="font-display text-[24px] font-light tracking-tight sm:text-[30px]">{t('completeLook')}</h2>
-            <a href={`/${locale}/sets`} className="wv-link wv-tap relative text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
+            <Link href={`/${locale}/sets`} className="wv-link wv-tap relative text-[12px] uppercase tracking-[0.18em]" style={{color: MUTED}}>
               <span className="wv-link-ink">{ru ? look.ru : look.en}</span> →
-            </a>
+            </Link>
           </div>
           <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 pb-10 sm:gap-x-6 lg:grid-cols-4">
             {lookItems.map((pr, i) => (

@@ -120,6 +120,10 @@ test.describe('оболочки по группам маршрутов — пе�
     await page.getByRole('button', {name: 'Мой аккаунт'}).click();
     await page.getByRole('menuitem', {name: 'На сайт'}).click();
     await page.waitForSelector('.wv-root');
+    // The route shell is present while its destination skeleton is streaming.
+    // Measure the homepage background only after its actual content is ready.
+    await expect(page.locator('#wv-main h1')).toBeVisible();
+    await expect(page.locator('[data-page-skeleton]')).toHaveCount(0);
 
     await expect(page.locator('.wv-root')).toHaveCount(1);
 
