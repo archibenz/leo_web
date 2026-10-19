@@ -27,7 +27,7 @@ export default defineConfig({
       // behavior, including streaming bodies and aborts, in Safari's engine.
       name: 'webkit',
       use: {...devices['Desktop Safari']},
-      testMatch: /(?:08-hero-media-per-viewport|account-session-readiness)\.spec\.ts/,
+      testMatch: /(?:08-hero-media-per-viewport|account-session-readiness|account-analytics-contrast)\.spec\.ts/,
       // Server-only checks run once; their fixed local upstream cannot be shared.
       grepInvert: /@server-only/,
     },
