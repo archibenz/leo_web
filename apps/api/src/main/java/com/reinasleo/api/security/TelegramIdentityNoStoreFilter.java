@@ -18,6 +18,7 @@ public class TelegramIdentityNoStoreFilter extends OncePerRequestFilter {
                                     FilterChain chain) throws ServletException, IOException {
         String path = request.getRequestURI();
         if (path.equals("/api/admin/analytics-session")
+                || path.equals("/api/auth/analytics-session")
                 || path.equals("/api/auth/me/telegram-link/challenge")
                 || path.equals("/api/auth/me/telegram-link/status")
                 || path.equals("/api/bot/telegram-link/confirm")) {

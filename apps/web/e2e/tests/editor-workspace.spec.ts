@@ -11,6 +11,7 @@ const HERO = STOREFRONT_DRAFT_FIXTURE.sections.find(section => section.layout ==
 async function owner(page: Page) {
   const writes: {method: string; path: string; body: unknown}[] = [];
   let drafts: {kind: string; id: string; key: string; fields: string[]}[] = [];
+  await page.route('**/account/analytics-access', route => route.fulfill({status: 204, body: ''}));
   await page.route('**/api/**', route => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
@@ -110,7 +111,8 @@ test('account has a compact owner entry and verified Telegram status', async ({p
   await expect(tools.getByRole('link', {name: /Редактировать сайт/})).toHaveAttribute('href', '/ru?edit=1');
   await expect(tools.getByRole('switch')).toHaveCount(0);
   await expect(tools.getByRole('link', {name: 'Админ-панель', exact: true})).toBeVisible();
-  await expect(tools.getByRole('link', {name: 'Аналитика', exact: true})).toHaveAttribute('href', '/analytics');
+  await expect(tools.getByRole('link', {name: 'Аналитика', exact: true})).toHaveCount(0);
+  await expect(page.getByRole('link', {name: 'Аналитика', exact: true})).toHaveAttribute('href', '/analytics');
   const telegram = page.locator('.wv-telegram-card[data-state="verified"]');
   await expect(telegram).toBeVisible();
   expect((await telegram.boundingBox())!.height).toBeLessThan(130);

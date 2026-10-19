@@ -66,7 +66,7 @@ describe('WhiteTelegramLogin', () => {
     expect(lsStore.has('reinasleo_token')).toBe(false);
     expect(lsStore.has('tg_init_token')).toBe(false);
     expect(fetch).toHaveBeenNthCalledWith(2, '/api/auth/me', {
-      headers: {'Content-Type': 'application/json'}, credentials: 'include',
+      headers: {'Content-Type': 'application/json'}, credentials: 'include', signal: expect.any(AbortSignal),
     });
   });
 });

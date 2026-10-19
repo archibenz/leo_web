@@ -64,7 +64,7 @@ describe('роль едет вместе с пользователем', () => {
     // Ровно один запрос: раньше режим правки спрашивал ту же ручку второй раз
     // ради одного поля, и страница аккаунта стоила двух из десяти в минуту.
     expect(me).toHaveBeenCalledTimes(1);
-    expect(me).toHaveBeenCalledWith('/api/auth/me', {skipAuthHandler: true});
+    expect(me).toHaveBeenCalledWith('/api/auth/me', expect.objectContaining({skipAuthHandler: true}));
   });
 
   it('обычный покупатель приезжает без роли admin', async () => {
@@ -176,6 +176,27 @@ function remoteLogout(phase: string) {
 }
 
 describe('cookie-only restoration', () => {
+  it('a stalled session becomes retryable and a late response cannot replace the recovered user', async () => {
+    vi.useFakeTimers();
+    token.value = 'legacy-token';
+    const pending = deferred<typeof owner>();
+    cookieMe.mockReturnValueOnce(pending.promise).mockResolvedValue(buyer);
+    render(<Probe />);
+    expect(screen.getByTestId('итог')).toHaveTextContent('ждём');
+
+    await act(async () => {await vi.advanceTimersByTimeAsync(15_000);});
+    expect(screen.getByTestId('проверка')).toHaveTextContent('временный отказ');
+    expect(cleared).not.toHaveBeenCalled();
+    expect(token.value).toBe('legacy-token');
+    expect(me).not.toHaveBeenCalled();
+
+    await act(async () => {await auth.whiteRetryAuth();});
+    expect(screen.getByTestId('итог')).toHaveTextContent('вошёл:user');
+    await act(async () => {pending.resolve(owner);});
+    expect(screen.getByTestId('итог')).toHaveTextContent('вошёл:user');
+    expect(screen.getByTestId('проверка')).toHaveTextContent('готово');
+  });
+
   it('orphaned pending logout becomes retryable failure after 15s without verifying the old cookie', async () => {
     vi.useFakeTimers();
     cookieMe.mockResolvedValue(owner);

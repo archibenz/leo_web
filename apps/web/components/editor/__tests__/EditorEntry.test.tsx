@@ -89,7 +89,7 @@ describe('честность режима', () => {
     me.mockRejectedValue(Object.assign(new Error('anonymous cookie'), {status: 401}));
     await act(async () => {render(<EditorNotice editing={false} wantsEdit />);});
 
-    expect(me).toHaveBeenCalledExactlyOnceWith('/api/auth/me', {skipAuthHandler: true, skipBearer: true});
+    expect(me).toHaveBeenCalledExactlyOnceWith('/api/auth/me', {skipAuthHandler: true, skipBearer: true, signal: expect.any(AbortSignal)});
     expect(screen.queryByRole('alert')).toBeNull();
   });
 });

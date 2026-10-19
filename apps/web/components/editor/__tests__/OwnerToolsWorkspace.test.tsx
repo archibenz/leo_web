@@ -22,7 +22,7 @@ describe('owner workspace entry', () => {
     fireEvent.click(edit);
     expect(document.cookie).toContain('rl_edit=1');
     expect(screen.getByRole('link', {name: 'Админ-панель'})).toHaveAttribute('href', '/ru/admin');
-    expect(screen.getByRole('link', {name: 'Аналитика'})).toHaveAttribute('href', '/analytics');
+    expect(screen.queryByRole('link', {name: 'Аналитика'})).not.toBeInTheDocument();
   });
 
   it('does not expose owner navigation to a visitor', () => {

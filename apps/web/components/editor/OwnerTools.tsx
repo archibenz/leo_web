@@ -20,8 +20,6 @@ export default function OwnerTools({locale}: {locale: string}) {
     </Link>
     <div className={styles.ownerLinks}>
       <Link className="min-h-11" href={`/${locale}/admin`}>{t('adminLink')}</Link>
-      {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Separate Analytics application. */}
-      <a href="/analytics">{t('analyticsLink')}</a>
     </div>
   </section>;
 }
