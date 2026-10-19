@@ -10,6 +10,7 @@ const OTHER_ID = '164ff844-636f-42aa-9c23-60ced64a3fbe';
 const TOKEN = 'A'.repeat(43);
 const messages = enMessages.white.account.telegramLink;
 const signInAgain = vi.fn();
+const confirmed = vi.fn();
 const challenge = (lifetime = 240_000) => ({challenge_token: TOKEN, deep_link: 'https://t.me/test_bot?start=link_' + TOKEN, expires_at: new Date(Date.now() + lifetime).toISOString()});
 const identity = (linked = false, verified = false) => ({schema_version: 1, site_user_id: USER_ID, linked, verified,
   verified_until: verified ? new Date(Date.now() + 50_000).toISOString() : null});
@@ -18,7 +19,7 @@ const response = (body: unknown, status = 200, retryAfter?: string) => ({
 }) as Response;
 const tree = (userId: string | number = USER_ID, role: string | undefined = 'admin') => (
   <NextIntlClientProvider locale="en" messages={enMessages as never}>
-    <WhiteTelegramLink userId={userId} role={role} onSignInAgain={signInAgain} />
+    <WhiteTelegramLink userId={userId} role={role} onSignInAgain={signInAgain} onVerified={confirmed} />
   </NextIntlClientProvider>
 );
 const flush = async () => {await act(async () => {});};
@@ -32,6 +33,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date('2026-10-12T12:00:00Z'));
   signInAgain.mockClear();
+  confirmed.mockClear();
   vi.spyOn(Storage.prototype, 'getItem').mockReturnValue(null);
   vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible');
   vi.spyOn(window, 'open').mockReturnValue(null);
@@ -45,6 +47,44 @@ afterEach(() => {
 });
 
 describe('Site account Telegram connection', () => {
+  it('reports a new confirmation once but not every already-verified focus check', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(response(identity())).mockResolvedValue(response(identity(true, true)));
+    render(tree());
+    await flush();
+    await advance(3000);
+    await returned();
+    expect(confirmed).toHaveBeenCalledOnce();
+    await advance(3000);
+    await returned();
+    expect(confirmed).toHaveBeenCalledOnce();
+  });
+
+  it('initial verified status and subsequent focus checks do not refresh the Site session', async () => {
+    vi.mocked(fetch).mockResolvedValue(response(identity(true, true)));
+    render(tree());
+    await flush();
+    await advance(3000);
+    await returned();
+    expect(getState()).toBe('verified');
+    expect(confirmed).not.toHaveBeenCalled();
+  });
+
+  it('does not report an obsolete account confirmation after changing accounts', async () => {
+    let finish!: (value: Response) => void;
+    vi.mocked(fetch).mockResolvedValueOnce(response(identity()))
+      .mockImplementationOnce(() => new Promise(resolve => {finish = resolve;}))
+      .mockResolvedValueOnce(response({...identity(), site_user_id: OTHER_ID}));
+    const mounted = render(tree());
+    await flush();
+    await advance(3000);
+    await returned();
+    mounted.rerender(tree(OTHER_ID));
+    await flush();
+    await act(async () => finish(response(identity(true, true))));
+    expect(confirmed).not.toHaveBeenCalled();
+    expect(getState()).toBe('idle');
+  });
+
   it.each(['user', 'admin'])('checks a %s account on mount without opening Telegram or issuing a challenge', async (role) => {
     render(tree(USER_ID, role));
     await flush();
@@ -149,8 +189,8 @@ describe('Site account Telegram connection', () => {
     expect(link).toHaveAttribute('referrerpolicy', 'no-referrer');
     await advance(3000);
     await returned();
-    expect(getState()).toBe('linked');
-    expect(screen.getByRole('status')).toHaveTextContent(messages.linked);
+    expect(getState()).toBe('pending');
+    expect(screen.getByRole('status')).toHaveTextContent(messages.pending);
     expect(screen.queryByText(messages.verified)).toBeNull();
   });
 
@@ -386,7 +426,7 @@ describe('Site account Telegram connection', () => {
   });
 
   it.each([
-    ['user', false, 'linked'], ['user', true, 'linked'], ['admin', false, 'refresh'], ['admin', true, 'verified'],
+    ['user', false, 'refresh'], ['user', true, 'verified'], ['admin', false, 'refresh'], ['admin', true, 'verified'],
   ])('keeps role %s and fresh proof %s distinct with state %s', async (role, verified, expected) => {
     vi.mocked(fetch).mockResolvedValue(response(identity(true, verified as boolean)));
     render(tree(USER_ID, role as string));
@@ -394,10 +434,9 @@ describe('Site account Telegram connection', () => {
     expect(getState()).toBe(expected);
     expect(screen.queryByText(messages.description)).toBeNull();
     expect(screen.queryByRole('button', {name: messages.connect})).toBeNull();
-    if (role === 'user') expect(screen.queryByText(messages.verified)).toBeNull();
     if (expected === 'refresh') expect(screen.getByRole('button', {name: messages.refreshAction})).toBeEnabled();
     await advance(50_001);
-    expect(getState()).toBe(role === 'admin' ? 'refresh' : 'linked');
+    expect(getState()).toBe('refresh');
   });
 
   it.each([401, 403])('stops on HTTP %s and offers sign-in without exposing server details', async (status) => {

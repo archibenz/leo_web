@@ -293,6 +293,7 @@ async function mockTelegramAccount(page: Page, role = 'user', now = new Date()) 
   const state = {
     linked: false,
     verified: false,
+    analyticsAllowed: false,
     verifiedUntil: new Date(now.getTime() + 3_600_000).toISOString(),
     siteUserId: SITE_USER_ID,
     challengeStatus: 200,
@@ -314,6 +315,7 @@ async function mockTelegramAccount(page: Page, role = 'user', now = new Date()) 
   await page.route('**/api/auth/me', (route) => route.fulfill({json: {
     id: SITE_USER_ID, email: 'telegram-ui@example.test', name: 'Тест', role,
   }}));
+  await page.route('**/account/analytics-access', route => route.fulfill({status: state.analyticsAllowed ? 204 : 403, body: ''}));
   await page.route('**/api/auth/me/telegram-link/status', (route) => {
     state.statusCalls++;
     return route.fulfill({json: {
@@ -357,6 +359,7 @@ test.describe('signed-in Telegram connection', () => {
       const state = await mockTelegramAccount(page, 'admin', new Date(confirmedAt + elapsedDays * day));
       state.linked = true;
       state.verified = true;
+      state.analyticsAllowed = true;
       state.verifiedUntil = new Date(confirmedAt + 90 * day).toISOString();
 
       const card = await openTelegramAccount(page);
@@ -394,12 +397,13 @@ test.describe('signed-in Telegram connection', () => {
     await captureTelegram(page, testInfo, 'member-pending-desktop');
 
     state.linked = true;
+    state.verified = true;
     await page.clock.fastForward(3100);
     await popup.close();
     await page.bringToFront();
     await page.evaluate(() => window.dispatchEvent(new Event('focus')));
-    await expect(card).toHaveAttribute('data-state', 'linked');
-    await expect(card.getByRole('status')).toHaveText(tl('linked'));
+    await expect(card).toHaveAttribute('data-state', 'verified');
+    await expect(card.getByRole('status')).toHaveText(tl('verified'));
     await expect(card.getByRole('link', {name: tl('openTelegram')})).toHaveCount(0);
     expect(state.statusCalls).toBeGreaterThanOrEqual(2);
     expect(state.telegramOpens).toBe(1);
@@ -469,7 +473,8 @@ test.describe('signed-in Telegram connection', () => {
   test('owner actions and connection remain keyboard-accessible without motion on mobile', async ({page}, testInfo) => {
     await page.setViewportSize({width: 390, height: 844});
     await page.emulateMedia({reducedMotion: 'reduce'});
-    await mockTelegramAccount(page, 'admin');
+    const state = await mockTelegramAccount(page, 'admin');
+    state.analyticsAllowed = true;
     const card = await openTelegramAccount(page);
     await expect(card).toHaveAttribute('data-state', 'idle');
     const admin = page.getByRole('link', {name: copy('editModeSwitch', 'adminLink'), exact: true});
@@ -503,8 +508,9 @@ test.describe('signed-in Telegram connection', () => {
     await expect(connect).toBeFocused();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     expect(await card.getByRole('status').evaluate((element) => getComputedStyle(element).animationName)).toBe('none');
-    expect(await analytics.locator('svg').evaluate((element) => getComputedStyle(element).transitionDuration)).toBe('0s');
-    expect(await analytics.locator('svg').evaluate((element) => getComputedStyle(element).transform)).toBe('none');
+    await expect(analytics.locator('svg')).toHaveCount(0);
+    expect(await analytics.evaluate((element) => getComputedStyle(element, '::before').transitionDuration)).toBe('0s');
+    expect(await analytics.evaluate((element) => getComputedStyle(element).transform)).toBe('none');
     await settleAction();
     await testInfo.attach('enabled-action-styles', {
       body: JSON.stringify({default: defaultStyles, focused: await actionStyles()}, null, 2),

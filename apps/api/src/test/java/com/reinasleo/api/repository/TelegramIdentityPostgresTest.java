@@ -101,6 +101,27 @@ class TelegramIdentityPostgresTest {
     }
 
     @Test
+    void verifiedBuyerIdentityIsReadOnlyAndDoesNotGrantSiteAdmin() {
+        UUID id = account();
+        jdbc.update("UPDATE users SET role = 'user' WHERE id = ?", id);
+        confirm(challenge(id), 93000401L);
+        var accountBefore = jdbc.queryForMap("SELECT * FROM users WHERE id = ?", id);
+        var proofBefore = jdbc.queryForMap("SELECT * FROM verified_telegram_identities WHERE user_id = ?", id);
+        long usersBefore = jdbc.queryForObject("SELECT COUNT(*) FROM users", Long.class);
+        var identity = transaction.execute(status -> identities.analyticsIdentity(session(id)));
+        assertThat(identity).isNotNull();
+        assertThat(identity.isAdmin()).isFalse();
+        assertThat(identity.telegramVerified()).isTrue();
+        assertThat(identity.telegramId()).isEqualTo(93000401L);
+        assertThat(jdbc.queryForMap("SELECT * FROM users WHERE id = ?", id)).isEqualTo(accountBefore);
+        assertThat(jdbc.queryForMap("SELECT * FROM verified_telegram_identities WHERE user_id = ?", id)).isEqualTo(proofBefore);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM users", Long.class)).isEqualTo(usersBefore);
+        assertThatThrownBy(() -> transaction.execute(status -> identities.analyticsSession(session(id))))
+                .isInstanceOfSatisfying(ResponseStatusException.class,
+                        exception -> assertThat(exception.getReason()).isEqualTo("site_admin_required"));
+    }
+
+    @Test
     void realMigrationProtectsImmutableProofAndErasesItOnSoftDelete() {
         UUID id = account();
         confirm(challenge(id), 93000001L);

@@ -7,28 +7,37 @@ import {Button} from '../ui/button';
 import {getTelegramLinkStatus, issueTelegramLink, telegramLinkFailure, telegramLinkRetryAt,
   type TelegramLinkChallenge, type TelegramLinkFailure} from '../../lib/telegramLink';
 
-type Props = {userId: string | number; role?: string; onSignInAgain: () => void};
-type Status = TelegramLinkFailure | 'loading' | 'idle' | 'starting' | 'pending' | 'linked' | 'verified' | 'refresh' | 'expired';
+type Props = {userId: string | number; role?: string; onSignInAgain: () => void; onVerified: () => void};
+type Status = TelegramLinkFailure | 'loading' | 'idle' | 'starting' | 'pending' | 'verified' | 'refresh' | 'expired';
 type Action = 'status' | 'issue';
 type View = {status: Status; challenge: TelegramLinkChallenge | null; verifiedUntil: number | null; retryAt: number | null; retryAction: Action};
 type Request = {controller: AbortController; timer: number};
 
-const passiveStates = new Set<Status>(['loading', 'idle', 'pending', 'linked', 'verified', 'refresh', 'expired']);
+const passiveStates = new Set<Status>(['loading', 'idle', 'pending', 'verified', 'refresh', 'expired']);
 const emptyView = (status: Status): View => ({status, challenge: null, verifiedUntil: null, retryAt: null, retryAction: 'status'});
 
-function TelegramLinkControls({userId, role, onSignInAgain}: Props) {
+function TelegramLinkControls({userId, onSignInAgain, onVerified}: Props) {
   const t = useTranslations('white.account.telegramLink');
-  const isAdmin = role === 'admin';
   const [view, setView] = useState<View>(() => emptyView('loading'));
   const current = useRef(view);
   const request = useRef<Request | null>(null);
   const blankWindow = useRef<Window | null>(null);
   const lastCheck = useRef(-Infinity);
+  const awaitingVerification = useRef(false);
+  const onVerifiedRef = useRef(onVerified);
+  onVerifiedRef.current = onVerified;
 
   const update = useCallback((next: View) => {
     current.current = next;
     setView(next);
   }, []);
+
+  const acceptVerification = useCallback((verifiedUntil: number | null) => {
+    const confirmedNow = awaitingVerification.current;
+    awaitingVerification.current = false;
+    update({...emptyView('verified'), verifiedUntil});
+    if (confirmedNow) onVerifiedRef.current();
+  }, [update]);
 
   const closeBlank = useCallback(() => {
     blankWindow.current?.close();
@@ -47,6 +56,7 @@ function TelegramLinkControls({userId, role, onSignInAgain}: Props) {
     cancelRequest();
     closeBlank();
     lastCheck.current = -Infinity;
+    awaitingVerification.current = true;
     update(emptyView('expired'));
   }, [cancelRequest, closeBlank, update]);
 
@@ -91,9 +101,10 @@ function TelegramLinkControls({userId, role, onSignInAgain}: Props) {
         expireChallenge();
         return;
       }
-      if (result.linked && (!isAdmin || result.verified)) {
-        update({...emptyView(isAdmin ? 'verified' : 'linked'), verifiedUntil: isAdmin ? result.verifiedUntil : null});
+      if (result.linked && result.verified) {
+        acceptVerification(result.verifiedUntil);
       } else {
+        awaitingVerification.current = true;
         update({...emptyView(challenge ? 'pending' : result.linked ? 'refresh' : previous.status === 'expired' ? 'expired' : 'idle'), challenge});
       }
     } catch (error) {
@@ -101,7 +112,7 @@ function TelegramLinkControls({userId, role, onSignInAgain}: Props) {
     } finally {
       finishRequest(active);
     }
-  }, [beginRequest, expireChallenge, finishRequest, isAdmin, showFailure, update, userId]);
+  }, [acceptVerification, beginRequest, expireChallenge, finishRequest, showFailure, update, userId]);
 
   useEffect(() => {
     void checkStatus();
@@ -145,7 +156,10 @@ function TelegramLinkControls({userId, role, onSignInAgain}: Props) {
     let timer: number;
     const checkExpiry = () => {
       const remaining = verifiedUntil - Date.now();
-      if (remaining <= 0) update(emptyView('refresh'));
+      if (remaining <= 0) {
+        awaitingVerification.current = true;
+        update(emptyView('refresh'));
+      }
       else timer = window.setTimeout(checkExpiry, Math.min(remaining, 2_147_483_647));
     };
     checkExpiry();
@@ -179,15 +193,16 @@ function TelegramLinkControls({userId, role, onSignInAgain}: Props) {
         lastCheck.current = Date.now();
         const result = await getTelegramLinkStatus(userId, active.controller.signal);
         if (active.controller.signal.aborted) return;
-        if (result.linked && (!isAdmin || result.verified)) {
+        if (result.linked && result.verified) {
           closeBlank();
-          update({...emptyView(isAdmin ? 'verified' : 'linked'), verifiedUntil: isAdmin ? result.verifiedUntil : null});
+          acceptVerification(result.verifiedUntil);
           return;
         }
         checkingExpired = false;
       }
       const challenge = await issueTelegramLink(active.controller.signal);
       if (active.controller.signal.aborted) return;
+      awaitingVerification.current = true;
       update({...emptyView('pending'), challenge});
       if (blankWindow.current && !blankWindow.current.closed) {
         try {
@@ -210,7 +225,7 @@ function TelegramLinkControls({userId, role, onSignInAgain}: Props) {
   }
 
   const busy = view.status === 'loading' || view.status === 'starting';
-  const linked = view.status === 'linked' || view.status === 'verified';
+  const linked = view.status === 'verified';
   const signIn = view.status === 'sessionExpired' || view.status === 'accessRequired';
   const failed = view.status === 'conflict' || view.status === 'unavailable' || view.status === 'rateLimited';
   const Icon = busy ? LoaderCircle : linked ? Check : failed || signIn || view.status === 'expired' ? AlertCircle : Send;
@@ -253,5 +268,5 @@ function TelegramLinkControls({userId, role, onSignInAgain}: Props) {
 }
 
 export default function WhiteTelegramLink(props: Props) {
-  return <TelegramLinkControls key={String(props.userId) + ':' + (props.role === 'admin' ? 'admin' : 'buyer')} {...props} />;
+  return <TelegramLinkControls key={String(props.userId)} {...props} />;
 }
