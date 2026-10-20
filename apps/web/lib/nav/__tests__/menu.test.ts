@@ -80,6 +80,8 @@ describe('общее меню годно для сайта', () => {
       .map((d) => `/{locale}/admin/${d.name}`);
     const linked = new Set(nodes.filter((n) => n.app === 'site').map((n) => n.path));
     expect(sections.filter((p) => !linked.has(p))).toEqual([]);
-    expect(linked.has('/{locale}/admin')).toBe(true);
+    expect(linked.has('/{locale}/admin')).toBe(false);
+    expect(nodes.find((node) => node.id === 'summary-home')?.path).toBe('/analytics');
+    expect(nodes.find((node) => node.id === 'summary-figures')?.path).toBe('/analytics/figures');
   });
 });

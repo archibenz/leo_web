@@ -19,7 +19,7 @@ export default function OwnerTools({locale}: {locale: string}) {
       <strong>{copy.entry}</strong><span>{copy.entryHint}</span>
     </Link>
     <div className={styles.ownerLinks}>
-      <Link className="min-h-11" href={`/${locale}/admin`}>{t('adminLink')}</Link>
+      <a className="min-h-11" href={`/${locale}/admin`}>{t('adminLink')}</a>
     </div>
   </section>;
 }

@@ -20,44 +20,48 @@
           "roles": [
             "section:dashboard"
           ]
+        },
+        {
+          "id": "summary-figures",
+          "title": {
+            "ru": "Цифры"
+          },
+          "icon": "sheet",
+          "app": "analytics",
+          "kind": "link",
+          "path": "/analytics/figures",
+          "match": "exact",
+          "roles": [
+            "section:finance"
+          ]
         }
       ],
       "emphasis": true
     },
     {
       "id": "data-entry",
-      "title": {
-        "ru": "Ввод данных"
-      },
+      "title": {"ru": "Ввод данных"},
       "fold": true,
       "items": [
         {
           "id": "data-entry-costs",
-          "title": {
-            "ru": "Себестоимость"
-          },
+          "title": {"ru": "Себестоимость"},
           "icon": "sheet",
           "app": "analytics",
           "kind": "link",
           "path": "/analytics/data-entry/costs",
           "match": "prefix",
-          "roles": [
-            "section:products"
-          ]
+          "roles": ["section:products"]
         },
         {
           "id": "data-entry-operating-expenses",
-          "title": {
-            "ru": "Операционные расходы"
-          },
+          "title": {"ru": "Операционные расходы"},
           "icon": "wallet",
           "app": "analytics",
           "kind": "link",
           "path": "/analytics/data-entry/operating-expenses",
           "match": "prefix",
-          "roles": [
-            "section:finance"
-          ]
+          "roles": ["section:finance"]
         }
       ]
     },
@@ -647,20 +651,6 @@
           "match": "exact",
           "roles": [
             "section:finance"
-          ]
-        },
-        {
-          "id": "site-admin",
-          "title": {
-            "ru": "Админка сайта"
-          },
-          "icon": "store",
-          "app": "site",
-          "kind": "link",
-          "path": "/{locale}/admin",
-          "match": "exact",
-          "roles": [
-            "admin"
           ]
         },
         {

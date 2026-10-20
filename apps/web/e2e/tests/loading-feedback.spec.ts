@@ -33,7 +33,11 @@ async function mockApi(page: Page) {
 async function open(page: Page, path: string) {
   await page.goto(path, {waitUntil: 'domcontentloaded', timeout: COLD_COMPILE});
   await expect(page.locator('.wv-root, [data-admin-shell]').first()).toBeVisible();
-  await hydrateViaCookieNotice(page);
+  if (path.startsWith('/ru/admin/')) {
+    await expect(page.getByRole('button', {name: OWNER.name, exact: true})).toBeVisible();
+  } else {
+    await hydrateViaCookieNotice(page);
+  }
 }
 
 async function lineStyle(page: Page) {
@@ -60,15 +64,15 @@ async function holdRsc(page: Page, path: string) {
 
 test('client navigation stays active after URL commit until admin data is rendered', async ({page}, info) => {
   await mockApi(page);
-  await open(page, '/ru/account');
-  await expect(page.locator('a[href="/ru/admin"]')).toBeVisible();
+  await open(page, '/ru/admin/inventory');
+  await expect(page.locator('[data-page-loading]')).toHaveCount(0);
+  await expect(page.locator('a[href="/ru/admin/products"]')).toBeVisible();
   const data = gate();
   const requested = gate();
   await page.route('**/api/admin/products', async route => {
     requested.release(); await data.promise; await route.fulfill({json: [PRODUCT]});
   });
-  // Use the actual account link, then the real sidebar link, preserving the provider.
-  await page.locator('a[href="/ru/admin"]').click();
+  // Navigate between real Site management sections through the sidebar.
   await page.locator('a[href="/ru/admin/products"]').first().click();
   await requested.promise;
   await expect(page).toHaveURL(/\/ru\/admin\/products$/);

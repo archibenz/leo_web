@@ -17,7 +17,7 @@ import AdminLayout from '../AdminLayout';
 // Прежние проверки про aria-expanded были верны только про снятое устройство.
 
 vi.mock('next/navigation', () => ({
-  usePathname: () => '/ru/admin',
+  usePathname: () => '/ru/admin/products',
   useRouter: () => ({push: vi.fn(), refresh: vi.fn()}),
 }));
 
@@ -178,7 +178,7 @@ describe('общее меню с аналитикой', () => {
     expect(screen.queryByRole('link', {name: 'toAnalytics'})).toBeNull();
   });
 
-  it('текущим отмечен только свой пункт: «Админка сайта» на /ru/admin, «Свод» и «Посещения» — нет', () => {
+  it('выделяет товары, сохраняя отдельный вход в новую аналитику', () => {
     setViewport(DESKTOP);
     render(
       <AdminLayout>
@@ -186,11 +186,8 @@ describe('общее меню с аналитикой', () => {
       </AdminLayout>,
     );
 
-    // По имени, а не по адресу: на /ru/admin ведёт ещё и марка в шапке панели.
-    // Ищем среди настоящих <a>: хлебная крошка в шапке тоже «ссылка» с этим
-    // именем (span role=link), а отметку несёт пункт панели.
-    const home = screen.getAllByRole('link', {name: 'Админка сайта'}).find((el) => el.tagName === 'A');
-    expect(home).toHaveAttribute('data-active', 'true');
+    expect(link('/ru/admin/products')).toHaveAttribute('data-active', 'true');
+    expect(screen.queryByRole('link', {name: 'Админка сайта'})).toBeNull();
     expect(screen.getByRole('link', {name: 'Свод'})).not.toHaveAttribute('data-active', 'true');
     // «Посещения» с 30.09 — экран аналитики, а не главная админки (#236).
     expect(screen.getByRole('link', {name: 'Посещения'})).not.toHaveAttribute('data-active', 'true');
