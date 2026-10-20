@@ -106,8 +106,8 @@ test.describe('оболочки по группам маршрутов — пе�
     await asOwner(page);
     await mockDashboardApi(page);
 
-    await page.goto('/ru/admin', {waitUntil: 'domcontentloaded'});
-    await expect(page.getByRole('heading', {level: 1, name: 'Посещения'})).toBeVisible();
+    await page.goto('/ru/admin/products', {waitUntil: 'domcontentloaded'});
+    await expect(page.getByRole('heading', {level: 1, name: 'Товары'})).toBeVisible();
 
     // Клиентский переход — предмет проверки, не page.goto.
     //
@@ -147,50 +147,16 @@ test.describe('оболочки по группам маршрутов — пе�
     expect(pixel).toBe('rgb(255, 255, 255)');
   });
 
-  test('симметричный переход: с витрины в админку ссылкой — шапки и подвала витрины на экране нет', async ({page}) => {
+  test('вход из аккаунта открывает новую аналитику отдельным документом', async ({page}) => {
     await page.setViewportSize({width: 1440, height: 900});
     await asOwner(page);
     await mockDashboardApi(page);
-
-    // /ru/account — единственное место в оболочке витрины, откуда владелец
-    // вообще может дотянуться до /admin ссылкой (AdminPanelLink.tsx, рядом
-    // с выключателем режима правки); ни в WhiteHeaderActions, ни в
-    // WhiteFooter такой ссылки нет. openSettledForOwner ждёт ответ
-    // /api/auth/me и снимает баннер cookie — без этого isAdmin
-    // (useEditorSession) ещё не решён асинхронным эффектом, и ссылки в DOM
-    // физически нет (см. комментарий openSettledForOwner в fixtures/white.ts).
+    await page.route('**/account/analytics-access', route => route.fulfill({status: 204, body: ''}));
     await openSettledForOwner(page, '/ru/account');
     await expect(page.locator('.wv-root')).toHaveCount(1);
-
-    // Честно про механизм: AdminPanelLink.tsx рендерит обычный <a>, не
-    // next/link — проверено маркером на window, переживающим только SPA-
-    // переход: клик сюда всегда даёт полную перезагрузку документа. Полная
-    // перезагрузка не может воспроизвести дефект из task-route-groups-
-    // brief.md (общий layout, не размонтированный при клиентском переходе)
-    // — она всегда рендерит с нуля правильную ветку, потому и не годится
-    // как единственное доказательство «симметричного случая» из брифа.
-    // Мутационный прогон это подтвердил: под возвращённым дефектом этот
-    // кейс остаётся зелёным, а первый (клиентский «Назад на сайт») —
-    // краснеет. Проверка всё равно осмысленна сама по себе (структура
-    // страницы админки не должна тащить шапку/подвал витрины ни при каком
-    // способе перехода), просто не она несёт мутационное доказательство —
-    // это первый тест. Заменить <a> на <Link>, чтобы и этот переход стал
-    // клиентским, — решение за пределами этой задачи (task-route-groups-
-    // brief.md про AdminPanelLink.tsx не говорит), см. отчёт.
+    const destination = page.waitForRequest(request =>
+      request.isNavigationRequest() && new URL(request.url()).pathname === '/analytics');
     await page.locator('a[href="/ru/admin"]').click();
-    await page.waitForURL(/\/ru\/admin$/);
-    await expect(page.getByRole('heading', {level: 1, name: 'Посещения'})).toBeVisible();
-
-    // Оболочки витрины на экране нет — это и есть предмет проверки.
-    await expect(page.locator('.wv-root')).toHaveCount(0);
-
-    // А раньше здесь стояло «header и footer — ноль штук». Утверждение
-    // устарело 15.09 и стало ЛОЖНЫМ: у оболочки Efferd своя шапка, и она
-    // обязана быть. Отрицание, переставшее быть верным, хуже отсутствия
-    // проверки — оно краснеет на исправном коде и учит закрывать глаза.
-    // Поэтому вместо «чужого нет» проверяем «своё есть»: админка показывает
-    // СВОЮ оболочку, а не витринную.
-    await expect(page.getByRole('button', {name: 'Свернуть навигацию'})).toBeVisible();
-    await expect(page.locator('.gradient-chrome')).toHaveCount(0);
+    expect((await destination).resourceType()).toBe('document');
   });
 });

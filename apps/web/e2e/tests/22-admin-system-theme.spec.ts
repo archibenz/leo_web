@@ -9,7 +9,7 @@ import {test, expect, type Page} from '@playwright/test';
 // 16-admin-white-shell.spec.ts.
 
 const DARK_BG = 'rgb(18, 18, 18)'; // 0 0% 7%
-const DARK_POPOVER = 'rgb(26, 26, 26)'; // 0 0% 10%
+const DARK_POPOVER = /^rgb\((25, 25, 25|26, 26, 26)\)$/; // 10% rounds differently in WebKit.
 const DARK_BORDER = 'rgb(51, 51, 51)'; // 0 0% 20%
 const WHITE = 'rgb(255, 255, 255)';
 
@@ -39,7 +39,7 @@ async function asOwner(page: Page): Promise<void> {
 
 async function openAdmin(page: Page): Promise<void> {
   await asOwner(page);
-  await page.goto('/ru/admin');
+  await page.goto('/ru/admin/products');
   // Оболочка админки с меткой темы, а не экран ошибки или входа.
   await expect(page.locator('[data-admin-shell] [data-slot="sidebar-inner"], [data-admin-shell] [data-sidebar]').first())
     .toBeAttached();
@@ -61,7 +61,7 @@ test.describe('тёмная системная тема', () => {
 
     // Рамка без явного цвета (шапка панели дашборда — `border-b`) — токен
     // рамки, а не gray-200 из preflight, который на тёмном горит белым.
-    await expect(page.locator('section > header').first()).toHaveCSS('border-bottom-color', DARK_BORDER);
+    await expect(page.locator('header.sticky.border-b').first()).toHaveCSS('border-bottom-color', DARK_BORDER);
 
     // Меню аккаунта — портал Radix, он рисуется в body мимо обёртки админки.
     // Если бы переменные висели на обёртке, а не на <html>, меню осталось бы белым.

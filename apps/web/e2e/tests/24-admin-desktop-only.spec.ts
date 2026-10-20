@@ -33,7 +33,7 @@ for (const width of [390, 1023]) {
   test(`${width}px: вместо панели — заглушка с выходами на сайт и в бота`, async ({page}) => {
     await page.setViewportSize({width, height: 844});
     await asOwner(page);
-    await page.goto('/ru/admin');
+    await page.goto('/ru/admin/products');
 
     await expect(page.getByRole('heading', {level: 1, name: STUB_TITLE})).toBeVisible();
     await expect(page.getByRole('link', {name: 'На сайт'})).toHaveAttribute('href', '/ru');
@@ -56,7 +56,7 @@ for (const width of [1024, 1280]) {
   test(`${width}px: панель, заглушки нет`, async ({page}) => {
     await page.setViewportSize({width, height: 900});
     await asOwner(page);
-    await page.goto('/ru/admin');
+    await page.goto('/ru/admin/products');
 
     await expect(page.getByRole('button', {name: 'Мой аккаунт'})).toBeVisible();
     await expect(page.getByRole('heading', {level: 1, name: STUB_TITLE})).toBeHidden();

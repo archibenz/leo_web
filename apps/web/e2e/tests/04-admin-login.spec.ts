@@ -14,7 +14,7 @@ const t = messages('account');
 const ACCOUNT = '/ru/account';
 
 test.describe('Admin login', () => {
-  test('admin can log in and reach dashboard', async ({page, adminCreds}) => {
+  test('admin can log in and reach product management', async ({page, adminCreds}) => {
     test.skip(
       !adminCreds,
       'set E2E_ADMIN_EMAIL + E2E_ADMIN_PASSWORD in .env.local to run this test'
@@ -36,10 +36,9 @@ test.describe('Admin login', () => {
       timeout: 15_000,
     });
 
-    await page.goto('/ru/admin', {waitUntil: 'domcontentloaded', timeout: COLD_COMPILE});
+    await page.goto('/ru/admin/products', {waitUntil: 'domcontentloaded', timeout: COLD_COMPILE});
     await expect(page).toHaveURL(/\/ru\/admin/);
 
-    // Dashboard should show a known h2 from AdminDashboardPage
-    await expect(page.getByText(/бизнес-метрики/i)).toBeVisible({timeout: 8_000});
+    await expect(page.getByRole('heading', {level: 1, name: 'Товары'})).toBeVisible({timeout: 8_000});
   });
 });

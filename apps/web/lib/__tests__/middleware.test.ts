@@ -136,4 +136,21 @@ describe('admin guard keeps the way back', () => {
     const res = guard('/ru/admin/products', 'session');
     expect(res.headers.get('location') ?? '').not.toContain('/account');
   });
+
+  it.each(['/ru/admin', '/en/admin', '/ru/admin/', '/en/admin?next=https://example.invalid'])(
+    'redirects only the legacy entry %s before locale rendering',
+    (path) => {
+      const res = guard(path, 'session');
+      expect(res.status).toBe(307);
+      expect(res.headers.get('location')).toBe('https://reinasleo.com/analytics');
+      expect(res.headers.has('x-middleware-rewrite')).toBe(false);
+    },
+  );
+
+  it.each(['/ru/admin/products', '/en/admin/inventory', '/ru/admin/homepage', '/ru/administrator'])(
+    'does not redirect the management or unrelated path %s to Analytics',
+    (path) => {
+      expect(guard(path, 'session').headers.get('location')).toBeNull();
+    },
+  );
 });

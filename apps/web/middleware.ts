@@ -228,6 +228,11 @@ export default function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
+  // Cross-app navigation must redirect before the localized shell streams.
+  if (locales.some((locale) => pathname === `/${locale}/admin` || pathname === `/${locale}/admin/`)) {
+    return NextResponse.redirect(new URL('/analytics', request.url));
+  }
+
   // Next.js API route handlers (/api/*) must NOT go through next-intl
   // (no locale routing) but they DO need the same security headers as pages —
   // otherwise endpoints like /api/newsletter/subscribe ship without CSP, HSTS,
